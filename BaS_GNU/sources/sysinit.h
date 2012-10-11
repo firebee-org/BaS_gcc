@@ -1,6 +1,6 @@
 /*
  * File:		sysinit.h
- * Purpose:		COLDARI Power-on Reset configuration
+ * Purpose:		Firebee Power-on Reset configuration
  *
  * Notes:
  *
@@ -8,11 +8,6 @@
 
 #ifndef __SYSINIT_H__
 #define __SYSINIT_H__
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 
 #if ENABLE_UART_SUPPORT==1 
 
@@ -75,12 +70,6 @@ void __initialize_hardware(void);
  * specific initialization are done to allow additional hardware setup.
  */ 
 void __initialize_system(void);
-
-
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif /* __SYSINIT_H__ */
 
