@@ -10,7 +10,7 @@
 
 extern unsigned long __Bas_base[];
 
-	/* imported routines */
+/* imported routines */
 extern int mmu_init();
 extern int vec_init();
 extern int illegal_table_make();
@@ -18,42 +18,42 @@ extern int illegal_table_make();
 /*
  * warte_routinen
  */
-void warte_10ms(void)
+void wait_10ms(void)
 {
 	register uint32_t target = MCF_SLT_SCNT(0) - 1320000;
 
 	while (MCF_SLT_SCNT(0) > target);
 }
 
-void warte_1ms(void)
+void wait_1ms(void)
 {
 	register uint32_t target = MCF_SLT_SCNT(0) - 132000;
 
 	while (MCF_SLT_SCNT(0) > target);
 }
 
-void warte_100us(void)
+void wait_100us(void)
 {
 	register uint32_t target = MCF_SLT_SCNT(0) - 13200;
 
 	while (MCF_SLT_SCNT(0) > target);
 }
 
-void warte_50us(void)
+void wait_50us(void)
 {
 	register uint32_t target = MCF_SLT_SCNT(0) - 6600;
 
 	while (MCF_SLT_SCNT(0) > target);
 }
 
-void warte_10us(void)
+void wait_10us(void)
 {
 	register uint32_t target = MCF_SLT_SCNT(0) - 1320;
 
 	while (MCF_SLT_SCNT(0) > target);
 }
 
-void warte_1us(void)
+void wait_1us(void)
 {
 	register uint32_t target = MCF_SLT_SCNT(0) - 132;
 
@@ -82,7 +82,7 @@ void BaS(void)
 	}
 
 	MCF_PSC3_PSCTB_8BIT = 'ACPF';
-	warte_10ms();
+	wait_10ms();
 
 	MCF_PSC0_PSCTB_8BIT = 'PIC ';
 
@@ -159,7 +159,7 @@ void BaS(void)
 	/* IDE reset */
 	* (uint8_t *) (0xffff8802 - 2) = 14;
 	* (uint8_t *) (0xffff8802 - 0) = 0x80;
-	warte_1ms();
+	wait_1ms();
 
 	* (uint8_t *) (0xffff8802 - 0) = 0;
 
@@ -185,7 +185,7 @@ void BaS(void)
 	/*
 	 * memory setup
 	 */
-	for (adr = 0x400; adr < 0x800; adr += 32) {
+	for (adr = 0x400L; adr < 0x800L; adr += 32) {
 		*adr = 0x0L;
 		*adr = 0x0L;
 		*adr = 0x0L;
