@@ -15,10 +15,10 @@ extern unsigned long _Bas_base;
 extern unsigned long BaS;
 extern unsigned long _BOOT_FLASH[];
 extern int copy_end();
-extern int warte_10us();
-extern int warte_1ms();
-extern int warte_10ms();
-extern int warte_50us();
+extern int wait_10us();
+extern int wait_1ms();
+extern int wait_10ms();
+extern int wait_50us();
 
 extern unsigned long rt_cacr;
 
@@ -221,9 +221,9 @@ void init_fpga(void)
 
 	while ((!MCF_GPIO_PPDSDR_FEC1L & (1 << 0)) && (!MCF_GPIO_PPDSDR_FEC1L & (1 << 5)));
 
-	warte_10us();
+	wait_10us();
 	MCF_GPIO_PODR_FEC1L |= (1 << 2);
-	warte_10us();
+	wait_10us();
 
 	while (!MCF_GPIO_PPDSDR_FEC1L & (1 << 0))
 	{
@@ -277,6 +277,9 @@ void init_fpga(void)
 		MCF_GPIO_PODR_FEC1L |= 1;
 		MCF_GPIO_PODR_FEC1L &= ~1;
 	}
+}
+
+#ifdef _NOT_USED_
 
 	bra		init_fpga_end
 //---------------------------------------------------------
@@ -330,7 +333,6 @@ init_fpga_end:
 	       }
 	       MCF_PSC0_PSCTB_8BIT = 'SET!'; MCF_PSC0_PSCTB_8BIT = 0x0a0d;}
 
-#ifdef _NOT_USED_
 
 /*
  * INIT VIDEO DDR RAM
@@ -651,7 +653,7 @@ i2c_ok:
 	MCF_I2C_I2SR &= 0xfd;
 	MCF_I2C_I2CR |= 0x08;	// txak=1
 
-	warte_50us();
+	wait_50us();
 	
 	RBYT = MCF_I2C_I2DR;
 	
@@ -725,7 +727,7 @@ void init_ac97(void) {
 		{
 			MCF_PSC2_PSCTB_AC97 = 0x00000000;	//SLOT2-12:RD REG ALLES 0
 		}
-		warte_50us();
+		wait_50us();
 		
 		va = MCF_PSC2_PSCTB_AC97;
 		if ((va & 0x80000fff) == 0x80000800) {
