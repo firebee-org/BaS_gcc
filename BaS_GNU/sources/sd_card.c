@@ -1,12 +1,8 @@
-/********************************************************************/
-// sd card
-/********************************************************************/
+/*
+ * sd card
+ */
 
-#define __MBAR  				0xff000000
-#define MCF_SLT0_SCNT           __MBAR + 0x908
-#define MCF_PSC0_PSCTB_8BIT		__MBAR + 0x860C
-#define MCF_PAD_PAR_DSPI        __MBAR + 0xA50
-#define MCF_DSPI_DMCR		    __MBAR + 0x8A00		//dspi control
+#include <mcf5475.h>
 
 #define	dspi_dtar0	0x0c
 #define	dspi_dsr	0x2c	
@@ -14,21 +10,8 @@
 #define	dspi_drfr	0x38
 #define	time1us		1320
 
+extern void wait_10ms(void);
 
-void wait_10ms(void)
-{
-	asm
-	{
-warte_10ms:
-		move.l		d0,-(sp) 		
-  		move.l		MCF_SLT0_SCNT,d0
-  		sub.l		#1320000,d0
- warte_d6:
-		cmp.l		MCF_SLT0_SCNT,d0
-		bcs			warte_d6
-		move.l		(sp)+,d0
-	}
-}
 
 void sd_com(void)		// byt senden und holen ---------------------
 {
