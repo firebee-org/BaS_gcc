@@ -271,7 +271,7 @@ void init_fpga(void)
 		}
 	} while ((!MCF_GPIO_PPDSDR_FEC1L & (1 << 5)) && (fpga_data < (uint8_t *) 0xE0800000));
 
-	for (fpga_data = 0; fpga_data < 4000; fpga_data++)
+	for (i = 0; i < 4000; i++)
 	{
 		/* toggle a little more since it's fun ;) */
 		MCF_GPIO_PODR_FEC1L |= 1;
