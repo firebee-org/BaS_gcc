@@ -46,6 +46,16 @@ extern "C" {
  * linker symbols must be defined in the linker command file.
  */
 
+#ifdef __GNUC__
+/* get rid of the __declspec() keyword */
+#undef __declspec
+#define __declspec(a) /* */
+
+/* the same for "far" */
+#undef far
+#define far /* */
+#endif
+
 extern __declspec(system) uint8 __MBAR[];
 extern __declspec(system) uint8 __MMUBAR[];
 extern __declspec(system) uint8 __RAMBAR0[];
