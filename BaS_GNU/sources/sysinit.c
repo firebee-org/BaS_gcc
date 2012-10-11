@@ -206,91 +206,99 @@ void init_fbcs()
 	MCF_PSC0_PSCTB_8BIT = 0x0a0d;
 }
 
-#ifdef _NOT_USED_
 /*
- * FPGA LADEN
+ * load FPGA
  */
 void init_fpga(void)
 {
+	register uint8_t *fpga_data;
+	register int i;
+
 	uart_out_word('FPGA');
 
 	MCF_GPIO_PODR_FEC1L |= (1 << 1);
 	MCF_GPIO_PODR_FEC1L |= (1 << 2);
 
-	while ((!MCF_GPIO_PPDSDR_FEC1L & (1 << 0)) && (!MCF_GPIO_PDDSDR_FEC1L & (1 << 5)));
+	while ((!MCF_GPIO_PPDSDR_FEC1L & (1 << 0)) && (!MCF_GPIO_PPDSDR_FEC1L & (1 << 5)));
 
 	warte_10us();
 	MCF_GPIO_PODR_FEC1L |= (1 << 2);
 	warte_10us();
 
-	start = 0xe0700000;
+	while (!MCF_GPIO_PPDSDR_FEC1L & (1 << 0))
+	{
+		warte10us();
+	}
 	
+	/*
+	 * excerpt from the Altera configuration manual:
+	 * The low-to-high transition of nCONFIG on the FPGA begins the configuration cycle. The
+	 * configuration cycle consists of 3 stagesÑreset, configuration, and initialization.
+	 * While nCONFIG is low, the device is in reset. When the device comes out of reset,
+	 * nCONFIG must be at a logic high level in order for the device to release the open-drain
+ 	 * nSTATUS pin. After nSTATUS is released, it is pulled high by a pull-up resistor and the FPGA
+	 * is ready to receive configuration data. Before and during configuration, all user I/O pins
+	 * are tri-stated. Stratix series, Arria series, and Cyclone series have weak pull-up resistors
+	 * on the I/O pins which are on, before and during configuration.
+	 *
+	 * To begin configuration, nCONFIG and nSTATUS must be at a logic high level. You can delay
+	 * configuration by holding the nCONFIG low. The device receives configuration data on its
+	 * DATA0 pins. Configuration data is latched into the FPGA on the rising edge of DCLK. After
+	 * the FPGA has received all configuration data successfully, it releases the CONF_DONE pin,
+	 * which is pulled high by a pull-up resistor. A low to high transition on CONF_DONE indicates
+	 * configuration is complete and initialization of the device can begin.
+	 */
+	fpga_data = (uint8_t *) 0xe0700000L;
+	do
+	{
+		uint8_t value = *fpga_data++;
+		for (i = 0; i < 8; i++)
+		{
 
-	       asm {
-	       lea MCF_GPIO_PODR_FEC1L, a1	// register adresse:write
-	       lea MCF_GPIO_PPDSDR_FEC1L, a2	// reads
-	       bclr #1,(a1)				// clk auf low
-	       bclr #2,(a1)				// #config=low
- test_nSTATUS:
-	       btst #0,(a2)				// nSTATUS==0
-	       bne test_nSTATUS	// nein->
-	       btst #5,(a2)				// conf done==0
-	       bne test_nSTATUS	// nein->
-	       jsr warte_10us	// warten
-	       bset #2,(a1)				// #config=high
-	       jsr warte_10us	// warten
- test_STATUS:
-	       btst #0,(a2)				// status high?
-	       beq test_STATUS	// nein->
-	       jsr warte_10us	// warten
-	       lea 0xE0700000, a0	// startadresse fpga daten
- word_send_loop:
-	       cmp.l #0xE0800000,a0
-	       bgt fpga_error
-			 move.b	(a0)+, d0	// 32 bit holen
-	       moveq #8,d1				// 32 bit ausgeben
- bit_send_loop:
-	       lsr.l
-#1,d0				// bit rausschieben
-	       bcs bit_is_1 bclr
-#3,(a1)
- bra bit_send bit_is_1:
-	       bset
-#3,(a1)
- bit_send:
-	       bset
-#1,(a1)				// clock=high
-	       bclr
-#1,(a1)				// clock=low
-	       subq.l
-#1,d1
-	       bne bit_send_loop	// wiederholen bis fertig
-	       btst
-#5,(a2)				// fpga fertig, conf_done=high?
-	       beq word_send_loop	// nein, next word->
-	       move.l
-#4000,d1
- overclk:
-	       bset
-#1,(a1)				// clock=high
-	       nop bclr
-#1,(a1)				// clock=low
-	       subq.l
-#1,d1
-	       bne overclk	// weiter bis fertig
-	       bra init_fpga_end
+			if ((value << i) & 0b10000000)
+			{
+				/* bit set -> toggle DATA0 to high */
+				MCF_GPIO_PODR_FEC1L |= (1 << 3);
+			}
+			else
+			{
+				/* bit is cleared -> toggle DATA0 to low */
+				MCF_GPIO_PODR_FEC1L &= ~(1 << 3);
+			}
+			/* toggle DCLK -> FPGA reads the bit */
+			MCF_GPIO_PODR_FEC1L |= 1;
+			MCF_GPIO_PODR_FEC1L &= ~1;
+		}
+	} while ((!MCF_GPIO_PPDSDR_FEC1L & (1 << 5)) && (fpga_data < (uint8_t *) 0xE0800000));
+
+	for (fpga_data = 0; fpga_data < 4000; fpga_data++)
+	{
+		/* toggle a little more since it's fun ;) */
+		MCF_GPIO_PODR_FEC1L |= 1;
+		MCF_GPIO_PODR_FEC1L &= ~1;
+	}
+
+	bra		init_fpga_end
 //---------------------------------------------------------
  wait_pll:
-	       lea MCF_SLT0_SCNT, a3 move.l(a3), d0 move.l
-#100000,d6			// ca 1ms
+	       lea		MCF_SLT0_SCNT, a3
+	       move.l	(a3),d0
+	       move.l	#100000,d6			// ca 1ms
  wait_pll_loop:
-	       tst.w(a1)
- bpl wait_pll_ok move.l(a3), d1 sub.l d0, d1 add.l d6, d1 bpl wait_pll_loop wait_pll_ok:
+	       tst.w	(a1)
+	       bpl		wait_pll_ok
+	       move.l	(a3), d1
+	       sub.l d0, d1
+	       add.l d6, d1
+	       bpl wait_pll_loop
+wait_pll_ok:
 	       rts
 // fertig
  fpga_error:
-	       }
- MCF_PSC0_PSCTB_8BIT = ' NOT'; init_fpga_end:
+	}
+
+	MCF_PSC0_PSCTB_8BIT = ' NOT';
+init_fpga_end:
 	       MCF_PSC0_PSCTB_8BIT = ' OK!'; MCF_PSC0_PSCTB_8BIT = 0x0a0d;
 // init pll             
 	       MCF_PSC0_PSCTB_8BIT = 'PLL '; asm {
@@ -321,6 +329,8 @@ void init_fpga(void)
 	       bsr wait_pll clr.b(a1)	// set
 	       }
 	       MCF_PSC0_PSCTB_8BIT = 'SET!'; MCF_PSC0_PSCTB_8BIT = 0x0a0d;}
+
+#ifdef _NOT_USED_
 
 /*
  * INIT VIDEO DDR RAM
