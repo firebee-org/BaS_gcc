@@ -2,20 +2,20 @@
 	/* INIT ACR und MMU /*
 /********************************************************************/
 
-.include "startcf.h"
+#include "startcf.h"
 
-.extern _rt_vbr
-.extern _rt_cacr
-.extern _rt_asid
-.extern _rt_acr0
-.extern _rt_acr1
-.extern _rt_acr2
-.extern _rt_acr3
-.extern _rt_mmubar
-.extern ___MMUBAR
-.extern cpusha
-.extern _video_tlb
-.extern _video_sbt
+	.extern _rt_vbr
+	.extern _rt_cacr
+	.extern _rt_asid
+	.extern _rt_acr0
+	.extern _rt_acr1
+	.extern _rt_acr2
+	.extern _rt_acr3
+	.extern _rt_mmubar
+	.extern ___MMUBAR
+	.extern cpusha
+	.extern _video_tlb
+	.extern _video_sbt
 
 /* Register read/write macros */
 #define MCF_MMU_MMUCR            			___MMUBAR
@@ -74,8 +74,8 @@
 #define	 cb_mmudr	(MCF_MMU_MMUDR_SZ(00)|MCF_MMU_MMUDR_CM(01)|MCF_MMU_MMUDR_R|MCF_MMU_MMUDR_W|MCF_MMU_MMUDR_X)
 #define	 nc_mmudr	(MCF_MMU_MMUDR_SZ(00)|MCF_MMU_MMUDR_CM(10)|MCF_MMU_MMUDR_R|MCF_MMU_MMUDR_W|MCF_MMU_MMUDR_X)
 
-.public _mmu_init
-.public _mmutr_miss
+		.global _mmu_init
+		.global _mmutr_miss
 
 .text
 _mmu_init:
