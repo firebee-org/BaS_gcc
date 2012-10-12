@@ -15,7 +15,7 @@ CC=$(TCPREFIX)gcc
 LD=$(TCPREFIX)ld
 
 INCLUDE=-Iinclude
-CFLAGS=-mcfv4e -Wno-multichar -O1 -fomit-frame-pointer
+CFLAGS=-mcfv4e -Wno-multichar -Os -fomit-frame-pointer
 #CFLAGS=-mcfv4e -Wno-multichar -S -O3 -fomit-frame-pointer
 SRCDIR=sources
 
