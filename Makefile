@@ -39,7 +39,7 @@ ASRCS= \
 COBJS=$(patsubst $(SRCDIR),$(OBJDIR),$(patsubst %.c,%.o,$(CSRCS)))
 AOBJS=$(patsubst $(SRCDIR),$(OBJDIR),$(patsubst %.S,%.o,$(ASRCS)))
 
-OBJS=$(COBJS) $(SOBJS)
+OBJS=$(COBJS) $(AOBJS)
 
 all: $(EXEC)
 
