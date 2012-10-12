@@ -2,7 +2,7 @@
  * sd card
  */
 
-#include <mcf5475.h>
+#include <MCF5475.h>
 
 #define	dspi_dtar0	0x0c
 #define	dspi_dsr	0x2c	
