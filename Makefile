@@ -18,6 +18,7 @@ INCLUDE=-Iinclude
 CFLAGS=-mcfv4e -Wno-multichar -Os -fomit-frame-pointer
 #CFLAGS=-mcfv4e -Wno-multichar -S -O3 -fomit-frame-pointer
 SRCDIR=sources
+OBJDIR=objs
 
 EXEC=bas.hex
 
@@ -35,8 +36,8 @@ ASRCS= \
 	$(SRCDIR)/ewf.S \
 	$(SRCDIR)/illegal_instruction.S 
 
-COBJS=$(CSRCS:.c=.o)
-AOBJS=$(ASRCS:.S=.o)
+COBJS=$(patsubst $(SRCDIR),$(OBJDIR),$(patsubst %.c,%.o,$(CSRCS)))
+AOBJS=$(patsubst $(SRCDIR),$(OBJDIR),$(patsubst %.S,%.o,$(ASRCS)))
 
 OBJS=$(COBJS) $(SOBJS)
 
@@ -49,7 +50,7 @@ clean:
 	rm $(EXEC) *.o
 	
 .c.o:
-	$(CC) -c $(CFLAGS) $(INCLUDE) $<
+	$(CC) -c $(CFLAGS) $(INCLUDE) $< -o $@
 	
 .S.o:
-	$(CC) -c $(CFLAGS) $(INCLUDE) $<
+	$(CC) -c $(CFLAGS) $(INCLUDE) $< -o $@
