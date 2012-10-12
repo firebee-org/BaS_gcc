@@ -36,11 +36,11 @@
  * __SDRAM,__SDRAM_SIZE, __FLASH, __FLASH_SIZE linker 
  * symbols must be defined in the linker command file.
  */
-extern __declspec(system) uint8 __BOOT_FLASH[];
-extern __declspec(system) uint8 __BOOT_FLASH_SIZE[];
+extern __declspec(system) uint8_t __BOOT_FLASH[];
+extern __declspec(system) uint8_t __BOOT_FLASH_SIZE[];
 
-extern __declspec(system) uint8 __SDRAM[];
-extern __declspec(system) uint8 __SDRAM_SIZE[];
+extern __declspec(system) uint8_t __SDRAM[];
+extern __declspec(system) uint8_t __SDRAM_SIZE[];
 
 
 #define BOOT_FLASH_ADDRESS		(uint32)__BOOT_FLASH
