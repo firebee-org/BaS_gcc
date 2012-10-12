@@ -36,11 +36,11 @@ ASRCS= \
 	$(SRCDIR)/ewf.S \
 	$(SRCDIR)/illegal_instruction.S 
 
-COBJS=$(patsubst $(SRCDIR),$(OBJDIR),$(patsubst %.c,%.o,$(CSRCS)))
-AOBJS=$(patsubst $(SRCDIR),$(OBJDIR),$(patsubst %.S,%.o,$(ASRCS)))
+COBJS=$(patsubst $(SRCDIR)/%.o,$(OBJDIR)/%.o,$(patsubst %.c,%.o,$(CSRCS)))
+AOBJS=$(patsubst $(SRCDIR)/%.o,$(OBJDIR)/%.o,$(patsubst %.S,%.o,$(ASRCS)))
 
 OBJS=$(COBJS) $(AOBJS)
-
+	
 all: $(EXEC)
 
 $(EXEC): $(OBJS)
