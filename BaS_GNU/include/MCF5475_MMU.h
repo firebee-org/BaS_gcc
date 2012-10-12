@@ -24,12 +24,12 @@
 *********************************************************************/
 
 /* Register read/write macros */
-#define MCF_MMU_MMUCR                        (*(vuint32*)(&__MMUBAR[0]))
-#define MCF_MMU_MMUOR                        (*(vuint32*)(&__MMUBAR[0x4]))
-#define MCF_MMU_MMUSR                        (*(vuint32*)(&__MMUBAR[0x8]))
-#define MCF_MMU_MMUAR                        (*(vuint32*)(&__MMUBAR[0x10]))
-#define MCF_MMU_MMUTR                        (*(vuint32*)(&__MMUBAR[0x14]))
-#define MCF_MMU_MMUDR                        (*(vuint32*)(&__MMUBAR[0x18]))
+#define MCF_MMU_MMUCR                        (*(volatile uint32_t*)(&__MMUBAR[0]))
+#define MCF_MMU_MMUOR                        (*(volatile uint32_t*)(&__MMUBAR[0x4]))
+#define MCF_MMU_MMUSR                        (*(volatile uint32_t*)(&__MMUBAR[0x8]))
+#define MCF_MMU_MMUAR                        (*(volatile uint32_t*)(&__MMUBAR[0x10]))
+#define MCF_MMU_MMUTR                        (*(volatile uint32_t*)(&__MMUBAR[0x14]))
+#define MCF_MMU_MMUDR                        (*(volatile uint32_t*)(&__MMUBAR[0x18]))
 
 
 /* Bit definitions and macros for MCF_MMU_MMUCR */

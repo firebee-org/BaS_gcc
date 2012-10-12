@@ -23,13 +23,13 @@ OBJDIR=objs
 EXEC=bas.hex
 
 CSRCS= \
+	$(SRCDIR)/startcf.c \
 	$(SRCDIR)/sysinit.c \
 	$(SRCDIR)/BaS.c \
 	$(SRCDIR)/sd_card.c \
 	$(SRCDIR)/last.c
 
 ASRCS= \
-	$(SRCDIR)/startcf.S \
 	$(SRCDIR)/mmu.S \
 	$(SRCDIR)/exceptions.S \
 	$(SRCDIR)/supervisor.S \

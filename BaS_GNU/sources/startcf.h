@@ -40,7 +40,7 @@
 #define halten_movep
 #define halten_ewf
 
-#define DIP_SWITCH		(*(vuint8 *)(&__MBAR[0xA2C]))
+#define DIP_SWITCH		(*(volatile uint8_t *)(&__MBAR[0xA2C]))
 #define DIP_SWITCHa		___MBAR + 0xA2C
 
 #define sca_page_ID 	6

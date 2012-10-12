@@ -203,7 +203,7 @@ void BaS(void)
 
 	/* TT-RAM */
 
-	* (uint32_t *) 0x5a4 = __Bas_base;	/* ramtop TOS system variable */
+	* (uint32_t *) 0x5a4 = (uint32_t *) __Bas_base;	/* ramtop TOS system variable */
 	* (uint32_t *) 0x5a8 = 0x1357bd13;	/* ramvalid TOS system variable */
 
 	/* init ACIA */

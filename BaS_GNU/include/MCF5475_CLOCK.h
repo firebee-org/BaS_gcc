@@ -24,7 +24,7 @@
 *********************************************************************/
 
 /* Register read/write macros */
-#define MCF_CLOCK_SPCR                       (*(vuint32*)(&__MBAR[0x300]))
+#define MCF_CLOCK_SPCR                       (*(volatile uint32_t*)(&__MBAR[0x300]))
 
 
 /* Bit definitions and macros for MCF_CLOCK_SPCR */

@@ -3,10 +3,10 @@
 #include "MCF5475.h"
 #include "startcf.h"
 
-extern unsigned long far __SP_AFTER_RESET[];
-extern unsigned long far __Bas_base[];
+extern unsigned long __SP_AFTER_RESET[];
+extern unsigned long __Bas_base[];
 
-	/* imported routines */
+/* imported routines */
 //extern int warten_20ms();
 //extern int warten_200us();
 //extern int warten_10us();
@@ -112,7 +112,7 @@ wait_of_aktiv:
 
 sd_init_ok:
 
-// blockgrösse 512byt
+// blockgrï¿½sse 512byt
 sd_bg:
 		bsr			sd_16clk
 		moveq		#0x50,d4
@@ -451,7 +451,7 @@ ide_test_loop3:
 		bsr			drq_wait
 		bsr			ds_tx
 		bsr			wait_int
-// fertig und zurück		
+// fertig und zurï¿½ck		
 		nop
 		rts
 // wait auf int

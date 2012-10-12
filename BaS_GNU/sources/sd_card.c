@@ -3,64 +3,59 @@
  */
 
 #include <MCF5475.h>
+#include <stdint.h>
 
-#define	dspi_dtar0	0x0c
-#define	dspi_dsr	0x2c	
-#define	dspi_dtfr	0x34	
-#define	dspi_drfr	0x38
-#define	time1us		1320
+#define		dspi_dtar0	0x0c
+#define		dspi_dsr	0x2c
+#define		dspi_dtfr	0x34
+#define		dspi_drfr	0x38
+#define		time1us		1320
 
 extern void wait_10ms(void);
 
 
-void sd_com(void)		// byt senden und holen ---------------------
+uint8_t sd_com(uint32_t cmd)
 {
+	uint8_t res;
 
-	asm
-	{
+	MCF_DSPI_DTFR = cmd;
+	while (! MCF_DSPI_DSR & (1 << 7));
 
-		move.l		d4,dspi_dtfr(a0)
-wait_auf_complett:
-		btst.b		#7,dspi_dsr(a0)
-		beq			wait_auf_complett
-		move.l		dspi_drfr(a0),d5
-		mov3q.l		#-1,dspi_dsr(a0)		// clr status register
-	}
+	res = MCF_DSPI_DRFR;
+	MCF_DSPI_DSR = -1L;
+
+	return res;
 }
 
-void sd_get_status(void)	// status holen -------------------------------
+/*
+ * fetch status from SD controller
+ */
+uint8_t sd_get_status(void)
 {
-	asm
-	{
-sd_get_status:
-		move.b		#0xff,d4
-		bsr			sd_com
-		cmp.b		#0xff,d5
-		beq			sd_get_status
-	}
+	uint8_t res;
+
+	while ((res = sd_com(0xff)) == 0xff);
+
+	return res;
 }
 
-void sd_rcv_info(void)	 // daten holen ----------------------------
+void sd_rcv_info(uint8_t *buf, uint32_t size)
 {
-	asm
-	{
-		moveq		#18,d3						// 16 byts + 2 byts crc
-		move.b		#0xff,d4
-sd_rcv_rb_w:		
-		bsr			sd_get_status 
-		cmp.b		#0xfe,d5				// daten bereit?
-		bne			sd_rcv_rb_w				// nein->
-sd_rcv_rd_rb:
-		bsr			sd_com
-		move.b		d5,(a2)+
-		subq.l		#1,d3
-		bne			sd_rcv_rd_rb
-	}
+	uint32_t rcvd = 0;
+
+	while (sd_get_status() != 0xfe);	/* loop until data available */
+
+	do {
+		*buf++ = sd_com(0x18);
+		rcvd++;
+	} while (rcvd <= size);
 }
+
 
 void sd_card_idle(void)
 {
 
+#ifdef _NOT_USED_
 	asm
 	{
 // sd idle
@@ -85,7 +80,10 @@ void sd_card_idle(void)
 		move.b		#0x95,d4
 		bsr			sd_com
 	}
+#endif
 }
+
+#ifdef _NOT_USED_
 
 int sd_card_init(void)
 {
@@ -591,3 +589,4 @@ sd_csw_ok:
 	}
 	return	status;
 }
+#endif /* _NOT_USED */

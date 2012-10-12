@@ -24,10 +24,10 @@
 *********************************************************************/
 
 /* Register read/write macros */
-#define MCF_SIU_SBCR                         (*(vuint32*)(&__MBAR[0x10]))
-#define MCF_SIU_SECSACR                      (*(vuint32*)(&__MBAR[0x38]))
-#define MCF_SIU_RSR                          (*(vuint32*)(&__MBAR[0x44]))
-#define MCF_SIU_JTAGID                       (*(vuint32*)(&__MBAR[0x50]))
+#define MCF_SIU_SBCR                         (*(volatile uint32_t*)(&__MBAR[0x10]))
+#define MCF_SIU_SECSACR                      (*(volatile uint32_t*)(&__MBAR[0x38]))
+#define MCF_SIU_RSR                          (*(volatile uint32_t*)(&__MBAR[0x44]))
+#define MCF_SIU_JTAGID                       (*(volatile uint32_t*)(&__MBAR[0x50]))
 
 
 /* Bit definitions and macros for MCF_SIU_SBCR */

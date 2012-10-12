@@ -24,16 +24,16 @@
 *********************************************************************/
 
 /* Register read/write macros */
-#define MCF_CTM_CTCR0                        (*(vuint32*)(&__MBAR[0x7F00]))
-#define MCF_CTM_CTCR1                        (*(vuint32*)(&__MBAR[0x7F04]))
-#define MCF_CTM_CTCR2                        (*(vuint32*)(&__MBAR[0x7F08]))
-#define MCF_CTM_CTCR3                        (*(vuint32*)(&__MBAR[0x7F0C]))
-#define MCF_CTM_CTCR4                        (*(vuint32*)(&__MBAR[0x7F10]))
-#define MCF_CTM_CTCR5                        (*(vuint32*)(&__MBAR[0x7F14]))
-#define MCF_CTM_CTCR6                        (*(vuint32*)(&__MBAR[0x7F18]))
-#define MCF_CTM_CTCR7                        (*(vuint32*)(&__MBAR[0x7F1C]))
-#define MCF_CTM_CTCRF(x)                     (*(vuint32*)(&__MBAR[0x7F00 + ((x)*0x4)]))
-#define MCF_CTM_CTCRV(x)                     (*(vuint32*)(&__MBAR[0x7F10 + ((x-4)*0x4)]))
+#define MCF_CTM_CTCR0                        (*(volatile uint32_t*)(&__MBAR[0x7F00]))
+#define MCF_CTM_CTCR1                        (*(volatile uint32_t*)(&__MBAR[0x7F04]))
+#define MCF_CTM_CTCR2                        (*(volatile uint32_t*)(&__MBAR[0x7F08]))
+#define MCF_CTM_CTCR3                        (*(volatile uint32_t*)(&__MBAR[0x7F0C]))
+#define MCF_CTM_CTCR4                        (*(volatile uint32_t*)(&__MBAR[0x7F10]))
+#define MCF_CTM_CTCR5                        (*(volatile uint32_t*)(&__MBAR[0x7F14]))
+#define MCF_CTM_CTCR6                        (*(volatile uint32_t*)(&__MBAR[0x7F18]))
+#define MCF_CTM_CTCR7                        (*(volatile uint32_t*)(&__MBAR[0x7F1C]))
+#define MCF_CTM_CTCRF(x)                     (*(volatile uint32_t*)(&__MBAR[0x7F00 + ((x)*0x4)]))
+#define MCF_CTM_CTCRV(x)                     (*(volatile uint32_t*)(&__MBAR[0x7F10 + ((x-4)*0x4)]))
 
 
 /* Bit definitions and macros for MCF_CTM_CTCRF */

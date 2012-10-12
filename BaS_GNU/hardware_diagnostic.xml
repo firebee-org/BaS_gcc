@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="iso-8859-1" standalone="no" ?>
+<configsettings>
+
+  <confwindow>
+    <usecustomsettings>true</usecustomsettings>
+    <targetprocessor>5474</targetprocessor>
+    <connection>PEMICRO_USB</connection>
+    <usetargetinit>true</usetargetinit>
+    <targetinitfile>{CodeWarrior}\ColdFire_Support\Initialization_Files\MCF5475.cfg</targetinitfile>
+  </confwindow>
+
+  <memoryreadwritewindow>
+    <accesstype>read</accesstype>
+    <accesssize>long_word</accesssize>
+    <targetaddress>0x60001000</targetaddress>
+    <valuetowrite>FFFFFFFF</valuetowrite>
+  </memoryreadwritewindow>
+
+  <scopelooptestwindow>
+    <accesstype>read</accesstype>
+    <accesssize>long_word</accesssize>
+    <targetaddress>0x00100000</targetaddress>
+    <valuetowrite>0x67</valuetowrite>
+    <speed>1000</speed>
+  </scopelooptestwindow>
+
+  <memorytestswindow>
+    <runwalking1s>true</runwalking1s>
+    <runbusnoise>true</runbusnoise>
+    <runaddress>true</runaddress>
+    <startaddress>0x00DE1000</startaddress>
+    <endaddress>0x00DE11FF</endaddress>
+    <accesssize>long_word</accesssize>
+    <passes>1</passes>
+    <usetargetcpu>false</usetargetcpu>
+    <targetscratchmemstart>0x00000100</targetscratchmemstart>
+    <targetscratchmemend>0x0000FFFF</targetscratchmemend>
+  </memorytestswindow>
+
+</configsettings>

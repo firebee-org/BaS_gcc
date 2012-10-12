@@ -24,33 +24,33 @@
 *********************************************************************/
 
 /* Register read/write macros */
-#define MCF_FBCS0_CSAR                       (*(vuint32*)(&__MBAR[0x500]))
-#define MCF_FBCS0_CSMR                       (*(vuint32*)(&__MBAR[0x504]))
-#define MCF_FBCS0_CSCR                       (*(vuint32*)(&__MBAR[0x508]))
+#define MCF_FBCS0_CSAR                       (*(volatile uint32_t*)(&__MBAR[0x500]))
+#define MCF_FBCS0_CSMR                       (*(volatile uint32_t*)(&__MBAR[0x504]))
+#define MCF_FBCS0_CSCR                       (*(volatile uint32_t*)(&__MBAR[0x508]))
 
-#define MCF_FBCS1_CSAR                       (*(vuint32*)(&__MBAR[0x50C]))
-#define MCF_FBCS1_CSMR                       (*(vuint32*)(&__MBAR[0x510]))
-#define MCF_FBCS1_CSCR                       (*(vuint32*)(&__MBAR[0x514]))
+#define MCF_FBCS1_CSAR                       (*(volatile uint32_t*)(&__MBAR[0x50C]))
+#define MCF_FBCS1_CSMR                       (*(volatile uint32_t*)(&__MBAR[0x510]))
+#define MCF_FBCS1_CSCR                       (*(volatile uint32_t*)(&__MBAR[0x514]))
 
-#define MCF_FBCS2_CSAR                       (*(vuint32*)(&__MBAR[0x518]))
-#define MCF_FBCS2_CSMR                       (*(vuint32*)(&__MBAR[0x51C]))
-#define MCF_FBCS2_CSCR                       (*(vuint32*)(&__MBAR[0x520]))
+#define MCF_FBCS2_CSAR                       (*(volatile uint32_t*)(&__MBAR[0x518]))
+#define MCF_FBCS2_CSMR                       (*(volatile uint32_t*)(&__MBAR[0x51C]))
+#define MCF_FBCS2_CSCR                       (*(volatile uint32_t*)(&__MBAR[0x520]))
 
-#define MCF_FBCS3_CSAR                       (*(vuint32*)(&__MBAR[0x524]))
-#define MCF_FBCS3_CSMR                       (*(vuint32*)(&__MBAR[0x528]))
-#define MCF_FBCS3_CSCR                       (*(vuint32*)(&__MBAR[0x52C]))
+#define MCF_FBCS3_CSAR                       (*(volatile uint32_t*)(&__MBAR[0x524]))
+#define MCF_FBCS3_CSMR                       (*(volatile uint32_t*)(&__MBAR[0x528]))
+#define MCF_FBCS3_CSCR                       (*(volatile uint32_t*)(&__MBAR[0x52C]))
 
-#define MCF_FBCS4_CSAR                       (*(vuint32*)(&__MBAR[0x530]))
-#define MCF_FBCS4_CSMR                       (*(vuint32*)(&__MBAR[0x534]))
-#define MCF_FBCS4_CSCR                       (*(vuint32*)(&__MBAR[0x538]))
+#define MCF_FBCS4_CSAR                       (*(volatile uint32_t*)(&__MBAR[0x530]))
+#define MCF_FBCS4_CSMR                       (*(volatile uint32_t*)(&__MBAR[0x534]))
+#define MCF_FBCS4_CSCR                       (*(volatile uint32_t*)(&__MBAR[0x538]))
 
-#define MCF_FBCS5_CSAR                       (*(vuint32*)(&__MBAR[0x53C]))
-#define MCF_FBCS5_CSMR                       (*(vuint32*)(&__MBAR[0x540]))
-#define MCF_FBCS5_CSCR                       (*(vuint32*)(&__MBAR[0x544]))
+#define MCF_FBCS5_CSAR                       (*(volatile uint32_t*)(&__MBAR[0x53C]))
+#define MCF_FBCS5_CSMR                       (*(volatile uint32_t*)(&__MBAR[0x540]))
+#define MCF_FBCS5_CSCR                       (*(volatile uint32_t*)(&__MBAR[0x544]))
 
-#define MCF_FBCS_CSAR(x)                     (*(vuint32*)(&__MBAR[0x500 + ((x)*0xC)]))
-#define MCF_FBCS_CSMR(x)                     (*(vuint32*)(&__MBAR[0x504 + ((x)*0xC)]))
-#define MCF_FBCS_CSCR(x)                     (*(vuint32*)(&__MBAR[0x508 + ((x)*0xC)]))
+#define MCF_FBCS_CSAR(x)                     (*(volatile uint32_t*)(&__MBAR[0x500 + ((x)*0xC)]))
+#define MCF_FBCS_CSMR(x)                     (*(volatile uint32_t*)(&__MBAR[0x504 + ((x)*0xC)]))
+#define MCF_FBCS_CSCR(x)                     (*(volatile uint32_t*)(&__MBAR[0x508 + ((x)*0xC)]))
 
 
 /* Bit definitions and macros for MCF_FBCS_CSAR */
