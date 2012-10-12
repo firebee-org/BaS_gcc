@@ -10,6 +10,10 @@
 #include "MCF5475.h"
 #include "startcf.h"
 
+
+static const uint8_t *FPGA_FLASH_DATA = (uint8_t *) 0xe0700000L;
+static const uint8_t *FPGA_FLASH_DATA_END = (uint8_t *) 0xe0800000L;
+
 extern unsigned long _VRAM;
 extern unsigned long _Bas_base;
 extern unsigned long BaS;
@@ -125,10 +129,10 @@ void init_serial(void)
 /********************************************************************/
 /* Initialize DDR DIMMs on the EVB board */
 /********************************************************************/
-   /*
-    * Check to see if the SDRAM has already been initialized
-    * by a run control tool
-    */
+/*
+ * Check to see if the SDRAM has already been initialized
+ * by a run control tool
+ */
 void init_ddram(void)
 {
 	MCF_PSC0_PSCTB_8BIT = 'DDRA';
@@ -231,7 +235,7 @@ void init_fpga(void)
 	}
 	
 	/*
-	 * excerpt from the Altera configuration manual:
+	 * excerpt from an Altera configuration manual:
 	 * The low-to-high transition of nCONFIG on the FPGA begins the configuration cycle. The
 	 * configuration cycle consists of 3 stages—reset, configuration, and initialization.
 	 * While nCONFIG is low, the device is in reset. When the device comes out of reset,
@@ -248,7 +252,7 @@ void init_fpga(void)
 	 * which is pulled high by a pull-up resistor. A low to high transition on CONF_DONE indicates
 	 * configuration is complete and initialization of the device can begin.
 	 */
-	fpga_data = (uint8_t *) 0xe0700000L;
+	fpga_data = (uint8_t *) FPGA_FLASH_DATA;
 	do
 	{
 		uint8_t value = *fpga_data++;
@@ -269,40 +273,37 @@ void init_fpga(void)
 			MCF_GPIO_PODR_FEC1L |= 1;
 			MCF_GPIO_PODR_FEC1L &= ~1;
 		}
-	} while ((!MCF_GPIO_PPDSDR_FEC1L & (1 << 5)) && (fpga_data < (uint8_t *) 0xE0800000));
+	} while ((!MCF_GPIO_PPDSDR_FEC1L & (1 << 5)) && (fpga_data < FPGA_FLASH_DATA_END));
 
-	for (i = 0; i < 4000; i++)
+	if (fpga_data < FPGA_FLASH_DATA_END)
 	{
-		/* toggle a little more since it's fun ;) */
-		MCF_GPIO_PODR_FEC1L |= 1;
-		MCF_GPIO_PODR_FEC1L &= ~1;
+		for (i = 0; i < 4000; i++)
+		{
+			/* toggle a little more since it's fun ;) */
+			MCF_GPIO_PODR_FEC1L |= 1;
+			MCF_GPIO_PODR_FEC1L &= ~1;
+		}
 	}
+	else
+	{
+		MCF_PSC0_PSCTB_8BIT = ' NOT';
+	}
+	MCF_PSC0_PSCTB_8BIT = 'OK! ';
+	MCF_PSC0_PSCTB_8BIT = 0x0d0a;
+}
+
+void wait_pll(void)
+{
+	do {
+		wait1ms();
+	} while (! * (uint16_t *) 0xf0000800);
+}
+
+void init_pll(void)
+{
 }
 
 #ifdef _NOT_USED_
-
-	bra		init_fpga_end
-//---------------------------------------------------------
- wait_pll:
-	       lea		MCF_SLT0_SCNT, a3
-	       move.l	(a3),d0
-	       move.l	#100000,d6			// ca 1ms
- wait_pll_loop:
-	       tst.w	(a1)
-	       bpl		wait_pll_ok
-	       move.l	(a3), d1
-	       sub.l d0, d1
-	       add.l d6, d1
-	       bpl wait_pll_loop
-wait_pll_ok:
-	       rts
-// fertig
- fpga_error:
-	}
-
-	MCF_PSC0_PSCTB_8BIT = ' NOT';
-init_fpga_end:
-	       MCF_PSC0_PSCTB_8BIT = ' OK!'; MCF_PSC0_PSCTB_8BIT = 0x0a0d;
 // init pll             
 	       MCF_PSC0_PSCTB_8BIT = 'PLL '; asm {
 	       lea 0xf0000600, a0 lea 0xf0000800, a1 bsr wait_pll move.w
