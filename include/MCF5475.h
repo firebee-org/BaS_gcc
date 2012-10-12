@@ -40,6 +40,16 @@ extern "C" {
 
 #pragma define_section system ".system" far_absolute RW
 
+/* get rid of __declspec */
+#if __GNUC__
+#undef __declspec
+/* the following should work if we had an ELF capable toolchain. Unfortunately, it doesn't
+ * for the current m68k-atari-mint aoutx toolchain since it does not support the
+ * __attribute__ ((section("x"))) syntax.
+ */
+/* #define __declspec(a)	__attribute__ ((section ("a"))) */
+#define __declspec(a)	/*  */
+
 /***
  * MCF5475 Derivative Memory map definitions from linker command files:
  * __MBAR, __MMUBAR, __RAMBAR0, __RAMBAR0_SIZE, __RAMBAR1, __RAMBAR1_SIZE
