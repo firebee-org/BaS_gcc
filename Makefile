@@ -27,7 +27,7 @@ CSRCS= \
 	$(SRCDIR)/sd_card.c \
 	$(SRCDIR)/last.c
 
-ARCS= \
+ASRCS= \
 	$(SRCDIR)/startcf.S \
 	$(SRCDIR)/mmu.S \
 	$(SRCDIR)/exceptions.S \
