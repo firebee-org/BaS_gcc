@@ -49,8 +49,8 @@ $(EXEC): $(OBJS)
 clean:
 	rm $(EXEC) *.o
 	
-.c.o:
+$(OBJDIR)/%.o:$(SRCDIR)/%.c
 	$(CC) -c $(CFLAGS) $(INCLUDE) $< -o $@
 	
-.S.o:
+$(OBJDIR)/%.o:$(SRCDIR)/%.S
 	$(CC) -c $(CFLAGS) $(INCLUDE) $< -o $@
