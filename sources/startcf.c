@@ -16,37 +16,31 @@
  *    main it will call C++ destructors and call exit to terminate.
  */
 
-#ifdef __cplusplus
-#pragma cplusplus off
-#endif
-#pragma PID off
-#pragma PIC off
-
 #include <MCF5475.h>
 
+/* imported data */
 
-	/* imported data */
+extern uint32_t _SP_INIT, _SDA_BASE;
+extern uint32_t _START_BSS, _END_BSS;
+extern uint32_t _START_SBSS, _END_SBSS;
+extern uint32_t __DATA_RAM, __DATA_ROM, __DATA_END;
+extern uint32_t __Bas_base;
 
-extern unsigned long far _SP_INIT, _SDA_BASE;
-extern unsigned long far _START_BSS, _END_BSS;
-extern unsigned long far _START_SBSS, _END_SBSS;
-extern unsigned long far __DATA_RAM, __DATA_ROM, __DATA_END;
-extern unsigned long far __Bas_base;
+extern uint32_t __SUP_SP,__BOOT_FLASH;
+extern uint32_t rt_mbar;
 
-extern unsigned long far __SUP_SP,__BOOT_FLASH;
-extern unsigned long far rt_mbar;
-
-	/* imported routines */
+/* imported routines */
 
 extern int BaS(int, char **);
 
-	/* exported routines */
+/* exported routines */
 extern void __initialize_hardware(void);
 extern void init_slt(void);
 
 
 void _startup(void)
 {
+#ifdef _NOT_USED_
 	asm("\n\t"
 	"bra			warmstart\n\t"
 	"jmp			__BOOT_FLASH + 8					// ist zugleich reset vector\n\t"
@@ -79,4 +73,5 @@ void _startup(void)
 // initialize any hardware specific issues 
 	bra          __initialize_hardware   
 ");
+#endif /* _NOT_USED_ */
 }

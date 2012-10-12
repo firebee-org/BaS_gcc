@@ -24,11 +24,11 @@
 *********************************************************************/
 
 /* Register read/write macros */
-#define MCF_SRAM_SSCR                        (*(vuint32*)(&__MBAR[0x1FFC0]))
-#define MCF_SRAM_TCCR                        (*(vuint32*)(&__MBAR[0x1FFC4]))
-#define MCF_SRAM_TCCRDR                      (*(vuint32*)(&__MBAR[0x1FFC8]))
-#define MCF_SRAM_TCCRDW                      (*(vuint32*)(&__MBAR[0x1FFCC]))
-#define MCF_SRAM_TCCRSEC                     (*(vuint32*)(&__MBAR[0x1FFD0]))
+#define MCF_SRAM_SSCR                        (*(volatile uint32_t*)(&__MBAR[0x1FFC0]))
+#define MCF_SRAM_TCCR                        (*(volatile uint32_t*)(&__MBAR[0x1FFC4]))
+#define MCF_SRAM_TCCRDR                      (*(volatile uint32_t*)(&__MBAR[0x1FFC8]))
+#define MCF_SRAM_TCCRDW                      (*(volatile uint32_t*)(&__MBAR[0x1FFCC]))
+#define MCF_SRAM_TCCRSEC                     (*(volatile uint32_t*)(&__MBAR[0x1FFD0]))
 
 
 /* Bit definitions and macros for MCF_SRAM_SSCR */

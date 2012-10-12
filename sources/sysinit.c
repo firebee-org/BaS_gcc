@@ -237,7 +237,7 @@ void init_fpga(void)
 	/*
 	 * excerpt from an Altera configuration manual:
 	 * The low-to-high transition of nCONFIG on the FPGA begins the configuration cycle. The
-	 * configuration cycle consists of 3 stagesÑreset, configuration, and initialization.
+	 * configuration cycle consists of 3 stagesï¿½reset, configuration, and initialization.
 	 * While nCONFIG is low, the device is in reset. When the device comes out of reset,
 	 * nCONFIG must be at a logic high level in order for the device to release the open-drain
  	 * nSTATUS pin. After nSTATUS is released, it is pulled high by a pull-up resistor and the FPGA
@@ -527,8 +527,8 @@ void test_upd720101(void)
  * TFP410 (vdi) einschalten /*
  */
 void vdi_on(void) {
-	uint8 RBYT;
-	uint8 DBYT;
+	uint8_t RBYT;
+	uint8_t DBYT;
 	int versuche;
 	int startzeit;
 	

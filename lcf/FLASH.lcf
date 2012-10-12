@@ -1,0 +1,88 @@
+# Sample Linker Command File for CodeWarrior for ColdFire
+
+KEEP_SECTION {.vectortable}
+
+# Memory ranges	
+
+MEMORY {
+   code        (RX)  : ORIGIN = 0xE0000000, LENGTH = 0x00200000
+}
+
+SECTIONS {
+ 
+#BaS Basis adresse
+	___Bas_base		  = 0x1FE00000;
+
+# Board Memory map definitions from linker command files:
+# __SDRAM,__SDRAM_SIZE, __CODE_FLASH, __CODE_FLASH_SIZE 
+# linker symbols must be defined in the linker command file.
+
+#Init CS0 (BootFLASH @ E000_0000 - E07F_FFFF 8Mbytes)
+   ___BOOT_FLASH           = 0xE0000000;
+   ___BOOT_FLASH_SIZE      = 0x00800000;
+#SDRAM Initialization @ 0000_0000 - 1FFF_FFFF 512Mbytes	
+   ___SDRAM                = 0x00000000;
+   ___SDRAM_SIZE           = 0x20000000;
+   
+#VIDEO RAM BASIS
+   ___VRAM                = 0x60000000;
+
+# MCF5475 Derivative Memory map definitions from linker command files:
+# __MBAR, __MMUBAR, __RAMBAR0, __RAMBAR0_SIZE, __RAMBAR1, __RAMBAR1_SIZE
+# linker symbols must be defined in the linker command file.
+
+# Memory mapped registers
+   ___MBAR                 = 0xFF000000;
+   ___MMUBAR               = 0xFF040000;
+# 4KB on-chip Core SRAM0: -> exception table and exception stack
+   ___RAMBAR0              = 0xFF100000;
+   ___RAMBAR0_SIZE         = 0x00001000;
+
+   ___SUP_SP = ___RAMBAR0 + ___RAMBAR0_SIZE - 4;
+   
+# 4KB on-chip Core SRAM1: -> modified code
+   ___RAMBAR1              = 0xFF101000;
+   ___RAMBAR1_SIZE         = 0x00001000;
+
+# Systemveriablem:******************************************
+# RAMBAR0 0 bis 0x7FF -> exception vectoren
+_rt_mod    = ___RAMBAR0 + 0x800;   
+_rt_ssp    = ___RAMBAR0 + 0x804;   
+_rt_usp    = ___RAMBAR0 + 0x808;   
+_rt_vbr    = ___RAMBAR0 + 0x80C;  	# (8)01 
+_rt_cacr   = ___RAMBAR0 + 0x810;   	# 002
+_rt_asid   = ___RAMBAR0 + 0x814;   	# 003
+_rt_acr0   = ___RAMBAR0 + 0x818;   	# 004
+_rt_acr1   = ___RAMBAR0 + 0x81c;   	# 005
+_rt_acr2   = ___RAMBAR0 + 0x820;   	# 006
+_rt_acr3   = ___RAMBAR0 + 0x824;   	# 007
+_rt_mmubar = ___RAMBAR0 + 0x828;	# 008
+_rt_sr     = ___RAMBAR0 + 0x82c;   
+_d0_save   = ___RAMBAR0 + 0x830;
+_a7_save   = ___RAMBAR0 + 0x834;
+_video_tlb = ___RAMBAR0 + 0x838;
+_video_sbt = ___RAMBAR0 + 0x83C;
+_rt_mbar   = ___RAMBAR0 + 0x844;   	# (c)0f
+#***********************************************************
+
+# 32KB on-chip System SRAM
+   ___SYS_SRAM             = 0xFF010000;
+   ___SYS_SRAM_SIZE        = 0x00008000;
+
+  .code	    : {} > code		
+
+	.text :
+	{
+		startcf.c(.text)
+		sysinit.c(.text)
+		BaS.c(.text)
+		sd_card.c(.text)
+		mmu.s(.text)
+		exceptions.s(.text)
+		supervisor.s(.text)
+		ewf.s(.text)
+		illegal_instruction.s(.text)
+		last.c(.text)
+	} >> code
+
+}

@@ -1,0 +1,47 @@
+// Memory Configuration File
+//
+// Description:
+//  A memory configuration file contains commands that define the legally accessible
+//  areas of memory for your specific board. Useful for example when the debugger
+//  tries to display the content of a "char *" variable, that has not yet been initialized.
+//  In this case the debugger may try to read from a bogus address, which could cause a
+//  bus error.
+//
+// Board:
+//  LogicPD COLDARI1
+//
+// Reference:
+//  MCF5475RM.pdf
+
+
+// All reserved ranges read back 0xBABA...
+reservedchar 0xBA
+
+address 	MBAR_BASE 		0xFF000000 
+address 	MMUBAR_BASE 	0xFF040000
+
+usederivative "MCF5475"
+
+//         Memory Map:
+//         ----------------------------------------------------------------------
+range		0x00000000 			0x1FFFFFFF 				4 ReadWrite		// 512MB DDR SDRAM
+reserved	0x20000000 			0x5FFFFFFF
+
+range		0x60000000			0x7FFFFFFF				4 ReadWrite
+
+range		0x80000000			0xCFFFFFFF				4 ReadWrite			
+
+range		0xD0000000			0xFBFFFFFF				4 ReadWrite
+			
+reserved	0xFC000000			$MBAR_BASE-1			
+
+ 			$MBAR_BASE 			$MBAR_BASE+0x3FFFF						// Memory Mapped Registers
+range		$MBAR_BASE+0x10000	$MBAR_BASE+0x17FFC		4 ReadWrite		// 32K Internal SRAM
+
+range		$MMUBAR_BASE		$MMUBAR_BASE+0xFFFF
+reserved	$MMUBAR_BASE+1x0000	0xFF0FFFFF	     						// Added to fill gap in MMR
+
+range      	0xFF100000 			0xFF100FFF 				4 ReadWrite		// 4K SRAM0 (RAMBAR0)
+range      	0xFF101000 			0xFFFFFFFF 				4 ReadWrite		// 4K SRAM1 (RAMBAR1)
+
+

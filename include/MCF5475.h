@@ -16,69 +16,26 @@
 #ifndef __MCF5475_H__
 #define __MCF5475_H__
 
-
-/********************************************************************/
-/*
- * The basic data types
- */
-
-typedef unsigned char           uint8;   /*  8 bits */
-typedef unsigned short int      uint16;  /* 16 bits */
-typedef unsigned long int       uint32;  /* 32 bits */
-
-typedef signed char             int8;    /*  8 bits */
-typedef signed short int        int16;   /* 16 bits */
-typedef signed long int         int32;   /* 32 bits */
-
-typedef volatile uint8          vuint8;  /*  8 bits */
-typedef volatile uint16         vuint16; /* 16 bits */
-typedef volatile uint32         vuint32; /* 32 bits */
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-#pragma define_section system ".system" far_absolute RW
-
-/* get rid of __declspec */
-#if __GNUC__
-#undef __declspec
-/* the following should work if we had an ELF capable toolchain. Unfortunately, it doesn't
- * for the current m68k-atari-mint aoutx toolchain since it does not support the
- * __attribute__ ((section("x"))) syntax.
- */
-/* #define __declspec(a)	__attribute__ ((section ("a"))) */
-#define __declspec(a)	/*  */
-
+#include <stdint.h>
 /***
  * MCF5475 Derivative Memory map definitions from linker command files:
  * __MBAR, __MMUBAR, __RAMBAR0, __RAMBAR0_SIZE, __RAMBAR1, __RAMBAR1_SIZE
  * linker symbols must be defined in the linker command file.
  */
 
-#ifdef __GNUC__
-/* get rid of the __declspec() keyword */
-#undef __declspec
-#define __declspec(a) /* */
+extern uint8_t __MBAR[];
+extern uint8_t __MMUBAR[];
+extern uint8_t __RAMBAR0[];
+extern uint8_t __RAMBAR0_SIZE[];
+extern uint8_t __RAMBAR1[];
+extern uint8_t __RAMBAR1_SIZE[];
 
-/* the same for "far" */
-#undef far
-#define far /* */
-#endif
-
-extern __declspec(system) uint8 __MBAR[];
-extern __declspec(system) uint8 __MMUBAR[];
-extern __declspec(system) uint8 __RAMBAR0[];
-extern __declspec(system) uint8 __RAMBAR0_SIZE[];
-extern __declspec(system) uint8 __RAMBAR1[];
-extern __declspec(system) uint8 __RAMBAR1_SIZE[];
-
-#define MBAR_ADDRESS    (uint32)__MBAR
-#define MMUBAR_ADDRESS  (uint32)__MMUBAR
-#define RAMBAR0_ADDRESS (uint32)__RAMBAR0
-#define RAMBAR0_SIZE    (uint32)__RAMBAR0_SIZE
-#define RAMBAR1_ADDRESS (uint32)__RAMBAR1
-#define RAMBAR1_SIZE    (uint32)__RAMBAR1_SIZE
+#define MBAR_ADDRESS    (uint32_t)__MBAR
+#define MMUBAR_ADDRESS  (uint32_t)__MMUBAR
+#define RAMBAR0_ADDRESS (uint32_t)__RAMBAR0
+#define RAMBAR0_SIZE    (uint32_t)__RAMBAR0_SIZE
+#define RAMBAR1_ADDRESS (uint32_t)__RAMBAR1
+#define RAMBAR1_SIZE    (uint32_t)__RAMBAR1_SIZE
 
 
 #include "MCF5475_SIU.h"
@@ -104,10 +61,5 @@ extern __declspec(system) uint8 __RAMBAR1_SIZE[];
 #include "MCF5475_USB.h"
 #include "MCF5475_SRAM.h"
 #include "MCF5475_SEC.h"
-
-#ifdef __cplusplus
-}
-#endif
-
 
 #endif /* __MCF5475_H__ */

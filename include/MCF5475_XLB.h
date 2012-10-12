@@ -24,17 +24,17 @@
 *********************************************************************/
 
 /* Register read/write macros */
-#define MCF_XLB_XARB_CFG                     (*(vuint32*)(&__MBAR[0x240]))
-#define MCF_XLB_XARB_VER                     (*(vuint32*)(&__MBAR[0x244]))
-#define MCF_XLB_XARB_SR                      (*(vuint32*)(&__MBAR[0x248]))
-#define MCF_XLB_XARB_IMR                     (*(vuint32*)(&__MBAR[0x24C]))
-#define MCF_XLB_XARB_ADRCAP                  (*(vuint32*)(&__MBAR[0x250]))
-#define MCF_XLB_XARB_SIGCAP                  (*(vuint32*)(&__MBAR[0x254]))
-#define MCF_XLB_XARB_ADRTO                   (*(vuint32*)(&__MBAR[0x258]))
-#define MCF_XLB_XARB_DATTO                   (*(vuint32*)(&__MBAR[0x25C]))
-#define MCF_XLB_XARB_BUSTO                   (*(vuint32*)(&__MBAR[0x260]))
-#define MCF_XLB_XARB_PRIEN                   (*(vuint32*)(&__MBAR[0x264]))
-#define MCF_XLB_XARB_PRI                     (*(vuint32*)(&__MBAR[0x268]))
+#define MCF_XLB_XARB_CFG                     (*(volatile uint32_t*)(&__MBAR[0x240]))
+#define MCF_XLB_XARB_VER                     (*(volatile uint32_t*)(&__MBAR[0x244]))
+#define MCF_XLB_XARB_SR                      (*(volatile uint32_t*)(&__MBAR[0x248]))
+#define MCF_XLB_XARB_IMR                     (*(volatile uint32_t*)(&__MBAR[0x24C]))
+#define MCF_XLB_XARB_ADRCAP                  (*(volatile uint32_t*)(&__MBAR[0x250]))
+#define MCF_XLB_XARB_SIGCAP                  (*(volatile uint32_t*)(&__MBAR[0x254]))
+#define MCF_XLB_XARB_ADRTO                   (*(volatile uint32_t*)(&__MBAR[0x258]))
+#define MCF_XLB_XARB_DATTO                   (*(volatile uint32_t*)(&__MBAR[0x25C]))
+#define MCF_XLB_XARB_BUSTO                   (*(volatile uint32_t*)(&__MBAR[0x260]))
+#define MCF_XLB_XARB_PRIEN                   (*(volatile uint32_t*)(&__MBAR[0x264]))
+#define MCF_XLB_XARB_PRI                     (*(volatile uint32_t*)(&__MBAR[0x268]))
 
 
 /* Bit definitions and macros for MCF_XLB_XARB_CFG */
