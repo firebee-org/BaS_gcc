@@ -2,7 +2,7 @@
 // extension word format: a0 zeigt auf code, in a1 ist ay, d0/d1 wird zerstört
 //------------------------------------------------------------------------------
 
-.include	"ii_macro.h"
+#include	"ii_macro.h"
 
 .global	ewf
 //-----------------------------------------------------------
@@ -14,8 +14,8 @@ ewferr:
 //-----------------------------------------------------------
 ewf:
 		mvz.b	(a0)+,d1							// 1. byt ewf
-		mvs.w	ewf_table-*-2(pc,d1*2),d1
-		jmp		ewf_table-*-2(pc,d1)
+		mvs.w	ewf_table-.-2(pc,d1*2),d1
+		jmp		ewf_table-.-2(pc,d1)
 ewf_table:				
 	.short		ewf_00-ewf_table,ewf_01-ewf_table,ewf_02-ewf_table,ewf_03-ewf_table
 	.short		ewf_04-ewf_table,ewf_05-ewf_table,ewf_06-ewf_table,ewf_07-ewf_table
@@ -1311,8 +1311,8 @@ ewf_ff:
 //--------------------------------------------------------------------
 ewf_full:
 	mvz.b		(a0)+,d1
-	mvs.w		ewff_table-*-2(pc,d1*2),d1
-	jmp			ewff_table-*-2(pc,d1)
+	mvs.w		ewff_table-.-2(pc,d1*2),d1
+	jmp			ewff_table-.-2(pc,d1)
 ewff_table:				
 	.short		ewff_end-ewff_table,ewff_i0v-ewff_table,ewff_iwv-ewff_table,ewff_ilv-ewff_table	//00
 	.short		ewff_end-ewff_table,ewff_i0n-ewff_table,ewff_iwn-ewff_table,ewff_iln-ewff_table
@@ -1561,5 +1561,3 @@ ewff_lln:
 	add.l		d0,a1
 	add.l		d0,a1
 	rts
-/****************************************************************************************************************
-
