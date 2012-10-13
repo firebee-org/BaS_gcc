@@ -404,48 +404,33 @@ flo6:
 		bgt loop5
 // screen setzen
 //horizontal 1280
-	       lea 0xffff8282, a0 move.w
-#1800,(a0)+
-	       move.w
-#1380,(a0)+
-	       move.w
-#99,(a0)+
-	       move.w
-#100,(a0)+
-	       move.w
-#1379,(a0)+
-	       move.w
-#1500,(a0)
+	       lea 0xffff8282, a0
+	       move.w #1800,(a0)+
+	       move.w #1380,(a0)+
+	       move.w #99,(a0)+
+	       move.w #100,(a0)+
+	       move.w #1379,(a0)+
+	       move.w #1500,(a0)
 //vertical 1024
-	       lea 0xffff82a2, a0 move.w
-#1150,(a0)+
-	       move.w
-#1074,(a0)+
-	       move.w
-#49,(a0)+
-	       move.w
-#50,(a0)+
-	       move.w
-#1073,(a0)+
-	       move.w
-#1100,(a0)+
+	       lea 0xffff82a2, a0
+	       move.w #1150,(a0)+
+	       move.w #1074,(a0)+
+	       move.w #49,(a0)+
+	       move.w #50,(a0)+
+	       move.w #1073,(a0)+
+	       move.w #1100,(a0)+
 // acp video on         
-	       move.l
-#0x01070207,d0
+	       move.l #0x01070207,d0
 	       move.l d0, 0xf0000400
 // clut setzen
-	       lea 0xf0000000, a0 move.l
-#0xffffffff,(a0)+
-	       move.l
-#0xff,(a0)+
-	       move.l
-#0xff00,(a0)+
-	       move.l
-#0xff0000,(a0)
+	       lea 0xf0000000, a0
+	       move.l #0xffffffff,(a0)+
+	       move.l #0xff,(a0)+
+	       move.l #0xff00,(a0)+
+	       move.l #0xff0000,(a0)
 //              halt
-	       }
-
-	       }
+   }
+}
 
 #endif
 
