@@ -27,46 +27,46 @@ SECTIONS {
 	 */
 
 	/* Memory mapped registers */
- 	___MBAR                 = ABSOLUTE(0xFF000000);
- 	___MMUBAR               = ABSOLUTE(0xFF040000);
+ 	__MBAR                 = ABSOLUTE(0xFF000000);
+ 	__MMUBAR               = ABSOLUTE(0xFF040000);
 
 	/*
 	 * 4KB on-chip Core SRAM0: -> exception table and exception stack
 	 */
- 	___RAMBAR0              = ABSOLUTE(0xFF100000);
- 	___RAMBAR0_SIZE         = ABSOLUTE(0x00001000);
+ 	__RAMBAR0              = ABSOLUTE(0xFF100000);
+ 	__RAMBAR0_SIZE         = ABSOLUTE(0x00001000);
 
- 	___SUP_SP = ___RAMBAR0 + ___RAMBAR0_SIZE - 4;
+ 	__SUP_SP = ABSOLUTE(__RAMBAR0 + __RAMBAR0_SIZE - 4);
 
 	/* 4KB on-chip Core SRAM1: -> modified code */
- 	___RAMBAR1              = ABSOLUTE(0xFF101000);
- 	___RAMBAR1_SIZE         = ABSOLUTE(0x00001000);
+ 	__RAMBAR1              = ABSOLUTE(0xFF101000);
+ 	__RAMBAR1_SIZE         = ABSOLUTE(0x00001000);
 
 	/* Systemveriablem:****************************************** */
 	/* RAMBAR0 0 bis 0x7FF -> exception vectoren */
-	_rt_mod    = ___RAMBAR0 + 0x800;
-	_rt_ssp    = ___RAMBAR0 + 0x804;
-	_rt_usp    = ___RAMBAR0 + 0x808;
-	_rt_vbr    = ___RAMBAR0 + 0x80C;  	/* (8)01 */
-	_rt_cacr   = ___RAMBAR0 + 0x810;   	/* 002 */
-	_rt_asid   = ___RAMBAR0 + 0x814;   	/* 003 */
-	_rt_acr0   = ___RAMBAR0 + 0x818;   	/* 004 */
-	_rt_acr1   = ___RAMBAR0 + 0x81c;   	/* 005 */
-	_rt_acr2   = ___RAMBAR0 + 0x820;   	/* 006 */
-	_rt_acr3   = ___RAMBAR0 + 0x824;   	/* 007 */
-	_rt_mmubar = ___RAMBAR0 + 0x828;		/* 008 */
-	_rt_sr     = ___RAMBAR0 + 0x82c;
-	_d0_save   = ___RAMBAR0 + 0x830;
-	_a7_save   = ___RAMBAR0 + 0x834;
-	_video_tlb = ___RAMBAR0 + 0x838;
-	_video_sbt = ___RAMBAR0 + 0x83C;
-	_rt_mbar   = ___RAMBAR0 + 0x844;   	/* (c)0f */
+	_rt_mod    = __RAMBAR0 + 0x800;
+	_rt_ssp    = __RAMBAR0 + 0x804;
+	_rt_usp    = __RAMBAR0 + 0x808;
+	_rt_vbr    = __RAMBAR0 + 0x80C;  	/* (8)01 */
+	_rt_cacr   = __RAMBAR0 + 0x810;   	/* 002 */
+	_rt_asid   = __RAMBAR0 + 0x814;   	/* 003 */
+	_rt_acr0   = __RAMBAR0 + 0x818;   	/* 004 */
+	_rt_acr1   = __RAMBAR0 + 0x81c;   	/* 005 */
+	_rt_acr2   = __RAMBAR0 + 0x820;   	/* 006 */
+	_rt_acr3   = __RAMBAR0 + 0x824;   	/* 007 */
+	_rt_mmubar = __RAMBAR0 + 0x828;		/* 008 */
+	_rt_sr     = __RAMBAR0 + 0x82c;
+	_d0_save   = __RAMBAR0 + 0x830;
+	_a7_save   = __RAMBAR0 + 0x834;
+	_video_tlb = __RAMBAR0 + 0x838;
+	_video_sbt = __RAMBAR0 + 0x83C;
+	_rt_mbar   = __RAMBAR0 + 0x844;   	/* (c)0f */
 
 /**********************************************************/
 
 /* 32KB on-chip System SRAM */
- 	__SYS_SRAM             = 0xFF010000;
-	__SYS_SRAM_SIZE        = 0x00008000;
+ 	__SYS_SRAM             = ABSOLUTE(0xFF010000);
+	__SYS_SRAM_SIZE        = ABSOLUTE(0x00008000);
 
 	.code	    : {} > code
 

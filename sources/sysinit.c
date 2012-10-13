@@ -768,7 +768,7 @@ void __initialize_hardware(void) {
 _init_hardware:
 asm(
 	"move.l 	#0x000C8120,D0\n\t"
-	"move.l	D0,rt_cacr\n\t"
+	"move.l		D0,_rt_cacr\n\t"
 	"movec		D0,CACR\n\t"
 	"nop\n\t"
 	);

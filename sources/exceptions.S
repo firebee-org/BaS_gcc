@@ -208,7 +208,7 @@ _vec_init:
  		clr.l	_rt_ssp
  		clr.l	_rt_usp
  		clr.l	_rt_vbr
-		move.l	#___RAMBAR0,d0		// sind in rambar0
+		move.l	#__RAMBAR0,d0		// sind in rambar0
 		movec	d0,VBR
 		move.l	d0,a0
 		move.l	a0,a2
@@ -220,7 +220,7 @@ init_vec_loop:
 		subq.l	#1,d0
 		bne		init_vec_loop
 
-		move.l	#___SUP_SP,(a0)
+		move.l	#__SUP_SP,(a0)
 		lea		reset_vector(pc),a1
 		move.l	a1,0x04(a0)
 		lea		acess(pc),a1
@@ -366,7 +366,7 @@ reset_vector:
 		move.l	#0x31415926,d0
 		cmp.l	0x426,d0			// reset vector gültg?
 		beq		std_exc_vec			// ja->
-		jmp		___BOOT_FLASH 		// sonst kaltstart
+		jmp		__BOOT_FLASH 		// sonst kaltstart
 acess:
 		move.w	#0x2700,sr			// disable interrupt
 		move.l	d0,-(sp)			// ++ vr
@@ -679,7 +679,7 @@ irq7:
 		lea			-12(sp),sp
 		movem.l		d0/a0,(sp)
 
-		move.l		___RAMBAR0+0x008,a0	// Real Access Error handler
+		move.l		__RAMBAR0+0x008,a0	// Real Access Error handler
 		move.l		a0,8(sp)			// This will be the return address for rts
 
 		move.w		12(sp),d0			// Format/Vector word
