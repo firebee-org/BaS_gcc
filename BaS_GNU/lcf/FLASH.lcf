@@ -25,7 +25,7 @@ SECTIONS {
    ___SDRAM_SIZE           = 0x20000000;
    
 #VIDEO RAM BASIS
-   ___VRAM                = 0x60000000;
+   __VRAM                = 0x60000000;
 
 # MCF5475 Derivative Memory map definitions from linker command files:
 # __MBAR, __MMUBAR, __RAMBAR0, __RAMBAR0_SIZE, __RAMBAR1, __RAMBAR1_SIZE
