@@ -296,7 +296,7 @@ void wait_pll(void)
 {
 	do {
 		wait1ms();
-	} while (! * (uint16_t *) 0xf0000800);
+	} while (! * (volatile uint16_t *) 0xf0000800);
 }
 
 void init_pll(void)
@@ -807,19 +807,19 @@ asm(
 		"lea		copy_start,A0\n\t"
 		"lea		BaS,A1\n\t"
 		"sub.l		A0,A1\n\t"
-		"move.l	#__Bas_base,A2\n\t"
-		"move.l	A2,A3\n\t"
+		"move.l		#__Bas_base,A2\n\t"
+		"move.l		A2,A3\n\t"
 		"add.l		A1,A3\n\t"
 		"lea		copy_end,A4\n\t"
-"BaS_copy_loop:	/* copy 16 bytes per turn */\n\t"
-		"move.l	(A0)+,(A2)+\n\t"
-		"move.l	(A0)+,(A2)+\n\t"
-		"move.l	(A0)+,(A2)+\n\t"
-		"move.l	(A0)+,(A2)+\n\t"
+"BaS_copy_loop:		/* copy 16 bytes per turn */\n\t"
+		"move.l		(A0)+,(A2)+\n\t"
+		"move.l		(A0)+,(A2)+\n\t"
+		"move.l		(A0)+,(A2)+\n\t"
+		"move.l		(A0)+,(A2)+\n\t"
 		"cmp.l		A4,A0\n\t"
 		"blt		BaS_copy_loop\n\t"
 "\n\t"
-		"intouch	A3\n\t"	/* we'd better update caches to contain the data we just copied */
+		"intouch	A3\n\t"	/* FIXME: we'd better update caches to contain the data we just copied */
 		"jmp		(A3)\n\t"
 "copy_start:\n\t"
 		"nop\n\t"
