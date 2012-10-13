@@ -299,63 +299,69 @@ void wait_pll(void)
 	} while (! * (volatile uint16_t *) 0xf0000800);
 }
 
+static volatile uint8_t *pll_base = (volatile uint8_t *) 0xf0000600;
 void init_pll(void)
 {
+	* (volatile uint16_t *) (pll_base + 0x48) = 0x27;	/* loopfilter  r */
+	wait_pll();
+	* (volatile uint16_t *) (pll_base + 0x08) = 1;	/* charge pump 1 */
+	wait_pll();
+	* (volatile uint16_t *) (pll_base + 0x00) = 12;	/* N counter high = 12 */
+	wait_pll();
+	* (volatile uint16_t *) (pll_base + 0x40) = 12;	/* N counter low = 12 */
+	wait_pll();
+	* (volatile uint16_t *) (pll_base + 0x114) = 1;	/* ck1 bypass */
+	wait_pll();
+	* (volatile uint16_t *) (pll_base + 0x118) = 1;	/* ck2 bypass */
+	wait_pll();
+	* (volatile uint16_t *) (pll_base + 0x11c) = 1;	/* ck3 bypass */
+	wait_pll();
+	* (volatile uint16_t *) (pll_base + 0x10) = 1;	/* ck0 high  = 1 */
+	wait_pll();
+	* (volatile uint16_t *) (pll_base + 0x50) = 1;	/* ck0 low = 1 */
+	wait_pll();
+	* (volatile uint16_t *) (pll_base + 0x144) = 1;	/* M odd division */
+	wait_pll();
+	* (volatile uint16_t *) (pll_base + 0x44) = 1;	/* M low = 1 */
+	wait_pll();
+	* (volatile uint16_t *) (pll_base + 0x04) = 145;	/* M high = 145 = 146 MHz */
+	wait_pll();
+	* (volatile uint8_t *) 0xf0000800 = 0;			/* set */
+
+	MCF_PSC0_PSCTB_8BIT = 'SET!';
+	MCF_PSC0_PSCTB_8BIT = 0x0a0d;
 }
 
-#ifdef _NOT_USED_
-// init pll             
-	       MCF_PSC0_PSCTB_8BIT = 'PLL '; asm {
-	       lea 0xf0000600, a0 lea 0xf0000800, a1 bsr wait_pll move.w
-#27,0x48(a0)			// loopfilter r
-	       bsr wait_pll move.w
-#1,0x08(a0)			// charge pump I
-	       bsr wait_pll move.w
-#12,0x0(a0)			// N counter high = 12
-	       bsr wait_pll move.w
-#12,0x40(a0)			// N counter low = 12
-	       bsr wait_pll move.w
-#1,0x114(a0)			// ck1 bypass
-	       bsr wait_pll move.w
-#1,0x118(a0)			// ck2 bypass
-	       bsr wait_pll move.w
-#1,0x11c(a0)			// ck3 bypass
-	       bsr wait_pll move.w
-#1,0x10(a0)			// ck0 high = 1
-	       bsr wait_pll move.w
-#1,0x50(a0)			// ck0 low      = 1
-	       bsr wait_pll move.w
-#1,0x144(a0)			// M odd division
-	       bsr wait_pll move.w
-#1,0x44(a0)			// M low = 1
-	       bsr wait_pll move.w
-#145,0x04(a0)			// M high = 145 = 146MHz
-	       bsr wait_pll clr.b(a1)	// set
-	       }
-	       MCF_PSC0_PSCTB_8BIT = 'SET!'; MCF_PSC0_PSCTB_8BIT = 0x0a0d;}
 
 
 /*
  * INIT VIDEO DDR RAM
  */
 
-void init_video_ddr(void) {
-	asm {
+#define NOP() asm("nop\n\t")
 
-// init video ram
-	       moveq.l #0xB,d0
-	       move.w d0, 0xF0000400	//set cke=1, cs=1 config=1
-	       nop lea __VRAM, a0	//zeiger auf video ram
-	       nop move.l #0x00050400,(a0)		//IPALL
-	       nop move.l #0x00072000,(a0)		//load EMR pll on
-	       nop move.l #0x00070122,(a0)		//load MR: reset pll, cl=2 BURST=4lw
-	       nop move.l #0x00050400,(a0)		//IPALL
-	       nop move.l #0x00060000,(a0)		//auto refresh
-	       nop move.l #0x00060000,(a0)		//auto refresh
-	       nop move.l #0000070022,(a0)		//load MR dll on
-	       nop move.l #0x01070002,d0			// fifo on, refresh on, ddrcs und cke on, video dac on,
-	       move.l d0, 0xf0000400}
-	       }
+void init_video_ddr(void) {
+	* (uint16_t *) 0xf0000400 = 0xb;	/* set cke = 1, cs=1, config = 1 */
+	NOP();
+	_VRAM = 0x00050400;	/* IPALL */
+	NOP();
+	_VRAM = 0x00072000;	/* load EMR pll on */
+	NOP();
+	_VRAM = 0x00070122;	/* load MR: reset pll, cl=2, burst=4lw */
+	NOP();
+	_VRAM = 0x00050400;	/* IPALL */
+	NOP();
+	_VRAM = 0x00060000;	/* auto refresh */
+	NOP();
+	_VRAM = 0x00060000;	/* auto refresh */
+	NOP();
+	_VRAM = 0000070022;	/* load MR dll on */
+	NOP();
+	* (uint32_t *) 0xf0000400 = 0x01070002;
+}
+
+
+#ifdef _NOT_USED_
 
 /********************************************************************/
 	/* video mit auflösung 1280x1000 137MHz /*
