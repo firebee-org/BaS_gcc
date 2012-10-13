@@ -2,7 +2,7 @@
 /*   exception vectoren intialisieren
 /********************************************************/
 
-.include "startcf.h"
+#include "startcf.h"
 
 .extern ___Bas_base
 .extern ___SUP_SP
@@ -44,7 +44,7 @@
 #define MCF_PSC3_PSCRB_8BIT                 ___MBAR+0x890C
 #define MCF_PSC3_PSCTB_8BIT                 ___MBAR+0x890C
 
-.public	_vec_init
+		.global	_vec_init
 
 //mmu ---------------------------------------------------
 /* Register read/write macros */
@@ -124,7 +124,12 @@
 /**********************************************************/
 // macros
 /**********************************************************/
-irq:	.macro	vector,int_mask,clr_int
+		.altmacro
+		.macro	irq	vector,int_mask,clr_int
+		local	irq_protect
+		local 	sev_supint
+		local	irq_end
+
 		move.w	#0x2700,sr			// disable interrupt
 		subq.l	#8,a7
 		movem.l	d0/a5,(a7)			// register sichern
@@ -133,17 +138,17 @@ irq:	.macro	vector,int_mask,clr_int
 // test auf protect mode ---------------------
 		move.b	DIP_SWITCHa,d0
 		btst	#7,d0 
-		bne		@irq_protect		// ja->
+		bne		irq_protect		// ja->
 // -------------------------------------------		
 		movem.l	(a7),d0/a5			// register zurück
 		addq.l	#8,a7
-		move.l	vector,-(a7)
-		move	#0x2\200,sr
+		move.l	\vector,-(a7)
+		move	#0x2200,sr
 		rts
-@irq_protect:
+irq_protect:
 		move.l	usp,a5				// usp holen  
 		tst.b	_rt_mod				// supervisor? 
-		bne		@sev_supint			// ja -> 
+		bne		sev_supint			// ja ->
 		mov3q.l	#-1,_rt_mod			// auf supervisor setzen
 		move.l	a5,_rt_usp			// rt_usp speichern 
 		move.l	_rt_ssp,a5			// rt_ssp holen
@@ -155,8 +160,8 @@ irq:	.macro	vector,int_mask,clr_int
 		move.l	12(a7),-(a5)		// pc verschieben
 		move.w	10(a7),-(a5)		// sr verschieben
 #endif
-		bra		@irq_end
-@sev_supint:
+		bra		irq_end
+sev_supint:
 #ifdef cf_stack
 		move.l	12(a7),-(a5)		// pc transferieren 
 		move.l	8(a7),-(a5)			// sr,vec
@@ -167,17 +172,36 @@ irq:	.macro	vector,int_mask,clr_int
 		move.w	10(a7),-(a5)		// sr verschieben
 		bset	#5,(a5)				// auf super
 #endif
-@irq_end:
+irq_end:
 		move.l	a5,usp				// usp setzen
 		lea		vector,a5
 		adda.l	_rt_vbr,a5
 		move.l	(a5),12(a7)			// vectoradresse eintragen
-		move.b	#int_mask,10(a7)	// intmaske setzen
+		move.b	#\int_mask,10(a7)	// intmaske setzen
 		movem.l	(a7),d0/a5			// register zurück
 		addq.l	#8,a7
 		rte							// und weg 
 		.endm
-/*********************************************************/
+
+/*
+ * FIXME: ugly, but I'm just unable to come up with any better solution currently
+ *
+ * GNU as does not support multi-character constants. At least I don't know of any way it would.
+ * The following might look more than strange, but I considered the statement
+ *
+ * mchar	move.l, 'T,'E,'S,'T,-(SP)
+ *
+ * somewhat more readable than
+ *
+ * move.l #1413829460,-(SP)
+ *
+ * If anybody knows of any better way on how to do this - please do!
+ *
+ */
+    	.macro mchar  st,a,b,c,d,tgt
+    	\st #\a << 24|\b<<16|\c<<8|\d,\tgt
+    	.endm
+
 .text
 _vec_init:
  		mov3q.l	#-1,_rt_mod			// rt_mod auf super
@@ -588,13 +612,16 @@ blinker:.long	0
 /**************************************************/
 /* pseudo dma */
 /**************************************************/
-acsi_dma:				// atari dma
+acsi_dma:							// atari dma
 		move.l  a1,-(a7)
 		move.l  d1,-(a7)
 		
-	lea	MCF_PSC0_PSCTB_8BIT,a1		// ++ vr
-	move.l	#'DMA ',(a1)
-	move.l	#'INT!',(a1)
+		lea	MCF_PSC0_PSCTB_8BIT,a1	// ++ vr
+		mchar move.l, 'D,'M','A,'\ ,(a1)
+		//move.l	#"DMA ",(a1)
+
+		mchar move.l, 'I,'N,'T,'!,(a1)
+		//move.l	#'INT!',(a1)
 
 		lea 	0xf0020110,a5		// fifo daten
 acsi_dma_start:
@@ -682,11 +709,16 @@ psc3:
 		cmp.b	#2,d1				// anforderung rtc daten?
 		bne		psc3_fertig
 
-	lea	MCF_PSC0_PSCTB_8BIT,a0		// ++ vr
-	move.l	#'PIC ',(a0)
-	move.l	#'INT ',(a0)
-	move.l	#'RTC!',(a0)
-	move.l	#0x0d0a,(a0)
+		lea	MCF_PSC0_PSCTB_8BIT,a0		// ++ vr
+
+		mchar move.l, 'P,'I,'C','\ ,(a0)
+		// move.l	#'PIC ',(a0)
+		mchar move.l, 'I,'N,'T,'\ ,(a0)
+		// move.l	#'INT ',(a0)
+		mchar move.l,'R,'T,'C,'\ ,(a0)
+		// move.l	#'RTC!',(a0)
+		mchar move.l,'\r,'\n,0,0,(a0)
+		// move.l	#0x0d0a,(a0)
 
 		lea		0xffff8961,a0
 		lea		MCF_PSC3_PSCTB_8BIT,a3
