@@ -15,7 +15,7 @@ CC=$(TCPREFIX)gcc
 LD=$(TCPREFIX)ld
 
 INCLUDE=-Iinclude
-CFLAGS=-mcfv4e -Wno-multichar -Os -fomit-frame-pointer
+CFLAGS=-mcfv4e -Wno-multichar -Os -Wa,-mcpu=547x -fomit-frame-pointer
 #CFLAGS=-mcfv4e -Wno-multichar -S -O3 -fomit-frame-pointer
 SRCDIR=sources
 OBJDIR=objs
@@ -47,7 +47,7 @@ $(EXEC): $(OBJS)
 	echo "generating executable"
 
 clean:
-	rm $(EXEC) *.o
+	rm $(EXEC) $(OBJS)
 	
 $(OBJDIR)/%.o:$(SRCDIR)/%.c
 	$(CC) -c $(CFLAGS) $(INCLUDE) $< -o $@
