@@ -14,7 +14,7 @@
 static const uint8_t *FPGA_FLASH_DATA = (uint8_t *) 0xe0700000L;
 static const uint8_t *FPGA_FLASH_DATA_END = (uint8_t *) 0xe0800000L;
 
-extern unsigned long __VRAM;
+extern unsigned long _VRAM;
 extern unsigned long _Bas_base;
 extern unsigned long BaS;
 extern unsigned long _BOOT_FLASH[];
@@ -798,7 +798,7 @@ asm(
 		"lea		copy_start,A0\n\t"
 		"lea		BaS,A1\n\t"
 		"sub.l		A0,A1\n\t"
-		"move.l		#__Bas_base,A2\n\t"
+		"move.l		#_Bas_base,A2\n\t"
 		"move.l		A2,A3\n\t"
 		"add.l		A1,A3\n\t"
 		"lea		copy_end,A4\n\t"

@@ -7,12 +7,12 @@ code             0xe0000000         0x00200000         xr
 
 Linker script and memory map
 
-                0x1fe00000                __Bas_base = 0x1fe00000
+                0x1fe00000                _Bas_base = 0x1fe00000
                 0xe0000000                ___BOOT_FLASH = 0xe0000000
                 0x00800000                ___BOOT_FLASH_SIZE = 0x800000
                 0x00000000                ___SDRAM = 0x0
                 0x20000000                ___SDRAM_SIZE = 0x20000000
-                0x60000000                ___VRAM = 0x60000000
+                0x60000000                __VRAM = 0x60000000
                 0xff000000                ___MBAR = 0xff000000
                 0xff040000                ___MMUBAR = 0xff040000
                 0xff100000                ___RAMBAR0 = 0xff100000
@@ -141,16 +141,16 @@ Symbol                                            File
 BaS                                               objs/sysinit.o
 MCF_MMU_MMUCR                                     objs/startcf.o
 _BaS                                              objs/BaS.o
+_Bas_base                                         objs/exceptions.o
+                                                  objs/sysinit.o
 _MCF_PCICR1_CACHELINESIZE                         objs/sysinit.o
 _MCF_PCICR2_MINGNT                                objs/sysinit.o
-__Bas_base                                        objs/sysinit.o
 __MBAR                                            objs/exceptions.o
 __MMUBAR                                          objs/exceptions.o
 __VRAM                                            objs/sysinit.o
 ___BOOT_FLASH                                     objs/exceptions.o
                                                   objs/startcf.o
-___Bas_base                                       objs/exceptions.o
-                                                  objs/BaS.o
+___Bas_base                                       objs/BaS.o
 ___MBAR                                           objs/exceptions.o
                                                   objs/sd_card.o
                                                   objs/BaS.o
