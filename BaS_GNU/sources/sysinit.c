@@ -14,7 +14,7 @@
 static const uint8_t *FPGA_FLASH_DATA = (uint8_t *) 0xe0700000L;
 static const uint8_t *FPGA_FLASH_DATA_END = (uint8_t *) 0xe0800000L;
 
-extern unsigned long _VRAM;
+extern unsigned long __VRAM;
 extern unsigned long _Bas_base;
 extern unsigned long BaS;
 extern unsigned long _BOOT_FLASH[];

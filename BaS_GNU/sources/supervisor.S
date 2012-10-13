@@ -11,12 +11,12 @@
 .extern ___MMUBAR
 
 /* Register read/write macros */
-#define MCF_MMU_MMUCR            			___MMUBAR
-#define MCF_MMU_MMUOR                       ___MMUBAR+0x04
-#define MCF_MMU_MMUSR                       ___MMUBAR+0x08
-#define MCF_MMU_MMUAR                       ___MMUBAR+0x10
-#define MCF_MMU_MMUTR                       ___MMUBAR+0x14
-#define MCF_MMU_MMUDR                       ___MMUBAR+0x18
+#define MCF_MMU_MMUCR            			__MMUBAR
+#define MCF_MMU_MMUOR                       __MMUBAR+0x04
+#define MCF_MMU_MMUSR                       __MMUBAR+0x08
+#define MCF_MMU_MMUAR                       __MMUBAR+0x10
+#define MCF_MMU_MMUTR                       __MMUBAR+0x14
+#define MCF_MMU_MMUDR                       __MMUBAR+0x18
 
 .global _privileg_violation
 .global cpusha

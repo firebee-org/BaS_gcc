@@ -1,0 +1,238 @@
+
+Memory Configuration
+
+Name             Origin             Length             Attributes
+code             0xe0000000         0x00200000         xr
+*default*        0x00000000         0xffffffff
+
+Linker script and memory map
+
+                0x1fe00000                __Bas_base = 0x1fe00000
+                0xe0000000                ___BOOT_FLASH = 0xe0000000
+                0x00800000                ___BOOT_FLASH_SIZE = 0x800000
+                0x00000000                ___SDRAM = 0x0
+                0x20000000                ___SDRAM_SIZE = 0x20000000
+                0x60000000                ___VRAM = 0x60000000
+                0xff000000                ___MBAR = 0xff000000
+                0xff040000                ___MMUBAR = 0xff040000
+                0xff100000                ___RAMBAR0 = 0xff100000
+                0x00001000                ___RAMBAR0_SIZE = 0x1000
+                0xff100ffc                ___SUP_SP = ((___RAMBAR0 + ___RAMBAR0_SIZE) - 0x4)
+                0xff101000                ___RAMBAR1 = 0xff101000
+                0x00001000                ___RAMBAR1_SIZE = 0x1000
+                0xff100800                _rt_mod = (___RAMBAR0 + 0x800)
+                0xff100804                _rt_ssp = (___RAMBAR0 + 0x804)
+                0xff100808                _rt_usp = (___RAMBAR0 + 0x808)
+                0xff10080c                _rt_vbr = (___RAMBAR0 + 0x80c)
+                0xff100810                _rt_cacr = (___RAMBAR0 + 0x810)
+                0xff100814                _rt_asid = (___RAMBAR0 + 0x814)
+                0xff100818                _rt_acr0 = (___RAMBAR0 + 0x818)
+                0xff10081c                _rt_acr1 = (___RAMBAR0 + 0x81c)
+                0xff100820                _rt_acr2 = (___RAMBAR0 + 0x820)
+                0xff100824                _rt_acr3 = (___RAMBAR0 + 0x824)
+                0xff100828                _rt_mmubar = (___RAMBAR0 + 0x828)
+                0xff10082c                _rt_sr = (___RAMBAR0 + 0x82c)
+                0xff100830                _d0_save = (___RAMBAR0 + 0x830)
+                0xff100834                _a7_save = (___RAMBAR0 + 0x834)
+                0xff100838                _video_tlb = (___RAMBAR0 + 0x838)
+                0xff10083c                _video_sbt = (___RAMBAR0 + 0x83c)
+                0xff100844                _rt_mbar = (___RAMBAR0 + 0x844)
+                0xff010000                __SYS_SRAM = 0xff010000
+                0x00008000                __SYS_SRAM_SIZE = 0x8000
+
+.code
+
+.text           0xe0000000     0x30a0
+ objs/startcf.o(.text)
+ .text          0xe0000000       0x58 objs/startcf.o
+                0xe0000000                __startup
+ objs/sysinit.o(.text)
+ .text          0xe0000058      0xc4c objs/sysinit.o
+                0xe0000058                _init_slt
+                0xe000007e                _init_gpio
+                0xe00000d2                _init_serial
+                0xe0000202                _init_ddram
+                0xe00002e8                _init_fbcs
+                0xe00003aa                _init_fpga
+                0xe00004bc                _wait_pll
+                0xe00004d2                _init_pll
+                0xe0000570                _init_video_ddr
+                0xe0000598                _init_PCI
+                0xe0000642                _test_upd720101
+                0xe00006ac                _vdi_on
+                0xe0000a18                _init_ac97
+                0xe0000c1a                ___initialize_hardware
+ objs/BaS.o(.text)
+ .text          0xe0000ca4      0x290 objs/BaS.o
+                0xe0000ca4                _wait_10ms
+                0xe0000cbc                _wait_1ms
+                0xe0000cd4                _wait_100us
+                0xe0000cec                _wait_50us
+                0xe0000d04                _wait_10us
+                0xe0000d1c                _wait_1us
+                0xe0000d34                _BaS
+ objs/sd_card.o(.text)
+ .text          0xe0000f34       0x88 objs/sd_card.o
+                0xe0000f34                _sd_com
+                0xe0000f5c                _sd_get_status
+                0xe0000f78                _sd_rcv_info
+                0xe0000fb8                _sd_card_idle
+ objs/mmu.o(.text)
+ .text          0xe0000fbc      0x1b0 objs/mmu.o
+                0xe0000fbc                _mmu_init
+                0xe0001130                _mmutr_miss
+ objs/exceptions.o(.text)
+ .text          0xe000116c      0x9b4 objs/exceptions.o
+                0xe000116c                _vec_init
+ objs/supervisor.o(.text)
+ .text          0xe0001b20      0x5cc objs/supervisor.o
+                0xe0001b20                _privileg_violation
+                0xe000209e                cpusha
+ objs/ewf.o(.text)
+ .text          0xe00020ec      0xe40 objs/ewf.o
+                0xe00020f2                ewf
+ objs/illegal_instruction.o(.text)
+ .text          0xe0002f2c      0x170 objs/illegal_instruction.o
+                0xe0003098                _illegal_instruction
+                0xe0003098                _illegal_table_make
+ objs/last.o(.text)
+ .text          0xe000309c        0x4 objs/last.o
+                0xe000309c                copy_end
+                0xe000309c                _copy_end
+LOAD objs/startcf.o
+LOAD objs/sysinit.o
+LOAD objs/BaS.o
+LOAD objs/sd_card.o
+LOAD objs/last.o
+LOAD objs/mmu.o
+LOAD objs/exceptions.o
+LOAD objs/supervisor.o
+LOAD objs/ewf.o
+LOAD objs/illegal_instruction.o
+OUTPUT(bas.hex srec)
+
+.data           0x00000000        0x0
+ .data          0x00000000        0x0 objs/startcf.o
+ .data          0x00000000        0x0 objs/sysinit.o
+ .data          0x00000000        0x0 objs/BaS.o
+ .data          0x00000000        0x0 objs/sd_card.o
+ .data          0x00000000        0x0 objs/mmu.o
+ .data          0x00000000        0x0 objs/exceptions.o
+ .data          0x00000000        0x0 objs/supervisor.o
+ .data          0x00000000        0x0 objs/ewf.o
+ .data          0x00000000        0x0 objs/illegal_instruction.o
+ .data          0x00000000        0x0 objs/last.o
+
+.bss            0x00000000        0x0
+ .bss           0x00000000        0x0 objs/startcf.o
+ .bss           0x00000000        0x0 objs/sysinit.o
+ .bss           0x00000000        0x0 objs/BaS.o
+ .bss           0x00000000        0x0 objs/sd_card.o
+ .bss           0x00000000        0x0 objs/mmu.o
+ .bss           0x00000000        0x0 objs/exceptions.o
+ .bss           0x00000000        0x0 objs/supervisor.o
+ .bss           0x00000000        0x0 objs/ewf.o
+ .bss           0x00000000        0x0 objs/illegal_instruction.o
+ .bss           0x00000000        0x0 objs/last.o
+
+Cross Reference Table
+
+Symbol                                            File
+BaS                                               objs/sysinit.o
+MCF_MMU_MMUCR                                     objs/startcf.o
+_BaS                                              objs/BaS.o
+_MCF_PCICR1_CACHELINESIZE                         objs/sysinit.o
+_MCF_PCICR2_MINGNT                                objs/sysinit.o
+__Bas_base                                        objs/sysinit.o
+__MBAR                                            objs/exceptions.o
+__MMUBAR                                          objs/exceptions.o
+__VRAM                                            objs/sysinit.o
+___BOOT_FLASH                                     objs/exceptions.o
+                                                  objs/startcf.o
+___Bas_base                                       objs/exceptions.o
+                                                  objs/BaS.o
+___MBAR                                           objs/exceptions.o
+                                                  objs/sd_card.o
+                                                  objs/BaS.o
+                                                  objs/sysinit.o
+                                                  objs/startcf.o
+___MMUBAR                                         objs/mmu.o
+                                                  objs/BaS.o
+                                                  objs/startcf.o
+___RAMBAR0                                        objs/exceptions.o
+                                                  objs/startcf.o
+___RAMBAR1                                        objs/startcf.o
+___SUP_SP                                         objs/exceptions.o
+                                                  objs/startcf.o
+___initialize_hardware                            objs/sysinit.o
+__startup                                         objs/startcf.o
+_copy_end                                         objs/last.o
+_copy_firetos                                     objs/BaS.o
+_illegal_instruction                              objs/illegal_instruction.o
+                                                  objs/exceptions.o
+_illegal_table_make                               objs/illegal_instruction.o
+                                                  objs/BaS.o
+_init_PCI                                         objs/sysinit.o
+_init_ac97                                        objs/sysinit.o
+_init_ddram                                       objs/sysinit.o
+_init_fbcs                                        objs/sysinit.o
+_init_fpga                                        objs/sysinit.o
+_init_gpio                                        objs/sysinit.o
+_init_pll                                         objs/sysinit.o
+_init_serial                                      objs/sysinit.o
+_init_slt                                         objs/sysinit.o
+_init_video_ddr                                   objs/sysinit.o
+_initialize_hardware                              objs/startcf.o
+_mmu_init                                         objs/mmu.o
+                                                  objs/BaS.o
+_mmutr_miss                                       objs/mmu.o
+                                                  objs/exceptions.o
+_privileg_violation                               objs/supervisor.o
+                                                  objs/exceptions.o
+_rt_acr0                                          objs/mmu.o
+_rt_acr1                                          objs/mmu.o
+_rt_acr2                                          objs/mmu.o
+_rt_acr3                                          objs/mmu.o
+_rt_asid                                          objs/mmu.o
+_rt_cacr                                          objs/supervisor.o
+                                                  objs/mmu.o
+_rt_mbar                                          objs/startcf.o
+_rt_mmubar                                        objs/mmu.o
+_rt_mod                                           objs/supervisor.o
+                                                  objs/exceptions.o
+_rt_ssp                                           objs/exceptions.o
+_rt_usp                                           objs/exceptions.o
+_rt_vbr                                           objs/exceptions.o
+_sd_card_idle                                     objs/sd_card.o
+                                                  objs/BaS.o
+_sd_card_init                                     objs/BaS.o
+_sd_com                                           objs/sd_card.o
+_sd_get_status                                    objs/sd_card.o
+_sd_rcv_info                                      objs/sd_card.o
+_test_upd720101                                   objs/sysinit.o
+_vdi_on                                           objs/sysinit.o
+_vec_init                                         objs/exceptions.o
+                                                  objs/BaS.o
+_video_sbt                                        objs/exceptions.o
+                                                  objs/mmu.o
+_video_tlb                                        objs/exceptions.o
+                                                  objs/mmu.o
+_wait1ms                                          objs/sysinit.o
+_wait_100us                                       objs/BaS.o
+_wait_10ms                                        objs/BaS.o
+_wait_10us                                        objs/BaS.o
+                                                  objs/sysinit.o
+_wait_1ms                                         objs/BaS.o
+_wait_1us                                         objs/BaS.o
+_wait_50us                                        objs/BaS.o
+                                                  objs/sysinit.o
+_wait_pll                                         objs/sysinit.o
+_warte10us                                        objs/sysinit.o
+copy_end                                          objs/last.o
+                                                  objs/sysinit.o
+cpusha                                            objs/supervisor.o
+                                                  objs/exceptions.o
+                                                  objs/mmu.o
+ewf                                               objs/ewf.o
+                                                  objs/illegal_instruction.o
+rt_cacr                                           objs/sysinit.o
