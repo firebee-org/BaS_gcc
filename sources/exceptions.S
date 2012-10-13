@@ -4,10 +4,10 @@
 
 #include "startcf.h"
 
-.extern ___Bas_base
-.extern ___SUP_SP
-.extern ___BOOT_FLASH
-.extern ___RAMBAR0
+.extern __Bas_base
+.extern __SUP_SP
+.extern __BOOT_FLASH
+.extern __RAMBAR0
 .extern _rt_cacr
 .extern _rt_mod
 .extern _rt_ssp
@@ -16,44 +16,44 @@
 .extern _illegal_instruction
 .extern _privileg_violation
 .extern _mmutr_miss
-.extern ___MBAR
-.extern ___MMUBAR
+.extern __MBAR
+.extern __MMUBAR
 .extern _video_tlb
 .extern _video_sbt
 .extern cpusha
 
 /* Register read/write macros */
-#define MCF_MMU_MMUCR            			___MMUBAR
-#define MCF_MMU_MMUOR                       ___MMUBAR+0x04
-#define MCF_MMU_MMUSR                       ___MMUBAR+0x08
-#define MCF_MMU_MMUAR                       ___MMUBAR+0x10
-#define MCF_MMU_MMUTR                       ___MMUBAR+0x14
-#define MCF_MMU_MMUDR                       ___MMUBAR+0x18  
+#define MCF_MMU_MMUCR            			__MMUBAR
+#define MCF_MMU_MMUOR                       __MMUBAR+0x04
+#define MCF_MMU_MMUSR                       __MMUBAR+0x08
+#define MCF_MMU_MMUAR                       __MMUBAR+0x10
+#define MCF_MMU_MMUTR                       __MMUBAR+0x14
+#define MCF_MMU_MMUDR                       __MMUBAR+0x18
 
-#define MCF_EPORT_EPPAR                     ___MBAR+0xF00
-#define MCF_EPORT_EPDDR                     ___MBAR+0xF04
-#define MCF_EPORT_EPIER                     ___MBAR+0xF05
-#define MCF_EPORT_EPDR                      ___MBAR+0xF08
-#define MCF_EPORT_EPPDR                     ___MBAR+0xF09
-#define MCF_EPORT_EPFR                      ___MBAR+0xF0C
+#define MCF_EPORT_EPPAR                     __MBAR+0xF00
+#define MCF_EPORT_EPDDR                     __MBAR+0xF04
+#define MCF_EPORT_EPIER                     __MBAR+0xF05
+#define MCF_EPORT_EPDR                      __MBAR+0xF08
+#define MCF_EPORT_EPPDR                     __MBAR+0xF09
+#define MCF_EPORT_EPFR                      __MBAR+0xF0C
 
-#define MCF_GPIO_PODR_FEC1L                 ___MBAR+0xA07
+#define MCF_GPIO_PODR_FEC1L                 __MBAR+0xA07
 
-#define MCF_PSC0_PSCTB_8BIT                 ___MBAR+0x860C
+#define MCF_PSC0_PSCTB_8BIT                 __MBAR+0x860C
 
-#define MCF_PSC3_PSCRB_8BIT                 ___MBAR+0x890C
-#define MCF_PSC3_PSCTB_8BIT                 ___MBAR+0x890C
+#define MCF_PSC3_PSCRB_8BIT                 __MBAR+0x890C
+#define MCF_PSC3_PSCTB_8BIT                 __MBAR+0x890C
 
 		.global	_vec_init
 
 //mmu ---------------------------------------------------
 /* Register read/write macros */
-#define MCF_MMU_MMUCR            			___MMUBAR
-#define MCF_MMU_MMUOR                       ___MMUBAR+0x04
-#define MCF_MMU_MMUSR                       ___MMUBAR+0x08
-#define MCF_MMU_MMUAR                       ___MMUBAR+0x10
-#define MCF_MMU_MMUTR                       ___MMUBAR+0x14
-#define MCF_MMU_MMUDR                       ___MMUBAR+0x18
+#define MCF_MMU_MMUCR            			__MMUBAR
+#define MCF_MMU_MMUOR                       __MMUBAR+0x04
+#define MCF_MMU_MMUSR                       __MMUBAR+0x08
+#define MCF_MMU_MMUAR                       __MMUBAR+0x10
+#define MCF_MMU_MMUTR                       __MMUBAR+0x14
+#define MCF_MMU_MMUDR                       __MMUBAR+0x18
 
 
 /* Bit definitions and macros for MCF_MMU_MMUCR */
@@ -111,7 +111,7 @@
 *********************************************************************/
 
 /* Register read/write macros */
-#define MCF_GPT0_GMS                         ___MBAR+0x800
+#define MCF_GPT0_GMS                         __MBAR+0x800
 
 /*********************************************************************
 *
@@ -119,7 +119,7 @@
 *
 *********************************************************************/
 
-#define MCF_SLT0_SCNT                        ___MBAR+0x908
+#define MCF_SLT0_SCNT                        __MBAR+0x908
 
 /**********************************************************/
 // macros

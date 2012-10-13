@@ -43,7 +43,10 @@ OBJS=$(COBJS) $(AOBJS)
 	
 all: $(EXEC)
 
+SADDR=0xe0000000
+
 $(EXEC): $(OBJS)
+	$(LD) --oformat srec -Map $@.map --cref -T flash.lk -s -o $@ $(OBJS)
 	echo "generating executable"
 
 clean:
