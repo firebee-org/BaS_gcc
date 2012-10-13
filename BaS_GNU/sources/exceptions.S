@@ -182,10 +182,9 @@ irq_end:
 		addq.l	#8,a7
 		rte							// und weg 
 		.endm
-/*********************************************************/
 
 /*
- * FIXME: ugly, but I just can't come up with any smarter solution
+ * FIXME: this is a GNU gas kludge. Ugly, but I just can't come up with any smarter solution
  *
  * GNU as does not support multi-character constants. At least I don't know of any way it would.
  * The following might look more than strange, but I considered the statement
