@@ -767,6 +767,12 @@ ac97_end:
 }
 
 void initialize_hardware(void) {
+	extern uint8_t *copy_start;
+	extern uint8_t *Bas_base;
+	uint32_t *src;
+	uint32_t *dst;
+	uint32_t jmp;
+
 asm(
 	"move.l 	#0x000C8120,D0\n\t"
 	"move.l		D0,_rt_cacr\n\t"
@@ -795,25 +801,27 @@ asm(
 		init_ac97();
 	}
 
+	/* copy the BaS code contained in flash just behind us */
+	src = copy_start;
+	dst = Bas_base;
+	jmp = (uint8_t *) BaS - copy_start + Bas_base;
+	do {
+		*src++ = *dst++;
+		*src++ = *dst++;
+		*src++ = *dst++;
+		*src++ = *dst++;
+	} while (src < (uint8_t *) copy_end);
+
+	flushDataCacheRegion(Bas_base, (uint8_t *) copy_end - copy_start);
+	flushInstructionCacheRegion(Bas_base, (uint8_t *) copy_end - copy_start);
+
 	asm volatile(
-		"lea		copy_start,A0\n\t"
-		"lea		_BaS,A1\n\t"
-		"sub.l		A0,A1\n\t"
-		"move.l		#_Bas_base,A2\n\t"
-		"move.l		A2,A3\n\t"
-		"add.l		A1,A3\n\t"
-		"lea		copy_end,A4\n\t"
-"BaS_copy_loop:		/* copy 16 bytes per turn */\n\t"
-		"move.l		(A0)+,(A2)+\n\t"
-		"move.l		(A0)+,(A2)+\n\t"
-		"move.l		(A0)+,(A2)+\n\t"
-		"move.l		(A0)+,(A2)+\n\t"
-		"cmp.l		A4,A0\n\t"
-		"blt		BaS_copy_loop\n\t"
-"\n\t"
-		"intouch	A3\n\t"	/* FIXME: we'd better update caches to contain the data we just copied */
-		"jmp		(A3)\n\t"
-"copy_start:\n\t"
-		"nop\n\t"
-		 : :);
+		"		.global	_copy_start	| \n\t"
+		"		move.l	%0,a3		| calculated start address\n\t"
+		"		jmp		(a3)		| go! \n\t"
+		"_copy_start:				| \n\t"
+		/* output */ :
+		/* input */  : "g" (jmp)
+		/* clobber */: "a3"
+		);
 }
