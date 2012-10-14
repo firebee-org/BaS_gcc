@@ -9,7 +9,7 @@
 
 #include "MCF5475.h"
 #include "startcf.h"
-
+#include "cache.h"
 
 static const uint8_t *FPGA_FLASH_DATA = (uint8_t *) 0xe0700000L;
 static const uint8_t *FPGA_FLASH_DATA_END = (uint8_t *) 0xe0800000L;
