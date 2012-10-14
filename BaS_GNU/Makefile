@@ -55,7 +55,7 @@ OBJS=$(COBJS) $(AOBJS)
 all: $(EXEC)
 
 $(EXEC): $(OBJS)
-	$(LD) --oformat srec -Map $(MAPFILE) --cref -T flash.lk -s -o $@ $(OBJS)
+	$(LD) --oformat srec -Map $(MAPFILE) --cref -T flash.lk -s -o $@ 
 
 clean:
 	@ rm -f $(EXEC) $(OBJS) $(MAPFILE) depend
