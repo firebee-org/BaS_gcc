@@ -516,6 +516,7 @@ void test_upd720101(void)
  */
 void vdi_on(void) {
 	uint8_t RBYT;
+	uint8_t DBYT;	/* FIXME: produces a warning about being unused when it is in fact (for a dummy read) */
 	int versuche;
 	
 	MCF_PSC0_PSCTB_8BIT = 'DVI ';
