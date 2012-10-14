@@ -9,16 +9,26 @@
 # the m68k-elf version which also allows to use gdb together with bdm tools for debugging
 #
 
+# This Makefile is meant for cross compiling the BaS with Vincent Riviere's cross compilers.
+# If you want to compile native on an Atari (you will need at least GCC 4.6.3), set
+# TCPREFIX to be empty. 
 TCPREFIX=m68k-atari-mint-
 
 CC=$(TCPREFIX)gcc
 LD=$(TCPREFIX)ld
 
 INCLUDE=-Iinclude
-CFLAGS=-mcfv4e -Wno-multichar -Os -Wa,-mcpu=547x -fomit-frame-pointer
-#CFLAGS=-mcfv4e -Wno-multichar -S -O3 -fomit-frame-pointer
+CFLAGS=-mcpu=5475 -Wno-multichar -Os -fomit-frame-pointer
+
 SRCDIR=sources
 OBJDIR=objs
+
+MAPFILE=bas.map
+
+# Linker control files. flash.lk is meant for BaS in flash, ram.lk (not written yet) for
+# debugging in RAM.
+LDCFILE=flash.lk
+# LDCFILE=ram.lk
 
 EXEC=bas.hex
 
@@ -43,14 +53,11 @@ OBJS=$(COBJS) $(AOBJS)
 	
 all: $(EXEC)
 
-SADDR=0xe0000000
-
 $(EXEC): $(OBJS)
-	$(LD) --oformat srec -Map $@.map --cref -T flash.lk -s -o $@ $(OBJS)
-	echo "generating executable"
+	$(LD) --oformat srec -Map $(MAPFILE) --cref -T flash.lk -s -o $@ $(OBJS)
 
 clean:
-	rm $(EXEC) $(OBJS)
+	@ rm -f $(EXEC) $(OBJS) $(MAPFILE)
 	
 $(OBJDIR)/%.o:$(SRCDIR)/%.c
 	$(CC) -c $(CFLAGS) $(INCLUDE) $< -o $@
