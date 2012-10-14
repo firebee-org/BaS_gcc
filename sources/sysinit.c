@@ -15,16 +15,12 @@ static const uint8_t *FPGA_FLASH_DATA = (uint8_t *) 0xe0700000L;
 static const uint8_t *FPGA_FLASH_DATA_END = (uint8_t *) 0xe0800000L;
 
 extern unsigned long _VRAM;
-extern unsigned long _Bas_base;
 extern unsigned long BaS;
-extern unsigned long _BOOT_FLASH[];
 extern int copy_end();
 extern int wait_10us();
 extern int wait_1ms();
-extern int wait_10ms();
 extern int wait_50us();
 
-extern unsigned long rt_cacr;
 
 #define uart_out_word(a)	MCF_PSC0_PSCTB_8BIT = (a);
 
@@ -236,6 +232,7 @@ void init_fpga(void)
 	
 	/*
 	 * excerpt from an Altera configuration manual:
+	 *
 	 * The low-to-high transition of nCONFIG on the FPGA begins the configuration cycle. The
 	 * configuration cycle consists of 3 stages�reset, configuration, and initialization.
 	 * While nCONFIG is low, the device is in reset. When the device comes out of reset,
@@ -363,9 +360,9 @@ void init_video_ddr(void) {
 
 #ifdef _NOT_USED_
 
-/********************************************************************/
-	/* video mit auflösung 1280x1000 137MHz /*
-	   /******************************************************************* */
+/*
+ * video mit auflösung 1280x1000 137MHz
+ */
 
 void video_1280_1024(void) {
 	extern int wait_pll;
@@ -515,13 +512,11 @@ void test_upd720101(void)
 }
 
 /*
- * TFP410 (vdi) einschalten /*
+ * TFP410 (DVI) on
  */
 void vdi_on(void) {
 	uint8_t RBYT;
-	uint8_t DBYT;
 	int versuche;
-	int startzeit;
 	
 	MCF_PSC0_PSCTB_8BIT = 'DVI ';
 
@@ -548,7 +543,6 @@ loop_i2c:
 	if (MCF_I2C_I2SR & MCF_I2C_I2SR_RXAK)
 		goto loop_i2c;	// ack erhalten? -> nein
 
-tpf_410_ACK_OK:
 	MCF_I2C_I2DR = 0x00;	// SUB ADRESS 0
 	while (!(MCF_I2C_I2SR & MCF_I2C_I2SR_IIF));
 	
@@ -583,7 +577,6 @@ tpf_410_ACK_OK:
 	if (RBYT != 0x4c)
 		goto loop_i2c;
 
-i2c_ok:
 	MCF_I2C_I2CR = 0x0;	// stop
 	MCF_I2C_I2SR = 0x0;	// clear sr
 
@@ -674,9 +667,7 @@ dvi_ok:
 void init_ac97(void) {
 	// PSC2: AC97 ----------
 	int i;
-	int k;
 	int zm;
-	int x;
 	int va;
 	int vb;
 	int vc;
@@ -762,7 +753,6 @@ livo:
 		}
 		MCF_PSC2_PSCTFCR |= MCF_PSC_PSCTFCR_WFR;	//set EOF
 		MCF_PSC2_PSCTB_AC97 = 0x00000000;	//last data
-ac97_end:
 		MCF_PSC0_PSCTB_8BIT = ' OK!'; MCF_PSC0_PSCTB_8BIT = 0x0a0d;
 }
 
