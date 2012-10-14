@@ -57,10 +57,16 @@ $(EXEC): $(OBJS)
 	$(LD) --oformat srec -Map $(MAPFILE) --cref -T flash.lk -s -o $@ $(OBJS)
 
 clean:
-	@ rm -f $(EXEC) $(OBJS) $(MAPFILE)
+	@ rm -f $(EXEC) $(OBJS) $(MAPFILE) depend
 	
 $(OBJDIR)/%.o:$(SRCDIR)/%.c
 	$(CC) -c $(CFLAGS) $(INCLUDE) $< -o $@
 	
 $(OBJDIR)/%.o:$(SRCDIR)/%.S
 	$(CC) -c $(CFLAGS) -Wa,--bitwise-or $(INCLUDE) $< -o $@
+
+depend: $(ASRCS) $(CSRCS)
+	$(CC) $(CFLAGS) $(INCLUDE) -M $(ASRCS) $(CSRCS) > depend
+	
+include depend
+	
