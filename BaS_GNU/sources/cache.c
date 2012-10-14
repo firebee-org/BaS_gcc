@@ -20,11 +20,11 @@ void flushDataCacheRegion(void *adr, uint32_t length)
 		"		cpushl		DC,(a0)		| flush and invalidate the cache line\n\t"
 		"		add.l		#0x10,a0	| increment to next cache line\n\t"
 		"		cmp.l		a0,a1		| done with region?\n\t"
-		"		bgt			.flush_iregion_loop\n\t"
+		"		bgt			.flush_dregion_loop\n\t"
 		"		addq.l		#1,d1		| increment way counter\n\t"
 		"		addq.l		#1,a1		| update stop address to reflect new way value\n\t"
 		"		cmp.l		#4,d1		| cache way\n\t"
-		"		bne			.flush_iregion_way_loop\n\t"
+		"		bne			.flush_dregion_way_loop\n\t"
 	/* output */ :
 	/* input */  : "g" (adr),
 				   "g" (length)
