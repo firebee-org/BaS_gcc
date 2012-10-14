@@ -12,7 +12,7 @@ sd_test:
 		move.l  	#'SD-C',(a6)
 		move.l  	#'ard ',(a6)
 
-		move.l		#__Bas_base,a5					// basis addresse (diesen bereich brauchen wir nicht mehr!)
+		move.l		#__Bas_base,a5				// basis addresse (diesen bereich brauchen wir nicht mehr!)
 		move.l		#0x1fffffff,d0				// normal dspi
 		move.l		d0,MCF_PAD_PAR_DSPI
 		lea			MCF_DSPI_DMCR,a0
@@ -386,7 +386,7 @@ wait_auf_complett:
 		btst.b		#7,dspi_dsr(a0)
 		beq			wait_auf_complett
 		move.l		dspi_drfr(a0),d5
-		mov3q.l		#-1,dspi_dsr(a0)		// clr status register
+		mov3q.l		#-1,dspi_dsr(a0)			// clr status register
 		rts
 
 // daten holen ----------------------------
@@ -395,8 +395,8 @@ sd_rcv_info:
 		move.b		#0xff,d4
 sd_rcv_rb_w:		
 		bsr			sd_get_status 
-		cmp.b		#0xfe,d5				// daten bereit?
-		bne			sd_rcv_rb_w				// nein->
+		cmp.b		#0xfe,d5					// daten bereit?
+		bne			sd_rcv_rb_w					// nein->
 sd_rcv_rd_rb:
 		bsr			sd_com
 		move.b		d5,(a4)+
