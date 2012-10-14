@@ -66,6 +66,7 @@ SECTIONS {
 		objs/sysinit.o(.text)
 		objs/BaS.o(.text)
 		objs/sd_card.o(.text)
+		objs/cache.o(.text)
 		objs/mmu.o(.text)
 		objs/exceptions.o(.text)
 		objs/supervisor.o(.text)
