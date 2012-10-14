@@ -297,6 +297,7 @@ void wait_pll(void)
 }
 
 static volatile uint8_t *pll_base = (volatile uint8_t *) 0xf0000600;
+
 void init_pll(void)
 {
 	* (volatile uint16_t *) (pll_base + 0x48) = 0x27;	/* loopfilter  r */
