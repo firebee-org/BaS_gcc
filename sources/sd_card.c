@@ -19,7 +19,7 @@ uint8_t sd_com(uint32_t cmd)
 	uint8_t res;
 
 	MCF_DSPI_DTFR = cmd;
-	while (! MCF_DSPI_DSR & (1 << 7));
+	while (! (MCF_DSPI_DSR & (1 << 7)));
 
 	res = MCF_DSPI_DRFR;
 	MCF_DSPI_DSR = -1L;
@@ -87,9 +87,10 @@ void sd_card_idle(void)
 
 int sd_card_init(void)
 {
-
-		long		az_sectors;
+	return 0; /* for now, just to make the compiler happy */
 #ifdef _NOT_USED_
+	long		az_sectors;
+
 	asm
 	{
 		lea			MCF_PSC0_PSCTB_8BIT,a1

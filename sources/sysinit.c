@@ -223,7 +223,7 @@ void init_fpga(void)
 	MCF_GPIO_PODR_FEC1L |= (1 << 1);
 	MCF_GPIO_PODR_FEC1L |= (1 << 2);
 
-	while ((!MCF_GPIO_PPDSDR_FEC1L & (1 << 0)) && (!MCF_GPIO_PPDSDR_FEC1L & (1 << 5)));
+	while ((! (MCF_GPIO_PPDSDR_FEC1L & (1 << 0))) && (! (MCF_GPIO_PPDSDR_FEC1L & (1 << 5))));
 
 	wait_10us();
 	MCF_GPIO_PODR_FEC1L |= (1 << 2);
@@ -273,7 +273,7 @@ void init_fpga(void)
 			MCF_GPIO_PODR_FEC1L |= 1;
 			MCF_GPIO_PODR_FEC1L &= ~1;
 		}
-	} while ((!MCF_GPIO_PPDSDR_FEC1L & (1 << 5)) && (fpga_data < FPGA_FLASH_DATA_END));
+	} while (!(MCF_GPIO_PPDSDR_FEC1L & (1 << 5)) && (fpga_data < FPGA_FLASH_DATA_END));
 
 	if (fpga_data < FPGA_FLASH_DATA_END)
 	{
@@ -460,10 +460,10 @@ void init_PCI(void) {
 
 	/* Configure Initiator Windows */
 	/* initiator window 0 base / translation adress register */
-	MCF_PCI_PCIIW0BTAR = PCI_MEMORY_OFFSET + ((PCI_MEMORY_SIZE -1) >> 8) & 0xffff0000;
+	MCF_PCI_PCIIW0BTAR = (PCI_MEMORY_OFFSET + ((PCI_MEMORY_SIZE -1) >> 8)) & 0xffff0000;
 
 	/* initiator window 1 base / translation adress register */
-	MCF_PCI_PCIIW1BTAR = PCI_IO_OFFSET + ((PCI_IO_SIZE - 1) >> 8) & 0xffff0000;
+	MCF_PCI_PCIIW1BTAR = (PCI_IO_OFFSET + ((PCI_IO_SIZE - 1) >> 8)) & 0xffff0000;
 
 	/* initiator window 2 base / translation address register */
 	MCF_PCI_PCIIW2BTAR = 0L;	/* not used */
@@ -725,6 +725,8 @@ void init_ac97(void) {
 		if ((va & 0x80000fff) == 0x80000800) {
 			vb = MCF_PSC2_PSCTB_AC97;
 			vc = MCF_PSC2_PSCTB_AC97;
+
+			/* FIXME: that looks suspicious */
 			if ((va & 0xE0000fff) == 0xE0000800 & vb == 0x02000000 & vc == 0x00000000) {
 				goto livo;}
 			}

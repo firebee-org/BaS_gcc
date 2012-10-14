@@ -1,6 +1,6 @@
-/********************************************************/
-/*   exception vectoren intialisieren
-/********************************************************/
+/*
+ * initialize exception vectors
+ */
 
 #include "startcf.h"
 
@@ -287,9 +287,9 @@ no_protect_vectors:
 		lea		timer0(pc),a1
 		move.l	a1,0x1f8(a0)
 		rts
-/********************************************************/
-/*   exception vector routinen
-/********************************************************/
+/*
+ * exception vector routines
+ */
 vector_table_start:
 std_exc_vec:
 		move.w	#0x2700,sr			// disable interrupt
@@ -609,9 +609,10 @@ sev_sup6:
 		movem.l	(a7),d0/a5			// register zur�ck
 		rts
 blinker:.long	0
-/**************************************************/
-/* pseudo dma */
-/**************************************************/
+
+/*
+ * pseudo dma */
+ */
 acsi_dma:							// atari dma
 		move.l  a1,-(a7)
 		move.l  d1,-(a7)
@@ -672,9 +673,9 @@ acsi_dma_end:
 		move.l	(a7)+,d1
 		move.l	(a7)+,a1
 		rts
-/**************************************************/
-/* irq 7 = pseudo bus error */
-/**************************************************/
+/*
+ * irq 7 = pseudo bus error */
+ */
 irq7:
 		lea			-12(sp),sp
 		movem.l		d0/a0,(sp)
@@ -696,9 +697,9 @@ irq7:
 		move.l		(sp)+,a0
 		rts								// Forward to the Access Error handler
 
-/**************************************************/
-/* psc3 com PIC MCF */
-/**************************************************/
+/*
+ * psc3 com PIC MCF */
+ */
 psc3:
 		move.w	#0x2700,sr			// disable interrupt
 		lea		-20(a7),a7
@@ -734,9 +735,10 @@ psc3_fertig:
 		movem.l	(a7),d0-d2/a0/a3	// register zur�ck
 		lea		20(a7),a7
 		RTE
-/**************************************************/
-/* timer 0: video change later also others
-/**************************************************/
+
+/*
+ * timer 0: video change later also others
+ */
 timer0:
 		move	#0x2700,sr
 //		halt

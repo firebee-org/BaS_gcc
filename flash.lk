@@ -3,13 +3,9 @@ MEMORY {
 }
 
 SECTIONS {
-	_Bas_base		  = ABSOLUTE(0x1FE00000);
-
-	/* Board Memory map definitions from linker command files:
-	 * __SDRAM,__SDRAM_SIZE, __CODE_FLASH, __CODE_FLASH_SIZE
-	 * linker symbols must be defined in the linker command file.
-	 */
-
+	_Bas_base = ABSOLUTE(0x1FE00000);
+	_tos_base = ABSOLUTE(0xe00000);
+	 
 	/* Init CS0 (BootFLASH @ E000_0000 - E07F_FFFF 8Mbytes) */
 	___BOOT_FLASH           = ABSOLUTE(0xE0000000);
  	___BOOT_FLASH_SIZE      = ABSOLUTE(0x00800000);
@@ -19,12 +15,6 @@ SECTIONS {
 
 	/* VIDEO RAM BASIS */
 	__VRAM                = ABSOLUTE(0x60000000);
-
-	/*
-	 * MCF5475 Derivative Memory map definitions from linker command files:
-	 * __MBAR, __MMUBAR, __RAMBAR0, __RAMBAR0_SIZE, __RAMBAR1, __RAMBAR1_SIZE
-	 * linker symbols must be defined in the linker command file.
-	 */
 
 	/* Memory mapped registers */
  	__MBAR                 = ABSOLUTE(0xFF000000);

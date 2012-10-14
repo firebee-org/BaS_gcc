@@ -1,6 +1,6 @@
-/********************************************************/
-/*   user/supervisor handler
-/********************************************************/
+/*
+ *   user/supervisor handler
+ */
 
 #include "startcf.h"
 
@@ -33,7 +33,7 @@ _privileg_violation:
 	lea			_rt_mod,a0		// zugriff setzen
 	tst.b		(a0)			// vom rt_supervisormodus?
 	bne			pv_work			// ja->
-// tatsächlich privileg violation
+// tatsï¿½chlich privileg violation
 	mov3q.l		#-1,(a0)		// sr_mod setzen
 	move.l		usp,a5			// usp holen
 	move.l		a5,8(a0)		// sichern
@@ -52,7 +52,7 @@ _privileg_violation:
 	move.l		12(a0),a5		// rt_vbr
 	lea			0x18(a5),a5		// vector
 	move.l		(a5),16(a7)		// vector privileg violation
-	movem.l		(a7),d0/a0/a5	// register zurück
+	movem.l		(a7),d0/a0/a5	// register zurï¿½ck
 	lea			12(a7),a7
 	rte
 // privileg violation
@@ -149,7 +149,7 @@ pv_a7_usp:		move.l 4(a0),a5		// rt_ssp -> a5
 pv_ax_usp:
 	move.l		a5,8(a0)			// usp -> rt_usp
 	addq.l		#2,16(a7)			// next
-	movem.l		(a7),d0/a0/a5		// register zurück
+	movem.l		(a7),d0/a0/a5		// register zurï¿½ck
 	lea			12(a7),a7
 	rte
 // usp->a0
@@ -175,7 +175,7 @@ pv_usp_a6:
 	move.l		a5,a6
 pv_usp_ax:
 	addq.l		#2,16(a7)		// next
-	movem.l		(a7),d0/a0/a5	// register zurück
+	movem.l		(a7),d0/a0/a5	// register zurï¿½ck
 	lea			12(a7),a7
 	rte
 // rte
@@ -196,7 +196,7 @@ pv_rte:
 	move.l		8(a0),a5		// rt_usp holen
 pv_rte_sup:
 	move.l		a5,usp			// usp setzen
-	movem.l		(a7),d0/a0/a5	// register zurück
+	movem.l		(a7),d0/a0/a5	// register zurï¿½ck
 	lea			12(a7),a7
 	rte
 // stop
@@ -241,7 +241,7 @@ stop7:
 	stop		#0x2700
 stop_weiter:
 	addq.l		#4,16(a7)		// next 
-	movem.l		(a7),d0/a0/a5	// register zurück
+	movem.l		(a7),d0/a0/a5	// register zurï¿½ck
 	lea			12(a7),a7
 	rte
 // movec ???????
@@ -335,7 +335,7 @@ pv_46:
 	move.b		1(a5),d0	
 	cmp.b		#0xfc,d0		//#d16->sr
 	beq			im_sr			//ja->
-//move dx->sr (sr und rt_mod ist supervisor sonst wäre es privileg violation
+//move dx->sr (sr und rt_mod ist supervisor sonst wï¿½re es privileg violation
 	cmp.b		#0xc0,d0		//d0->sr?
 	bne			d1_sr			//nein->
 	move.w		2(a7),d0		//hier ist d0 gesichert
@@ -389,7 +389,7 @@ pv_set_sr_end:
 	move.l		a5,usp			// setzen
 pv_sre2:
 	move.w		d0,14(a7)		// sr setzen
-	movem.l		(a7),d0/a0/a5	// register zurück
+	movem.l		(a7),d0/a0/a5	// register zurï¿½ck
 	lea			12(a7),a7
 	rte
 // code 0x40xx  *****************************************
@@ -442,7 +442,7 @@ nsr_d7:
 	halt
 sr_dx_end:
 	addq.l		#2,16(a7)		// next 
-	movem.l		(a7),d0/a0/a5	// register zurück
+	movem.l		(a7),d0/a0/a5	// register zurï¿½ck
 	lea			12(a7),a7
 	rte
 // strldsr
@@ -577,7 +577,7 @@ cfa_setloop:
 	move.l		_rt_cacr,d0			// holen
 	movec		d0,cacr				// setzen
 	move.w		d2,sr				// alte interrupt maske
-	movem.l		(a7),d0-d2/a0		// register zurück
+	movem.l		(a7),d0-d2/a0		// register zurï¿½ck
 	lea			16(a7),a7
 
 	rts	

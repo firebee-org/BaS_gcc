@@ -9,6 +9,7 @@
 #include "startcf.h"
 
 extern uint32_t Bas_base[];
+extern uint8_t tos_base[];
 
 /* imported routines */
 extern int mmu_init();
@@ -64,9 +65,9 @@ void wait_1us(void)
 void BaS(void)
 {
 	int	az_sectors;
-	int	sd_status,i;
+	int	i;
 	uint8_t *src;
-	uint8_t *dst;
+	uint8_t *dst = tos_base;
 	uint32_t *adr;
 
 	az_sectors = sd_card_init();
@@ -113,7 +114,7 @@ copy_firetos:
 		}
 	}
 
-	if (!DIP_SWITCH & (1 << 6))	/* switch #6 on ? */
+	if (!(DIP_SWITCH & (1 << 6)))	/* switch #6 on ? */
 	{
 		if (MCF_PSC3_PSCRB_8BIT == 0x81)
 		{
