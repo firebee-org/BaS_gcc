@@ -4,15 +4,15 @@ void startup(void)
 {
 	asm volatile(
 		"		.extern	_initialize_hardware\n\t"
-		"		bra		warmstart\n\t"
-		"		jmp		___BOOT_FLASH + 8" 		/* that's also our reset vector */
+		"		bra.s	warmstart\n\t"
+		"		jmp		___BOOT_FLASH + 8\n\t" 		/* that's also our reset vector */
 
 		/* disable interrupts */
 		"warmstart:\n\t"
 		"		move.w #0x2700,sr\n\t"
 		/* output */ :
 		/* input */ :
-		/* clobber */ : "d0");
+		/* clobber */ : "d0", "memory");
 
 	/* Initialize MBAR */
 	asm volatile(
@@ -21,7 +21,7 @@ void startup(void)
 		"		MOVE.L	D0,_rt_mbar\n\t"
 		/* output */ :
 		/* input */ :
-		/* clobber */ : "d0");
+		/* clobber */ : "d0", "memory");
 
 	/* mmu off */
 	asm volatile(
@@ -29,7 +29,7 @@ void startup(void)
 		"		movec	d0,MMUBAR\n\t"
 		/* output */ :
 		/* input */ :
-		/* clobber */ : "d0");
+		/* clobber */ : "d0", "memory");
 
 	MCF_MMU_MMUCR = 0L;	/* MMU off */
 
@@ -49,5 +49,5 @@ void startup(void)
 		"		bra    _initialize_hardware\n\t"
 		/* output */ :
 		/* input */ :
-		/* clobber */ : "d0");
+		/* clobber */ : "d0", "memory");
 }
