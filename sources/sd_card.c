@@ -2,8 +2,8 @@
  * sd card
  */
 
-#include <MCF5475.h>
 #include <stdint.h>
+#include <MCF5475.h>
 
 #define		dspi_dtar0	0x0c
 #define		dspi_dsr	0x2c
@@ -83,13 +83,13 @@ void sd_card_idle(void)
 #endif
 }
 
-#ifdef _NOT_USED_
+
 
 int sd_card_init(void)
 {
 
 		long		az_sectors;
-
+#ifdef _NOT_USED_
 	asm
 	{
 		lea			MCF_PSC0_PSCTB_8BIT,a1
@@ -424,8 +424,11 @@ sd_c_not:
 		return		-2;
 sd_c_error:
 		return		-1;
+
+#endif /* _NOT_USED_ */
 }
 
+#ifdef _NOT_USED_
 void sd_rcv_sector(void)	 // 1 sector daten holen ----------------------------
 {
 	if (sd_get_status() == 0xfe)
