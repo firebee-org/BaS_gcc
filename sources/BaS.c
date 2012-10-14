@@ -8,7 +8,7 @@
 #include "MCF5475_SLT.h"
 #include "startcf.h"
 
-extern unsigned long _Bas_base[];
+extern unsigned long Bas_base[];
 
 /* imported routines */
 extern int mmu_init();
@@ -203,7 +203,7 @@ void BaS(void)
 
 	/* TT-RAM */
 
-	* (uint32_t *) 0x5a4 = (uint32_t *) _Bas_base;	/* ramtop TOS system variable */
+	* (uint32_t *) 0x5a4 = (uint32_t *) Bas_base;	/* ramtop TOS system variable */
 	* (uint32_t *) 0x5a8 = 0x1357bd13;	/* ramvalid TOS system variable */
 
 	/* init ACIA */
