@@ -36,6 +36,7 @@ CSRCS= \
 	$(SRCDIR)/startcf.c \
 	$(SRCDIR)/sysinit.c \
 	$(SRCDIR)/BaS.c \
+	$(SRCDIR)/cache.c \
 	$(SRCDIR)/sd_card.c \
 	$(SRCDIR)/last.c
 
