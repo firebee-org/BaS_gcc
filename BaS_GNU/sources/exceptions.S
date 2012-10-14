@@ -140,7 +140,7 @@
 		btst	#7,d0 
 		bne		irq_protect		// ja->
 // -------------------------------------------		
-		movem.l	(a7),d0/a5			// register zurück
+		movem.l	(a7),d0/a5			// register zurï¿½ck
 		addq.l	#8,a7
 		move.l	\vector,-(a7)
 		move	#0x2200,sr
@@ -178,7 +178,7 @@ irq_end:
 		adda.l	_rt_vbr,a5
 		move.l	(a5),12(a7)			// vectoradresse eintragen
 		move.b	#\int_mask,10(a7)	// intmaske setzen
-		movem.l	(a7),d0/a5			// register zurück
+		movem.l	(a7),d0/a5			// register zurï¿½ck
 		addq.l	#8,a7
 		rte							// und weg 
 		.endm
@@ -216,7 +216,7 @@ init_vec:
 		move.l	#256,d0
 		lea		std_exc_vec(pc),a1		// standard vector
 init_vec_loop:
-		move.l	a1,(a2)+			// mal standard vector für alle setzen
+		move.l	a1,(a2)+			// mal standard vector fï¿½r alle setzen
 		subq.l	#1,d0
 		bne		init_vec_loop
 
@@ -305,12 +305,12 @@ std_exc_vec:
 		add.l	_rt_vbr,d0			// + basis
 		move.l	d0,a5
 		move.l	(a5),d0
-		move.l	4(a7),a5			// a5 zurück
+		move.l	4(a7),a5			// a5 zurï¿½ck
 		move.l	d0,4(a7)
 		move.w	10(a7),d0
 		bset	#13,d0				// super
 		move.w	d0,sr				// orginal sr wert in super setzen
-		move.l	(a7)+,d0			// d0 zurück
+		move.l	(a7)+,d0			// d0 zurï¿½ck
 		rts
 stv_protect:
 		move.l	usp,a5				// usp holen  
@@ -335,7 +335,7 @@ stv_protect:
 		add.l	_rt_vbr,d0			// + basis
 		move.l	d0,a5
 		move.l	(a5),12(a7)			// hier geht's weiter
-		movem.l	(a7),d0/a5			// register zurück
+		movem.l	(a7),d0/a5			// register zurï¿½ck
 		addq.l	#8,a7
 		rte							// und weg 
 sev_sup:
@@ -357,16 +357,16 @@ sev_sup:
 		add.l	_rt_vbr,d0			// + basis
 		move.l	d0,a5
 		move.l	(a5),12(a7)			// hier geht's weiter
-		movem.l	(a7),d0/a5			// register zurück
+		movem.l	(a7),d0/a5			// register zurï¿½ck
 		addq.l	#8,a7
 		rte							// und weg 
 //*******************************************
 reset_vector:
 		move.w	#0x2700,sr			// disable interrupt
 		move.l	#0x31415926,d0
-		cmp.l	0x426,d0			// reset vector gültg?
+		cmp.l	0x426,d0			// reset vector gï¿½ltg?
 		beq		std_exc_vec			// ja->
-		jmp		__BOOT_FLASH 		// sonst kaltstart
+		jmp		___BOOT_FLASH 		// sonst kaltstart
 acess:
 		move.w	#0x2700,sr			// disable interrupt
 		move.l	d0,-(sp)			// ++ vr
@@ -387,7 +387,7 @@ access_mmu:
 		bne		bus_error
 		move.l	MCF_MMU_MMUAR,d0
 		cmp.l	#_Bas_base,d0		// max User RAM Bereich
-		bge		bus_error			// grösser -> bus error
+		bge		bus_error			// grï¿½sser -> bus error
 		bra		_mmutr_miss
 bus_error:
 		move.l	(sp)+,d0
@@ -464,7 +464,7 @@ irq6:				// mfp
 // test auf timeout screen adr change -------------------------------------------------------
 		move.l	_video_sbt,d0
   		beq		irq6_non_sca		// wenn 0 nichts zu tun
-  		sub.l	#0x70000000,d0		// 14 sec abzählen
+  		sub.l	#0x70000000,d0		// 14 sec abzï¿½hlen
 		lea		MCF_SLT0_SCNT,a5
   		cmp.l	(a5),d0				// aktuelle zeit weg
   		ble		irq6_non_sca		// noch nicht abgelaufen
@@ -484,13 +484,13 @@ irq6:				// mfp
  		swap	d4
  		move.l	d4,MCF_MMU_MMUAR
 		mvz.w	#0x10e,d4
- 		move.l	d4,MCF_MMU_MMUOR	// einträge holen aus mmu
+ 		move.l	d4,MCF_MMU_MMUOR	// eintrï¿½ge holen aus mmu
  		nop
  		move.l	MCF_MMU_MMUTR,d4	// ID holen
  		lsr.l	#2,d4				// bit 9 bis 2
  		cmp.w	#sca_page_ID,d4		// ist screen change ID?
  		bne		irq6_sca_pn			// nein -> page keine screen area next
-// eintrag ändern 		
+// eintrag ï¿½ndern 		
 		add.l	#std_mmutr,d0
 		move.l	d3,d1				// page 0?
 		beq		irq6_sca_pn0		// ja ->
@@ -524,9 +524,9 @@ irq6_sca_pn:
 
 		move.l	#0x2000,d0
 		move.l	d0,_video_tlb		// anfangszustand wieder herstellen
-  		clr.l	_video_sbt			// zeit löschen
+  		clr.l	_video_sbt			// zeit lï¿½schen
 
-  		movem.l	(a7),d0-d4/a0-a1	// register zurück
+  		movem.l	(a7),d0-d4/a0-a1	// register zurï¿½ck
   		lea		28(a7),a7
 irq6_non_sca:
 // test auf acsi dma -----------------------------------------------------------------
@@ -563,9 +563,9 @@ irq6_2:
 		move.l	0xF0020000,a5		// vector holen
 		add.l	_rt_vbr,a5			// basis
 		move.l	(a5),d0				// vector holen
-		move.l	4(a7),a5			// a5 zurück
+		move.l	4(a7),a5			// a5 zurï¿½ck
 		move.l	d0,4(a7)			// vector eintragen
-		move.l	(a7)+,d0			// d0 zurück
+		move.l	(a7)+,d0			// d0 zurï¿½ck
 		move	#0x2600,sr
 		rts
 irq6_3:
@@ -587,7 +587,7 @@ irq6_3:
 		move.l  0xF0020000,a5		// vector holen: intack routine
 		add.l	_rt_vbr,a5			// virtuelle VBR des Systems
 		move.l	(a5),12(a7)			// hier gehts weiter
-		movem.l	(a7),d0/a5			// register zurück
+		movem.l	(a7),d0/a5			// register zurï¿½ck
 		addq.l	#8,a7
 		move.b	#6,2(a7)			// intmaske setzen
 		rte 						// und weg 
@@ -606,7 +606,7 @@ sev_sup6:
 		move.l  0xF0020000,a5		// vector holen: intack routine
 		add.l	_rt_vbr,a5			// virtuelle VBR des Systems
 		move.l	(a5),12(a7)			// hier gehts weiter
-		movem.l	(a7),d0/a5			// register zurück
+		movem.l	(a7),d0/a5			// register zurï¿½ck
 		rts
 blinker:.long	0
 /**************************************************/
@@ -657,8 +657,8 @@ acsi_dma_wl:
 		sub.l	#16,d0				// byt counter -16
 		bpl		acsi_dma_wl
 acsi_dma_fertig:
-		move.l	a1,-12(a5)			// adresse zurück
-		move.l	d0,-8(a5)			// byt counter zurück
+		move.l	a1,-12(a5)			// adresse zurï¿½ck
+		move.l	d0,-8(a5)			// byt counter zurï¿½ck
 acsi_dma_end:
 		tst.b	-4(a5) 				// dma req?
  		bmi		acsi_dma_start		// ja->
@@ -731,7 +731,7 @@ loop_sr2:
 		cmp.b	d1,d2
 		bne		loop_sr2
 psc3_fertig:
-		movem.l	(a7),d0-d2/a0/a3	// register zurück
+		movem.l	(a7),d0-d2/a0/a3	// register zurï¿½ck
 		lea		20(a7),a7
 		RTE
 /**************************************************/
@@ -742,7 +742,7 @@ timer0:
 //		halt
 		lea		-28(a7),a7
 		movem.l	d0-d4/a0-a1,(a7)
-		mvz.b	0xffff8201,d0		// löschen und high byt
+		mvz.b	0xffff8201,d0		// lï¿½schen und high byt
 		cmp.w	#2,d0
 		blt		video_chg_end
 		cmp.w	#0xd0,d0			// normale addresse
@@ -762,7 +762,7 @@ video_chg_1page:
 		move.l	d0,d2
 		lsr.l	d4,d2				// neue page
 		move.l	_video_tlb,d4
-		bset.l	d2,d4				// setzen als geändert
+		bset.l	d2,d4				// setzen als geï¿½ndert
 		bne		video_chg_2page		// schon gesetzt gewesen? ja->weg
 		move.l	d4,_video_tlb
 		bsr		cpusha				// cache leeren
@@ -784,7 +784,7 @@ video_copy_data_loop:
 // eintrag suchen
 		move.l	d0,MCF_MMU_MMUAR	// addresse
  		move.l	#0x106,d4
- 		move.l	d4,MCF_MMU_MMUOR	// suchen -> schlägt neuen vor wenn keiner
+ 		move.l	d4,MCF_MMU_MMUOR	// suchen -> schlï¿½gt neuen vor wenn keiner
  		nop
  		move.l	MCF_MMU_MMUOR,d4
  		clr.w	d4
@@ -806,17 +806,17 @@ video_chg_2page:
 		mvz.w	0xffff82a8,d1		// zeilenstart
 		sub.l	d1,d2				// differenz = anzahl zeilen
 		mulu	d2,d4				// maximal 480 zeilen
-		add.l	d4,d0				// video grösse
+		add.l	d4,d0				// video grï¿½sse
 		cmp.l	#0xe00000,d0		// maximale addresse
-		bge		video_chg_end		// wenn gleich oder grösser -> fertig
+		bge		video_chg_end		// wenn gleich oder grï¿½sser -> fertig
 		moveq	#20,d4
 		move.l	d0,d2
 		lsr.l	d4,d2				// neue page
 		move.l	_video_tlb,d4
-		bset.l	d2,d4				// setzen als geändert
+		bset.l	d2,d4				// setzen als geï¿½ndert
 		beq		video_copy_data		// nein nochmal
 video_chg_end:
-// int pending löschen
+// int pending lï¿½schen
 		lea		MCF_GPT0_GMS,a0
 		bclr.b	#0,3(a0)
 		nop
