@@ -11,9 +11,6 @@
 #define		dspi_drfr	0x38
 #define		time1us		1320
 
-extern void wait_10ms(void);
-
-
 uint8_t sd_com(uint32_t cmd)
 {
 	uint8_t res;

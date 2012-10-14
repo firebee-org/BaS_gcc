@@ -15,6 +15,7 @@ extern uint8_t tos_base[];
 extern int mmu_init();
 extern int vec_init();
 extern int illegal_table_make();
+extern void sd_card_idle();
 
 /*
  * warte_routinen
