@@ -21,7 +21,7 @@ void startup(void)
 	asm("move.l	#__MMUBAR+1,d0\n\t");
 	asm("movec	d0,MMUBAR");	/* set mmubar */
 
-	* (volatile uint32_t *) MCF_MMU_MMUCR = 0L;	/* MMU off */
+	MCF_MMU_MMUCR = 0L;	/* MMU off */
 
 	asm(
     "|/* Initialize RAMBARs: locate SRAM and validate it */\n\t"
