@@ -801,7 +801,7 @@ asm(
 		init_ac97();
 	}
 
-	/* copy the BaS code contained in flash just behind us */
+	/* copy the BaS code contained in flash to its final location */
 	src = copy_start;
 	dst = Bas_base;
 	jmp = (uint8_t *) BaS - copy_start + Bas_base;
