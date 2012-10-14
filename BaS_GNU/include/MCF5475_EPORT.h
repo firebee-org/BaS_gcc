@@ -24,12 +24,12 @@
 *********************************************************************/
 
 /* Register read/write macros */
-#define MCF_EPORT_EPPAR                      (*(volatile uint16_t*)(&__MBAR[0xF00]))
-#define MCF_EPORT_EPDDR                      (*(volatile uint8_t *)(&__MBAR[0xF04]))
-#define MCF_EPORT_EPIER                      (*(volatile uint8_t *)(&__MBAR[0xF05]))
-#define MCF_EPORT_EPDR                       (*(volatile uint8_t *)(&__MBAR[0xF08]))
-#define MCF_EPORT_EPPDR                      (*(volatile uint8_t *)(&__MBAR[0xF09]))
-#define MCF_EPORT_EPFR                       (*(volatile uint8_t *)(&__MBAR[0xF0C]))
+#define MCF_EPORT_EPPAR                      (*(volatile uint16_t*)(&_MBAR[0xF00]))
+#define MCF_EPORT_EPDDR                      (*(volatile uint8_t *)(&_MBAR[0xF04]))
+#define MCF_EPORT_EPIER                      (*(volatile uint8_t *)(&_MBAR[0xF05]))
+#define MCF_EPORT_EPDR                       (*(volatile uint8_t *)(&_MBAR[0xF08]))
+#define MCF_EPORT_EPPDR                      (*(volatile uint8_t *)(&_MBAR[0xF09]))
+#define MCF_EPORT_EPFR                       (*(volatile uint8_t *)(&_MBAR[0xF0C]))
 
 
 

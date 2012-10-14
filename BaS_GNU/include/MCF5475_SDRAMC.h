@@ -24,16 +24,16 @@
 *********************************************************************/
 
 /* Register read/write macros */
-#define MCF_SDRAMC_SDRAMDS                   (*(volatile uint32_t*)(&__MBAR[0x4]))
-#define MCF_SDRAMC_CS0CFG                    (*(volatile uint32_t*)(&__MBAR[0x20]))
-#define MCF_SDRAMC_CS1CFG                    (*(volatile uint32_t*)(&__MBAR[0x24]))
-#define MCF_SDRAMC_CS2CFG                    (*(volatile uint32_t*)(&__MBAR[0x28]))
-#define MCF_SDRAMC_CS3CFG                    (*(volatile uint32_t*)(&__MBAR[0x2C]))
-#define MCF_SDRAMC_SDMR                      (*(volatile uint32_t*)(&__MBAR[0x100]))
-#define MCF_SDRAMC_SDCR                      (*(volatile uint32_t*)(&__MBAR[0x104]))
-#define MCF_SDRAMC_SDCFG1                    (*(volatile uint32_t*)(&__MBAR[0x108]))
-#define MCF_SDRAMC_SDCFG2                    (*(volatile uint32_t*)(&__MBAR[0x10C]))
-#define MCF_SDRAMC_CSCFG(x)                  (*(volatile uint32_t*)(&__MBAR[0x20 + ((x)*0x4)]))
+#define MCF_SDRAMC_SDRAMDS                   (*(volatile uint32_t*)(&_MBAR[0x4]))
+#define MCF_SDRAMC_CS0CFG                    (*(volatile uint32_t*)(&_MBAR[0x20]))
+#define MCF_SDRAMC_CS1CFG                    (*(volatile uint32_t*)(&_MBAR[0x24]))
+#define MCF_SDRAMC_CS2CFG                    (*(volatile uint32_t*)(&_MBAR[0x28]))
+#define MCF_SDRAMC_CS3CFG                    (*(volatile uint32_t*)(&_MBAR[0x2C]))
+#define MCF_SDRAMC_SDMR                      (*(volatile uint32_t*)(&_MBAR[0x100]))
+#define MCF_SDRAMC_SDCR                      (*(volatile uint32_t*)(&_MBAR[0x104]))
+#define MCF_SDRAMC_SDCFG1                    (*(volatile uint32_t*)(&_MBAR[0x108]))
+#define MCF_SDRAMC_SDCFG2                    (*(volatile uint32_t*)(&_MBAR[0x10C]))
+#define MCF_SDRAMC_CSCFG(x)                  (*(volatile uint32_t*)(&_MBAR[0x20 + ((x)*0x4)]))
 
 
 /* Bit definitions and macros for MCF_SDRAMC_SDRAMDS */

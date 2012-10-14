@@ -24,8 +24,8 @@
 *********************************************************************/
 
 /* Register read/write macros */
-#define MCF_PCIARB_PACR                      (*(volatile uint32_t*)(&__MBAR[0xC00]))
-#define MCF_PCIARB_PASR                      (*(volatile uint32_t*)(&__MBAR[0xC04]))
+#define MCF_PCIARB_PACR                      (*(volatile uint32_t*)(&_MBAR[0xC00]))
+#define MCF_PCIARB_PASR                      (*(volatile uint32_t*)(&_MBAR[0xC04]))
 
 
 /* Bit definitions and macros for MCF_PCIARB_PACR */

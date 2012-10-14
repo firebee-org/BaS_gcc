@@ -23,19 +23,19 @@
  * linker symbols must be defined in the linker command file.
  */
 
-extern uint8_t __MBAR[];
-extern uint8_t __MMUBAR[];
-extern uint8_t __RAMBAR0[];
-extern uint8_t __RAMBAR0_SIZE[];
-extern uint8_t __RAMBAR1[];
-extern uint8_t __RAMBAR1_SIZE[];
+extern uint8_t _MBAR[];
+extern uint8_t _MMUBAR[];
+extern uint8_t _RAMBAR0[];
+extern uint8_t _RAMBAR0_SIZE[];
+extern uint8_t _RAMBAR1[];
+extern uint8_t _RAMBAR1_SIZE[];
 
-#define MBAR_ADDRESS    (uint32_t)__MBAR
-#define MMUBAR_ADDRESS  (uint32_t)__MMUBAR
-#define RAMBAR0_ADDRESS (uint32_t)__RAMBAR0
-#define RAMBAR0_SIZE    (uint32_t)__RAMBAR0_SIZE
-#define RAMBAR1_ADDRESS (uint32_t)__RAMBAR1
-#define RAMBAR1_SIZE    (uint32_t)__RAMBAR1_SIZE
+#define MBAR_ADDRESS    (uint32_t)_MBAR
+#define MMUBAR_ADDRESS  (uint32_t)_MMUBAR
+#define RAMBAR0_ADDRESS (uint32_t)_RAMBAR0
+#define RAMBAR0_SIZE    (uint32_t)_RAMBAR0_SIZE
+#define RAMBAR1_ADDRESS (uint32_t)_RAMBAR1
+#define RAMBAR1_SIZE    (uint32_t)_RAMBAR1_SIZE
 
 
 #include "MCF5475_SIU.h"

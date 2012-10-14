@@ -24,18 +24,18 @@
 *********************************************************************/
 
 /* Register read/write macros */
-#define MCF_PAD_PAR_FBCTL                    (*(volatile uint16_t*)(&__MBAR[0xA40]))
-#define MCF_PAD_PAR_FBCS                     (*(volatile uint8_t *)(&__MBAR[0xA42]))
-#define MCF_PAD_PAR_DMA                      (*(volatile uint8_t *)(&__MBAR[0xA43]))
-#define MCF_PAD_PAR_FECI2CIRQ                (*(volatile uint16_t*)(&__MBAR[0xA44]))
-#define MCF_PAD_PAR_PCIBG                    (*(volatile uint16_t*)(&__MBAR[0xA48]))
-#define MCF_PAD_PAR_PCIBR                    (*(volatile uint16_t*)(&__MBAR[0xA4A]))
-#define MCF_PAD_PAR_PSC3                     (*(volatile uint8_t *)(&__MBAR[0xA4C]))
-#define MCF_PAD_PAR_PSC2                     (*(volatile uint8_t *)(&__MBAR[0xA4D]))
-#define MCF_PAD_PAR_PSC1                     (*(volatile uint8_t *)(&__MBAR[0xA4E]))
-#define MCF_PAD_PAR_PSC0                     (*(volatile uint8_t *)(&__MBAR[0xA4F]))
-#define MCF_PAD_PAR_DSPI                     (*(volatile uint16_t*)(&__MBAR[0xA50]))
-#define MCF_PAD_PAR_TIMER                    (*(volatile uint8_t *)(&__MBAR[0xA52]))
+#define MCF_PAD_PAR_FBCTL                    (*(volatile uint16_t*)(&_MBAR[0xA40]))
+#define MCF_PAD_PAR_FBCS                     (*(volatile uint8_t *)(&_MBAR[0xA42]))
+#define MCF_PAD_PAR_DMA                      (*(volatile uint8_t *)(&_MBAR[0xA43]))
+#define MCF_PAD_PAR_FECI2CIRQ                (*(volatile uint16_t*)(&_MBAR[0xA44]))
+#define MCF_PAD_PAR_PCIBG                    (*(volatile uint16_t*)(&_MBAR[0xA48]))
+#define MCF_PAD_PAR_PCIBR                    (*(volatile uint16_t*)(&_MBAR[0xA4A]))
+#define MCF_PAD_PAR_PSC3                     (*(volatile uint8_t *)(&_MBAR[0xA4C]))
+#define MCF_PAD_PAR_PSC2                     (*(volatile uint8_t *)(&_MBAR[0xA4D]))
+#define MCF_PAD_PAR_PSC1                     (*(volatile uint8_t *)(&_MBAR[0xA4E]))
+#define MCF_PAD_PAR_PSC0                     (*(volatile uint8_t *)(&_MBAR[0xA4F]))
+#define MCF_PAD_PAR_DSPI                     (*(volatile uint16_t*)(&_MBAR[0xA50]))
+#define MCF_PAD_PAR_TIMER                    (*(volatile uint8_t *)(&_MBAR[0xA52]))
 
 
 /* Bit definitions and macros for MCF_PAD_PAR_FBCTL */

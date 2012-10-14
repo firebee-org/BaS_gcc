@@ -24,20 +24,20 @@
 *********************************************************************/
 
 /* Register read/write macros */
-#define MCF_SLT0_STCNT                       (*(volatile uint32_t*)(&__MBAR[0x900]))
-#define MCF_SLT0_SCR                         (*(volatile uint32_t*)(&__MBAR[0x904]))
-#define MCF_SLT0_SCNT                        (*(volatile uint32_t*)(&__MBAR[0x908]))
-#define MCF_SLT0_SSR                         (*(volatile uint32_t*)(&__MBAR[0x90C]))
+#define MCF_SLT0_STCNT                       (*(volatile uint32_t*)(&_MBAR[0x900]))
+#define MCF_SLT0_SCR                         (*(volatile uint32_t*)(&_MBAR[0x904]))
+#define MCF_SLT0_SCNT                        (*(volatile uint32_t*)(&_MBAR[0x908]))
+#define MCF_SLT0_SSR                         (*(volatile uint32_t*)(&_MBAR[0x90C]))
 
-#define MCF_SLT1_STCNT                       (*(volatile uint32_t*)(&__MBAR[0x910]))
-#define MCF_SLT1_SCR                         (*(volatile uint32_t*)(&__MBAR[0x914]))
-#define MCF_SLT1_SCNT                        (*(volatile uint32_t*)(&__MBAR[0x918]))
-#define MCF_SLT1_SSR                         (*(volatile uint32_t*)(&__MBAR[0x91C]))
+#define MCF_SLT1_STCNT                       (*(volatile uint32_t*)(&_MBAR[0x910]))
+#define MCF_SLT1_SCR                         (*(volatile uint32_t*)(&_MBAR[0x914]))
+#define MCF_SLT1_SCNT                        (*(volatile uint32_t*)(&_MBAR[0x918]))
+#define MCF_SLT1_SSR                         (*(volatile uint32_t*)(&_MBAR[0x91C]))
 
-#define MCF_SLT_STCNT(x)                     (*(volatile uint32_t*)(&__MBAR[0x900 + ((x)*0x10)]))
-#define MCF_SLT_SCR(x)                       (*(volatile uint32_t*)(&__MBAR[0x904 + ((x)*0x10)]))
-#define MCF_SLT_SCNT(x)                      (*(volatile uint32_t*)(&__MBAR[0x908 + ((x)*0x10)]))
-#define MCF_SLT_SSR(x)                       (*(volatile uint32_t*)(&__MBAR[0x90C + ((x)*0x10)]))
+#define MCF_SLT_STCNT(x)                     (*(volatile uint32_t*)(&_MBAR[0x900 + ((x)*0x10)]))
+#define MCF_SLT_SCR(x)                       (*(volatile uint32_t*)(&_MBAR[0x904 + ((x)*0x10)]))
+#define MCF_SLT_SCNT(x)                      (*(volatile uint32_t*)(&_MBAR[0x908 + ((x)*0x10)]))
+#define MCF_SLT_SSR(x)                       (*(volatile uint32_t*)(&_MBAR[0x90C + ((x)*0x10)]))
 
 
 /* Bit definitions and macros for MCF_SLT_STCNT */

@@ -231,7 +231,7 @@ void init_fpga(void)
 
 	while (!MCF_GPIO_PPDSDR_FEC1L & (1 << 0))
 	{
-		warte10us();
+		wait10us();
 	}
 	
 	/*
