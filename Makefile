@@ -30,7 +30,7 @@ MAPFILE=bas.map
 LDCFILE=flash.lk
 # LDCFILE=ram.lk
 
-EXEC=bas.hex
+EXEC=bas.s19
 
 CSRCS= \
 	$(SRCDIR)/startcf.c \
