@@ -18,12 +18,12 @@
 	.extern _video_sbt
 
 /* Register read/write macros */
-#define MCF_MMU_MMUCR            			___MMUBAR
-#define MCF_MMU_MMUOR                       ___MMUBAR+0x04
-#define MCF_MMU_MMUSR                       ___MMUBAR+0x08
-#define MCF_MMU_MMUAR                       ___MMUBAR+0x10
-#define MCF_MMU_MMUTR                       ___MMUBAR+0x14
-#define MCF_MMU_MMUDR                       ___MMUBAR+0x18
+#define MCF_MMU_MMUCR	__MMUBAR
+#define MCF_MMU_MMUOR	__MMUBAR+0x04
+#define MCF_MMU_MMUSR	__MMUBAR+0x08
+#define MCF_MMU_MMUAR	__MMUBAR+0x10
+#define MCF_MMU_MMUTR	__MMUBAR+0x14
+#define MCF_MMU_MMUDR	__MMUBAR+0x18
 
 
 /* Bit definitions and macros for MCF_MMU_MMUCR */
@@ -102,7 +102,7 @@ _mmu_init:
 		movec	d0,ACR3
 		move.l	d0,_rt_acr3			// sichern
 
-		move.l	#___MMUBAR+1,d0	
+		move.l	#__MMUBAR+1,d0
 		movec	d0,MMUBAR			//mmubar setzen
 		move.l	d0,_rt_mmubar		// sichern
 		
@@ -134,7 +134,7 @@ _mmu_init:
 		
 		move.l	#0x2000,d0
 		move.l	d0,_video_tlb							// setze page als video page
-  		clr.l	_video_sbt			// zeit löschen
+  		clr.l	_video_sbt			// zeit lï¿½schen
 //-------------------------------------------------------------------------------------
 // 00e0'0000 locked		
  		move.l	#0x00e00000|std_mmutr,d0
