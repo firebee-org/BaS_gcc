@@ -4,7 +4,7 @@ void startup(void)
 {
 	asm("\n\t"
 	".extern	_initialize_hardware\n\t"
-	"bra	warmstart\n\t"
+	"bra.s	warmstart\n\t"
 	"jmp	___BOOT_FLASH + 8 | ist zugleich reset vector\n\t"
 	"| disable interrupts\n\t"
 "warmstart:\n\t"
