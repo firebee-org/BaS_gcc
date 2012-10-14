@@ -231,7 +231,7 @@ void init_fpga(void)
 
 	while (!MCF_GPIO_PPDSDR_FEC1L & (1 << 0))
 	{
-		wait10us();
+		wait_10us();
 	}
 	
 	/*
@@ -295,7 +295,7 @@ void init_fpga(void)
 void wait_pll(void)
 {
 	do {
-		wait1ms();
+		wait_1ms();
 	} while (! * (volatile uint16_t *) 0xf0000800);
 }
 
@@ -451,8 +451,8 @@ void init_PCI(void) {
 		 + MCF_PCIARB_PACR_EXTMINTEN(0x1F);
 
 	// Setup burst parameters
-	MCF_PCI_PCICR1 = MCF_PCICR1_CACHELINESIZE(4) + MCF_PCI_PCICR1_LATTIMER(32);
-	MCF_PCI_PCICR2 = MCF_PCICR2_MINGNT(16) + MCF_PCI_PCICR2_MAXLAT(16);
+	MCF_PCI_PCICR1 = MCF_PCI_PCICR1_CACHELINESIZE(4) + MCF_PCI_PCICR1_LATTIMER(32);
+	MCF_PCI_PCICR2 = MCF_PCI_PCICR2_MINGNT(16) + MCF_PCI_PCICR2_MAXLAT(16);
 
 	// Turn on error signaling
 	MCF_PCI_PCIICR = MCF_PCI_PCIICR_TAE + MCF_PCI_PCIICR_TAE * MCF_PCI_PCIICR_REE + 32;
@@ -764,8 +764,7 @@ ac97_end:
 		MCF_PSC0_PSCTB_8BIT = ' OK!'; MCF_PSC0_PSCTB_8BIT = 0x0a0d;
 }
 
-void __initialize_hardware(void) {
-_init_hardware:
+void initialize_hardware(void) {
 asm(
 	"move.l 	#0x000C8120,D0\n\t"
 	"move.l		D0,_rt_cacr\n\t"
@@ -796,7 +795,7 @@ asm(
 
 	asm volatile(
 		"lea		copy_start,A0\n\t"
-		"lea		BaS,A1\n\t"
+		"lea		_BaS,A1\n\t"
 		"sub.l		A0,A1\n\t"
 		"move.l		#_Bas_base,A2\n\t"
 		"move.l		A2,A3\n\t"
