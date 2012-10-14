@@ -24,30 +24,30 @@
 *********************************************************************/
 
 /* Register read/write macros */
-#define MCF_GPT0_GMS                         (*(volatile uint32_t*)(&__MBAR[0x800]))
-#define MCF_GPT0_GCIR                        (*(volatile uint32_t*)(&__MBAR[0x804]))
-#define MCF_GPT0_GPWM                        (*(volatile uint32_t*)(&__MBAR[0x808]))
-#define MCF_GPT0_GSR                         (*(volatile uint32_t*)(&__MBAR[0x80C]))
+#define MCF_GPT0_GMS                         (*(volatile uint32_t*)(&_MBAR[0x800]))
+#define MCF_GPT0_GCIR                        (*(volatile uint32_t*)(&_MBAR[0x804]))
+#define MCF_GPT0_GPWM                        (*(volatile uint32_t*)(&_MBAR[0x808]))
+#define MCF_GPT0_GSR                         (*(volatile uint32_t*)(&_MBAR[0x80C]))
 
-#define MCF_GPT1_GMS                         (*(volatile uint32_t*)(&__MBAR[0x810]))
-#define MCF_GPT1_GCIR                        (*(volatile uint32_t*)(&__MBAR[0x814]))
-#define MCF_GPT1_GPWM                        (*(volatile uint32_t*)(&__MBAR[0x818]))
-#define MCF_GPT1_GSR                         (*(volatile uint32_t*)(&__MBAR[0x81C]))
+#define MCF_GPT1_GMS                         (*(volatile uint32_t*)(&_MBAR[0x810]))
+#define MCF_GPT1_GCIR                        (*(volatile uint32_t*)(&_MBAR[0x814]))
+#define MCF_GPT1_GPWM                        (*(volatile uint32_t*)(&_MBAR[0x818]))
+#define MCF_GPT1_GSR                         (*(volatile uint32_t*)(&_MBAR[0x81C]))
 
-#define MCF_GPT2_GMS                         (*(volatile uint32_t*)(&__MBAR[0x820]))
-#define MCF_GPT2_GCIR                        (*(volatile uint32_t*)(&__MBAR[0x824]))
-#define MCF_GPT2_GPWM                        (*(volatile uint32_t*)(&__MBAR[0x828]))
-#define MCF_GPT2_GSR                         (*(volatile uint32_t*)(&__MBAR[0x82C]))
+#define MCF_GPT2_GMS                         (*(volatile uint32_t*)(&_MBAR[0x820]))
+#define MCF_GPT2_GCIR                        (*(volatile uint32_t*)(&_MBAR[0x824]))
+#define MCF_GPT2_GPWM                        (*(volatile uint32_t*)(&_MBAR[0x828]))
+#define MCF_GPT2_GSR                         (*(volatile uint32_t*)(&_MBAR[0x82C]))
 
-#define MCF_GPT3_GMS                         (*(volatile uint32_t*)(&__MBAR[0x830]))
-#define MCF_GPT3_GCIR                        (*(volatile uint32_t*)(&__MBAR[0x834]))
-#define MCF_GPT3_GPWM                        (*(volatile uint32_t*)(&__MBAR[0x838]))
-#define MCF_GPT3_GSR                         (*(volatile uint32_t*)(&__MBAR[0x83C]))
+#define MCF_GPT3_GMS                         (*(volatile uint32_t*)(&_MBAR[0x830]))
+#define MCF_GPT3_GCIR                        (*(volatile uint32_t*)(&_MBAR[0x834]))
+#define MCF_GPT3_GPWM                        (*(volatile uint32_t*)(&_MBAR[0x838]))
+#define MCF_GPT3_GSR                         (*(volatile uint32_t*)(&_MBAR[0x83C]))
 
-#define MCF_GPT_GMS(x)                       (*(volatile uint32_t*)(&__MBAR[0x800 + ((x)*0x10)]))
-#define MCF_GPT_GCIR(x)                      (*(volatile uint32_t*)(&__MBAR[0x804 + ((x)*0x10)]))
-#define MCF_GPT_GPWM(x)                      (*(volatile uint32_t*)(&__MBAR[0x808 + ((x)*0x10)]))
-#define MCF_GPT_GSR(x)                       (*(volatile uint32_t*)(&__MBAR[0x80C + ((x)*0x10)]))
+#define MCF_GPT_GMS(x)                       (*(volatile uint32_t*)(&_MBAR[0x800 + ((x)*0x10)]))
+#define MCF_GPT_GCIR(x)                      (*(volatile uint32_t*)(&_MBAR[0x804 + ((x)*0x10)]))
+#define MCF_GPT_GPWM(x)                      (*(volatile uint32_t*)(&_MBAR[0x808 + ((x)*0x10)]))
+#define MCF_GPT_GSR(x)                       (*(volatile uint32_t*)(&_MBAR[0x80C + ((x)*0x10)]))
 
 
 /* Bit definitions and macros for MCF_GPT_GMS */

@@ -3,7 +3,7 @@ MEMORY {
 }
 
 SECTIONS {
-	_Bas_base		  = 0x1FE00000;
+	___Bas_base		  = ABSOLUTE(0x1FE00000);
 
 	/* Board Memory map definitions from linker command files:
 	 * __SDRAM,__SDRAM_SIZE, __CODE_FLASH, __CODE_FLASH_SIZE
