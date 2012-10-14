@@ -18,7 +18,7 @@ CC=$(TCPREFIX)gcc
 LD=$(TCPREFIX)ld
 
 INCLUDE=-Iinclude
-CFLAGS=-mcpu=5474 -Wno-multichar -Os -fomit-frame-pointer
+CFLAGS=-mcpu=5474 -Wall -Wno-multichar -Os -fomit-frame-pointer
 
 SRCDIR=sources
 OBJDIR=objs
