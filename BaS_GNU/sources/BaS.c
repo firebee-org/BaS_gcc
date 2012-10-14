@@ -8,7 +8,7 @@
 #include "MCF5475_SLT.h"
 #include "startcf.h"
 
-extern unsigned long Bas_base[];
+extern uint32_t Bas_base[];
 
 /* imported routines */
 extern int mmu_init();
@@ -78,7 +78,7 @@ void BaS(void)
 	
 	if (DIP_SWITCH & (1 << 6))
 	{
-		copy_firetos();
+		goto copy_firetos;
 	}
 
 	MCF_PSC3_PSCTB_8BIT = 'ACPF';
@@ -104,6 +104,7 @@ void BaS(void)
 	}
 	else
 	{
+copy_firetos:
 		/* copy FireTOS */
 		src = (uint8_t *) 0xe0400000L;
 		while (src < (uint8_t *) 0xe0500000L)
@@ -185,7 +186,7 @@ void BaS(void)
 	/*
 	 * memory setup
 	 */
-	for (adr = 0x400L; adr < 0x800L; adr += 32) {
+	for (adr = (uint32_t *) 0x400L; adr < (uint32_t *) 0x800L; adr += 32) {
 		*adr = 0x0L;
 		*adr = 0x0L;
 		*adr = 0x0L;
@@ -203,7 +204,7 @@ void BaS(void)
 
 	/* TT-RAM */
 
-	* (uint32_t *) 0x5a4 = (uint32_t *) Bas_base;	/* ramtop TOS system variable */
+	* (uint32_t *) 0x5a4 = (uint32_t) Bas_base;	/* ramtop TOS system variable */
 	* (uint32_t *) 0x5a8 = 0x1357bd13;	/* ramvalid TOS system variable */
 
 	/* init ACIA */
