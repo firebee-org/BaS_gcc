@@ -143,8 +143,8 @@ copy_firetos:
 		
 	/* interrupts */
 
-	* (uint32_t *) 0xf0010004 = 0L;	/* disable all interrupts */
-	MCF_EPORT_EPPAR = 0xaaa8;		/* all interrupts on falling edge */
+	* (uint32_t *) 0xf0010004 = 0L;		/* disable all interrupts */
+	MCF_EPORT_EPPAR = 0xaaa8;			/* all interrupts on falling edge */
 
 	MCF_GPT0_GMS = MCF_GPT_GMS_ICT(1) |	/* timer 0 on, video change capture on rising edge */
 			MCF_GPT_GMS_IEN |
