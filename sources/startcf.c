@@ -1,6 +1,6 @@
 #include <MCF5475.h>
 
-void _startup(void)
+void startup(void)
 {
 	asm("\n\t"
 	".extern	_initialize_hardware\n\t"
@@ -10,15 +10,20 @@ void _startup(void)
 "warmstart:\n\t"
 	"| disable interrupts\n\t"
 	"move.w #0x2700,sr\n\t"
-	"|// Initialize MBAR\n\t"
-	"MOVE.L	#__MBAR,D0\n\t"
-	"MOVEC	D0,MBAR\n\t"
-	"MOVE.L	D0,_rt_mbar\n\t"
-	"| mmu off\n\t"
-	"move.l	#__MMUBAR+1,d0\n\t"
-	"movec	d0,MMUBAR	| mmubar setzen\n\t"
-	"clr.l	d0\n\t"
-	"move.l	d0,MCF_MMU_MMUCR\n\t | mmu off"
+	);
+
+	/* Initialize MBAR */
+	asm("MOVE.L	#__MBAR,D0\n\t");
+	asm("MOVEC	D0,MBAR\n\t");
+	asm("MOVE.L	D0,_rt_mbar\n\t");
+
+	/* mmu off */
+	asm("move.l	#__MMUBAR+1,d0\n\t");
+	asm("movec	d0,MMUBAR");	/* set mmubar */
+
+	* (volatile uint32_t *) MCF_MMU_MMUCR = 0L;	/* MMU off */
+
+	asm(
     "|/* Initialize RAMBARs: locate SRAM and validate it */\n\t"
    	"move.l	#__RAMBAR0 + 0x7,d0\n\t | supervisor only"
    	"movec  d0,RAMBAR0\n\t"
