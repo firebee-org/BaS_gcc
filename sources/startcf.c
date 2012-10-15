@@ -4,6 +4,7 @@ void startup(void)
 {
 	__asm__ __volatile__(
 		"		.extern	_initialize_hardware\n\t"
+
 		"		bra.s	warmstart\n\t"
 		"		jmp		___BOOT_FLASH + 8\n\t" 		/* that's also our reset vector */
 
