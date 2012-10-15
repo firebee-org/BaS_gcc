@@ -794,26 +794,26 @@ asm(
 	}
 
 	/* copy the BaS code contained in flash to its final location */
-	src = copy_start;
-	dst = Bas_base;
-	jmp = (uint8_t *) BaS - copy_start + Bas_base;
+	src = &copy_start;
+	dst = &Bas_base;
+	jmp = (uint8_t *) &BaS - (uint32_t) &copy_start + (uint32_t) &Bas_base;
 	do {
 		*src++ = *dst++;
 		*src++ = *dst++;
 		*src++ = *dst++;
 		*src++ = *dst++;
-	} while (src < (uint8_t *) copy_end);
+	} while (src < (uint8_t *) &copy_end);
 
-	flushDataCacheRegion(Bas_base, (uint8_t *) copy_end - copy_start);
-	flushInstructionCacheRegion(Bas_base, (uint8_t *) copy_end - copy_start);
+	flushDataCacheRegion(Bas_base, (uint8_t *) &copy_end - copy_start);
+	flushInstructionCacheRegion(Bas_base, (uint8_t *) &copy_end - copy_start);
 
-	asm volatile(
+	__asm__ __volatile__(
 		"		.global	_copy_start	| \n\t"
 		"		move.l	%0,a3		| calculated start address\n\t"
 		"		jmp		(a3)		| go! \n\t"
 		"_copy_start:				| \n\t"
 		/* output */ :
 		/* input */  : "g" (jmp)
-		/* clobber */: "a3"
+		/* clobber */: "a3", "memory"
 		);
 }
