@@ -2,7 +2,7 @@
 
 void startup(void)
 {
-	asm volatile(
+	__asm__ __volatile__(
 		"		.extern	_initialize_hardware\n\t"
 		"		bra.s	warmstart\n\t"
 		"		jmp		___BOOT_FLASH + 8\n\t" 		/* that's also our reset vector */
@@ -15,7 +15,7 @@ void startup(void)
 		/* clobber */ : "d0", "memory");
 
 	/* Initialize MBAR */
-	asm volatile(
+	__asm__ __volatile__(
 		"		MOVE.L	#__MBAR,D0\n\t"
 		"		MOVEC	D0,MBAR\n\t"
 		"		MOVE.L	D0,_rt_mbar\n\t"
@@ -24,7 +24,7 @@ void startup(void)
 		/* clobber */ : "d0", "memory");
 
 	/* mmu off */
-	asm volatile(
+	__asm__ __volatile__ (
 		"		move.l	#__MMUBAR+1,d0\n\t"
 		"		movec	d0,MMUBAR\n\t"
 		/* output */ :
@@ -33,7 +33,7 @@ void startup(void)
 
 	MCF_MMU_MMUCR = 0L;	/* MMU off */
 
-	asm volatile(
+	__asm__ __volatile__(
 		/* Initialize RAMBARs: locate SRAM and validate it */
 		"		move.l	#__RAMBAR0 + 0x7,d0\n\t | supervisor only"
 		"		movec	d0,RAMBAR0\n\t"
