@@ -211,18 +211,18 @@ copy_firetos:
 
 	/* init ACIA */
 	* (uint8_t *) 0xfffffc00 = 3;
-	asm("nop");
+	__asm__ __volatile__("nop	\n\t" : : : "memory");
 	* (uint8_t *) 0xfffffc04 = 3;
-	asm("nop");
+	__asm__ __volatile__("nop	\n\t" : : : "memory");
 	* (uint8_t *) 0xfffffc00 = 0x96;
-	asm("nop");
+	__asm__ __volatile__("nop	\n\t" : : : "memory");
 	* (uint8_t *) 0xfffffa0f = 0;
-	asm("nop");
+	__asm__ __volatile__("nop	\n\t" : : : "memory");
 	* (uint8_t *) 0xfffffa11 = 0;
-	asm("nop");
+	__asm__ __volatile__("nop	\n\t" : : : "memory");
 
 	if (DIP_SWITCH & (1 << 7)) {
-		asm("move.w #0x0700,sr");
+		__asm__ __volatile__("move.w #0x0700,sr	\n\t" : : : "memory");
 	}
-	asm("jmp 0xe00030");
+	__asm__ __volatile__("jmp 0xe00030	\n\t" : : : "memory");
 }
