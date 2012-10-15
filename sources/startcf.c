@@ -25,7 +25,7 @@ void startup(void)
 		/* clobber */ : "d0", "memory");
 
 	/* mmu off */
-	__asm__ __volatile__ (
+	__asm__ __volatile__(
 		"		move.l	#__MMUBAR+1,d0\n\t"
 		"		movec	d0,MMUBAR\n\t"
 		/* output */ :
