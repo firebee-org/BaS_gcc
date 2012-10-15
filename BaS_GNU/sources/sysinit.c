@@ -805,8 +805,8 @@ void initialize_hardware(void) {
 		*src++ = *dst++;
 	} while (src < (uint8_t *) &copy_end);
 
-	flushDataCacheRegion(Bas_base, (uint8_t *) &copy_end - copy_start);
-	flushInstructionCacheRegion(Bas_base, (uint8_t *) &copy_end - copy_start);
+	flushDataCacheRegion(&Bas_base, (uint8_t *) &copy_end - copy_start);
+	flushInstructionCacheRegion(&Bas_base, (uint8_t *) &copy_end - copy_start);
 
 	__asm__ __volatile__(
 		"		.global	_copy_start	| \n\t"
