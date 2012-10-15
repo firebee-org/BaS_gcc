@@ -336,7 +336,7 @@ void init_pll(void)
  * INIT VIDEO DDR RAM
  */
 
-#define NOP() asm("nop\n\t")
+#define NOP() __asm__ __volatile__("nop\n\t" : : : "memory")
 
 void init_video_ddr(void) {
 	* (uint16_t *) 0xf0000400 = 0xb;	/* set cke = 1, cs=1, config = 1 */
@@ -765,11 +765,12 @@ void initialize_hardware(void) {
 	uint32_t *dst;
 	uint32_t jmp;
 
-asm(
+	__asm__ __volatile__(
 	"move.l 	#0x000C8120,D0\n\t"
 	"move.l		D0,_rt_cacr\n\t"
 	"movec		D0,CACR\n\t"
 	"nop\n\t"
+	 : : : "d0", "memory"
 	);
 
 	init_gpio();
