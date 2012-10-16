@@ -9,67 +9,17 @@
 #ifndef __SYSINIT_H__
 #define __SYSINIT_H__
 
-#if ENABLE_UART_SUPPORT==1 
+extern void wait_10us(void);
 
-/*
- * System Bus Clock Info
- */
-// 5475EVB has 133Mhz system clock
-#define SYSTEM_CLOCK_KHZ    133000     /* system bus frequency in kHz */
+/* send a 16-bit word out on the serial port */
+#define uart_out_word(a)	MCF_PSC0_PSCTB_8BIT = (a);
 
+/* adresses where FPGA data lives in flash */
+static const uint8_t *FPGA_FLASH_DATA = (uint8_t *) 0xe0700000L;
+static const uint8_t *FPGA_FLASH_DATA_END = (uint8_t *) 0xe0800000L;
 
-/*** 
- * Serial Port Info
- * The baud rate to be : 19200
- * Data bits : 8
- * Parity : None
- * Stop Bits : 1
- * Flow Control : None
- */
-#define TERMINAL_PORT       (0)          /* PSC channel used as terminal */
-#define TERMINAL_BAUD       kBaud19200   /* 115200 */
-#undef  HARDWARE_FLOW_CONTROL       /* Flow control ON or OFF */
-#endif
-
-/*** 
- * Board Memory map definitions from linker command files:
- * __SDRAM,__SDRAM_SIZE, __FLASH, __FLASH_SIZE linker 
- * symbols must be defined in the linker command file.
- */
-extern __declspec(system) uint8_t __BOOT_FLASH[];
-extern __declspec(system) uint8_t __BOOT_FLASH_SIZE[];
-
-extern __declspec(system) uint8_t __SDRAM[];
-extern __declspec(system) uint8_t __SDRAM_SIZE[];
-
-
-#define BOOT_FLASH_ADDRESS		(uint32)__BOOT_FLASH
-#define BOOT_FLASH_SIZE			(uint32)__BOOT_FLASH_SIZE
-
-#define SDRAM_ADDRESS		    (uint32)__SDRAM
-#define SDRAM_SIZE			   	(uint32)__SDRAM_SIZE
-
-
-
-
-/********************************************************************/
-/* __initialize_hardware Startup code routine
- * 
- * __initialize_hardware is called by the startup code right after reset, 
- * with interrupt disabled and SP pre-set to a valid memory area.
- * Here you should initialize memory and some peripherics;
- * at this point global variables are not initialized yet.
- * The startup code will initialize SP on return of this function.
- */
-void __initialize_hardware(void);
-
-/********************************************************************/
-/* __initialize_system Startup code routine
- * 
- * __initialize_system is called by the startup code when all languages 
- * specific initialization are done to allow additional hardware setup.
- */ 
-void __initialize_system(void);
+/* function(s) from init_fpga.c */
+extern void init_fpga(void);
 
 #endif /* __SYSINIT_H__ */
 
