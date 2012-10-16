@@ -15,9 +15,9 @@
 extern unsigned long _VRAM;
 extern unsigned long BaS;
 extern int copy_end();
-extern int wait_10us();
-extern int wait_1ms();
-extern int wait_50us();
+
+extern void wait_1ms();
+extern void wait_50us();
 
 
 /*
@@ -633,7 +633,7 @@ void init_ac97(void) {
 			vb = MCF_PSC2_PSCTB_AC97;
 			vc = MCF_PSC2_PSCTB_AC97;
 
-			/* FIXME: that looks suspicious */
+			/* FIXME: that looks more than suspicious (Fredi?) */
 			if ((va & 0xE0000fff) == 0xE0000800 & vb == 0x02000000 & vc == 0x00000000) {
 				goto livo;}
 			}
