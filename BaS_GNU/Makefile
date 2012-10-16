@@ -33,7 +33,6 @@ LDCFILE=flash.lk
 EXEC=bas.s19
 
 CSRCS= \
-	$(SRCDIR)/startcf.c \
 	$(SRCDIR)/sysinit.c \
 	$(SRCDIR)/init_fpga.c \
 	$(SRCDIR)/BaS.c \
@@ -48,6 +47,8 @@ ASRCS= \
 	$(SRCDIR)/ewf.S \
 	$(SRCDIR)/illegal_instruction.S 
 
+STRT_SRC = startcf.S
+STRT_OBJ = $(OBJDIR)/startcf.o
 COBJS=$(patsubst $(SRCDIR)/%.o,$(OBJDIR)/%.o,$(patsubst %.c,%.o,$(CSRCS)))
 AOBJS=$(patsubst $(SRCDIR)/%.o,$(OBJDIR)/%.o,$(patsubst %.S,%.o,$(ASRCS)))
 
@@ -58,7 +59,7 @@ OBJS=$(COBJS) $(AOBJS)
 .PHONY clean:
 	@ rm -f $(EXEC) $(OBJS) $(MAPFILE) depend
 	
-$(EXEC): $(OBJS) $(LDCFILE)
+$(EXEC): $(STRT_OBJ) $(OBJS) $(LDCFILE)
 	$(LD) --oformat srec -Map $(MAPFILE) --cref -T flash.lk -s -o $@ 
 
 # compile init_fpga with -mbitfield for testing purposes
