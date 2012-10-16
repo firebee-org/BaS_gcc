@@ -6,7 +6,7 @@
 
 void flushDataCacheRegion(void *adr, uint32_t length)
 {
-	asm volatile
+	__asm__
 	(
 		"		move.l		%0,d0		| start address\n\t"
 		"		move.l		d0,a1\n\t"
@@ -34,7 +34,7 @@ void flushDataCacheRegion(void *adr, uint32_t length)
 
 void flushInstructionCacheRegion(void *adr, uint32_t length)
 {
-	asm volatile
+	__asm__
 	(
 		"		move.l		%0,d0		| start address\n\t"
 		"		move.l		d0,a1\n\t"
@@ -57,5 +57,37 @@ void flushInstructionCacheRegion(void *adr, uint32_t length)
 	/* input */  : "g" (adr),
 				   "g" (length)
 	/* clobber */: "d0", "d1", "a0", "a1"
+	);
+}
+
+void clear_caches(void)
+{
+	__asm__ (
+	"cpusha:\n\t"
+	"	move		sr,d2\n\t"
+	"	move.l		d2,-(sp)\n\t"
+	"	move		#0x2700,sr			| no interrupts\n\t"
+	"	clr.l		d0\n\t"
+	"	clr.l		d1\n\t"
+	"	move.l		d0,a0\n\t"
+	"cfa_setloop:\n\t"
+	"	cpushl		bc,(a0)				| flush\n\t"
+	"	lea			0x10(a0),a0			| index+1\n\t"
+	"	addq.l		#1,d1				| index+1\n\t"
+	"	cmpi.w		#512,d1				| alle sets?\n\t"
+	"	bne			cfa_setloop			| nein->\n\t"
+	"	clr.l		d1\n\t"
+	"	addq.l		#1,d0\n\t"
+	"	move.l		d0,a0\n\t"
+	"	cmpi.w		#4,d0				| all ways?\n\t"
+	"	bne			cfa_setloop			| nein->\n\t"
+	"	nop\n\t"
+	"	move.l		_rt_cacr,d0			| holen\n\t"
+	"	movec		d0,cacr				| setzen\n\t"
+	"	move.l		(sp)+,d2\n\t"
+	"	move.w		d2,sr				| alte interrupt maske\n\t"
+	/* input */	:
+	/* output */	:
+	/* clobber */	: "d0", "d1", "d2", "a0"
 	);
 }
