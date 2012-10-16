@@ -216,8 +216,8 @@ void init_fpga(void)
 
 	uart_out_word('FPGA');
 
-	MCF_GPIO_PODR_FEC1L |= (1 << 1);
-	MCF_GPIO_PODR_FEC1L |= (1 << 2);
+	MCF_GPIO_PODR_FEC1L &= ~(1 << 1);	/* FPGA clock => low */
+	MCF_GPIO_PODR_FEC1L &= ~(1 << 2);	/* FPGA config => low */
 
 	while ((! (MCF_GPIO_PPDSDR_FEC1L & (1 << 0))) && (! (MCF_GPIO_PPDSDR_FEC1L & (1 << 5))));
 
@@ -283,10 +283,10 @@ void init_fpga(void)
 	}
 	else
 	{
-		MCF_PSC0_PSCTB_8BIT = ' NOT';
+		uart_out_word(' NOT');
 	}
-	MCF_PSC0_PSCTB_8BIT = 'OK! ';
-	MCF_PSC0_PSCTB_8BIT = 0x0d0a;
+	uart_out_word(' OK!');
+	uart_out_word(0x0d0a);
 }
 
 void wait_pll(void)
