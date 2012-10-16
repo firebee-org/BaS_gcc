@@ -219,7 +219,7 @@ void init_fpga(void)
 	MCF_GPIO_PODR_FEC1L &= ~(1 << 1);	/* FPGA clock => low */
 	MCF_GPIO_PODR_FEC1L &= ~(1 << 2);	/* FPGA config => low */
 
-	while ((! (MCF_GPIO_PPDSDR_FEC1L & (1 << 0))) && (! (MCF_GPIO_PPDSDR_FEC1L & (1 << 5))));
+	while (((MCF_GPIO_PPDSDR_FEC1L & (1 << 0))) || ((MCF_GPIO_PPDSDR_FEC1L & (1 << 5))));
 
 	wait_10us();
 	MCF_GPIO_PODR_FEC1L |= (1 << 2);
