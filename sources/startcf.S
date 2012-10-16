@@ -1,4 +1,4 @@
-#include <MCF5475.h>
+		.equ	MCF_MMU_MMUCR, __MMUBAR + 0
 
 _startup:
 		.extern	_initialize_hardware

@@ -1,10 +1,7 @@
-
-
 #include "MCF5475.h"
 #include "startcf.h"
 
-extern unsigned long __SP_AFTER_RESET[];
-extern unsigned long __Bas_base[];
+
 
 /* imported routines */
 //extern int warten_20ms();
