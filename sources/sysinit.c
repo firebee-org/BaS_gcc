@@ -240,8 +240,8 @@ void init_pll(void)
 	wait_pll();
 	* (volatile uint8_t *) 0xf0000800 = 0;			/* set */
 
-	MCF_PSC0_PSCTB_8BIT = 'SET!';
-	MCF_PSC0_PSCTB_8BIT = 0x0a0d;
+	uart_out_word('SET!');
+	uart_out_word(0x0a0d);
 }
 
 
@@ -355,7 +355,7 @@ flo6:
  * INIT PCI
  */
 void init_PCI(void) {
-	MCF_PSC0_PSCTB_8BIT = 'PCI ';
+	uart_out_word('PCI ');
 
 	MCF_PCIARB_PACR = MCF_PCIARB_PACR_INTMPRI
 		 + MCF_PCIARB_PACR_EXTMPRI(0x1F)
@@ -386,8 +386,8 @@ void init_PCI(void) {
 	/* reset PCI devices */
 	MCF_PCI_PCIGSCR &= ~MCF_PCI_PCIGSCR_PR;
 
-	MCF_PSC0_PSCTB_8BIT = 'OK! ';
-	MCF_PSC0_PSCTB_8BIT = 0x0d0a;
+	uart_out_word('OK! ');
+	uart_out_word(0x0d0a);
 }
 	
 
@@ -397,7 +397,7 @@ void init_PCI(void) {
 
 void test_upd720101(void) 
 {
-	MCF_PSC0_PSCTB_8BIT = 'NEC ';
+	uart_out_word('NEC ');
 
 	/* select UPD720101 AD17 */
 	MCF_PCI_PCICAR = MCF_PCI_PCICAR_E +
@@ -422,25 +422,25 @@ void test_upd720101(void)
 			MCF_PCI_PCICAR_FUNCNUM(0) +
 			MCF_PCI_PCICAR_DWORD(57);
 	}
-	MCF_PSC0_PSCTB_8BIT = 'OK! ';
-	MCF_PSC0_PSCTB_8BIT = 0x0d0a;
+	uart_out_word('OK! ');
+	uart_out_word(0x0d0a);
 }
 
 /*
  * TFP410 (DVI) on
  */
-void vdi_on(void) {
+void dvi_on(void) {
 	uint8_t RBYT;
 	uint8_t DBYT;	/* FIXME: produces a warning about being unused when it is in fact (for a dummy read) */
-	int versuche;
+	int tries;
 	
-	MCF_PSC0_PSCTB_8BIT = 'DVI ';
+	uart_out_word('DVI ');
 
 	MCF_I2C_I2FDR = 0x3c;	// 100kHz standard
-	versuche = 0;
+	tries = 0;
 
 loop_i2c:
-	if (versuche++ > 10)
+	if (tries++ > 10)
 		goto next;
 	
 	MCF_I2C_I2ICR = 0x0;
@@ -569,10 +569,10 @@ loop_i2c:
 		goto loop_i2c;
 	goto dvi_ok;
 next:
-	MCF_PSC0_PSCTB_8BIT = 'NOT ';
+	uart_out_word('NOT ');
 dvi_ok:
-	MCF_PSC0_PSCTB_8BIT = 'OK! ';
-	MCF_PSC0_PSCTB_8BIT = 0x0a0d;
+	uart_out_word('OK! ');
+	uart_out_word(0x0a0d);
 	MCF_I2C_I2CR = 0x0;	// i2c off
 }
 
@@ -588,7 +588,7 @@ void init_ac97(void) {
 	int vb;
 	int vc;
 	
-	MCF_PSC0_PSCTB_8BIT = 'AC97';
+	uart_out_word('AC97');
 	MCF_PAD_PAR_PSC2 = MCF_PAD_PAR_PSC2_PAR_RTS2_RTS	// PSC2=TX,RX BCLK,CTS->AC'97
 	       | MCF_PAD_PAR_PSC2_PAR_CTS2_BCLK
 			 | MCF_PAD_PAR_PSC2_PAR_TXD2
@@ -638,7 +638,7 @@ void init_ac97(void) {
 				goto livo;}
 			}
 		}
-		MCF_PSC0_PSCTB_8BIT = ' NOT';
+		uart_out_word(' NOT');
 livo:
 		// AUX VOLUME ->-0dB 
 		MCF_PSC2_PSCTB_AC97 = 0xE0000000;	//START SLOT1 + SLOT2, FIRST FRAME
@@ -669,7 +669,8 @@ livo:
 		}
 		MCF_PSC2_PSCTFCR |= MCF_PSC_PSCTFCR_WFR;	//set EOF
 		MCF_PSC2_PSCTB_AC97 = 0x00000000;	//last data
-		MCF_PSC0_PSCTB_8BIT = ' OK!'; MCF_PSC0_PSCTB_8BIT = 0x0a0d;
+		uart_out_word(' OK!');
+		uart_out_word(0x0a0d);
 }
 
 void initialize_hardware(void) {
@@ -699,7 +700,7 @@ void initialize_hardware(void) {
 
 	init_fpga();
 	init_video_ddr();
-	vdi_on();
+	dvi_on();
 
 	/* do not initialize ports if DIP switch 5 = on */
 	if (DIP_SWITCH & (1 << 6)) {
