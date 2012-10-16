@@ -7,6 +7,12 @@
 #include <MCF5475.h>
 #include "sysinit.h"
 
+#define FPGA_STATUS		(1 << 0)
+#define FPGA_CLOCK		(1 << 1)
+#define FPGA_CONFIG		(1 << 2)
+#define FPGA_DATA0		(1 << 3)
+#define FPGA_CONF_DONE	(1 << 5)
+
 /*
  * load FPGA
  */
@@ -17,16 +23,17 @@ void init_fpga(void)
 
 	uart_out_word('FPGA');
 
-	MCF_GPIO_PODR_FEC1L &= ~(1 << 1);	/* FPGA clock => low */
-	MCF_GPIO_PODR_FEC1L &= ~(1 << 2);	/* FPGA config => low */
 
-	while (((MCF_GPIO_PPDSDR_FEC1L & (1 << 0))) || ((MCF_GPIO_PPDSDR_FEC1L & (1 << 5))));
+	MCF_GPIO_PODR_FEC1L &= ~FPGA_CLOCK;		/* FPGA clock => low */
+	MCF_GPIO_PODR_FEC1L &= ~FPGA_CONFIG;	/* FPGA config => low */
 
-	wait_10us();
-	MCF_GPIO_PODR_FEC1L |= (1 << 2);
+	while (((MCF_GPIO_PPDSDR_FEC1L & FPGA_STATUS)) || ((MCF_GPIO_PPDSDR_FEC1L & FPGA_CONF_DONE)));
 	wait_10us();
 
-	while (!MCF_GPIO_PPDSDR_FEC1L & (1 << 0))
+	MCF_GPIO_PODR_FEC1L |= FPGA_CONFIG;		/* pull FPGA_CONFIG high */
+	wait_10us();
+
+	while (!(MCF_GPIO_PPDSDR_FEC1L & FPGA_STATUS))	/* wait until status becomes high */
 	{
 		wait_10us();
 	}
@@ -60,26 +67,26 @@ void init_fpga(void)
 			if ((value << i) & 0b10000000)
 			{
 				/* bit set -> toggle DATA0 to high */
-				MCF_GPIO_PODR_FEC1L |= (1 << 3);
+				MCF_GPIO_PODR_FEC1L |= FPGA_DATA0;
 			}
 			else
 			{
 				/* bit is cleared -> toggle DATA0 to low */
-				MCF_GPIO_PODR_FEC1L &= ~(1 << 3);
+				MCF_GPIO_PODR_FEC1L &= ~FPGA_DATA0;
 			}
 			/* toggle DCLK -> FPGA reads the bit */
-			MCF_GPIO_PODR_FEC1L |= 1;
-			MCF_GPIO_PODR_FEC1L &= ~1;
+			MCF_GPIO_PODR_FEC1L |= FPGA_CLOCK;
+			MCF_GPIO_PODR_FEC1L &= ~FPGA_CLOCK;
 		}
-	} while (!(MCF_GPIO_PPDSDR_FEC1L & (1 << 5)) && (fpga_data < FPGA_FLASH_DATA_END));
+	} while (!(MCF_GPIO_PPDSDR_FEC1L & FPGA_CONF_DONE) && (fpga_data < FPGA_FLASH_DATA_END));
 
 	if (fpga_data < FPGA_FLASH_DATA_END)
 	{
 		for (i = 0; i < 4000; i++)
 		{
 			/* toggle a little more since it's fun ;) */
-			MCF_GPIO_PODR_FEC1L |= 1;
-			MCF_GPIO_PODR_FEC1L &= ~1;
+			MCF_GPIO_PODR_FEC1L |= FPGA_CLOCK;
+			MCF_GPIO_PODR_FEC1L &= ~FPGA_CLOCK;
 		}
 	}
 	else
