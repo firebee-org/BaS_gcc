@@ -49,6 +49,7 @@ ASRCS= \
 
 STRT_SRC = startcf.S
 STRT_OBJ = $(OBJDIR)/startcf.o
+
 COBJS=$(patsubst $(SRCDIR)/%.o,$(OBJDIR)/%.o,$(patsubst %.c,%.o,$(CSRCS)))
 AOBJS=$(patsubst $(SRCDIR)/%.o,$(OBJDIR)/%.o,$(patsubst %.S,%.o,$(ASRCS)))
 
