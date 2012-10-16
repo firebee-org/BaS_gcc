@@ -61,10 +61,10 @@ void init_fpga(void)
 	do
 	{
 		uint8_t value = *fpga_data++;
-		for (i = 0; i < 8; i++)
+		for (i = 0; i < 8; i++, value >>= 1)
 		{
 
-			if ((value << i) & 0b10000000)
+			if (value & 1)
 			{
 				/* bit set -> toggle DATA0 to high */
 				MCF_GPIO_PODR_FEC1L |= FPGA_DATA0;
