@@ -18,7 +18,7 @@ CC=$(TCPREFIX)gcc
 LD=$(TCPREFIX)ld
 
 INCLUDE=-Iinclude
-CFLAGS=-mcpu=5474 -mbitfield -Wall -Wno-multichar -Os -fomit-frame-pointer
+CFLAGS=-mcpu=5474 -Wall -Wno-multichar -Os -fomit-frame-pointer
 
 SRCDIR=sources
 OBJDIR=objs
@@ -35,6 +35,7 @@ EXEC=bas.s19
 CSRCS= \
 	$(SRCDIR)/startcf.c \
 	$(SRCDIR)/sysinit.c \
+	$(SRCDIR)/init_fpga.c \
 	$(SRCDIR)/BaS.c \
 	$(SRCDIR)/cache.c \
 	$(SRCDIR)/sd_card.c \
@@ -52,17 +53,20 @@ AOBJS=$(patsubst $(SRCDIR)/%.o,$(OBJDIR)/%.o,$(patsubst %.S,%.o,$(ASRCS)))
 
 OBJS=$(COBJS) $(AOBJS)
 	
-all: $(EXEC)
+.PHONY all: $(EXEC)
 
-$(EXEC): $(OBJS)
-	$(LD) --oformat srec -Map $(MAPFILE) --cref -T flash.lk -s -o $@ 
-
-clean:
+.PHONY clean:
 	@ rm -f $(EXEC) $(OBJS) $(MAPFILE) depend
 	
+$(EXEC): $(OBJS) $(LDCFILE)
+	$(LD) --oformat srec -Map $(MAPFILE) --cref -T flash.lk -s -o $@ 
+
+# compile init_fpga with -mbitfield for testing purposes
+$(OBJDIR)/init_fpga.o:	CFLAGS += -mbitfield
+
 $(OBJDIR)/%.o:$(SRCDIR)/%.c
 	$(CC) -c $(CFLAGS) $(INCLUDE) $< -o $@
-	
+
 $(OBJDIR)/%.o:$(SRCDIR)/%.S
 	$(CC) -c $(CFLAGS) -Wa,--bitwise-or $(INCLUDE) $< -o $@
 
