@@ -65,6 +65,7 @@ SECTIONS {
 	{
 		objs/startcf.o(.text)
 		objs/sysinit.o(.text)
+		objs/init_fpga.o(.text)
 		objs/BaS.o(.text)
 		objs/sd_card.o(.text)
 		objs/cache.o(.text)
