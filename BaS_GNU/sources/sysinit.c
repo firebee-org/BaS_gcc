@@ -12,7 +12,7 @@
 #include "cache.h"
 #include "sysinit.h"
 
-extern unsigned long _VRAM;
+extern volatile long _VRAM;
 extern unsigned long BaS;
 extern int copy_end();
 
@@ -218,29 +218,29 @@ void init_pll(void)
 
 	* (volatile uint16_t *) (pll_base + 0x48) = 0x27;	/* loopfilter  r */
 	wait_pll();
-	* (volatile uint16_t *) (pll_base + 0x08) = 1;	/* charge pump 1 */
+	* (volatile uint16_t *) (pll_base + 0x08) = 1;		/* charge pump 1 */
 	wait_pll();
-	* (volatile uint16_t *) (pll_base + 0x00) = 12;	/* N counter high = 12 */
+	* (volatile uint16_t *) (pll_base + 0x00) = 12;		/* N counter high = 12 */
 	wait_pll();
-	* (volatile uint16_t *) (pll_base + 0x40) = 12;	/* N counter low = 12 */
+	* (volatile uint16_t *) (pll_base + 0x40) = 12;		/* N counter low = 12 */
 	wait_pll();
-	* (volatile uint16_t *) (pll_base + 0x114) = 1;	/* ck1 bypass */
+	* (volatile uint16_t *) (pll_base + 0x114) = 1;		/* ck1 bypass */
 	wait_pll();
-	* (volatile uint16_t *) (pll_base + 0x118) = 1;	/* ck2 bypass */
+	* (volatile uint16_t *) (pll_base + 0x118) = 1;		/* ck2 bypass */
 	wait_pll();
-	* (volatile uint16_t *) (pll_base + 0x11c) = 1;	/* ck3 bypass */
+	* (volatile uint16_t *) (pll_base + 0x11c) = 1;		/* ck3 bypass */
 	wait_pll();
-	* (volatile uint16_t *) (pll_base + 0x10) = 1;	/* ck0 high  = 1 */
+	* (volatile uint16_t *) (pll_base + 0x10) = 1;		/* ck0 high  = 1 */
 	wait_pll();
-	* (volatile uint16_t *) (pll_base + 0x50) = 1;	/* ck0 low = 1 */
+	* (volatile uint16_t *) (pll_base + 0x50) = 1;		/* ck0 low = 1 */
 	wait_pll();
-	* (volatile uint16_t *) (pll_base + 0x144) = 1;	/* M odd division */
+	* (volatile uint16_t *) (pll_base + 0x144) = 1;		/* M odd division */
 	wait_pll();
-	* (volatile uint16_t *) (pll_base + 0x44) = 1;	/* M low = 1 */
+	* (volatile uint16_t *) (pll_base + 0x44) = 1;		/* M low = 1 */
 	wait_pll();
 	* (volatile uint16_t *) (pll_base + 0x04) = 145;	/* M high = 145 = 146 MHz */
 	wait_pll();
-	* (volatile uint8_t *) 0xf0000800 = 0;			/* set */
+	* (volatile uint8_t *) 0xf0000800 = 0;				/* set */
 
 	uart_out_word('SET!');
 	uart_out_word(0x0a0d);
@@ -255,7 +255,7 @@ void init_pll(void)
 #define NOP() __asm__ __volatile__("nop\n\t" : : : "memory")
 
 void init_video_ddr(void) {
-	* (uint16_t *) 0xf0000400 = 0xb;	/* set cke = 1, cs=1, config = 1 */
+	* (volatile uint16_t *) 0xf0000400 = 0xb;	/* set cke = 1, cs=1, config = 1 */
 	NOP();
 
 	_VRAM = 0x00050400;	/* IPALL */
