@@ -214,6 +214,8 @@ static volatile uint8_t *pll_base = (volatile uint8_t *) 0xf0000600;
 
 void init_pll(void)
 {
+	uart_out_word('PLL ');
+
 	* (volatile uint16_t *) (pll_base + 0x48) = 0x27;	/* loopfilter  r */
 	wait_pll();
 	* (volatile uint16_t *) (pll_base + 0x08) = 1;	/* charge pump 1 */
@@ -255,20 +257,28 @@ void init_pll(void)
 void init_video_ddr(void) {
 	* (uint16_t *) 0xf0000400 = 0xb;	/* set cke = 1, cs=1, config = 1 */
 	NOP();
+
 	_VRAM = 0x00050400;	/* IPALL */
 	NOP();
+
 	_VRAM = 0x00072000;	/* load EMR pll on */
 	NOP();
+
 	_VRAM = 0x00070122;	/* load MR: reset pll, cl=2, burst=4lw */
 	NOP();
+
 	_VRAM = 0x00050400;	/* IPALL */
 	NOP();
+
 	_VRAM = 0x00060000;	/* auto refresh */
 	NOP();
+
 	_VRAM = 0x00060000;	/* auto refresh */
 	NOP();
+
 	_VRAM = 0000070022;	/* load MR dll on */
 	NOP();
+
 	* (uint32_t *) 0xf0000400 = 0x01070002;
 }
 
@@ -699,6 +709,7 @@ void initialize_hardware(void) {
 		init_PCI();
 
 	init_fpga();
+	init_pll();
 	init_video_ddr();
 	dvi_on();
 
