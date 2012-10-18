@@ -16,51 +16,11 @@ extern int mmu_init();
 extern int vec_init();
 extern int illegal_table_make();
 extern void sd_card_idle();
+extern int sd_card_init();
 
-/*
- * warte_routinen
- */
-void wait_10ms(void)
-{
-	register uint32_t target = MCF_SLT_SCNT(0) - 1320000;
-
-	while (MCF_SLT_SCNT(0) > target);
-}
-
-void wait_1ms(void)
-{
-	register uint32_t target = MCF_SLT_SCNT(0) - 132000;
-
-	while (MCF_SLT_SCNT(0) > target);
-}
-
-void wait_100us(void)
-{
-	register uint32_t target = MCF_SLT_SCNT(0) - 13200;
-
-	while (MCF_SLT_SCNT(0) > target);
-}
-
-void wait_50us(void)
-{
-	register uint32_t target = MCF_SLT_SCNT(0) - 6600;
-
-	while (MCF_SLT_SCNT(0) > target);
-}
-
-void wait_10us(void)
-{
-	register uint32_t target = MCF_SLT_SCNT(0) - 1320;
-
-	while (MCF_SLT_SCNT(0) > target);
-}
-
-void wait_1us(void)
-{
-	register uint32_t target = MCF_SLT_SCNT(0) - 132;
-
-	while (MCF_SLT_SCNT(0) > target);
-}
+/* wait...() routines moved to sysinit.c */
+extern void wait_10ms();
+extern void wait_1ms();
 
 /********************************************************************/
 void BaS(void)
