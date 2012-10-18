@@ -244,9 +244,9 @@ void init_fbcs()
 
 void wait_pll(void)
 {
+	register uint32_t trgt = MCF_SLT0_SCNT - 100000;
 	do {
-		wait_1ms();
-	} while (! * (volatile uint16_t *) 0xf0000800);
+	} while ((* (volatile uint16_t *) 0xf0000800 > 0) && MCF_SLT0_SCNT > trgt);
 }
 
 static volatile uint8_t *pll_base = (volatile uint8_t *) 0xf0000600;
@@ -255,30 +255,44 @@ void init_pll(void)
 {
 	uart_out_word('PLL ');
 
+	wait_pll();
 	* (volatile uint16_t *) (pll_base + 0x48) = 0x27;	/* loopfilter  r */
+
 	wait_pll();
 	* (volatile uint16_t *) (pll_base + 0x08) = 1;		/* charge pump 1 */
+
 	wait_pll();
 	* (volatile uint16_t *) (pll_base + 0x00) = 12;		/* N counter high = 12 */
+
 	wait_pll();
 	* (volatile uint16_t *) (pll_base + 0x40) = 12;		/* N counter low = 12 */
+
 	wait_pll();
 	* (volatile uint16_t *) (pll_base + 0x114) = 1;		/* ck1 bypass */
+
 	wait_pll();
 	* (volatile uint16_t *) (pll_base + 0x118) = 1;		/* ck2 bypass */
+
 	wait_pll();
 	* (volatile uint16_t *) (pll_base + 0x11c) = 1;		/* ck3 bypass */
+
 	wait_pll();
 	* (volatile uint16_t *) (pll_base + 0x10) = 1;		/* ck0 high  = 1 */
+
 	wait_pll();
 	* (volatile uint16_t *) (pll_base + 0x50) = 1;		/* ck0 low = 1 */
+
 	wait_pll();
 	* (volatile uint16_t *) (pll_base + 0x144) = 1;		/* M odd division */
+
 	wait_pll();
 	* (volatile uint16_t *) (pll_base + 0x44) = 1;		/* M low = 1 */
+
 	wait_pll();
 	* (volatile uint16_t *) (pll_base + 0x04) = 145;	/* M high = 145 = 146 MHz */
+
 	wait_pll();
+
 	* (volatile uint8_t *) 0xf0000800 = 0;				/* set */
 
 	uart_out_word('SET!');
@@ -491,6 +505,9 @@ loop_i2c:
 	MCF_I2C_I2SR &= 0xfd;
 	MCF_I2C_I2DR = 0xbf;	// ctl1: power on, T:M:D:S: enable
 
+	while (!(MCF_I2C_I2SR & MCF_I2C_I2SR_IIF));
+
+	MCF_I2C_I2SR &= 0xfd;;
 	MCF_I2C_I2CR = 0x80;	// stop
 	DBYT = MCF_I2C_I2DR;	// dummy read
 	MCF_I2C_I2SR = 0x0;	// clear sr
