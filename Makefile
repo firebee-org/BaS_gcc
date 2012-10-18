@@ -37,8 +37,7 @@ CSRCS= \
 	$(SRCDIR)/init_fpga.c \
 	$(SRCDIR)/BaS.c \
 	$(SRCDIR)/cache.c \
-	$(SRCDIR)/sd_card.c \
-	$(SRCDIR)/last.c
+	$(SRCDIR)/sd_card.c
 
 ASRCS= \
 	$(SRCDIR)/mmu.S \
