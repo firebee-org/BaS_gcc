@@ -13,12 +13,51 @@
 #include "sysinit.h"
 
 extern volatile long _VRAM;
-extern unsigned long BaS;
-extern int copy_end();
 
-extern void wait_1ms();
-extern void wait_50us();
+/*
+ * warte_routinen
+ */
+void wait_10ms(void)
+{
+	register uint32_t target = MCF_SLT_SCNT(0) - 1320000;
 
+	while (MCF_SLT_SCNT(0) > target);
+}
+
+void wait_1ms(void)
+{
+	register uint32_t target = MCF_SLT_SCNT(0) - 132000;
+
+	while (MCF_SLT_SCNT(0) > target);
+}
+
+void wait_100us(void)
+{
+	register uint32_t target = MCF_SLT_SCNT(0) - 13200;
+
+	while (MCF_SLT_SCNT(0) > target);
+}
+
+void wait_50us(void)
+{
+	register uint32_t target = MCF_SLT_SCNT(0) - 6600;
+
+	while (MCF_SLT_SCNT(0) > target);
+}
+
+void wait_10us(void)
+{
+	register uint32_t target = MCF_SLT_SCNT(0) - 1320;
+
+	while (MCF_SLT_SCNT(0) > target);
+}
+
+void wait_1us(void)
+{
+	register uint32_t target = MCF_SLT_SCNT(0) - 132;
+
+	while (MCF_SLT_SCNT(0) > target);
+}
 
 /*
  * init SLICE TIMER 0 
@@ -282,79 +321,6 @@ void init_video_ddr(void) {
 	* (uint32_t *) 0xf0000400 = 0x01070002;
 }
 
-
-#ifdef _NOT_USED_
-
-/*
- * video mit auflösung 1280x1000 137MHz
- */
-
-void video_1280_1024(void) {
-	extern int wait_pll;
-
-	asm {
-		// SPEICHER FÜLLEM
-		//testmuster 1
-		lea __VRAM, a2
-		lea __VRAM + 0x600000,a3
-		clr.l d0
-		move.l #0x1000102,d1
- loop5:
- 	 	 move.l d0, (a2) +
- 	 	 move.l d0, (a2) +
- 	 	 move.l d0, (a2) +
- 	 	 move.l d0, (a2) +
- 	 	 move.l d0, (a2) +
- 	 	 move.l d0, (a2) +
- 	 	 move.l d0, (a2) +
- 	 	 move.l d0, (a2) +
- 	 	 move.l d0, (a2) +
- 	 	 move.l d0, (a2) +
- 	 	 move.l d0, (a2) +
- 	 	 move.l d0, (a2) +
- 	 	 move.l d0, (a2) +
- 	 	 move.l d0, (a2) +
- 	 	 move.l d0, (a2) +
- 	 	 move.l d0, (a2) +
- 	 	 move.l d0, (a2) +
- 	 	 move.l d0, (a2) +
- 	 	 move.l d0, (a2) +
- 	 	 move.l d0, (a2) +
- 	 	 add.l d1, d0
-flo6:
-		cmp.l a2, a3
-		bgt loop5
-// screen setzen
-//horizontal 1280
-	       lea 0xffff8282, a0
-	       move.w #1800,(a0)+
-	       move.w #1380,(a0)+
-	       move.w #99,(a0)+
-	       move.w #100,(a0)+
-	       move.w #1379,(a0)+
-	       move.w #1500,(a0)
-//vertical 1024
-	       lea 0xffff82a2, a0
-	       move.w #1150,(a0)+
-	       move.w #1074,(a0)+
-	       move.w #49,(a0)+
-	       move.w #50,(a0)+
-	       move.w #1073,(a0)+
-	       move.w #1100,(a0)+
-// acp video on         
-	       move.l #0x01070207,d0
-	       move.l d0, 0xf0000400
-// clut setzen
-	       lea 0xf0000000, a0
-	       move.l #0xffffffff,(a0)+
-	       move.l #0xff,(a0)+
-	       move.l #0xff00,(a0)+
-	       move.l #0xff0000,(a0)
-//              halt
-   }
-}
-
-#endif
 
 #define	 PCI_MEMORY_OFFSET	(0x80000000)
 #define	 PCI_MEMORY_SIZE	(0x40000000)
@@ -684,11 +650,15 @@ livo:
 }
 
 void initialize_hardware(void) {
-	extern uint8_t *copy_start;
-	extern uint8_t *Bas_base;
+	extern uint8_t *Bas_base;	/* target address to copy bas to (from linker script) */
+	extern uint8_t *bas;		/* source address to copy bas from (from linker script) FIXME: beware of possible alignment */
+	extern uint32_t bas_length;/* length of BaS code to copy (from linker script) */
+	extern void *BaS;			/* BaS routine to jump to after copy */
+
+	int i;
 	uint32_t *src;
 	uint32_t *dst;
-	uint32_t jmp;
+	uint8_t *jmp;
 
 	__asm__ __volatile__(
 	"move.l 	#0x000C8120,D0\n\t"
@@ -721,24 +691,23 @@ void initialize_hardware(void) {
 	}
 
 	/* copy the BaS code contained in flash to its final location */
-	src = &copy_start;
-	dst = &Bas_base;
-	jmp = (uint8_t *) &BaS - (uint32_t) &copy_start + (uint32_t) &Bas_base;
-	do {
+	src = (uint32_t *)&bas;
+	dst = (uint32_t *)&Bas_base;
+	jmp = (uint8_t *)&BaS;
+	for (i = 0; i < (int) &bas_length; i+= 4)
+	{
 		*src++ = *dst++;
 		*src++ = *dst++;
 		*src++ = *dst++;
 		*src++ = *dst++;
-	} while (src < (uint8_t *) &copy_end);
+	}
 
-	flushDataCacheRegion(&Bas_base, (uint8_t *) &copy_end - copy_start);
-	flushInstructionCacheRegion(&Bas_base, (uint8_t *) &copy_end - copy_start);
+	flushDataCacheRegion(&Bas_base, (int) &bas_length);
+	flushInstructionCacheRegion(&Bas_base, (int) &bas_length);
 
 	__asm__ __volatile__(
-		"		.global	_copy_start	| \n\t"
 		"		move.l	%0,a3		| calculated start address\n\t"
 		"		jmp		(a3)		| go! \n\t"
-		"_copy_start:				| \n\t"
 		/* output */ :
 		/* input */  : "g" (jmp)
 		/* clobber */: "a3", "memory"
