@@ -57,7 +57,7 @@ OBJS=$(COBJS) $(AOBJS)
 .PHONY all: $(EXEC)
 
 .PHONY clean:
-	@ rm -f $(EXEC) $(OBJS) $(MAPFILE) depend
+	@ rm -f $(EXEC) $(STRT_OBJ) $(OBJS) $(MAPFILE) depend
 	
 $(EXEC): $(STRT_OBJ) $(OBJS) $(LDCFILE)
 	$(LD) --oformat srec -Map $(MAPFILE) --cref -T flash.lk -s -o $@ 
