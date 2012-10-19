@@ -1,5 +1,5 @@
 MEMORY {
-   flash (RX)  : ORIGIN = 0xE0000000, LENGTH = 0xFFFFFFFF
+   flash (RX)  : ORIGIN = 0xE0000000, LENGTH = 0x00200000
    ram (WX) : ORIGIN = 0x1FE00000, LENGTH = 0x00100000		/* target to copy BaS to */
 }
 
@@ -80,6 +80,7 @@ SECTIONS {
 	.bas _Bas_base : AT (ADDR(.text) + SIZEOF(.text))
 	{
 		objs/BaS.o(.text)
-		_bas_length = . - _BaS;
+		_bas_end = ABSOLUTE(.);
 	} > ram
+	
 }

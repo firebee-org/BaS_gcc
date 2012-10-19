@@ -668,15 +668,13 @@ livo:
 }
 
 void initialize_hardware(void) {
-	extern uint8_t *Bas_base;	/* target address to copy bas to (from linker script) */
-	extern uint8_t *bas;		/* source address to copy bas from (from linker script) FIXME: beware of possible alignment */
-	extern uint32_t bas_length;/* length of BaS code to copy (from linker script) */
-	extern void *BaS;			/* BaS routine to jump to after copy */
+	extern uint32_t bas;		/* source address to copy bas from (from linker script) FIXME: beware of possible alignment */
+	extern uint32_t bas_end;	/* end of BaS code to copy (from linker script) */
+	extern uint32_t BaS;		/* BaS routine to jump to after copy */
 
-	int i;
 	uint32_t *src;
 	uint32_t *dst;
-	uint8_t *jmp;
+	uint32_t *jmp;
 
 	__asm__ __volatile__(
 	"move.l 	#0x000C8120,D0\n\t"
@@ -710,18 +708,18 @@ void initialize_hardware(void) {
 
 	/* copy the BaS code contained in flash to its final location */
 	src = (uint32_t *)&bas;
-	dst = (uint32_t *)&Bas_base;
-	jmp = (uint8_t *)&BaS;
-	for (i = 0; i < (int) &bas_length / 16; i+= 4)
+	dst = jmp = (uint32_t *)&BaS;
+
+	do
 	{
 		*src++ = *dst++;
 		*src++ = *dst++;
 		*src++ = *dst++;
 		*src++ = *dst++;
-	}
+	} while (dst < &bas_end);
 
-	flushDataCacheRegion(&Bas_base, (int) &bas_length);
-	flushInstructionCacheRegion(&Bas_base, (int) &bas_length);
+	flushDataCacheRegion(&BaS, (uint32_t) (&bas_end - &BaS));
+	flushInstructionCacheRegion(&BaS, (uint32_t) (&bas_end - &BaS));
 
 	__asm__ __volatile__(
 		"		move.l	%0,a3		| calculated start address\n\t"
