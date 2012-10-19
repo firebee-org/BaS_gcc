@@ -16,6 +16,7 @@ TCPREFIX=m68k-atari-mint-
 
 CC=$(TCPREFIX)gcc
 LD=$(TCPREFIX)ld
+CPP=$(TCPREFIX)cpp
 
 INCLUDE=-Iinclude
 CFLAGS=-mcpu=5474 -Wall -Wno-multichar -Os -fomit-frame-pointer
@@ -25,10 +26,9 @@ OBJDIR=objs
 
 MAPFILE=bas.map
 
-# Linker control files. flash.lk is meant for BaS in flash, ram.lk (not written yet) for
-# debugging in RAM.
-LDCFILE=flash.lk
-# LDCFILE=ram.lk
+# Linker control file.
+LDCFILE=bas.lk
+LDCSRC=bas.lk.S
 
 EXEC=bas.s19
 
@@ -57,11 +57,17 @@ OBJS=$(COBJS) $(AOBJS)
 .PHONY all: $(EXEC)
 
 .PHONY clean:
-	@ rm -f $(EXEC) $(STRT_OBJ) $(OBJS) $(MAPFILE) depend
-	
-$(EXEC): $(STRT_OBJ) $(OBJS) $(LDCFILE)
-	$(LD) --oformat srec -Map $(MAPFILE) --cref -T flash.lk -s -o $@ 
+	@ rm -f $(EXEC) $(STRT_OBJ) $(OBJS) $(MAPFILE) $(LDCFILE) depend 
 
+	
+$(EXEC): $(STRT_OBJ) $(OBJS) $(LDCSRC)
+	$(CPP) -P -DTARGET_ADDRESS=0xe0000000 $(LDCSRC) -o $(LDCFILE)
+	$(LD) --oformat srec -Map $(MAPFILE) --cref -T $(LDCFILE) -s -o $@ 
+
+ram: $(STRT_OBJ) $(OBJS) $(LDCSRC)
+	$(CPP) -P -DTARGET_ADDRESS=0x01000000 $(LDCSRC) -o $(LDCFILE)
+	$(LD) --oformat srec -Map $(MAPFILE) --cref -T $(LDCFILE) -s -o $@.s19
+	
 # compile init_fpga with -mbitfield for testing purposes
 $(OBJDIR)/init_fpga.o:	CFLAGS += -mbitfield
 
