@@ -56,7 +56,7 @@ void BaS(void)
 		{
 			for (i = 0; i < 64; i++)
 			{
-				* (uint8_t *) 0xffff8963 = MCF_PSC3_PSCRB_8BIT;	/* TODO: what are we doing here ? */
+				* (uint8_t *) 0xffff8963 = MCF_PSC3_PSCRB_8BIT;	/* Copy the NVRAM data from the PIC to the FPGA */
 			}
 		}
 
