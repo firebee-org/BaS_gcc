@@ -30,7 +30,10 @@ MAPFILE=bas.map
 LDCFILE=bas.lk
 LDCSRC=bas.lk.S
 
-EXEC=bas.s19
+# this Makefile can create the BaS to flash or an arbitrary ram address (for BDM debugging). See
+# below for the definition of TARGET_ADDRESS
+FLASH_EXEC=bas.s19
+RAM_EXEC=ram.s19
 
 CSRCS= \
 	$(SRCDIR)/sysinit.c \
@@ -54,19 +57,17 @@ AOBJS=$(patsubst $(SRCDIR)/%.o,$(OBJDIR)/%.o,$(patsubst %.S,%.o,$(ASRCS)))
 
 OBJS=$(COBJS) $(AOBJS)
 	
-.PHONY all: $(EXEC)
-
+.PHONY all: $(FLASH_EXEC)
+.PHONY ram: $(RAM_EXEC)
 .PHONY clean:
-	@ rm -f $(EXEC) $(STRT_OBJ) $(OBJS) $(MAPFILE) $(LDCFILE) depend 
+	@ rm -f $(FLASH_EXEC) $(RAM_EXEC) $(STRT_OBJ) $(OBJS) $(MAPFILE) $(LDCFILE) depend 
 
-	
-$(EXEC): $(STRT_OBJ) $(OBJS) $(LDCSRC)
-	$(CPP) -P -DTARGET_ADDRESS=0xe0000000 $(LDCSRC) -o $(LDCFILE)
-	$(LD) --oformat srec -Map $(MAPFILE) --cref -T $(LDCFILE) -s -o $@ 
+$(FLASH_EXEC): TARGET_ADDRESS=0xe0000000
+$(RAM_EXEC): TARGET_ADDRESS=0x01000000
 
-ram: $(STRT_OBJ) $(OBJS) $(LDCSRC)
-	$(CPP) -P -DTARGET_ADDRESS=0x01000000 $(LDCSRC) -o $(LDCFILE)
-	$(LD) --oformat srec -Map $(MAPFILE) --cref -T $(LDCFILE) -s -o $@.s19
+$(FLASH_EXEC) $(RAM_EXEC): $(STRT_OBJ) $(OBJS)
+	$(CPP) -P -DTARGET_ADDRESS=$(TARGET_ADDRESS) $(LDCSRC) -o $(LDCFILE)
+	$(LD) --oformat srec -Map $(MAPFILE) --cref -T $(LDCFILE) -s -o $@
 	
 # compile init_fpga with -mbitfield for testing purposes
 $(OBJDIR)/init_fpga.o:	CFLAGS += -mbitfield
