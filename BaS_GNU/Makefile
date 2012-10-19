@@ -26,7 +26,7 @@ OBJDIR=objs
 
 MAPFILE=bas.map
 
-# Linker control file.
+# Linker control file. The final $(LDCFILE) is intermediate only (preprocessed  version of $(LDCSRC)
 LDCFILE=bas.lk
 LDCSRC=bas.lk.S
 
