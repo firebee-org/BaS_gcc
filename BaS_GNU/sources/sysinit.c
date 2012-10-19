@@ -712,7 +712,7 @@ void initialize_hardware(void) {
 	src = (uint32_t *)&bas;
 	dst = (uint32_t *)&Bas_base;
 	jmp = (uint8_t *)&BaS;
-	for (i = 0; i < (int) &bas_length; i+= 4)
+	for (i = 0; i < (int) &bas_length / 16; i+= 4)
 	{
 		*src++ = *dst++;
 		*src++ = *dst++;
@@ -729,5 +729,5 @@ void initialize_hardware(void) {
 		/* output */ :
 		/* input */  : "g" (jmp)
 		/* clobber */: "a3", "memory"
-		);
+	);
 }
