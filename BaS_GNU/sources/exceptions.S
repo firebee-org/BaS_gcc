@@ -4,23 +4,23 @@
 
 #include "startcf.h"
 
-.extern __Bas_base
-.extern __SUP_SP
-.extern __BOOT_FLASH
-.extern __RAMBAR0
-.extern _rt_cacr
-.extern _rt_mod
-.extern _rt_ssp
-.extern _rt_usp
-.extern _rt_vbr
-.extern _illegal_instruction
-.extern _privileg_violation
-.extern _mmutr_miss
-.extern __MBAR
-.extern __MMUBAR
-.extern _video_tlb
-.extern _video_sbt
-.extern cpusha
+		.extern __Bas_base
+		.extern __SUP_SP
+		.extern __BOOT_FLASH
+		.extern __RAMBAR0
+		.extern _rt_cacr
+		.extern _rt_mod
+		.extern _rt_ssp
+		.extern _rt_usp
+		.extern _rt_vbr
+		.extern _illegal_instruction
+		.extern _privileg_violation
+		.extern _mmutr_miss
+		.extern __MBAR
+		.extern __MMUBAR
+		.extern _video_tlb
+		.extern _video_sbt
+		.extern cpusha
 
 /* Register read/write macros */
 #define MCF_MMU_MMUCR            			__MMUBAR
