@@ -12,10 +12,10 @@
 #include "cache.h"
 #include "sysinit.h"
 
-extern volatile long _VRAM;
+extern volatile long _VRAM;	/* start address of video ram from linker script */
 
 /*
- * warte_routinen
+ * wait routines
  */
 void wait_10ms(void)
 {
@@ -102,10 +102,9 @@ void init_gpio(void)
 	MCF_GPIO_PDDR_FEC1L = 0b00011110;	/* OUT: 4=LED,3=PRG_DQ0,2=#FPGA_CONFIG,1=PRG_CLK(FPGA) */
 }
 
-/********************************************************************/
-// init serial
-/********************************************************************/
-
+/*
+ * init serial
+ */
 void init_serial(void)
 {
 	/* PSC0: SER1 */
@@ -382,9 +381,8 @@ void init_PCI(void) {
 	
 
 /*
- * test UPC720101 (USB) 
+ * probe for UPC720101 (USB)
  */
-
 void test_upd720101(void) 
 {
 	uart_out_word('NEC ');
@@ -672,9 +670,10 @@ void initialize_hardware(void) {
 	extern uint32_t bas_end;	/* end of BaS code to copy (from linker script) */
 	extern uint32_t BaS;		/* BaS routine to jump to after copy */
 
-	uint32_t *src;
-	uint32_t *dst;
-	uint32_t *jmp;
+	/* used in copy loop */
+	uint32_t *src;	/* src address to read from flash */
+	uint32_t *dst;	/* destination address to copy to */
+	uint32_t *jmp;	/* address of BaS() routine to jmp at after copy */
 
 	__asm__ __volatile__(
 	"move.l 	#0x000C8120,D0\n\t"
@@ -690,7 +689,7 @@ void initialize_hardware(void) {
 	init_fbcs();
 	init_ddram();
 
-	/* do not initialize ports if DIP switch 5 = on */
+	/* do not initialize PCI if DIP switch 5 = on */
 	if (DIP_SWITCH & (1 << 6))
 		init_PCI();
 
@@ -718,6 +717,7 @@ void initialize_hardware(void) {
 		*src++ = *dst++;
 	} while (dst < &bas_end);
 
+	/* clear all addresses touched during copy from all cache lines */
 	flushDataCacheRegion(&BaS, (uint32_t) (&bas_end - &BaS));
 	flushInstructionCacheRegion(&BaS, (uint32_t) (&bas_end - &BaS));
 
