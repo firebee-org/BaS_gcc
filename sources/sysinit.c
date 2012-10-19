@@ -711,10 +711,10 @@ void initialize_hardware(void) {
 
 	do
 	{
-		*src++ = *dst++;
-		*src++ = *dst++;
-		*src++ = *dst++;
-		*src++ = *dst++;
+		*dst++ = *src++;
+		*dst++ = *src++;
+		*dst++ = *src++;
+		*dst++ = *src++;
 	} while (dst < &bas_end);
 
 	/* clear all addresses touched during copy from all cache lines */
