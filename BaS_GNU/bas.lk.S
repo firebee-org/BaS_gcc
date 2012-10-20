@@ -58,13 +58,9 @@ SECTIONS {
  	__SYS_SRAM             = ABSOLUTE(0xFF010000);
 	__SYS_SRAM_SIZE        = ABSOLUTE(0x00008000);
 
-	.code ___BOOT_FLASH : 
+	.text ___BOOT_FLASH :
 	{
-		objs/startcf.o
-	} > flash
-	
-	.text :
-	{
+		objs/startcf.o(.text)
 		objs/sysinit.o(.text)
 		objs/init_fpga.o(.text)
 		objs/sd_card.o(.text)
