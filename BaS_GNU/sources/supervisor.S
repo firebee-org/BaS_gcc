@@ -573,9 +573,6 @@ cfa_setloop:
 	move.l		d0,a0
 	cmpi.w		#4,d0				// all ways?
 	bne			cfa_setloop			// nein->
-	nop
-	move.l		_rt_cacr,d0			// holen
-	movec		d0,cacr				// setzen
 	move.w		d2,sr				// alte interrupt maske
 	movem.l		(a7),d0-d2/a0		// register zur�ck
 	lea			16(a7),a7

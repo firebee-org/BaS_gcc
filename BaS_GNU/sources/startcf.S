@@ -33,10 +33,14 @@ warmstart:
 		/* set stack pointer to end of SRAM1 */
 		lea 	__SUP_SP,a7
 
-		/* instruction cache on */
-		move.l	#0x000C8100,d0
+		/* Initialize the processor caches.
+		 * The instruction cache is fully enabled.
+		 * The data cache is enabled, but cache-inhibited by default.
+		 * Later, the MMU will fully activate the data cache for specific areas.
+		 * It is important to enable both caches now, otherwise cpushl would hang.
+		 */
+		move.l	#0xa50c8120,d0
 		movec	d0,cacr
-		nop
 
 		/* initialize any hardware specific issues */
 		bra    _initialize_hardware
