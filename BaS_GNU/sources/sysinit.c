@@ -709,9 +709,8 @@ void initialize_hardware(void) {
 		*dst++ = *src++;
 	} while (dst < &bas_end);
 
-	/* clear all addresses touched during copy from all cache lines */
-	flushDataCacheRegion(&BaS, (uint32_t) (&bas_end - &BaS));
-	flushInstructionCacheRegion(&BaS, (uint32_t) (&bas_end - &BaS));
+	/* we have copied a code area, so flush the caches */
+	flush_and_invalidate_caches();
 
 	__asm__ __volatile__(
 		"		move.l	%0,a3		| calculated start address\n\t"

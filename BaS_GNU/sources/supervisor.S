@@ -9,6 +9,7 @@
 .extern _rt_ssp;
 .extern _rt_usp;
 .extern ___MMUBAR
+.extern _flush_and_invalidate_caches
 
 /* Register read/write macros */
 #define MCF_MMU_MMUCR	__MMUBAR
@@ -554,29 +555,10 @@ pv_f_d16pc:
 //*****************************************************
 cpusha:	 
  	lea			-16(a7),a7
-	movem.l		d0-d2/a0,(a7)		// register sichern
-	move		sr,d2
-	nop
-	move		#0x2700,sr			// no interrupts
-
-	clr.l		d0
-	clr.l		d1
-	move.l		d0,a0
-cfa_setloop:
-	cpushl		bc,(a0)				// flush
-	lea			0x10(a0),a0			// index+1
-	addq.l		#1,d1				// index+1
-	cmpi.w		#512,d1				// alle sets?
-	bne			cfa_setloop			// nein->
-	clr.l		d1
-	addq.l		#1,d0
-	move.l		d0,a0
-	cmpi.w		#4,d0				// all ways?
-	bne			cfa_setloop			// nein->
-	move.w		d2,sr				// alte interrupt maske
-	movem.l		(a7),d0-d2/a0		// register zur�ck
-	lea			16(a7),a7
-
+	movem.l		d0-d1/a0-a1,(a7)	// backup C trash registers
+	jsr			_flush_and_invalidate_caches
+	movem.l		(a7),d0-d1/a0-a1	// restore C trash registers
+ 	lea			16(a7),a7
 	rts	
 //*******************************************************33
 
