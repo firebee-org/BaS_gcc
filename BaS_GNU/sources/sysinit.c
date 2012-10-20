@@ -722,11 +722,7 @@ void initialize_hardware(void) {
 	/* we have copied a code area, so flush the caches */
 	flush_and_invalidate_caches();
 
-	__asm__ __volatile__(
-		"		move.l	%0,a3		| calculated start address\n\t"
-		"		jmp		(a3)		| go! \n\t"
-		/* output */ :
-		/* input */  : "g" (jmp)
-		/* clobber */: "a3", "memory"
-	);
+	/* jump into the BaS in RAM */
+	extern void BaS(void);
+	BaS();
 }
