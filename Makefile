@@ -28,7 +28,7 @@ MAPFILE=bas.map
 
 # Linker control file. The final $(LDCFILE) is intermediate only (preprocessed  version of $(LDCSRC)
 LDCFILE=bas.lk
-LDCSRC=bas.lk.S
+LDCSRC=bas.lk.in
 
 # this Makefile can create the BaS to flash or an arbitrary ram address (for BDM debugging). See
 # below for the definition of TARGET_ADDRESS
