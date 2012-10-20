@@ -665,13 +665,21 @@ livo:
 	uart_out_word(0x0a0d);
 }
 
-void initialize_hardware(void) {
-	extern uint32_t bas;		/* source address to copy bas from (from linker script) FIXME: beware of possible alignment */
-	extern uint32_t bas_end;	/* end of BaS code to copy (from linker script) */
-	extern uint32_t BaS;		/* BaS routine to jump to after copy */
+/* Symbols from the linker script */
 
+extern uint8_t _BAS_LMA[];
+#define BAS_LMA ((uint32_t)_BAS_LMA) /* where the BaS is stored in flash */
+
+extern uint8_t _BAS_VMA[];
+#define BAS_VMA ((uint32_t)_BAS_VMA) /* where the BaS is run in RAM */
+
+extern uint8_t _BAS_SIZE[];
+#define BAS_SIZE ((uint32_t)_BAS_SIZE) /* size of the BaS, in bytes */
+
+void initialize_hardware(void) {
 	/* used in copy loop */
 	uint32_t *src;	/* src address to read from flash */
+	uint32_t *end;	/* end address to read from flash */
 	uint32_t *dst;	/* destination address to copy to */
 	uint32_t *jmp;	/* address of BaS() routine to jmp at after copy */
 
@@ -698,16 +706,18 @@ void initialize_hardware(void) {
 	}
 
 	/* copy the BaS code contained in flash to its final location */
-	src = (uint32_t *)&bas;
-	dst = jmp = (uint32_t *)&BaS;
+	src = (uint32_t *)BAS_LMA;
+	end = (uint32_t *)(BAS_LMA + BAS_SIZE);
+	dst = jmp = (uint32_t *)BAS_VMA;
 
+	/* FIXME: beware of possible alignment */
 	do
 	{
 		*dst++ = *src++;
 		*dst++ = *src++;
 		*dst++ = *src++;
 		*dst++ = *src++;
-	} while (dst < &bas_end);
+	} while (src < end);
 
 	/* we have copied a code area, so flush the caches */
 	flush_and_invalidate_caches();

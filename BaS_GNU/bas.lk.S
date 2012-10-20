@@ -70,7 +70,6 @@ SECTIONS {
 		objs/supervisor.o(.text)
 		objs/ewf.o(.text)
 		objs/illegal_instruction.o(.text)
-		_bas = .;
 	} > flash
 
 	.bas _Bas_base : AT (ADDR(.text) + SIZEOF(.text))
@@ -78,5 +77,8 @@ SECTIONS {
 		objs/BaS.o(.text)
 		_bas_end = ABSOLUTE(.);
 	} > ram
-	
+
+	__BAS_LMA = LOADADDR(.bas);
+	__BAS_VMA = ADDR(.bas);
+	__BAS_SIZE = SIZEOF(.bas);
 }
