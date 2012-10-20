@@ -82,9 +82,6 @@ _mmu_init:
  		clr.l	d0
 		movec	d0,ASID				// ASID allways 0
 		move.l	d0,_rt_asid			// sichern
-		movec	d0,cacr				// cache aus
-		move.l	d0,_rt_cacr			// sichern
-		nop
 		
 		move.l	#0xC03FC040,d0		// data r/w precise  c000'0000-ffff'ffff
 		movec	d0,ACR0
@@ -171,10 +168,6 @@ _mmu_init:
 		move.l	d1,MCF_MMU_MMUDR
 		move.l	d3,MCF_MMU_MMUOR						// setzen instr
 */
-		move.l	#0xa10ca120,d0
-		move.l	d0,_rt_cacr								// sichern
- 		movec	d0,cacr
-		nop
 		rts
 
 /*

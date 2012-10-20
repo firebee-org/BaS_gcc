@@ -81,9 +81,6 @@ void clear_caches(void)
 	"	move.l		d0,a0\n\t"
 	"	cmpi.w		#4,d0				| all ways?\n\t"
 	"	bne			cfa_setloop			| no->\n\t"
-	"	nop\n\t"
-	"	move.l		_rt_cacr,d0			| get cacr shadow register\n\t"
-	"	movec		d0,cacr				| set old value\n\t"
 	"	move.l		(sp)+,d2\n\t"
 	"	move.w		d2,sr				| restore previous interrupt mask\n\t"
 	/* input */	:

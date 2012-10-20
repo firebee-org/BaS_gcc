@@ -675,14 +675,6 @@ void initialize_hardware(void) {
 	uint32_t *dst;	/* destination address to copy to */
 	uint32_t *jmp;	/* address of BaS() routine to jmp at after copy */
 
-	__asm__ __volatile__(
-	"move.l 	#0x000C8120,D0\n\t"
-	"move.l		D0,_rt_cacr\n\t"
-	"movec		D0,CACR\n\t"
-	"nop\n\t"
-	 : : : "d0", "memory"
-	);
-
 	init_gpio();
 	init_serial();
 	init_slt();
