@@ -7,6 +7,7 @@
 #include "MCF5475.h"
 #include "MCF5475_SLT.h"
 #include "startcf.h"
+#include "cache.h"
 
 extern uint32_t Bas_base[];
 extern uint8_t tos_base[];
@@ -76,6 +77,9 @@ void BaS(void)
 			*dst++ = *src++;
 		}
 	}
+
+	/* we have copied a code area, so flush the caches */
+	flush_and_invalidate_caches();
 
 #ifdef _NOT_USED_
 	/*

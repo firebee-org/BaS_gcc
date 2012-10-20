@@ -3,7 +3,6 @@
 
 #include <stdint.h>
 
-extern void flushDataCacheRegion(void *adr, uint32_t length);
-extern void flushInstructionCacheRegion(void *adr, uint32_t length);
+extern void flush_and_invalidate_caches(void);
 
 #endif /* _CACHE_H_ */
