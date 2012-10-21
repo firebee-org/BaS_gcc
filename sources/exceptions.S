@@ -204,6 +204,8 @@ irq_end:
 
 .text
 _vec_init:
+		move.l	a2,-(sp)			// Backup registers
+
  		mov3q.l	#-1,_rt_mod			// rt_mod auf super
  		clr.l	_rt_ssp
  		clr.l	_rt_usp
@@ -286,6 +288,8 @@ no_protect_vectors:
 //timer 1 vectors
 		lea		timer0(pc),a1
 		move.l	a1,0x1f8(a0)
+
+		move.l	(sp)+,a2			// Restore registers
 		rts
 /*
  * exception vector routines

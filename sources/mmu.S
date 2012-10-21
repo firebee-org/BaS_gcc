@@ -79,6 +79,9 @@
 
 .text
 _mmu_init:
+		move.l	d3,-(sp)			// Backup registers
+		move.l	d2,-(sp)
+
  		clr.l	d0
 		movec	d0,ASID				// ASID allways 0
 		move.l	d0,_rt_asid			// sichern
@@ -168,6 +171,8 @@ _mmu_init:
 		move.l	d1,MCF_MMU_MMUDR
 		move.l	d3,MCF_MMU_MMUOR						// setzen instr
 */
+		move.l	(sp)+,d2			// Restore registers
+		move.l	(sp)+,d3
 		rts
 
 /*
