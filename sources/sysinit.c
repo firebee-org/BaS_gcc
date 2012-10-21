@@ -683,6 +683,27 @@ void initialize_hardware(void) {
 	uint32_t *dst;	/* destination address to copy to */
 	uint32_t *jmp;	/* address of BaS() routine to jmp at after copy */
 
+	/* Test for FireTOS switch: DIP switch #5 up */
+	if (!(DIP_SWITCH & (1 << 6))) {
+		/* Minimal hardware initialization */
+		init_gpio();
+		init_fbcs();
+		init_ddram();
+		init_fpga();
+
+		/* FireTOS seems to have trouble to initialize the ST-RAM by itself, so... */
+		/* Validate ST RAM */
+		* (volatile uint32_t *) 0x42e = 0x00e00000;	/* phystop TOS system variable */
+		* (volatile uint32_t *) 0x420 = 0x752019f3;	/* memvalid TOS system variable */
+		* (volatile uint32_t *) 0x43a = 0x237698aa;	/* memval2 TOS system variable */
+		* (volatile uint32_t *) 0x51a = 0x5555aaaa;	/* memval3 TOS system variable */
+
+		/* Jump into FireTOS */
+		typedef void void_func(void);
+		void_func* FireTOS = (void_func*)0xe0400000;
+		FireTOS();
+	}
+
 	init_gpio();
 	init_serial();
 	init_slt();
