@@ -37,5 +37,5 @@ write 0xFF00010C 0x24330000 4	# SDCFG2
 
 wait
 # load -v ram.s19	# unfortunately, this seems to work only with elf files
-load -v bas.s19.elf
+load -v bas.s19.elf	# TODO: bdmctrl tries to flash but doesn't succed. Don't know why yet 
 
