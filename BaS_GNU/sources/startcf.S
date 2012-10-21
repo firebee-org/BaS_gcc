@@ -41,6 +41,8 @@ warmstart:
 		 */
 		move.l	#0xa50c8120,d0
 		movec	d0,cacr
+		andi.l	#0xfefbfeff,d0			// Clear invalidate bits
+		move.l	d0,_rt_cacr
 
 		/* initialize any hardware specific issues */
 		bra    _initialize_hardware
