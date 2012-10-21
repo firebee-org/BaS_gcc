@@ -1,0 +1,41 @@
+#!/usr/local/bin/bdmctrl
+#
+# firebee board initialization for bdmctrl 
+#
+open $1
+reset
+
+# notify flashlib that we have flash at address 0xE0000000, length 0x7FFFFF, plugin is flash29
+flash 0xE0000000 flash29
+# do not flash yet. First check if board can be initialized correctly
+
+# set VBR
+write-ctrl 0x0801 0x00000000
+
+# Turn on MBAR at 0xFF00_0000
+write-ctrl 0x0C0F 0xFF000000
+
+# Turn on RAMBAR0 at address FF10_0000 
+write-ctrl 0x0C04 0xFF100035
+
+# Turn on RAMBAR1 at address FF10_1000 
+write-ctrl 0x0C05 0xFF101035
+
+# Init CS0 (BootFLASH @ E000_0000 - E07F_FFFF 8Mbytes)
+write 0xFF000500 0xE0000000 4
+write 0xFF000508 0x00001180 4  # 16-bit port
+write 0xFF000504 0x007F0001 4
+
+# SDRAM Initialization @ 0000_0000 - 1FFF_FFFF 512Mbytes
+write 0xFF000004 0x000002AA 4	# SDRAMDS configuration
+write 0xFF000020 0x0000001A 4	# SDRAM CS0 configuration (128Mbytes 0000_0000 - 07FF_FFFF)
+write 0xFF000024 0x0800001A 4	# SDRAM CS1 configuration (128Mbytes 0800_0000 - 0FFF_FFFF)
+write 0xFF000028 0x1000001A 4	# SDRAM CS2 configuration (128Mbytes 1000_0000 - 17FF_FFFF)
+write 0xFF00002C 0x1800001A 4	# SDRAM CS3 configuration (128Mbytes 1800_0000 - 1FFF_FFFF)
+write 0xFF000108 0x53722938 4	# SDCFG1
+write 0xFF00010C 0x24330000 4	# SDCFG2
+
+wait
+# load -v ram.s19	# unfortunately, this seems to work only with elf files
+load -v bas.s19.elf
+

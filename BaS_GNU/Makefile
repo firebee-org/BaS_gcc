@@ -17,6 +17,7 @@ TCPREFIX=m68k-atari-mint-
 CC=$(TCPREFIX)gcc
 LD=$(TCPREFIX)ld
 CPP=$(TCPREFIX)cpp
+OBJCOPY=$(TCPREFIX)objcopy
 
 INCLUDE=-Iinclude
 CFLAGS=-mcpu=5474 -Wall -Wno-multichar -Os -fomit-frame-pointer
@@ -68,6 +69,7 @@ $(RAM_EXEC): TARGET_ADDRESS=0x01000000
 $(FLASH_EXEC) $(RAM_EXEC): $(STRT_OBJ) $(OBJS)
 	$(CPP) -P -DTARGET_ADDRESS=$(TARGET_ADDRESS) $(LDCSRC) -o $(LDCFILE)
 	$(LD) --oformat srec -Map $(MAPFILE) --cref -T $(LDCFILE) -s -o $@
+	objcopy -I srec -O elf32-big --alt-machine-code 4 $@ $@.elf
 	
 # compile init_fpga with -mbitfield for testing purposes
 $(OBJDIR)/init_fpga.o:	CFLAGS += -mbitfield

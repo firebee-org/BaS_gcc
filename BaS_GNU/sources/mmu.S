@@ -130,8 +130,8 @@ _mmu_init:
 		move.l	d3,MCF_MMU_MMUOR						// MMU update instruction  
 		
 		move.l	#0x2000,d0
-		move.l	d0,_video_tlb							// setze page als video page
-  		clr.l	_video_sbt			// zeit l�schen
+		move.l	d0,_video_tlb							// set page as video page
+  		clr.l	_video_sbt								// clear time
 //-------------------------------------------------------------------------------------
 // 00e0'0000 locked		
  		move.l	#0x00e00000|std_mmutr,d0
