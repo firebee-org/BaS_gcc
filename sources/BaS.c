@@ -127,11 +127,11 @@ void BaS(void)
 	/*
 	 * memory setup
 	 */
-	for (adr = (uint32_t *) 0x400L; adr < (uint32_t *) 0x800L; adr += 32) {
-		*adr = 0x0L;
-		*adr = 0x0L;
-		*adr = 0x0L;
-		*adr = 0x0L;
+	for (adr = (uint32_t *) 0x400L; adr < (uint32_t *) 0x800L; ) {
+		*adr++ = 0x0L;
+		*adr++ = 0x0L;
+		*adr++ = 0x0L;
+		*adr++ = 0x0L;
 	}
 
 	* (uint8_t *) 0xffff8007 = 0x48;	/* FIXME: what's that ? */
