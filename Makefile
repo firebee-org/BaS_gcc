@@ -83,4 +83,6 @@ $(OBJDIR)/%.o:$(SRCDIR)/%.S
 depend: $(ASRCS) $(CSRCS)
 	$(CC) $(CFLAGS) $(INCLUDE) -M $(ASRCS) $(CSRCS) > depend
 	
+ifneq (clean,$(MAKECMDGOALS))
 -include depend
+endif
