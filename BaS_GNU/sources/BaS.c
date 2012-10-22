@@ -76,17 +76,6 @@ void BaS(void)
 	/* we have copied a code area, so flush the caches */
 	flush_and_invalidate_caches();
 
-#ifdef _NOT_USED_
-	/*
-	 * set the NVRAM checksum as invalid
-	 */
-		// Set the NVRAM checksum as invalid
-		move.b	#63,(a0)
-		move.b	2(a0),d0
-		add		#1,d0
-		move.b	d0,2(a0)
-#endif /* NOT_USED */
-
 	mmu_init();
 	vec_init();
 	illegal_table_make();
