@@ -12,6 +12,8 @@
 #include "cache.h"
 #include "sysinit.h"
 
+#define UNUSED(x)       (void)(x)               /* Unused variable         */
+
 extern volatile long _VRAM;	/* start address of video ram from linker script */
 
 /*
@@ -564,6 +566,8 @@ dvi_ok:
 	uart_out_word('OK! ');
 	uart_out_word(0x0a0d);
 	MCF_I2C_I2CR = 0x0;	// i2c off
+
+	UNUSED(DBYT); // Avoid warning
 }
 
 
