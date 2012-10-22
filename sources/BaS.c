@@ -94,7 +94,7 @@ void BaS(void)
 	MCF_EPORT_EPIER = 0xfe;				/* int 1-7 on */
 	MCF_EPORT_EPFR = 0xff;				/* clear all pending interrupts */
 	MCF_INTC_IMRL = 0xffffff00;			/* int 1-7 on */
-	MCF_INTC_IMRH = 0x9ffffffe;			/* psc3 and timer 0 int on */
+	MCF_INTC_IMRH = 0xbffffffe;			/* psc3 and timer 0 int on */
 
 	MCF_MMU_MMUCR = MCF_MMU_MMUCR_EN;	/* MMU on */
 
