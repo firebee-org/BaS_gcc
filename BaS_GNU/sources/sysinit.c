@@ -244,7 +244,7 @@ void wait_pll(void)
 {
 	register uint32_t trgt = MCF_SLT0_SCNT - 100000;
 	do {
-	} while ((* (volatile uint16_t *) 0xf0000800 > 0) && MCF_SLT0_SCNT > trgt);
+	} while ((* (volatile int16_t *) 0xf0000800 < 0) && MCF_SLT0_SCNT > trgt);
 }
 
 static volatile uint8_t *pll_base = (volatile uint8_t *) 0xf0000600;
