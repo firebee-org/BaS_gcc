@@ -20,7 +20,7 @@ CPP=$(TCPREFIX)cpp
 OBJCOPY=$(TCPREFIX)objcopy
 
 INCLUDE=-Iinclude
-CFLAGS=-mcpu=5474 -Wall -Wno-multichar -Os -fomit-frame-pointer
+CFLAGS=-mcpu=5474 -Wall -Wno-multichar -Os -fomit-frame-pointer -fno-strict-aliasing
 
 SRCDIR=sources
 OBJDIR=objs
