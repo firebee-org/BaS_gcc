@@ -701,7 +701,8 @@ void initialize_hardware(void) {
 		/* Jump into FireTOS */
 		typedef void void_func(void);
 		void_func* FireTOS = (void_func*)0xe0400000;
-		FireTOS();
+		FireTOS(); // Should never return
+		return;
 	}
 
 	init_gpio();
