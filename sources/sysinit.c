@@ -256,7 +256,7 @@ void init_pll(void)
 	uart_out_word('PLL ');
 
 	wait_pll();
-	* (volatile uint16_t *) (pll_base + 0x48) = 0x27;	/* loopfilter  r */
+	* (volatile uint16_t *) (pll_base + 0x48) = 27;	/* loopfilter  r */
 
 	wait_pll();
 	* (volatile uint16_t *) (pll_base + 0x08) = 1;		/* charge pump 1 */
