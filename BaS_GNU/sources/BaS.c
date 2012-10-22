@@ -165,7 +165,10 @@ void BaS(void)
 	* (uint8_t *) 0xfffffa11 = 0;
 	__asm__ __volatile__("nop	\n\t" : : : "memory");
 
+	/* Test for pseudo-supervisor mode: DIP switch #6 down */
 	if (DIP_SWITCH & (1 << 7)) {
+		/* In this mode, the OS actually runs in user mode
+		 * and all the supervisor instructions are emulated. */
 		__asm__ __volatile__("move.w #0x0700,sr	\n\t" : : : "memory");
 	}
 	__asm__ __volatile__("jmp 0xe00030	\n\t" : : : "memory");
