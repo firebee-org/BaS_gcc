@@ -667,6 +667,9 @@ livo:
 
 /* Symbols from the linker script */
 
+extern uint8_t _FIRETOS[];
+#define FIRETOS ((uint32_t)_FIRETOS) /* where FireTOS is stored in flash */
+
 extern uint8_t _BAS_LMA[];
 #define BAS_LMA ((uint32_t)_BAS_LMA) /* where the BaS is stored in flash */
 
@@ -700,7 +703,7 @@ void initialize_hardware(void) {
 
 		/* Jump into FireTOS */
 		typedef void void_func(void);
-		void_func* FireTOS = (void_func*)0xe0400000;
+		void_func* FireTOS = (void_func*)FIRETOS;
 		FireTOS(); // Should never return
 		return;
 	}

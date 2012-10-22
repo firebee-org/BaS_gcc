@@ -23,6 +23,12 @@ extern int sd_card_init();
 extern void wait_10ms();
 extern void wait_1ms();
 
+/* Symbols from the linker script */
+extern uint8_t _EMUTOS[];
+#define EMUTOS ((uint32_t)_EMUTOS) /* where EmuTOS is stored in flash */
+extern uint8_t _EMUTOS_SIZE[];
+#define EMUTOS_SIZE ((uint32_t)_EMUTOS_SIZE) /* size of EmuTOS, in bytes */
+
 /********************************************************************/
 void BaS(void)
 {
@@ -61,8 +67,8 @@ void BaS(void)
 	}
 
 	/* copy EMUTOS */
-	src = (uint8_t *) 0xe0600000L;
-	while (src < (uint8_t *) 0xe0700000L)
+	src = (uint8_t *)EMUTOS;
+	while (src < (uint8_t *)(EMUTOS + EMUTOS_SIZE))
 	{
 		*dst++ = *src++;
 	}
