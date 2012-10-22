@@ -62,13 +62,14 @@ SECTIONS {
 	{
 		objs/startcf.o(.text)
 		objs/sysinit.o(.text)
+		objs/init_fpga.o(.text)
+		
 	} > flash
 
 	.bas _Bas_base : AT (ADDR(.text) + SIZEOF(.text))
 	{
 		objs/BaS.o(.text)
-
-		objs/init_fpga.o(.text)
+		# put other routines into the same segment (RAM) as BaS.o 
 		objs/sd_card.o(.text)
 		objs/cache.o(.text)
 		objs/mmu.o(.text)
