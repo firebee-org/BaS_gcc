@@ -60,7 +60,7 @@ SECTIONS {
 
 	.text ___BOOT_FLASH :
 	{
-		objs/startcf.o(.text)
+		objs/startcf.o(.text) /* this one is the entry point so it must be the first */
 		objs/sysinit.o(.text)
 		objs/init_fpga.o(.text)
 		objs/cache.o(.text)
