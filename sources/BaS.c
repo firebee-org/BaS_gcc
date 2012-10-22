@@ -171,5 +171,13 @@ void BaS(void)
 		 * and all the supervisor instructions are emulated. */
 		__asm__ __volatile__("move.w #0x0700,sr	\n\t" : : : "memory");
 	}
-	__asm__ __volatile__("jmp 0xe00030	\n\t" : : : "memory");
+
+	/* Jump into the OS */
+	typedef void void_func(void);
+	typedef struct {
+		void *initial_sp;
+		void_func *initial_pc;
+	} ROM_HEADER;
+	ROM_HEADER* os_header = (ROM_HEADER*)tos_base;
+	os_header->initial_pc();
 }
