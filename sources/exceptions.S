@@ -620,7 +620,7 @@ blinker:.long	0
 		.text
 
 /*
- * pseudo dma */
+ * pseudo dma
  */
 acsi_dma:							// atari dma
 		move.l  a1,-(a7)
@@ -683,7 +683,7 @@ acsi_dma_end:
 		move.l	(a7)+,a1
 		rts
 /*
- * irq 7 = pseudo bus error */
+ * irq 7 = pseudo bus error
  */
 irq7:
 		lea			-12(sp),sp
@@ -707,7 +707,7 @@ irq7:
 		rts								// Forward to the Access Error handler
 
 /*
- * psc3 com PIC MCF */
+ * psc3 com PIC MCF
  */
 psc3:
 		move.w	#0x2700,sr			// disable interrupt
