@@ -709,22 +709,14 @@ void initialize_hardware(void) {
 	init_slt();
 	init_fbcs();
 	init_ddram();
-
-	/* do not initialize PCI if DIP switch 5 = on */
-	if (DIP_SWITCH & (1 << 6))
-		init_PCI();
-
+	init_PCI();
 	init_fpga();
 	init_pll();
 	init_video_ddr();
 	dvi_on();
-
-	/* do not initialize ports if DIP switch 5 = on */
-	if (DIP_SWITCH & (1 << 6)) {
-		test_upd720101();
-		/* video_1280_1024(); */
-		init_ac97();
-	}
+	test_upd720101();
+	//video_1280_1024();
+	init_ac97();
 
 	/* copy the BaS code contained in flash to its final location */
 	src = (uint32_t *)BAS_LMA;

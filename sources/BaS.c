@@ -39,44 +39,32 @@ void BaS(void)
 		sd_card_idle();
 	}
 	
-	/* copy tos */
-	if (DIP_SWITCH & (1 << 6))
+	/* Initialize the NVRAM */
+	MCF_PSC3_PSCTB_8BIT = 'ACPF';
+	wait_10ms();
+
+	MCF_PSC0_PSCTB_8BIT = 'PIC ';
+
+	MCF_PSC0_PSCTB_8BIT = MCF_PSC3_PSCRB_8BIT;
+	MCF_PSC0_PSCTB_8BIT = MCF_PSC3_PSCRB_8BIT;
+	MCF_PSC0_PSCTB_8BIT = MCF_PSC3_PSCRB_8BIT;
+	MCF_PSC0_PSCTB_8BIT = 0x0d0a;
+
+	MCF_PSC3_PSCTB_8BIT = 0x01;	/* request RTC data */
+
+	if (MCF_PSC3_PSCRB_8BIT == 0x81)
 	{
-		MCF_PSC3_PSCTB_8BIT = 'ACPF';
-		wait_10ms();
-
-		MCF_PSC0_PSCTB_8BIT = 'PIC ';
-
-		MCF_PSC0_PSCTB_8BIT = MCF_PSC3_PSCRB_8BIT;
-		MCF_PSC0_PSCTB_8BIT = MCF_PSC3_PSCRB_8BIT;
-		MCF_PSC0_PSCTB_8BIT = MCF_PSC3_PSCRB_8BIT;
-		MCF_PSC0_PSCTB_8BIT = 0x0d0a;
-
-		MCF_PSC3_PSCTB_8BIT = 0x01;	/* request RTC data */
-
-		if (MCF_PSC3_PSCRB_8BIT == 0x81)
+		for (i = 0; i < 64; i++)
 		{
-			for (i = 0; i < 64; i++)
-			{
-				* (uint8_t *) 0xffff8963 = MCF_PSC3_PSCRB_8BIT;	/* Copy the NVRAM data from the PIC to the FPGA */
-			}
-		}
-
-		/* copy EMUTOS */
-		src = (uint8_t *) 0xe0600000L;
-		while (src < (uint8_t *) 0xe0700000L)
-		{
-			*dst++ = *src++;
+			* (uint8_t *) 0xffff8963 = MCF_PSC3_PSCRB_8BIT;	/* Copy the NVRAM data from the PIC to the FPGA */
 		}
 	}
-	else
+
+	/* copy EMUTOS */
+	src = (uint8_t *) 0xe0600000L;
+	while (src < (uint8_t *) 0xe0700000L)
 	{
-		/* copy FireTOS */
-		src = (uint8_t *) 0xe0400000L;
-		while (src < (uint8_t *) 0xe0500000L)
-		{
-			*dst++ = *src++;
-		}
+		*dst++ = *src++;
 	}
 
 	/* we have copied a code area, so flush the caches */
