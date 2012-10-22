@@ -62,6 +62,12 @@ SECTIONS {
 	{
 		objs/startcf.o(.text)
 		objs/sysinit.o(.text)
+	} > flash
+
+	.bas _Bas_base : AT (ADDR(.text) + SIZEOF(.text))
+	{
+		objs/BaS.o(.text)
+
 		objs/init_fpga.o(.text)
 		objs/sd_card.o(.text)
 		objs/cache.o(.text)
@@ -70,11 +76,7 @@ SECTIONS {
 		objs/supervisor.o(.text)
 		objs/ewf.o(.text)
 		objs/illegal_instruction.o(.text)
-	} > flash
 
-	.bas _Bas_base : AT (ADDR(.text) + SIZEOF(.text))
-	{
-		objs/BaS.o(.text)
 		_bas_end = ABSOLUTE(.);
 	} > ram
 
