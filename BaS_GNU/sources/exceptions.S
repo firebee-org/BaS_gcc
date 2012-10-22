@@ -551,7 +551,7 @@ non_acsi_dma:
 irq6_1:
 		lea		MCF_GPIO_PODR_FEC1L,a5
 		bclr.b	#4,(a5)					// led on
-		lea		blinker(pc),a5
+		lea		blinker,a5
 		addq.l	#1,(a5)					// +1
 		move.l	(a5),d0
 		and.l	#0x80,d0
@@ -612,7 +612,12 @@ sev_sup6:
 		move.l	(a5),12(a7)			// hier gehts weiter
 		movem.l	(a7),d0/a5			// register zur�ck
 		rts
+
+		.data
 blinker:.long	0
+
+
+		.text
 
 /*
  * pseudo dma */
