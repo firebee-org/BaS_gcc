@@ -155,9 +155,9 @@ void BaS(void)
 	__asm__ __volatile__("nop	\n\t" : : : "memory");
 	* (uint8_t *) 0xfffffc00 = 0x96;
 	__asm__ __volatile__("nop	\n\t" : : : "memory");
-	* (uint8_t *) 0xfffffa0f = 0;
+	* (uint8_t *) 0xfffffa0f = -1;
 	__asm__ __volatile__("nop	\n\t" : : : "memory");
-	* (uint8_t *) 0xfffffa11 = 0;
+	* (uint8_t *) 0xfffffa11 = -1;
 	__asm__ __volatile__("nop	\n\t" : : : "memory");
 
 	/* Test for pseudo-supervisor mode: DIP switch #6 down */
