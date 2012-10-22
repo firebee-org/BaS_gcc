@@ -83,5 +83,4 @@ $(OBJDIR)/%.o:$(SRCDIR)/%.S
 depend: $(ASRCS) $(CSRCS)
 	$(CC) $(CFLAGS) $(INCLUDE) -M $(ASRCS) $(CSRCS) > depend
 	
-include depend
-	
+-include depend
