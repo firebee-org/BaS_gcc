@@ -32,10 +32,20 @@ write 0xFF000020 0x0000001A 4	# SDRAM CS0 configuration (128Mbytes 0000_0000 - 0
 write 0xFF000024 0x0800001A 4	# SDRAM CS1 configuration (128Mbytes 0800_0000 - 0FFF_FFFF)
 write 0xFF000028 0x1000001A 4	# SDRAM CS2 configuration (128Mbytes 1000_0000 - 17FF_FFFF)
 write 0xFF00002C 0x1800001A 4	# SDRAM CS3 configuration (128Mbytes 1800_0000 - 1FFF_FFFF)
-write 0xFF000108 0x53722938 4	# SDCFG1
-write 0xFF00010C 0x24330000 4	# SDCFG2
+write 0xFF000108 0x73622830 4	# SDCFG1
+write 0xFF00010C 0x46770000 4	# SDCFG2
 
-wait
+write 0xFF000104 0xE10D0002 4	# SDCR + IPALL
+write 0xFF000100 0x40010000 4	# SDMR (write to LEMR)
+write 0xFF000100 0x048D0000 4	# SDMR (write to LMR)
+write 0xFF000104 0xE10D0002 4	# SDCR + IPALL
+write 0xFF000104 0xE10D0004 4	# SDCR + IREF (first refresh)
+write 0xFF000104 0xE10D0004 4	# SDCR + IREF (first refresh)
+write 0xFF000100 0x008D0000 4	# SDMR (write to LMR)
+write 0xFF000104 0x710D0F00 4	# SDCR (lock SDMR and enable refresh)
+
 # load -v ram.s19	# unfortunately, this seems to work only with elf files
 load -v bas.s19.elf	# TODO: bdmctrl tries to flash but doesn't succed. Don't know why yet 
-
+#load -v ram.s19.elf
+sleep 60000
+execute 0x1000000
