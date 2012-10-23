@@ -20,7 +20,7 @@ end
 define setup-dram
 # Init CS0 (BootFLASH @ E000_0000 - E07F_FFFF 8Mbytes)
 set *((long *) 0xFF000500) = 0xE0000000		# flash address
-set *((long *) 0xFF000508) = 0x00001180		# 16 bit 4ws aa
+set *((long *) 0xFF000508) = 0x00041180		# 16 bit 4ws aa
 set *((long *) 0xFF000504) = 0x007F0001		# 8MB on
 
 # set *((long *) 0xFF00050C) = 0xFFF00000		# ATARI I/O address
