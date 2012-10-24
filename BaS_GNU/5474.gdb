@@ -1,5 +1,5 @@
 #
-# GDB Init script for the Coldfire 5206 processor.
+# GDB Init script for the Coldfire 5474 processor (Firebee board).
 #
 # The main purpose of this script is to configure the 
 # DRAM controller so code can be loaded.
@@ -53,3 +53,5 @@ define initBoard
 addresses
 setup-dram
 end
+
+initBoard
