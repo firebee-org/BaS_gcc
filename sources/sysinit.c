@@ -73,7 +73,7 @@ void wait_1us(void)
 void init_slt(void)
 {
 	MCF_SLT0_STCNT = 0xffffffff;
-	MCF_SLT0_SCR = 0x05;
+	MCF_SLT0_SCR = 0x05000000;
 
 	uart_out_word('SLT ');
 	uart_out_word('OK! ');
