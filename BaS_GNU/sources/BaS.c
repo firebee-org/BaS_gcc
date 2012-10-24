@@ -9,6 +9,7 @@
 #include "startcf.h"
 #include "cache.h"
 
+#define uart_out_word(a)	MCF_PSC3_PSCTB_8BIT = (a)
 extern uint32_t Bas_base[];
 extern uint8_t tos_base[];
 
@@ -38,33 +39,41 @@ void BaS(void)
 	uint8_t *dst = tos_base;
 	uint32_t *adr;
 
+#ifdef _NOT_USED_
 	az_sectors = sd_card_init();
 		
 	if (az_sectors > 0)
 	{
 		sd_card_idle();
 	}
+#endif /* _NOT_USED_ */
 	
 	/* Initialize the NVRAM */
 	MCF_PSC3_PSCTB_8BIT = 'ACPF';
 	wait_10ms();
 
-	MCF_PSC0_PSCTB_8BIT = 'PIC ';
+	uart_out_word('PIC ');
 
-	MCF_PSC0_PSCTB_8BIT = MCF_PSC3_PSCRB_8BIT;
-	MCF_PSC0_PSCTB_8BIT = MCF_PSC3_PSCRB_8BIT;
-	MCF_PSC0_PSCTB_8BIT = MCF_PSC3_PSCRB_8BIT;
-	MCF_PSC0_PSCTB_8BIT = 0x0d0a;
+	* (volatile uint8_t *) &_MBAR[0x860C] = (uint8_t) (MCF_PSC3_PSCRB_8BIT);
+	* (volatile uint8_t *) &_MBAR[0x860C] = (uint8_t) (MCF_PSC3_PSCRB_8BIT);
+	* (volatile uint8_t *) &_MBAR[0x860C] = (uint8_t) (MCF_PSC3_PSCRB_8BIT);
 
-	MCF_PSC3_PSCTB_8BIT = 0x01;	/* request RTC data */
+	uart_out_word(0x0d0a);
 
-	if (MCF_PSC3_PSCRB_8BIT == 0x81)
+	//MCF_PSC3_PSCTB_8BIT = 0x01;	/* request RTC data */
+
+	* (uint8_t *) &_MBAR[0x890C] = 0x01;
+
+	//if (MCF_PSC3_PSCRB_8BIT == 0x81)
+	if (* (uint8_t *) &_MBAR[0X890C] == 0x81)
 	{
 		for (i = 0; i < 64; i++)
 		{
-			* (uint8_t *) 0xffff8963 = MCF_PSC3_PSCRB_8BIT;	/* Copy the NVRAM data from the PIC to the FPGA */
+			* (uint8_t *) 0xffff8963 = (uint8_t) MCF_PSC3_PSCRB_8BIT;	/* Copy the NVRAM data from the PIC to the FPGA */
 		}
+		uart_out_word(' OK!');
 	}
+
 
 	/* copy EMUTOS */
 	src = (uint8_t *)EMUTOS;
@@ -76,9 +85,17 @@ void BaS(void)
 	/* we have copied a code area, so flush the caches */
 	flush_and_invalidate_caches();
 
+	uart_out_word('MMU ');
 	mmu_init();
+	uart_out_word(' OK!');
+
+	uart_out_word('EXC ');
 	vec_init();
+	uart_out_word(' OK!');
+
+	uart_out_word('ILLG');
 	illegal_table_make();
+	uart_out_word(' OK!');
 		
 	/* interrupts */
 
