@@ -10,8 +10,8 @@ void sd_card_idle(void)
 	__asm__ __volatile__ (
 			".extern	sd_idle\n\t"
 			"bsr		sd_idle\n\t"
-			/* input */ :
 			/* output */:
+			/* input */ :
 			/* clobber */: "a0","a1","a2","a3","a4","a5","a6",
 			              "d0","d1","d2","d3","d4","d5","d6","d7","memory"
 	);
@@ -21,6 +21,17 @@ void sd_card_idle(void)
 
 int sd_card_init(void)
 {
+	register int ret __asm__("d0");
 
+	__asm__ __volatile__ (
+		".extern		sd_init\n\t"
+		"bsr.l			sd_init\n\t"
+		/* output */: "=r" (ret)
+		/* input */ :
+		/* clobber */: "a0","a1","a2","a3","a4","a5","a6",
+		              "d1","d2","d3","d4","d5","d6","d7","memory"
+	);
+
+	return ret;
 }
 

@@ -40,7 +40,7 @@ void BaS(void)
 
 	az_sectors = sd_card_init();
 		
-	if(az_sectors>0)
+	if (az_sectors > 0)
 	{
 		sd_card_idle();
 	}

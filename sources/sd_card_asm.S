@@ -11,16 +11,38 @@
 #define MCF_PAD_PAR_DSPI	(__MBAR+0xA50)
 #define MCF_PSC0_PSCTB_8BIT (__MBAR+0x860C)
 #define MCF_DSPI_DMCR (__MBAR+0x8A00)
-.text
+#define MCF_SLT0_SCNT (__MBAR + 0x908)
+
+warte_10ms:
+		move.l		d0,-(sp)
+		move.l		MCF_SLT0_SCNT,d0
+		sub.l		#1320000,d0
+warte_d6:
+		cmp.l		MCF_SLT0_SCNT,d0
+		bcs			warte_d6
+		move.l		(sp)+,d0
+		rts
+
+warte_1ms:
+		move.l		d0,-(sp)
+		move.l		MCF_SLT0_SCNT,d0
+		sub.l		#132000,d0
+warte_d5:
+		cmp.l		MCF_SLT0_SCNT,d0
+		bcs			warte_d5
+		move.l		(sp)+,d0
+		rts
+		.text
 
 		.global		sd_idle
+		.global		sd_init
 
-sd_test:
+sd_init:
 		lea			MCF_PSC0_PSCTB_8BIT,a6
 		move.l   	#LONGASC('S', 'D', '-', 'A'),(a6)
 		move.l		#LONGASC('a', 'r', 'd', ' '),(a6)
 
-		move.l		#_Bas_base,a5				// basis addresse (diesen bereich brauchen wir nicht mehr!)
+		move.l		buffer,a5				// basis addresse (diesen bereich brauchen wir nicht mehr!)
 		move.l		#0x1fffffff,d0				// normal dspi
 		move.l		d0,MCF_PAD_PAR_DSPI
 		lea			MCF_DSPI_DMCR,a0
@@ -30,9 +52,9 @@ sd_test:
 		move.l		#0x082000ff,d4				// tx vorbesetzen
 		mov3q.l		#-1,dspi_dsr(a0)
 		
-		bsr.l		_wait_1ms
+		bsr.l		warte_1ms
 		move.l		#0xc00d3c00,(a0)			// 8 bit 4MHz clocken cs off
-		bsr.l		_wait_10ms
+		bsr.l		warte_10ms
 		move.l		#0x800d3c00,(a0)			// 8 bit 4MHz normal cs on
 		bsr			sd_com
 		bsr			sd_com
@@ -53,7 +75,7 @@ sd_test:
 		bsr			sd_com
 		bsr			sd_com
 		move.l		#0x802d3c00,(a0)			// 8 bit 4MHz normal cs off
-		bsr.l		_wait_10ms
+		bsr.l		warte_10ms
 
 // sd idle
 		move.l		#100,d6				// 100 versuche
@@ -411,3 +433,6 @@ sd_rcv_rd_rb:
 		bne			sd_rcv_rd_rb
 		rts
 /******************************************/
+
+			.data
+buffer:		dc.l	0, 0, 0, 0, 0, 0, 0, 0
