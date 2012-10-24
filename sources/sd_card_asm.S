@@ -1,18 +1,26 @@
 /********************************************************************/
 // sd card
 /********************************************************************/
-#define	dspi_dtar0	0x0c
-#define	dspi_dsr	0x2c	
-#define	dspi_dtfr	0x34	
-#define	dspi_drfr	0x38
+#define		dspi_dtar0	0x0c
+#define		dspi_dsr	0x2c
+#define		dspi_dtfr	0x34
+#define		dspi_drfr	0x38
 
-.text	
+#define LONGASC(a, b, c, d) ((a << 24) | (b << 16) | (c << 8) | (d))
+
+#define MCF_PAD_PAR_DSPI	(__MBAR+0xA50)
+#define MCF_PSC0_PSCTB_8BIT (__MBAR+0x860C)
+#define MCF_DSPI_DMCR (__MBAR+0x8A00)
+.text
+
+		.global		sd_idle
+
 sd_test:
 		lea			MCF_PSC0_PSCTB_8BIT,a6
-		move.l  	#'SD-C',(a6)
-		move.l  	#'ard ',(a6)
+		move.l   	#LONGASC('S', 'D', '-', 'A'),(a6)
+		move.l		#LONGASC('a', 'r', 'd', ' '),(a6)
 
-		move.l		#__Bas_base,a5				// basis addresse (diesen bereich brauchen wir nicht mehr!)
+		move.l		#_Bas_base,a5				// basis addresse (diesen bereich brauchen wir nicht mehr!)
 		move.l		#0x1fffffff,d0				// normal dspi
 		move.l		d0,MCF_PAD_PAR_DSPI
 		lea			MCF_DSPI_DMCR,a0
@@ -22,9 +30,9 @@ sd_test:
 		move.l		#0x082000ff,d4				// tx vorbesetzen
 		mov3q.l		#-1,dspi_dsr(a0)
 		
-		bsr			warte_1ms
+		bsr.l		_wait_1ms
 		move.l		#0xc00d3c00,(a0)			// 8 bit 4MHz clocken cs off
-		bsr			warte_10ms
+		bsr.l		_wait_10ms
 		move.l		#0x800d3c00,(a0)			// 8 bit 4MHz normal cs on
 		bsr			sd_com
 		bsr			sd_com
@@ -45,7 +53,7 @@ sd_test:
 		bsr			sd_com
 		bsr			sd_com
 		move.l		#0x802d3c00,(a0)			// 8 bit 4MHz normal cs off
-		bsr			warte_10ms
+		bsr.l		_wait_10ms
 
 // sd idle
 		move.l		#100,d6				// 100 versuche
@@ -122,8 +130,7 @@ read_ic:
 		bsr			sd_com
 		cmp.b		#0xaa,d5
 		bne			sd_testd3
-
-		move.l		#'SDHC',(a6)
+		move.l		#LONGASC('S', 'D', 'H', 'C'),(a6)
 		move.b		#' ',(a6)
 sd_v1:
 		
@@ -145,7 +152,7 @@ read_ocr:
 		bsr			sd_com
 		
 		bsr			sd_get_status
-		move.l		#'Ver1',d6
+		move.l		#LONGASC('V', 'e', 'r', '1'),d6
 		cmp.b		#5,d5
 		beq			read_ocr
 		cmp.b		#1,d5
@@ -283,90 +290,90 @@ sd_print_size:
 		swap		d1
 		lsl.l		#1,d1
 		bcc			sd_16G
-		move.l		#'32GB',(a6)
+		move.l		#LONGASC('3', '2', 'G', 'B'),(a6)
 		bra			sd_ok
 sd_16G:
 		lsl.l		#1,d1
 		bcc			sd_8G
-		move.l		#'16GB',(a6)
+		move.l		#LONGASC('1', '6', 'G', 'B'),(a6)
 		bra			sd_ok
 sd_8G:
 		lsl.l		#1,d1
 		bcc			sd_4G
-		move.l		#' 8GB',(a6)
+		move.l		#LONGASC(' ', '4', 'G', 'B'),(a6)
 		bra			sd_ok
 sd_4G:
 		lsl.l		#1,d1
 		bcc			sd_2G
-		move.l		#' 4GB',(a6)
+		move.l		#LONGASC(' ', '4', 'G', 'B'),(a6)
 		bra			sd_ok
 sd_2G:
 		lsl.l		#1,d1
 		bcc			sd_1G
-		move.l		#' 2GB',(a6)
+		move.l		#LONGASC(' ', '2', 'G', 'B'),(a6)
 		bra			sd_ok
 sd_1G:
 		lsl.l		#1,d1
 		bcc			sd_512M
-		move.l		#' 1GB',(a6)
+		move.l		#LONGASC(' ', '1', 'G', 'B'),(a6)
 		bra			sd_ok
 sd_512M:
 		lsl.l		#1,d1
 		bcc			sd_256M
 		move.b		#'5',(a6)
-		move.l		#'12MB',(a6)
+		move.l		#LONGASC('1', '2', 'M', 'B'),(a6)
 		bra			sd_ok
 sd_256M:
 		lsl.l		#1,d1
 		bcc			sd_128M
 		move.b		#'2',(a6)
-		move.l		#'56MB',(a6)
+		move.l		#LONGASC('5', '6', 'M', 'B'),(a6)
 		bra			sd_ok
 sd_128M:
 		lsl.l		#1,d1
 		bcc			sd_64M
 		move.b		#'1',(a6)
-		move.l		#'28MB',(a6)
+		move.l		#LONGASC('2', '8', 'M', 'B'),(a6)
 		bra			sd_ok
 sd_64M:
 		lsl.l		#1,d1
 		bcc			sd_32M
-		move.l		#'64MB',(a6)
+		move.l		#LONGASC('6', '4', 'M', 'B'),(a6)
 		bra			sd_ok
 sd_32M:
 		lsl.l		#1,d1
 		bcc			sd_16M
-		move.l		#'32MB',(a6)
+		move.l		#LONGASC('3', '2', 'M', 'B'),(a6)
 		bra			sd_ok
 sd_16M:
 		lsl.l		#1,d1
 		bcc			sd_8M
-		move.l		#'16MB',(a6)
+		move.l		#LONGASC('1', '6', 'M', 'B'),(a6)
 		bra			sd_ok
 sd_8M:
-		move.l		#'<9MB',(a6)
-sd_ok:		
-		move.l  	#' OK!',(a6)
+		move.l		#LONGASC('<', '9', 'M', 'B'),(a6)
+sd_ok:
+		move.l		#LONGASC(' ', 'O', 'K', '!'),(a6)
 		move.l		#0x0a0d,(a6)
 		halt
 		halt
 		rts
 // subs ende -------------------------------
 sd_V1:
-		move.l  #'non!',(a6)
+		move.l   #LONGASC('n', 'o', 'n', '!'),(a6)
 		move.l	#0x0a0d,(a6)
 		halt
 		halt
 		rts
 sd_error:
-		move.l  #'Erro',(a6)
-		move.l  #'r!',(a6)
+		move.l  #LONGASC('E', 'r', 'r', 'o'),(a0)
+		move.l	#LONGASC('r', '!', '', ''), (a0)
 		move.l	#0x0a0d,(a6)
 		halt
 		halt
 		rts
 sd_not:
-		move.l  #'non!',(a6)
+		move.l	#LONGASC('n', 'o', 'n', '!'),(a0)
 		move.l	#0x0a0d,(a6)
 		halt
 		halt
