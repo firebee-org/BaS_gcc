@@ -13,6 +13,8 @@
 #define MCF_DSPI_DMCR (__MBAR+0x8A00)
 #define MCF_SLT0_SCNT (__MBAR + 0x908)
 
+		.text
+
 warte_10ms:
 		move.l		d0,-(sp)
 		move.l		MCF_SLT0_SCNT,d0
@@ -32,14 +34,13 @@ warte_d5:
 		bcs			warte_d5
 		move.l		(sp)+,d0
 		rts
-		.text
 
 		.global		sd_idle
 		.global		sd_init
 
 sd_init:
 		lea			MCF_PSC0_PSCTB_8BIT,a6
-		move.l   	#LONGASC('S', 'D', '-', 'A'),(a6)
+		move.l   	#LONGASC('S', 'D', '-', 'C'),(a6)
 		move.l		#LONGASC('a', 'r', 'd', ' '),(a6)
 
 		move.l		buffer,a5				// basis addresse (diesen bereich brauchen wir nicht mehr!)
