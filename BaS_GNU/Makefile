@@ -45,6 +45,7 @@ CSRCS= \
 
 ASRCS= \
 	$(SRCDIR)/mmu.S \
+	$(SRCDIR)/sd_card_asm.S \
 	$(SRCDIR)/exceptions.S \
 	$(SRCDIR)/supervisor.S \
 	$(SRCDIR)/ewf.S \
