@@ -76,6 +76,8 @@ SECTIONS {
 		objs/BaS.o(.text)
 		/* put other routines into the same segment (RAM) as BaS.o */ 
 		objs/sd_card_asm.o(.text)
+		objs/printf.o(.text)
+		objs/printf_helper.o(.text)
 		objs/sd_card.o(.text)
 		objs/mmu.o(.text)
 		objs/exceptions.o(.text)
