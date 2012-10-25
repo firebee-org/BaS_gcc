@@ -15,6 +15,8 @@ sleep 10
 # Turn on MBAR at 0xFF00_0000
 write-ctrl 0x0C0F 0xFF000000
 sleep 10
+write-ctrl 0x0C0F 0xFF000000
+
 # Turn on MMUBAR at 0xFF04_0000
 #write-ctrl 0x0008	0xFF000001
 #write 0xFF000008 0x00000000 4
@@ -25,11 +27,12 @@ sleep 10
 # Turn on RAMBAR1 at address FF10_1000 
 write-ctrl 0x0C05 0xFF101001
 sleep 10
+
 # Init CS0 (BootFLASH @ E000_0000 - E07F_FFFF 8Mbytes)
 write 0xFF000500 0xE0000000 4
-write 0xFF000508 0x00001180 4  # 16-bit port
+write 0xFF000508 0x00001180 4
 write 0xFF000504 0x007F0001 4
-sleep 10
+
 # SDRAM Initialization @ 0000_0000 - 1FFF_FFFF 512Mbytes
 write 0xFF000004 0x000002AA 4	# SDRAMDS configuration
 sleep 10
