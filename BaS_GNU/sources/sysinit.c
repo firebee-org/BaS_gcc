@@ -160,13 +160,14 @@ void init_serial(void)
 /********************************************************************/
 /* Initialize DDR DIMMs on the EVB board */
 /********************************************************************/
-/*
- * Check to see if the SDRAM has already been initialized
- * by a run control tool
- */
 void init_ddram(void)
 {
 	uart_out_word('DDRA');
+
+	/*
+	 * Check to see if the SDRAM has already been initialized
+	 * by a run control tool
+	 */
 	if (!(MCF_SDRAMC_SDCR & MCF_SDRAMC_SDCR_REF)) {
 		/* Basic configuration and initialization */
 		MCF_SDRAMC_SDRAMDS = 0x000002AA;	// SDRAMDS configuration
@@ -420,7 +421,7 @@ void test_upd720101(void)
  */
 void dvi_on(void) {
 	uint8_t RBYT;
-	uint8_t DBYT;	/* FIXME: produces a warning about being unused when it is in fact (for a dummy read) */
+	uint8_t DBYT; /* only used for a dummy read */
 	int tries;
 	
 	uart_out_word('DVI ');
