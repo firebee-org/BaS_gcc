@@ -39,11 +39,13 @@ RAM_EXEC=ram.s19
 CSRCS= \
 	$(SRCDIR)/sysinit.c \
 	$(SRCDIR)/init_fpga.c \
+	$(SRCDIR)/printf.c \
 	$(SRCDIR)/BaS.c \
 	$(SRCDIR)/cache.c \
 	$(SRCDIR)/sd_card.c
 
 ASRCS= \
+	$(SRCDIR)/printf_helper.S \
 	$(SRCDIR)/mmu.S \
 	$(SRCDIR)/sd_card_asm.S \
 	$(SRCDIR)/exceptions.S \
@@ -75,6 +77,9 @@ $(FLASH_EXEC) $(RAM_EXEC): $(STRT_OBJ) $(OBJS)
 	
 # compile init_fpga with -mbitfield for testing purposes
 $(OBJDIR)/init_fpga.o:	CFLAGS += -mbitfield
+
+# compile printf pc-relative so it can be used as well before and after copy of BaS
+$(OBJDIR)/printf.o:	CFLAGS += -mpcrel
 
 $(OBJDIR)/%.o:$(SRCDIR)/%.c
 	$(CC) -c $(CFLAGS) $(INCLUDE) $< -o $@
