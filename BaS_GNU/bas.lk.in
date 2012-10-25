@@ -76,9 +76,9 @@ SECTIONS {
 		objs/BaS.o(.text)
 		/* put other routines into the same segment (RAM) as BaS.o */ 
 		objs/sd_card_asm.o(.text)
-		_printf_before_copy = . - (ADDR(.bas) - LOADADDR(.bas));
-		_printf_after_copy = ABSOLUTE(.);
-		objs/printf.o(.text)
+		_xprintf_before_copy = _xprintf - (_BaS - LOADADDR(.bas));
+		_xprintf_after_copy = _xprintf;
+		objs/bas_printf.o(.text)
 		objs/printf_helper.o(.text)
 		objs/sd_card.o(.text)
 		objs/mmu.o(.text)
