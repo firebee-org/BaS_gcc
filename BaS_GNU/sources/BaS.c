@@ -38,16 +38,14 @@ void BaS(void)
 	uint8_t *src;
 	uint8_t *dst = tos_base;
 	uint32_t *adr;
-
-#ifdef _NOT_USED_
+/*
 	az_sectors = sd_card_init();
 		
 	if (az_sectors > 0)
 	{
 		sd_card_idle();
 	}
-#endif /* _NOT_USED_ */
-	
+	*/
 	/* Initialize the NVRAM */
 	MCF_PSC3_PSCTB_8BIT = 'ACPF';
 	wait_10ms();
@@ -71,7 +69,7 @@ void BaS(void)
 		{
 			* (uint8_t *) 0xffff8963 = (uint8_t) MCF_PSC3_PSCRB_8BIT;	/* Copy the NVRAM data from the PIC to the FPGA */
 		}
-		uart_out_word(' OK!');
+		uart_out_word(' OK.');
 	}
 
 
@@ -87,15 +85,15 @@ void BaS(void)
 
 	uart_out_word('MMU ');
 	mmu_init();
-	uart_out_word(' OK!');
+	uart_out_word(' OK.');
 
 	uart_out_word('EXC ');
 	vec_init();
-	uart_out_word(' OK!');
+	uart_out_word(' OK.');
 
 	uart_out_word('ILLG');
 	illegal_table_make();
-	uart_out_word(' OK!');
+	uart_out_word(' OK.');
 		
 	/* interrupts */
 
