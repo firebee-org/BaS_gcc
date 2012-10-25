@@ -76,7 +76,7 @@ void init_slt(void)
 	MCF_SLT0_SCR = 0x05000000;
 
 	uart_out_word('SLT ');
-	uart_out_word('OK! ');
+	uart_out_word('OK. ');
 	uart_out_word(0x0a0d);
 }
 
@@ -153,7 +153,7 @@ void init_serial(void)
 
 	uart_out_word('SERI');
 	uart_out_word('AL O');
-	uart_out_word('K!  ');
+	uart_out_word('K.  ');
 	uart_out_word(0x0a0d);
 }
 
@@ -196,7 +196,7 @@ void init_ddram(void)
 		MCF_SDRAMC_SDCR = 0x710D0F00;	// SDCR (lock SDMR and enable refresh)
 	}
 	uart_out_word('M OK');
-	uart_out_word('!   ');
+	uart_out_word('.   ');
 	uart_out_word(0x0a0d);
 }
 
@@ -238,7 +238,7 @@ void init_fbcs()
 	MCF_FBCS4_CSMR = (MCF_FBCS_CSMR_BAM_1G	// 4000'0000-7FFF'FFFF
 			  | MCF_FBCS_CSMR_V);
 
-	uart_out_word(' OK!');
+	uart_out_word(' OK.');
 	uart_out_word(0x0a0d);
 }
 
@@ -296,7 +296,7 @@ void init_pll(void)
 
 	* (volatile uint8_t *) 0xf0000800 = 0;				/* set */
 
-	uart_out_word('SET!');
+	uart_out_word('SET.');
 	uart_out_word(0x0a0d);
 }
 
@@ -377,7 +377,7 @@ void init_PCI(void) {
 	/* reset PCI devices */
 	MCF_PCI_PCIGSCR &= ~MCF_PCI_PCIGSCR_PR;
 
-	uart_out_word('OK! ');
+	uart_out_word('OK. ');
 	uart_out_word(0x0d0a);
 }
 	
@@ -412,7 +412,7 @@ void test_upd720101(void)
 			MCF_PCI_PCICAR_FUNCNUM(0) +
 			MCF_PCI_PCICAR_DWORD(57);
 	}
-	uart_out_word('OK! ');
+	uart_out_word('OK. ');
 	uart_out_word(0x0d0a);
 }
 
@@ -564,7 +564,7 @@ loop_i2c:
 next:
 	uart_out_word('NOT ');
 dvi_ok:
-	uart_out_word('OK! ');
+	uart_out_word('OK. ');
 	uart_out_word(0x0a0d);
 	MCF_I2C_I2CR = 0x0;	// i2c off
 
@@ -665,7 +665,7 @@ livo:
 	}
 	MCF_PSC2_PSCTFCR |= MCF_PSC_PSCTFCR_WFR;	//set EOF
 	MCF_PSC2_PSCTB_AC97 = 0x00000000;	//last data
-	uart_out_word(' OK!');
+	uart_out_word(' OK.');
 	uart_out_word(0x0a0d);
 }
 
@@ -714,6 +714,9 @@ void initialize_hardware(void) {
 
 	init_gpio();
 	init_serial();
+	uart_out_word(0x0d0a);
+	uart_out_word('----');
+
 	init_slt();
 	init_fbcs();
 	init_ddram();
