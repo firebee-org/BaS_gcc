@@ -20,7 +20,7 @@ CPP=$(TCPREFIX)cpp
 OBJCOPY=$(TCPREFIX)objcopy
 
 INCLUDE=-Iinclude
-CFLAGS=-mcpu=5474 -Wall -Wno-multichar -Os -fomit-frame-pointer -fno-strict-aliasing
+CFLAGS=-mcpu=5474 -Wall -Wno-multichar -Os -fomit-frame-pointer -fno-strict-aliasing -fno-builtin
 
 SRCDIR=sources
 OBJDIR=objs
@@ -39,7 +39,7 @@ RAM_EXEC=ram.s19
 CSRCS= \
 	$(SRCDIR)/sysinit.c \
 	$(SRCDIR)/init_fpga.c \
-	$(SRCDIR)/printf.c \
+	$(SRCDIR)/bas_printf.c \
 	$(SRCDIR)/BaS.c \
 	$(SRCDIR)/cache.c \
 	$(SRCDIR)/sd_card.c

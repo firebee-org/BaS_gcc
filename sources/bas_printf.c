@@ -33,10 +33,7 @@
  */
 
 #include "MCF5475.h"
-
-#include <stdarg.h>
-#include <string.h>
-
+#include <bas_printf.h>
 /*
  * Lexical definitions.
  *

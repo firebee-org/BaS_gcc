@@ -11,6 +11,10 @@
 #include "startcf.h"
 #include "cache.h"
 #include "sysinit.h"
+#include "bas_printf.h"
+
+extern void xprintf_before_copy(const char *fmt, ...);
+#define xprintf	 xprintf_before_copy
 
 #define UNUSED(x)       (void)(x)               /* Unused variable         */
 
@@ -72,12 +76,10 @@ void wait_1us(void)
  */
 void init_slt(void)
 {
+	xprintf("slice timers initialization: ");
 	MCF_SLT0_STCNT = 0xffffffff;
 	MCF_SLT0_SCR = 0x05000000;
-
-	uart_out_word('SLT ');
-	uart_out_word('OK. ');
-	uart_out_word(0x0a0d);
+	xprintf("finished\r\n");
 }
 
 /*
@@ -151,10 +153,7 @@ void init_serial(void)
 	MCF_PSC3_PSCCR = 0x05;
 	MCF_INTC_ICR32 = 0x3F;	//MAXIMALE PRIORITY/**********/
 
-	uart_out_word('SERI');
-	uart_out_word('AL O');
-	uart_out_word('K.  ');
-	uart_out_word(0x0a0d);
+	xprintf("serial interfaces initialization: finished\r\n");
 }
 
 /********************************************************************/
@@ -162,7 +161,7 @@ void init_serial(void)
 /********************************************************************/
 void init_ddram(void)
 {
-	uart_out_word('DDRA');
+	xprintf("SDRAM controller initialization: ");
 
 	/*
 	 * Check to see if the SDRAM has already been initialized
@@ -195,9 +194,7 @@ void init_ddram(void)
 //      MCF_SDRAMC_SDCR         = 0x710F0F00;   // SDCR (lock SDMR and enable refresh)
 		MCF_SDRAMC_SDCR = 0x710D0F00;	// SDCR (lock SDMR and enable refresh)
 	}
-	uart_out_word('M OK');
-	uart_out_word('.   ');
-	uart_out_word(0x0a0d);
+	xprintf("finished\r\n");
 }
 
 /*
@@ -205,7 +202,7 @@ void init_ddram(void)
  */
 void init_fbcs()
 {
-	uart_out_word('FBCS');
+	xprintf("FlexBus chip select registers initialization: ");
 
 	/* Flash */
 	MCF_FBCS0_CSAR = 0xE0000000;	// FLASH ADRESS
@@ -238,8 +235,7 @@ void init_fbcs()
 	MCF_FBCS4_CSMR = (MCF_FBCS_CSMR_BAM_1G	// 4000'0000-7FFF'FFFF
 			  | MCF_FBCS_CSMR_V);
 
-	uart_out_word(' OK.');
-	uart_out_word(0x0a0d);
+	xprintf("finished\r\n");
 }
 
 
@@ -254,7 +250,7 @@ static volatile uint8_t *pll_base = (volatile uint8_t *) 0xf0000600;
 
 void init_pll(void)
 {
-	uart_out_word('PLL ');
+	xprintf("FPGA PLL initialization: ");
 
 	wait_pll();
 	* (volatile uint16_t *) (pll_base + 0x48) = 27;	/* loopfilter  r */
@@ -296,8 +292,7 @@ void init_pll(void)
 
 	* (volatile uint8_t *) 0xf0000800 = 0;				/* set */
 
-	uart_out_word('SET.');
-	uart_out_word(0x0a0d);
+	xprintf("finished\r\n");
 }
 
 
@@ -346,7 +341,7 @@ void init_video_ddr(void) {
  * INIT PCI
  */
 void init_PCI(void) {
-	uart_out_word('PCI ');
+	xprintf("PCI BUS controller initialization: ");
 
 	MCF_PCIARB_PACR = MCF_PCIARB_PACR_INTMPRI
 		 + MCF_PCIARB_PACR_EXTMPRI(0x1F)
@@ -377,8 +372,7 @@ void init_PCI(void) {
 	/* reset PCI devices */
 	MCF_PCI_PCIGSCR &= ~MCF_PCI_PCIGSCR_PR;
 
-	uart_out_word('OK. ');
-	uart_out_word(0x0d0a);
+	xprintf("finished\r\n");
 }
 	
 
@@ -387,7 +381,7 @@ void init_PCI(void) {
  */
 void test_upd720101(void) 
 {
-	uart_out_word('NEC ');
+	xprintf("UDP720101 USB controller initialization: ");
 
 	/* select UPD720101 AD17 */
 	MCF_PCI_PCICAR = MCF_PCI_PCICAR_E +
@@ -412,8 +406,7 @@ void test_upd720101(void)
 			MCF_PCI_PCICAR_FUNCNUM(0) +
 			MCF_PCI_PCICAR_DWORD(57);
 	}
-	uart_out_word('OK. ');
-	uart_out_word(0x0d0a);
+	xprintf("finished\r\n");
 }
 
 /*
@@ -422,153 +415,163 @@ void test_upd720101(void)
 void dvi_on(void) {
 	uint8_t RBYT;
 	uint8_t DBYT; /* only used for a dummy read */
-	int tries;
+	int num_tries = 0;
 	
-	uart_out_word('DVI ');
+	xprintf("DVI digital video output initialization: ");
 
 	MCF_I2C_I2FDR = 0x3c;	// 100kHz standard
-	tries = 0;
 
-loop_i2c:
-	if (tries++ > 10)
-		goto next;
-	
-	MCF_I2C_I2ICR = 0x0;
-	MCF_I2C_I2CR = 0x0;
-	MCF_I2C_I2CR = 0xA;
-	RBYT = MCF_I2C_I2DR;
-	MCF_I2C_I2SR = 0x0;
-	MCF_I2C_I2CR = 0x0;
-	MCF_I2C_I2ICR = 0x01;
-	MCF_I2C_I2CR = 0xb0;
-	MCF_I2C_I2DR = 0x7a;	// ADRESSE TFP410
+	do {
+		MCF_I2C_I2ICR = 0x0;
+		MCF_I2C_I2CR = 0x0;
+		MCF_I2C_I2CR = 0xA;
+		RBYT = MCF_I2C_I2DR;
+		MCF_I2C_I2SR = 0x0;
+		MCF_I2C_I2CR = 0x0;
+		MCF_I2C_I2ICR = 0x01;
+		MCF_I2C_I2CR = 0xb0;
+		MCF_I2C_I2DR = 0x7a; // ADRESSE TFP410
 
-	while (!(MCF_I2C_I2SR & MCF_I2C_I2SR_IIF));	// warten auf fertig
+		while (!(MCF_I2C_I2SR & MCF_I2C_I2SR_IIF))
+			; // warten auf fertig
 
-	MCF_I2C_I2SR &= 0xfd;	// clear bit
-	if (MCF_I2C_I2SR & MCF_I2C_I2SR_RXAK)
-		goto loop_i2c;	// ack erhalten? -> nein
+		MCF_I2C_I2SR &= 0xfd; // clear bit
+		if (MCF_I2C_I2SR & MCF_I2C_I2SR_RXAK)
+			continue;
 
-	MCF_I2C_I2DR = 0x00;	// SUB ADRESS 0
-	while (!(MCF_I2C_I2SR & MCF_I2C_I2SR_IIF));
-	
-	MCF_I2C_I2SR &= 0xfd;
-	MCF_I2C_I2CR |= 0x4;	// repeat start
-	MCF_I2C_I2DR = 0x7b;	// beginn read
-	
-	while (!(MCF_I2C_I2SR & MCF_I2C_I2SR_IIF));	// warten auf fertig
+		MCF_I2C_I2DR = 0x00; // SUB ADRESS 0
+		while (!(MCF_I2C_I2SR & MCF_I2C_I2SR_IIF))
+			;
 
-	MCF_I2C_I2SR &= 0xfd;	// clear bit
+		MCF_I2C_I2SR &= 0xfd;
+		MCF_I2C_I2CR |= 0x4; // repeat start
+		MCF_I2C_I2DR = 0x7b; // beginn read
 
-   if (MCF_I2C_I2SR & MCF_I2C_I2SR_RXAK)
-		goto loop_i2c;	// ack erhalten? -> nein
+		while (!(MCF_I2C_I2SR & MCF_I2C_I2SR_IIF))
+			; // warten auf fertig
 
-	MCF_I2C_I2CR &= 0xef;	// switch to rx 
-	DBYT = MCF_I2C_I2DR;	// dummy read
+		MCF_I2C_I2SR &= 0xfd; // clear bit
 
-	while (!(MCF_I2C_I2SR & MCF_I2C_I2SR_IIF));
-	
-	MCF_I2C_I2SR &= 0xfd;
-	
-	MCF_I2C_I2CR |= 0x08;	// txak=1
-	RBYT = MCF_I2C_I2DR;
-	
-	while (!(MCF_I2C_I2SR & MCF_I2C_I2SR_IIF));
-	
-	MCF_I2C_I2SR &= 0xfd;
-	MCF_I2C_I2CR = 0x80;	// stop
+		if (MCF_I2C_I2SR & MCF_I2C_I2SR_RXAK)
+			continue;
 
-	DBYT = MCF_I2C_I2DR;	// dummy read
+		MCF_I2C_I2CR &= 0xef; // switch to rx
+		DBYT = MCF_I2C_I2DR; // dummy read
 
-	if (RBYT != 0x4c)
-		goto loop_i2c;
+		while (!(MCF_I2C_I2SR & MCF_I2C_I2SR_IIF))
+			;
 
-	MCF_I2C_I2CR = 0x0;	// stop
-	MCF_I2C_I2SR = 0x0;	// clear sr
+		MCF_I2C_I2SR &= 0xfd;
 
-	while ((MCF_I2C_I2SR & MCF_I2C_I2SR_IBB));	// wait auf bus free
+		MCF_I2C_I2CR |= 0x08; // txak=1
+		RBYT = MCF_I2C_I2DR;
 
-	MCF_I2C_I2CR = 0xb0;	// on tx master 
-	MCF_I2C_I2DR = 0x7A;
-	
-	while (!(MCF_I2C_I2SR & MCF_I2C_I2SR_IIF));	// warten auf fertig
-	
-	MCF_I2C_I2SR &= 0xfd;	// clear bit
+		while (!(MCF_I2C_I2SR & MCF_I2C_I2SR_IIF))
+			;
 
-	if (MCF_I2C_I2SR & MCF_I2C_I2SR_RXAK)
-		goto loop_i2c;	// ack erhalten? -> nein
-	  
-	MCF_I2C_I2DR = 0x08;	// SUB ADRESS 8
+		MCF_I2C_I2SR &= 0xfd;
+		MCF_I2C_I2CR = 0x80; // stop
 
-	while (!(MCF_I2C_I2SR & MCF_I2C_I2SR_IIF));
-	
-	MCF_I2C_I2SR &= 0xfd;
-	MCF_I2C_I2DR = 0xbf;	// ctl1: power on, T:M:D:S: enable
+		DBYT = MCF_I2C_I2DR; // dummy read
 
-	while (!(MCF_I2C_I2SR & MCF_I2C_I2SR_IIF));
+		if (RBYT != 0x4c)
+			continue;
 
-	MCF_I2C_I2SR &= 0xfd;;
-	MCF_I2C_I2CR = 0x80;	// stop
-	DBYT = MCF_I2C_I2DR;	// dummy read
-	MCF_I2C_I2SR = 0x0;	// clear sr
+		MCF_I2C_I2CR = 0x0; // stop
+		MCF_I2C_I2SR = 0x0; // clear sr
 
-	while ((MCF_I2C_I2SR & MCF_I2C_I2SR_IBB));	// wait auf bus free
+		while ((MCF_I2C_I2SR & MCF_I2C_I2SR_IBB))
+			; // wait auf bus free
 
-	MCF_I2C_I2CR = 0xb0;
-	MCF_I2C_I2DR = 0x7A;
-	
-	while (!(MCF_I2C_I2SR & MCF_I2C_I2SR_IIF));	// warten auf fertig
+		MCF_I2C_I2CR = 0xb0; // on tx master
+		MCF_I2C_I2DR = 0x7A;
 
-	MCF_I2C_I2SR &= 0xfd;	// clear bit
+		while (!(MCF_I2C_I2SR & MCF_I2C_I2SR_IIF))
+			; // warten auf fertig
 
-	if (MCF_I2C_I2SR & MCF_I2C_I2SR_RXAK)
-		goto loop_i2c;	// ack erhalten? -> nein
+		MCF_I2C_I2SR &= 0xfd; // clear bit
 
-	MCF_I2C_I2DR = 0x08;	// SUB ADRESS 8
+		if (MCF_I2C_I2SR & MCF_I2C_I2SR_RXAK)
+			continue;
 
-	while (!(MCF_I2C_I2SR & MCF_I2C_I2SR_IIF));
-	
-	MCF_I2C_I2SR &= 0xfd;
-	MCF_I2C_I2CR |= 0x4;	// repeat start
-	MCF_I2C_I2DR = 0x7b;	// beginn read
+		MCF_I2C_I2DR = 0x08; // SUB ADRESS 8
 
-	while (!(MCF_I2C_I2SR & MCF_I2C_I2SR_IIF));	// warten auf fertig
+		while (!(MCF_I2C_I2SR & MCF_I2C_I2SR_IIF))
+			;
 
-	MCF_I2C_I2SR &= 0xfd;	// clear bit
+		MCF_I2C_I2SR &= 0xfd;
+		MCF_I2C_I2DR = 0xbf; // ctl1: power on, T:M:D:S: enable
 
-	if (MCF_I2C_I2SR & MCF_I2C_I2SR_RXAK)
-		goto loop_i2c;	// ack erhalten? -> nein
-	  
-	MCF_I2C_I2CR &= 0xef;	// switch to rx 
-	DBYT = MCF_I2C_I2DR;	// dummy read
+		while (!(MCF_I2C_I2SR & MCF_I2C_I2SR_IIF))
+			;
 
-	while (!(MCF_I2C_I2SR & MCF_I2C_I2SR_IIF));
-	
-	MCF_I2C_I2SR &= 0xfd;
-	MCF_I2C_I2CR |= 0x08;	// txak=1
+		MCF_I2C_I2SR &= 0xfd;
+		;
+		MCF_I2C_I2CR = 0x80; // stop
+		DBYT = MCF_I2C_I2DR; // dummy read
+		MCF_I2C_I2SR = 0x0; // clear sr
 
-	wait_50us();
-	
-	RBYT = MCF_I2C_I2DR;
-	
-	while (!(MCF_I2C_I2SR & MCF_I2C_I2SR_IIF));
-	
-	MCF_I2C_I2SR &= 0xfd;
-	MCF_I2C_I2CR = 0x80;	// stop
+		while ((MCF_I2C_I2SR & MCF_I2C_I2SR_IBB))
+			; // wait auf bus free
 
-	DBYT = MCF_I2C_I2DR;	// dummy read
+		MCF_I2C_I2CR = 0xb0;
+		MCF_I2C_I2DR = 0x7A;
 
-	if (RBYT != 0xbf)
-		goto loop_i2c;
-	goto dvi_ok;
-next:
-	uart_out_word('NOT ');
-dvi_ok:
-	uart_out_word('OK. ');
-	uart_out_word(0x0a0d);
-	MCF_I2C_I2CR = 0x0;	// i2c off
+		while (!(MCF_I2C_I2SR & MCF_I2C_I2SR_IIF))
+			; // warten auf fertig
 
-	UNUSED(DBYT); // Avoid warning
+		MCF_I2C_I2SR &= 0xfd; // clear bit
+
+		if (MCF_I2C_I2SR & MCF_I2C_I2SR_RXAK)
+			continue;
+
+		MCF_I2C_I2DR = 0x08; // SUB ADRESS 8
+
+		while (!(MCF_I2C_I2SR & MCF_I2C_I2SR_IIF))
+			;
+
+		MCF_I2C_I2SR &= 0xfd;
+		MCF_I2C_I2CR |= 0x4; // repeat start
+		MCF_I2C_I2DR = 0x7b; // beginn read
+
+		while (!(MCF_I2C_I2SR & MCF_I2C_I2SR_IIF))
+			; // warten auf fertig
+
+		MCF_I2C_I2SR &= 0xfd; // clear bit
+
+		if (MCF_I2C_I2SR & MCF_I2C_I2SR_RXAK)
+			continue;
+
+		MCF_I2C_I2CR &= 0xef; // switch to rx
+		DBYT = MCF_I2C_I2DR; // dummy read
+
+		while (!(MCF_I2C_I2SR & MCF_I2C_I2SR_IIF))
+			;
+
+		MCF_I2C_I2SR &= 0xfd;
+		MCF_I2C_I2CR |= 0x08; // txak=1
+
+		wait_50us();
+
+		RBYT = MCF_I2C_I2DR;
+
+		while (!(MCF_I2C_I2SR & MCF_I2C_I2SR_IIF))
+			;
+
+		MCF_I2C_I2SR &= 0xfd;
+		MCF_I2C_I2CR = 0x80; // stop
+
+		DBYT = MCF_I2C_I2DR; // dummy read
+
+	} while (RBYT != 0xbf || num_tries++ < 10);
+
+	if (num_tries >= 10) {
+		xprintf("FAILED!\r\n");
+	} else {
+		xprintf("finished\r\n");
+	}
+	UNUSED(DBYT);
+	// Avoid warning
 }
 
 
@@ -714,9 +717,6 @@ void initialize_hardware(void) {
 
 	init_gpio();
 	init_serial();
-	uart_out_word(0x0d0a);
-	uart_out_word('----');
-
 	init_slt();
 	init_fbcs();
 	init_ddram();
