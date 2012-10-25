@@ -13,6 +13,9 @@
 #define FPGA_DATA0		(1 << 3)
 #define FPGA_CONF_DONE	(1 << 5)
 
+extern void xprintf_before_copy(const char *fmt, ...);
+#define xprintf	 xprintf_before_copy
+
 /*
  * load FPGA
  */
@@ -21,7 +24,7 @@ void init_fpga(void)
 	register uint8_t *fpga_data;
 	register int i;
 
-	uart_out_word('FPGA');
+	xprintf("FPGA load data...");
 
 
 	MCF_GPIO_PODR_FEC1L &= ~FPGA_CLOCK;		/* FPGA clock => low */
@@ -88,11 +91,10 @@ void init_fpga(void)
 			MCF_GPIO_PODR_FEC1L |= FPGA_CLOCK;
 			MCF_GPIO_PODR_FEC1L &= ~FPGA_CLOCK;
 		}
+		xprintf("finished\r\n");
 	}
 	else
 	{
-		uart_out_word(' NOT');
+		xprintf("FAILED!\r\n");
 	}
-	uart_out_word(' OK!');
-	uart_out_word(0x0d0a);
 }
