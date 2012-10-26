@@ -76,14 +76,14 @@ void wait_1us(void)
  */
 void init_slt(void)
 {
-	xprintf("slice timers initialization: ");
+	xprintf("slice timer initialization: ");
 	MCF_SLT0_STCNT = 0xffffffff;
 	MCF_SLT0_SCR = 0x05000000;
 	xprintf("finished\r\n");
 }
 
 /*
- * init GPIO ETC.
+ * init GPIO general purpose I/O module
  */
 void init_gpio(void)
 {
@@ -291,7 +291,7 @@ void init_fbcs()
 	xprintf("FlexBus chip select registers initialization: ");
 
 	/* Flash */
-	MCF_FBCS0_CSAR = 0xE0000000;	// FLASH ADRESS
+	MCF_FBCS0_CSAR = 0xE0000000;	/* flash base address */
 	MCF_FBCS0_CSCR = 0x00001180;	// 16 bit 4ws aa
 	MCF_FBCS0_CSMR = 0x007F0001;	// 8MB on 
 
