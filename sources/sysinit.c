@@ -90,18 +90,106 @@ void init_gpio(void)
 	/*
 	 * pad register P.S.:FBCTL and FBCS set correctly at reset
 	 */
-	MCF_PAD_PAR_DMA = 0b11111111;	/* NORMAL ALS DREQ DACK */
-	MCF_PAD_PAR_FECI2CIRQ = 0b1111001111001111;	/* FEC0 NORMAL, FEC1 ALS I/O, I2C, #INT5..6 */
-	MCF_PAD_PAR_PCIBG = 0b0000001000111111;	/* #PCI_BG4=#TBST,#PIC_BG3=I/O,#PCI_BG2..0=NORMAL */
-	MCF_PAD_PAR_PCIBR = 0b0000001000111111;	/* #PCI_BR4=#INT4,#PIC_BR3=INPUT,#PCI_BR2..0=NORMAL */
-	MCF_PAD_PAR_PSC3 = 0b00001100;	/* PSC3=TX,RX CTS+RTS=I/O */
-	MCF_PAD_PAR_PSC1 = 0b11111100;	/* PSC1 NORMAL SERIELL */
-	MCF_PAD_PAR_PSC0 = 0b11111100;	/* PSC0 NORMAL SERIELL */
-	MCF_PAD_PAR_DSPI = 0b0001111111111111;	/* DSPI NORMAL */
-	MCF_PAD_PAR_TIMER = 0b00101101;	/* TIN3..2=#IRQ3..2;TOUT3..2=NORMAL */
-// ALLE OUTPUTS NORMAL LOW
 
-// ALLE DIR NORMAL INPUT = 0
+	/*
+	 * configure all four 547x GPIO module DMA pins:
+	 *
+	 * /DACK1 - DMA acknowledge 1
+ 	 * /DACK0 - DMA acknowledge 0
+ 	 * /DREQ1 - DMA request 1
+ 	 * /DREQ0 - DMA request 0
+ 	 *
+	 * for DMA operation
+	 */
+	MCF_PAD_PAR_DMA = MCF_PAD_PAR_DMA_PAR_DACK0_DACK0 |
+			MCF_PAD_PAR_DMA_PAR_DACK1_DACK1 |
+			MCF_PAD_PAR_DMA_PAR_DREQ1_DREQ1 |
+			MCF_PAD_PAR_DMA_PAR_DREQ0_DREQ0;
+
+	/*
+	 * configure FEC0 pin assignment on GPIO module as FEC0
+	 * configure FEC1 pin assignment (PAR_E17, PAR_E1MII) as GPIO,
+	 * /IRQ5 and /IRQ6  from GPIO (needs to be disabled on EPORT module, which also can
+	 * use those INTs).
+	 */
+	MCF_PAD_PAR_FECI2CIRQ = MCF_PAD_PAR_FECI2CIRQ_PAR_E07 |
+			MCF_PAD_PAR_FECI2CIRQ_PAR_E0MII |
+			MCF_PAD_PAR_FECI2CIRQ_PAR_E0MDIO |
+			MCF_PAD_PAR_FECI2CIRQ_PAR_E0MDC |
+			MCF_PAD_PAR_FECI2CIRQ_PAR_E1MDIO_E1MDIO |
+			MCF_PAD_PAR_FECI2CIRQ_PAR_E1MDC_E1MDC |
+			MCF_PAD_PAR_FECI2CIRQ_PAR_SDA |
+			MCF_PAD_PAR_FECI2CIRQ_PAR_SCL |
+			MCF_PAD_PAR_FECI2CIRQ_PAR_IRQ6 |
+			MCF_PAD_PAR_FECI2CIRQ_PAR_IRQ5;
+
+	/*
+	 * configure PCI Grant pin assignment on GPIO module:
+	 *
+	 * /PCIBG4 used as FlexBus /TBST
+	 * /PCIBG3 used as general purpose I/O
+	 * /PCIBG2 used as /PCIBG2
+	 * /PCIBG1 used as /PCIBG1
+	 * /PCIBG0 used as /PCIBG0
+	 */
+	MCF_PAD_PAR_PCIBG = MCF_PAD_PAR_PCIBG_PAR_PCIBG4_TBST |
+			MCF_PAD_PAR_PCIBG_PAR_PCIBG3_GPIO |
+			MCF_PAD_PAR_PCIBG_PAR_PCIBG2_PCIBG2 |
+			MCF_PAD_PAR_PCIBG_PAR_PCIBG1_PCIBG1 |
+			MCF_PAD_PAR_PCIBG_PAR_PCIBG0_PCIBG0;
+
+	/*
+	 * configure PCI request pin assignment on GPIO module:
+	 * /PCIBR4 as /IRQ4
+	 * /PCIBR3 as GPIO (PIC)
+	 * /PCIBR2 as /PCIBR2
+	 * /PCIBR1 as /PCIBR1
+	 * /PCIBR0 as /PCIBR0
+	 */
+	MCF_PAD_PAR_PCIBR = MCF_PAD_PAR_PCIBR_PAR_PCIBR4_IRQ4 |
+			MCF_PAD_PAR_PCIBR_PAR_PCIBR3_GPIO |
+			MCF_PAD_PAR_PCIBR_PAR_PCIBR2_PCIBR2 |
+			MCF_PAD_PAR_PCIBR_PAR_PCIBR1_PCIBR1 |
+			MCF_PAD_PAR_PCIBR_PAR_PCIBR0_PCIBR0;
+
+	/*
+	 * configure PSC3 pin assignment on GPIO module:
+	 * /PSC3CTS as /PSC3PTS
+	 * /PSC3RTS as /PSC3RTS
+	 * PSC3RXD as PSC3RXD
+	 * PSC3TXD as PSC3TXD
+	 */
+
+	MCF_PAD_PAR_PSC3 = MCF_PAD_PAR_PSC3_PAR_TXD3 | MCF_PAD_PAR_PSC3_PAR_RXD3;
+
+	/*
+	 * Configure PSC1 pin assignment on GPIO module:
+	 * - all pins configured for serial interface operation
+	 */
+
+	MCF_PAD_PAR_PSC1 = MCF_PAD_PAR_PSC1_PAR_CTS1_CTS |
+			MCF_PAD_PAR_PSC1_PAR_RTS1_RTS |
+			MCF_PAD_PAR_PSC1_PAR_RXD1 |
+			MCF_PAD_PAR_PSC1_PAR_TXD1;
+
+	/*
+	 * Configure PSC0 Pin Assignment on GPIO module:
+	 * - all pins configured for serial interface operation
+	 */
+
+	MCF_PAD_PAR_PSC0 = MCF_PAD_PAR_PSC0_PAR_CTS0_CTS |
+			MCF_PAD_PAR_PSC0_PAR_RTS0_RTS |
+			MCF_PAD_PAR_PSC0_PAR_RXD0 |
+			MCF_PAD_PAR_PSC0_PAR_TXD0;
+
+	MCF_PAD_PAR_DSPI = 0b0001111111111111;	/* DSPI NORMAL */
+
+	MCF_PAD_PAR_TIMER = 0b00101101;	/* TIN3..2=#IRQ3..2;TOUT3..2=NORMAL */
+
+	// ALLE OUTPUTS NORMAL LOW
+
+
+	// ALLE DIR NORMAL INPUT = 0
 	MCF_GPIO_PDDR_FEC1L = 0b00011110;	/* OUT: 4=LED,3=PRG_DQ0,2=#FPGA_CONFIG,1=PRG_CLK(FPGA) */
 }
 
@@ -111,19 +199,21 @@ void init_gpio(void)
 void init_serial(void)
 {
 	/* PSC0: SER1 */
-	MCF_PSC0_PSCSICR = 0;	// UART
-	MCF_PSC0_PSCCSR = 0xDD;
-	MCF_PSC0_PSCCTUR = 0x00;
-	MCF_PSC0_PSCCTLR = 36;	// BAUD RATE = 115200
-	MCF_PSC0_PSCCR = 0x20;
-	MCF_PSC0_PSCCR = 0x30;
-	MCF_PSC0_PSCCR = 0x40;
-	MCF_PSC0_PSCCR = 0x50;
-	MCF_PSC0_PSCCR = 0x10;
-	MCF_PSC0_PSCIMR = 0x8700;
-	MCF_PSC0_PSCACR = 0x03;
-	MCF_PSC0_PSCMR1 = 0xb3;
-	MCF_PSC0_PSCMR2 = 0x07;
+	MCF_PSC0_PSCSICR = 0;		/* PSC control register: select UART mode */
+	MCF_PSC0_PSCCSR = 0xDD;		/* use TX and RX baud rate from PSC timer */
+	MCF_PSC0_PSCCTUR = 0x00;	/* =\ */
+	MCF_PSC0_PSCCTLR = 36;		/* divide sys_clk by 36 => BAUD RATE = 115200 bps */
+	MCF_PSC0_PSCCR = 0x20;		/* reset receiver and RxFIFO */
+	MCF_PSC0_PSCCR = 0x30;		/* reset transmitter and TxFIFO */
+	MCF_PSC0_PSCCR = 0x40;		/* reset all error status */
+	MCF_PSC0_PSCCR = 0x50;		/* reset break change interrupt */
+	MCF_PSC0_PSCCR = 0x10;		/* reset MR pointer */
+	MCF_PSC0_PSCIMR = 0x8700;	/* enable input port change interrupt, enable delta break interrupt, */
+								/* enable receiver interrupt/request, enable tranceiver interrupt/request */
+
+	MCF_PSC0_PSCACR = 0x03;		/* enable state change of CTS */
+	MCF_PSC0_PSCMR1 = 0xb3;		/* 8 bit, no parity */
+	MCF_PSC0_PSCMR2 = 0x07;		/* 1 stop bit */
 	MCF_PSC0_PSCRFCR = 0x0F;
 	MCF_PSC0_PSCTFCR = 0x0F;
 	MCF_PSC0_PSCRFAR = 0x00F0;
@@ -174,24 +264,15 @@ void init_ddram(void)
 		MCF_SDRAMC_CS1CFG = 0x0800001A;	// SDRAM CS1 configuration (128Mbytes 0800_0000 - 0FFF_FFFF)
 		MCF_SDRAMC_CS2CFG = 0x1000001A;	// SDRAM CS2 configuration (128Mbytes 1000_0000 - 07FF_FFFF)
 		MCF_SDRAMC_CS3CFG = 0x1800001A;	// SDRAM CS3 configuration (128Mbytes 1800_0000 - 1FFF_FFFF)
-//      MCF_SDRAMC_SDCFG1       = 0x53722938;   // SDCFG1
 		MCF_SDRAMC_SDCFG1 = 0x73622830;	// SDCFG1
-//      MCF_SDRAMC_SDCFG2       = 0x24330000;   // SDCFG2
 		MCF_SDRAMC_SDCFG2 = 0x46770000;	// SDCFG2
-//      MCF_SDRAMC_SDCR         = 0xE10F0002;   // SDCR + IPALL
 		MCF_SDRAMC_SDCR = 0xE10D0002;	// SDCR + IPALL
 		MCF_SDRAMC_SDMR = 0x40010000;	// SDMR (write to LEMR)
-//      MCF_SDRAMC_SDMR         = 0x05890000;   // SDRM (write to LMR)
 		MCF_SDRAMC_SDMR = 0x048D0000;	// SDRM (write to LMR)
-//      MCF_SDRAMC_SDCR         = 0xE10F0002;   // SDCR + IPALL
 		MCF_SDRAMC_SDCR = 0xE10D0002;	// SDCR + IPALL
-//      MCF_SDRAMC_SDCR         = 0xE10F0004;   // SDCR + IREF (first refresh)
 		MCF_SDRAMC_SDCR = 0xE10D0004;	// SDCR + IREF (first refresh)
-//      MCF_SDRAMC_SDCR         = 0xE10F0004;   // SDCR + IREF (second refresh)
 		MCF_SDRAMC_SDCR = 0xE10D0004;	// SDCR + IREF (second refresh)
-///     MCF_SDRAMC_SDMR         = 0x01890000;   // SDMR (write to LMR)
 		MCF_SDRAMC_SDMR = 0x008D0000;	// SDMR (write to LMR)
-//      MCF_SDRAMC_SDCR         = 0x710F0F00;   // SDCR (lock SDMR and enable refresh)
 		MCF_SDRAMC_SDCR = 0x710D0F00;	// SDCR (lock SDMR and enable refresh)
 
 		xprintf("finished\r\n");
@@ -218,27 +299,27 @@ void init_fbcs()
 	MCF_FBCS1_CSCR = MCF_FBCS_CSCR_PS_16	// 16BIT PORT 
 	    | MCF_FBCS_CSCR_WS(8)	// DEFAULT 8WS
 	    | MCF_FBCS_CSCR_AA;	// AA 
-	MCF_FBCS1_CSMR = (MCF_FBCS_CSMR_BAM_1M | MCF_FBCS_CSMR_V);
+	MCF_FBCS1_CSMR = MCF_FBCS_CSMR_BAM_1M | MCF_FBCS_CSMR_V;
 
-	MCF_FBCS2_CSAR = 0xF0000000;	// NEUER I/O ADRESS-BEREICH
+	MCF_FBCS2_CSAR = 0xF0000000;			// NEUER I/O ADRESS-BEREICH
 	MCF_FBCS2_CSCR = MCF_FBCS_CSCR_PS_32	// 32BIT PORT
-	    | MCF_FBCS_CSCR_WS(8)	// DEFAULT 4WS
-	    | MCF_FBCS_CSCR_AA;	// AA 
+	    | MCF_FBCS_CSCR_WS(8)				// DEFAULT 4WS
+	    | MCF_FBCS_CSCR_AA;					// AA
 	MCF_FBCS2_CSMR = (MCF_FBCS_CSMR_BAM_128M	// F000'0000-F7FF'FFFF
 			  | MCF_FBCS_CSMR_V);
 
-	MCF_FBCS3_CSAR = 0xF8000000;	// NEUER I/O ADRESS-BEREICH
+	MCF_FBCS3_CSAR = 0xF8000000;			// NEUER I/O ADRESS-BEREICH
 	MCF_FBCS3_CSCR = MCF_FBCS_CSCR_PS_16	// 16BIT PORT
 	    | MCF_FBCS_CSCR_AA;	// AA 
 	MCF_FBCS3_CSMR = (MCF_FBCS_CSMR_BAM_64M	// F800'0000-FBFF'FFFF
 			  | MCF_FBCS_CSMR_V);
 
-	MCF_FBCS4_CSAR = 0x40000000;	// VIDEO RAM BEREICH, #FB_CS3 WIRD NICHT BENÜTZT, DECODE DIREKT AUF DEM FPGA
+	MCF_FBCS4_CSAR = 0x40000000;			// VIDEO RAM BEREICH, #FB_CS3 WIRD NICHT BENÜTZT, DECODE DIREKT AUF DEM FPGA
 	MCF_FBCS4_CSCR = MCF_FBCS_CSCR_PS_32	// 32BIT PORT
-	    | MCF_FBCS_CSCR_BSTR	// BURST READ ENABLE
-	    | MCF_FBCS_CSCR_BSTW;	// BURST WRITE ENABLE
-	MCF_FBCS4_CSMR = (MCF_FBCS_CSMR_BAM_1G	// 4000'0000-7FFF'FFFF
-			  | MCF_FBCS_CSMR_V);
+	    | MCF_FBCS_CSCR_BSTR				// BURST READ ENABLE
+	    | MCF_FBCS_CSCR_BSTW;				// BURST WRITE ENABLE
+	MCF_FBCS4_CSMR = MCF_FBCS_CSMR_BAM_1G	// 4000'0000-7FFF'FFFF
+			  | MCF_FBCS_CSMR_V;
 
 	xprintf("finished\r\n");
 }
@@ -591,7 +672,7 @@ void init_ac97(void) {
 	int vb;
 	int vc;
 	
-	uart_out_word('AC97');
+	xprintf("AC97 sound chip initialization: ");
 	MCF_PAD_PAR_PSC2 = MCF_PAD_PAR_PSC2_PAR_RTS2_RTS	// PSC2=TX,RX BCLK,CTS->AC'97
 	       | MCF_PAD_PAR_PSC2_PAR_CTS2_BCLK
 			 | MCF_PAD_PAR_PSC2_PAR_TXD2
