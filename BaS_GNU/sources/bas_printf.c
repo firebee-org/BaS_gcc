@@ -234,7 +234,6 @@ static void doprnt(void (*addchar)(int), const char *sfmt, va_list ap)
 				hash = 1;
 				fmt = 'x';
 				/* no break */
-				/*FALLTHROUGH*/
 			case 'o':
 			case 'x':
 			case 'u':
