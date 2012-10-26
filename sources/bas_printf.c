@@ -202,16 +202,9 @@ static void doprnt(void (*addchar)(int), const char *sfmt, va_list ap)
 					l = (long) (va_arg(ap, int));
 					break;
 				case 1:
-#ifndef HAVE_LONG_LONG
 				default:
-#endif
 					l = va_arg(ap, long);
 					break;
-#ifdef HAVE_LONG_LONG
-					default:
-					l = va_arg(ap, long long);
-					break;
-#endif
 				}
 
 				if (l < 0)
@@ -251,16 +244,9 @@ static void doprnt(void (*addchar)(int), const char *sfmt, va_list ap)
 					long) (va_arg(ap, unsigned int));
 					break;
 				case 1:
-#ifndef HAVE_LONG_LONG
 				default:
-#endif
 					u = va_arg(ap, unsigned long);
 					break;
-#ifdef HAVE_LONG_LONG
-					default:
-					u = va_arg(ap, unsigned long long);
-					break;
-#endif
 				}
 				if (fmt == 'u')
 				{ /* unsigned decimal */
