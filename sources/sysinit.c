@@ -5,7 +5,6 @@
  * Notes: 
  *
  */
-#include <stdint.h>
 
 #include "MCF5475.h"
 #include "startcf.h"
@@ -259,21 +258,21 @@ void init_ddram(void)
 	 */
 	if (!(MCF_SDRAMC_SDCR & MCF_SDRAMC_SDCR_REF)) {
 		/* Basic configuration and initialization */
-		MCF_SDRAMC_SDRAMDS = 0x000002AA;	// SDRAMDS configuration
-		MCF_SDRAMC_CS0CFG = 0x0000001A;	// SDRAM CS0 configuration (128Mbytes 0000_0000 - 07FF_FFFF)
-		MCF_SDRAMC_CS1CFG = 0x0800001A;	// SDRAM CS1 configuration (128Mbytes 0800_0000 - 0FFF_FFFF)
-		MCF_SDRAMC_CS2CFG = 0x1000001A;	// SDRAM CS2 configuration (128Mbytes 1000_0000 - 07FF_FFFF)
-		MCF_SDRAMC_CS3CFG = 0x1800001A;	// SDRAM CS3 configuration (128Mbytes 1800_0000 - 1FFF_FFFF)
-		MCF_SDRAMC_SDCFG1 = 0x73622830;	// SDCFG1
-		MCF_SDRAMC_SDCFG2 = 0x46770000;	// SDCFG2
-		MCF_SDRAMC_SDCR = 0xE10D0002;	// SDCR + IPALL
-		MCF_SDRAMC_SDMR = 0x40010000;	// SDMR (write to LEMR)
-		MCF_SDRAMC_SDMR = 0x048D0000;	// SDRM (write to LMR)
-		MCF_SDRAMC_SDCR = 0xE10D0002;	// SDCR + IPALL
-		MCF_SDRAMC_SDCR = 0xE10D0004;	// SDCR + IREF (first refresh)
-		MCF_SDRAMC_SDCR = 0xE10D0004;	// SDCR + IREF (second refresh)
-		MCF_SDRAMC_SDMR = 0x008D0000;	// SDMR (write to LMR)
-		MCF_SDRAMC_SDCR = 0x710D0F00;	// SDCR (lock SDMR and enable refresh)
+		MCF_SDRAMC_SDRAMDS = 0x000002AA;/* SDRAMDS configuration */
+		MCF_SDRAMC_CS0CFG = 0x0000001A;	/* SDRAM CS0 configuration (128Mbytes 0000_0000 - 07FF_FFFF) */
+		MCF_SDRAMC_CS1CFG = 0x0800001A;	/* SDRAM CS1 configuration (128Mbytes 0800_0000 - 0FFF_FFFF) */
+		MCF_SDRAMC_CS2CFG = 0x1000001A;	/* SDRAM CS2 configuration (128Mbytes 1000_0000 - 07FF_FFFF) */
+		MCF_SDRAMC_CS3CFG = 0x1800001A;	/* SDRAM CS3 configuration (128Mbytes 1800_0000 - 1FFF_FFFF) */
+		MCF_SDRAMC_SDCFG1 = 0x73622830;	/* SDCFG1 */
+		MCF_SDRAMC_SDCFG2 = 0x46770000;	/* SDCFG2 */
+		MCF_SDRAMC_SDCR = 0xE10D0002;	/* SDCR + IPALL */
+		MCF_SDRAMC_SDMR = 0x40010000;	/* SDMR (write to LEMR) */
+		MCF_SDRAMC_SDMR = 0x048D0000;	/* SDRM (write to LMR) */
+		MCF_SDRAMC_SDCR = 0xE10D0002;	/* SDCR + IPALL */
+		MCF_SDRAMC_SDCR = 0xE10D0004;	/* SDCR + IREF (first refresh) */
+		MCF_SDRAMC_SDCR = 0xE10D0004;	/* SDCR + IREF (second refresh) */
+		MCF_SDRAMC_SDMR = 0x008D0000;	/* SDMR (write to LMR) */
+		MCF_SDRAMC_SDCR = 0x710D0F00;	/* SDCR (lock SDMR and enable refresh) */
 
 		xprintf("finished\r\n");
 	}
@@ -292,13 +291,13 @@ void init_fbcs()
 
 	/* Flash */
 	MCF_FBCS0_CSAR = 0xE0000000;	/* flash base address */
-	MCF_FBCS0_CSCR = 0x00001180;	// 16 bit 4ws aa
-	MCF_FBCS0_CSMR = 0x007F0001;	// 8MB on 
+	MCF_FBCS0_CSCR = 0x00001180;	/* 16 bit 4ws aa */
+	MCF_FBCS0_CSMR = 0x007F0001;	/* 8MB on */
 
-	MCF_FBCS1_CSAR = 0xFFF00000;	// ATARI I/O ADRESS
-	MCF_FBCS1_CSCR = MCF_FBCS_CSCR_PS_16	// 16BIT PORT 
-	    | MCF_FBCS_CSCR_WS(8)	// DEFAULT 8WS
-	    | MCF_FBCS_CSCR_AA;	// AA 
+	MCF_FBCS1_CSAR = 0xFFF00000;	/* ATARI I/O ADRESS */
+	MCF_FBCS1_CSCR = MCF_FBCS_CSCR_PS_16	/* 16BIT PORT */
+	    | MCF_FBCS_CSCR_WS(8)				/* DEFAULT 8WS */
+	    | MCF_FBCS_CSCR_AA;					/* AA */
 	MCF_FBCS1_CSMR = MCF_FBCS_CSMR_BAM_1M | MCF_FBCS_CSMR_V;
 
 	MCF_FBCS2_CSAR = 0xF0000000;			// NEUER I/O ADRESS-BEREICH
@@ -754,8 +753,7 @@ livo:
 	}
 	MCF_PSC2_PSCTFCR |= MCF_PSC_PSCTFCR_WFR;	//set EOF
 	MCF_PSC2_PSCTB_AC97 = 0x00000000;	//last data
-	uart_out_word(' OK.');
-	uart_out_word(0x0a0d);
+	xprintf(" finished\r\n");
 }
 
 /* Symbols from the linker script */
