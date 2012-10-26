@@ -233,6 +233,7 @@ static void doprnt(void (*addchar)(int), const char *sfmt, va_list ap)
 				do_long = 1;
 				hash = 1;
 				fmt = 'x';
+				/* no break */
 				/*FALLTHROUGH*/
 			case 'o':
 			case 'x':
@@ -240,8 +241,7 @@ static void doprnt(void (*addchar)(int), const char *sfmt, va_list ap)
 				switch (do_long)
 				{
 				case 0:
-					u = (unsigned
-					long) (va_arg(ap, unsigned int));
+					u = (unsigned long) (va_arg(ap, unsigned int));
 					break;
 				case 1:
 				default:
