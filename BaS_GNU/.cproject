@@ -42,10 +42,11 @@
 					<extension id="org.eclipse.cdt.core.GCCErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
 					<extension id="org.eclipse.cdt.core.GASErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
 					<extension id="org.eclipse.cdt.core.GLDErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
+					<extension id="org.eclipse.cdt.core.GmakeErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
 				</extensions>
 			</storageModule>
 			<storageModule moduleId="cdtBuildSystem" version="4.0.0">
-				<configuration artifactName="BaS_GNU" buildProperties="" description="cross development for firebee firmware" errorParsers="org.eclipse.cdt.core.GCCErrorParser;org.eclipse.cdt.core.GASErrorParser;org.eclipse.cdt.core.GLDErrorParser" id="cdt.managedbuild.toolchain.gnu.cross.base.500844171.756690686" name="firebee-cross" parent="org.eclipse.cdt.build.core.emptycfg">
+				<configuration artifactName="BaS_GNU" buildProperties="" description="cross development for firebee firmware" errorParsers="org.eclipse.cdt.core.GCCErrorParser;org.eclipse.cdt.core.GASErrorParser;org.eclipse.cdt.core.GLDErrorParser;org.eclipse.cdt.core.GmakeErrorParser" id="cdt.managedbuild.toolchain.gnu.cross.base.500844171.756690686" name="firebee-cross" parent="org.eclipse.cdt.build.core.emptycfg">
 					<folderInfo id="cdt.managedbuild.toolchain.gnu.cross.base.500844171.756690686." name="/" resourcePath="">
 						<toolChain errorParsers="" id="cdt.managedbuild.toolchain.gnu.cross.base.120730457" name="cdt.managedbuild.toolchain.gnu.cross.base" resourceTypeBasedDiscovery="true">
 							<option id="cdt.managedbuild.option.gnu.cross.prefix.904812232" name="Prefix" superClass="cdt.managedbuild.option.gnu.cross.prefix"/>
@@ -70,6 +71,7 @@
 								<option id="gnu.c.compiler.option.include.paths.2015956820" name="Include paths (-I)" superClass="gnu.c.compiler.option.include.paths" valueType="includePath">
 									<listOptionValue builtIn="false" value="/usr/lib/gcc/m68k-atari-mint/4.6.3/include"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/BaS_GNU/include}&quot;"/>
+									<listOptionValue builtIn="false" value="/opt/cross-mint/m68k-atari-mint/include"/>
 								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.c.compiler.input.374200372" superClass="cdt.managedbuild.tool.gnu.c.compiler.input"/>
 							</tool>
