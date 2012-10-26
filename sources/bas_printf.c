@@ -60,28 +60,29 @@ static char snil[] = "(nil)";
 static void xputchar(int c)
 {
 	__asm__ __volatile__
-		(
+	(
 			".extern		printf_helper\n\t"
 			"move.b			%0,d0\n\t"
 			"bsr			printf_helper\n\t"
 			/* output */:
 			/* input */: "r" (c)
-			/* clobber */ : "d0","a0"
-		);
+			/* clobber */: "d0","a0"
+	);
 }
 
 #define isdigit(c)	(((c) >= '0') && ((c) <= '9'))
-#define isupper(c) ((c) >= 'A' && ((c) <= 'Z'))
-#define islower(c) ((c) >= 'a' && ((c) <= 'z'))
+#define isupper(c)	((c) >= 'A' && ((c) <= 'Z'))
+#define islower(c)	((c) >= 'a' && ((c) <= 'z'))
 #define isalpha(c)	(isupper((c)) || islower(c))
-#define tolower(c) (isupper(c) ? ((c) + 'a' - 'A') : (c))
+#define tolower(c)	(isupper(c) ? ((c) + 'a' - 'A') : (c))
 
 static int atoi(const char *c)
 {
 	int value = 0;
-	while (isdigit(*c) ) {
+	while (isdigit(*c))
+	{
 		value *= 10;
-		value += (int) (*c-'0');
+		value += (int) (*c - '0');
 		c++;
 	}
 	return value;
@@ -91,14 +92,14 @@ size_t strlen(const char *s)
 {
 	int length = 0;
 
-	while (*s++) {
+	while (*s++)
+	{
 		length++;
 	}
 	return length;
 }
 
-
-static void doprnt(void (*addchar) (int), const char *sfmt, va_list ap)
+static void doprnt(void (*addchar)(int), const char *sfmt, va_list ap)
 {
 	char *bp;
 	const char *f;
@@ -116,70 +117,89 @@ static void doprnt(void (*addchar) (int), const char *sfmt, va_list ap)
 	int attributes = 0;
 
 	f = sfmt;
-	for (; *f; f++) {
-		if (*f != '%') {
+	for (; *f; f++)
+	{
+		if (*f != '%')
+		{
 			/* then just out the char */
-			(*addchar) ((int)(((unsigned char)*f) | attributes));
-		} else {
-			f++;	/* skip the % */
+			(*addchar)((int) (((unsigned char) *f) | attributes));
+		}
+		else
+		{
+			f++; /* skip the % */
 
-			if (*f == '-') {	/* minus: flush left */
+			if (*f == '-')
+			{ /* minus: flush left */
 				flush_left = 1;
 				f++;
 			}
 
-			if (*f == '0' || *f == '.') {
+			if (*f == '0' || *f == '.')
+			{
 				/* padding with 0 rather than blank */
 				pad = '0';
 				f++;
 			}
-			if (*f == '*') {
+			if (*f == '*')
+			{
 				/* field width */
 				f_width = va_arg(ap, int);
 				f++;
-			} else if (isdigit((unsigned char)*f)) {
+			}
+			else if (isdigit((unsigned char)*f))
+			{
 				f_width = atoi(f);
 				while (isdigit((unsigned char)*f))
-					f++;	/* skip the digits */
+					f++; /* skip the digits */
 			}
 
-			if (*f == '.') {	/* precision */
+			if (*f == '.')
+			{ /* precision */
 				f++;
-				if (*f == '*') {
+				if (*f == '*')
+				{
 					prec = va_arg(ap, int);
 					f++;
-				} else if (isdigit((unsigned char)*f)) {
+				}
+				else if (isdigit((unsigned char)*f))
+				{
 					prec = atoi(f);
 					while (isdigit((unsigned char)*f))
-						f++;	/* skip the digits */
+						f++; /* skip the digits */
 				}
 			}
 
-			if (*f == '#') {	/* alternate form */
+			if (*f == '#')
+			{ /* alternate form */
 				hash = 1;
 				f++;
 			}
 
-			if (*f == 'l') {	/* long format */
+			if (*f == 'l')
+			{ /* long format */
 				do_long++;
 				f++;
-				if (*f == 'l') {
+				if (*f == 'l')
+				{
 					do_long++;
 					f++;
 				}
 			}
 
-			fmt = (unsigned char)*f;
-			if (fmt != 'S' && fmt != 'Q' && isupper(fmt)) {
+			fmt = (unsigned char) *f;
+			if (fmt != 'S' && fmt != 'Q' && isupper(fmt))
+			{
 				do_long = 1;
 				fmt = tolower(fmt);
 			}
 			bp = buf;
-			switch (fmt) {	/* do the format */
+			switch (fmt)
+			{ /* do the format */
 			case 'd':
-				switch (do_long) {
+				switch (do_long)
+				{
 				case 0:
-					l = (long)(va_arg(ap, int));
+					l = (long) (va_arg(ap, int));
 					break;
 				case 1:
 #ifndef HAVE_LONG_LONG
@@ -188,48 +208,47 @@ static void doprnt(void (*addchar) (int), const char *sfmt, va_list ap)
 					l = va_arg(ap, long);
 					break;
 #ifdef HAVE_LONG_LONG
-				default:
+					default:
 					l = va_arg(ap, long long);
 					break;
 #endif
 				}
 
-				if (l < 0) {
+				if (l < 0)
+				{
 					sign = 1;
 					l = -l;
 				}
-				do {
-					*bp++ = (char)(l % 10) + '0';
+				do
+				{
+					*bp++ = (char) (l % 10) + '0';
 				} while ((l /= 10) > 0);
 				if (sign)
 					*bp++ = '-';
-				f_width = f_width - (int)(bp - buf);
+				f_width = f_width - (int) (bp - buf);
 				if (!flush_left)
 					while (f_width-- > 0)
-						(*addchar) ((int)
-							    (pad | attributes));
+						(*addchar)((int) (pad | attributes));
 				for (bp--; bp >= buf; bp--)
-					(*addchar) ((int)
-						    (((unsigned char)*bp) |
-						     attributes));
+					(*addchar)((int) (((unsigned char) *bp) | attributes));
 				if (flush_left)
 					while (f_width-- > 0)
-						(*addchar) ((int)
-							    (' ' | attributes));
+						(*addchar)((int) (' ' | attributes));
 				break;
 
 			case 'p':
 				do_long = 1;
 				hash = 1;
 				fmt = 'x';
-			 /*FALLTHROUGH*/
+				/*FALLTHROUGH*/
 			case 'o':
 			case 'x':
 			case 'u':
-				switch (do_long) {
+				switch (do_long)
+				{
 				case 0:
 					u = (unsigned
-					     long)(va_arg(ap, unsigned int));
+					long) (va_arg(ap, unsigned int));
 					break;
 				case 1:
 #ifndef HAVE_LONG_LONG
@@ -238,52 +257,57 @@ static void doprnt(void (*addchar) (int), const char *sfmt, va_list ap)
 					u = va_arg(ap, unsigned long);
 					break;
 #ifdef HAVE_LONG_LONG
-				default:
+					default:
 					u = va_arg(ap, unsigned long long);
 					break;
 #endif
 				}
-				if (fmt == 'u') {	/* unsigned decimal */
-					do {
-						*bp++ = (char)(u % 10) + '0';
+				if (fmt == 'u')
+				{ /* unsigned decimal */
+					do
+					{
+						*bp++ = (char) (u % 10) + '0';
 					} while ((u /= 10) > 0);
-				} else if (fmt == 'o') {	/* octal */
-					do {
-						*bp++ = (char)(u % 8) + '0';
+				}
+				else if (fmt == 'o')
+				{ /* octal */
+					do
+					{
+						*bp++ = (char) (u % 8) + '0';
 					} while ((u /= 8) > 0);
 					if (hash)
 						*bp++ = '0';
-				} else if (fmt == 'x') {	/* hex */
-					do {
-						i = (int)(u % 16);
+				}
+				else if (fmt == 'x')
+				{ /* hex */
+					do
+					{
+						i = (int) (u % 16);
 						if (i < 10)
 							*bp++ = i + '0';
 						else
 							*bp++ = i - 10 + 'a';
 					} while ((u /= 16) > 0);
-					if (hash) {
+					if (hash)
+					{
 						*bp++ = 'x';
 						*bp++ = '0';
 					}
 				}
-				i = f_width - (int)(bp - buf);
+				i = f_width - (int) (bp - buf);
 				if (!flush_left)
 					while (i-- > 0)
-						(*addchar) ((int)
-							    (pad | attributes));
+						(*addchar)((int) (pad | attributes));
 				for (bp--; bp >= buf; bp--)
-					(*addchar) ((int)
-						    (((unsigned char)*bp) |
-						     attributes));
+					(*addchar)((int) (((unsigned char) *bp) | attributes));
 				if (flush_left)
 					while (i-- > 0)
-						(*addchar) ((int)
-							    (' ' | attributes));
+						(*addchar)((int) (' ' | attributes));
 				break;
 
 			case 'c':
 				i = va_arg(ap, int);
-				(*addchar) ((int)(i | attributes));
+				(*addchar)((int) (i | attributes));
 				break;
 
 			case 'S':
@@ -293,19 +317,21 @@ static void doprnt(void (*addchar) (int), const char *sfmt, va_list ap)
 				bp = va_arg(ap, char *);
 				if (!bp)
 					bp = snil;
-				f_width = f_width - strlen((char *)bp);
+				f_width = f_width - strlen((char *) bp);
 				if (!flush_left)
 					while (f_width-- > 0)
-						(*addchar) ((int)(pad | attributes));
-				for (i = 0; *bp && i < prec; i++) {
-					if (fmt == 'q' && *bp & QUOTE)
-						(*addchar) ((int)('\\' | attributes));
-					(*addchar) ((int)(((unsigned char)*bp & TRIM) | attributes));
+						(*addchar)((int) (pad | attributes));
+				for (i = 0; *bp && i < prec; i++)
+				{
+					if (fmt == 'q' && (*bp & QUOTE))
+						(*addchar)((int) ('\\' | attributes));
+					(*addchar)(
+							(int) (((unsigned char) *bp & TRIM) | attributes));
 					bp++;
 				}
 				if (flush_left)
 					while (f_width-- > 0)
-						(*addchar) ((int)(' ' | attributes));
+						(*addchar)((int) (' ' | attributes));
 				break;
 
 			case 'a':
@@ -313,14 +339,13 @@ static void doprnt(void (*addchar) (int), const char *sfmt, va_list ap)
 				break;
 
 			case '%':
-				(*addchar) ((int)('%' | attributes));
+				(*addchar)((int) ('%' | attributes));
 				break;
 
 			default:
 				break;
 			}
-			flush_left = 0, f_width = 0, prec = INF, hash =
-			    0, do_long = 0;
+			flush_left = 0, f_width = 0, prec = INF, hash = 0, do_long = 0;
 			sign = 0;
 			pad = ' ';
 		}
@@ -334,7 +359,7 @@ static void xaddchar(int c)
 	if (xestring == xstring)
 		*xstring = '\0';
 	else
-		*xstring++ = (char)c;
+		*xstring++ = (char) c;
 }
 
 void xsnprintf(char *str, size_t size, const char *fmt, ...)
@@ -369,5 +394,4 @@ void xvsnprintf(char *str, size_t size, const char *fmt, va_list va)
 	doprnt(xaddchar, fmt, va);
 	*xstring++ = '\0';
 }
-
 
