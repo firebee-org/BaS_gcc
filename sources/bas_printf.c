@@ -66,7 +66,7 @@ static void xputchar(int c)
 			"bsr			printf_helper\n\t"
 			/* output */:
 			/* input */: "r" (c)
-			/* clobber */: "d0","a0"
+			/* clobber */: "d0","d2","a0"
 	);
 }
 
@@ -378,5 +378,14 @@ void xvsnprintf(char *str, size_t size, const char *fmt, va_list va)
 	xestring = str + size - 1;
 	doprnt(xaddchar, fmt, va);
 	*xstring++ = '\0';
+}
+
+
+void display_progress()
+{
+	static int _progress_index;
+	char progress_char[] = "|/-\\";
+	xputchar(progress_char[_progress_index++ % strlen(progress_char)]);
+	xputchar('\r');
 }
 
