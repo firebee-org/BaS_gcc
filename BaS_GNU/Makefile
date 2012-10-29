@@ -1,18 +1,22 @@
 #
 # Makefile for Firebee BaS
 #
-# requires the GNU toolchain
-# either the m68k-atari-mint version which allows creating the binaries
-#
-# or
-#
-# the m68k-elf version which also allows to use gdb together with bdm tools for debugging
-#
-
 # This Makefile is meant for cross compiling the BaS with Vincent Riviere's cross compilers.
 # If you want to compile native on an Atari (you will need at least GCC 4.6.3), set
-# TCPREFIX to be empty. 
+# TCPREFIX to be empty.
+# If you want to compile with the m68k-elf- toolchain, set TCPREFIX accordingly. Requires an extra
+# installation, but allows source level debugging over BDM with a recent gdb (tested with 7.5),
+# the m68k BDM tools from sourceforge (http://bdm.sourceforge.net) and a BDM pod (TBLCF and P&E tested).
+
+COMPILE_ELF=N
+
+ifeq (Y,$(COMPILE_ELF))
+TCPREFIX=m68k-elf-
+EXE=elf
+else 
 TCPREFIX=m68k-atari-mint-
+EXE=s19
+endif
 
 CC=$(TCPREFIX)gcc
 LD=$(TCPREFIX)ld
@@ -20,7 +24,15 @@ CPP=$(TCPREFIX)cpp
 OBJCOPY=$(TCPREFIX)objcopy
 
 INCLUDE=-Iinclude
-CFLAGS=-mcpu=5474 -Wall -Wno-multichar -Os -fomit-frame-pointer -fno-strict-aliasing -fno-builtin
+CFLAGS=-mcpu=5474\
+	   -Wall\
+	   -Wno-multichar\
+	   -Os\
+	   -fomit-frame-pointer\
+	   -fno-strict-aliasing\
+	   -fno-builtin\
+	   -fleading-underscore\
+	   -Wa,--register-prefix-optional
 
 SRCDIR=sources
 OBJDIR=objs
@@ -33,8 +45,8 @@ LDCSRC=bas.lk.in
 
 # this Makefile can create the BaS to flash or an arbitrary ram address (for BDM debugging). See
 # below for the definition of TARGET_ADDRESS
-FLASH_EXEC=bas.s19
-RAM_EXEC=ram.s19
+FLASH_EXEC=bas.$(EXE)
+RAM_EXEC=ram.$(EXE)
 
 CSRCS= \
 	$(SRCDIR)/sysinit.c \
@@ -72,7 +84,7 @@ $(RAM_EXEC): TARGET_ADDRESS=0x10000000
 
 $(FLASH_EXEC) $(RAM_EXEC): $(STRT_OBJ) $(OBJS)
 	$(CPP) -P -DTARGET_ADDRESS=$(TARGET_ADDRESS) $(LDCSRC) -o $(LDCFILE)
-	$(LD) --oformat srec -Map $(MAPFILE) --cref -T $(LDCFILE) -s -o $@
+	$(LD) --oformat srec -Map $(MAPFILE) --cref -T $(LDCFILE) -o $@
 	objcopy -I srec -O elf32-big --alt-machine-code 4 $@ $@.elf
 	
 # compile init_fpga with -mbitfield for testing purposes
