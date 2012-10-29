@@ -208,7 +208,7 @@ void init_serial(void)
 	MCF_PSC0_PSCCR = 0x50;		/* reset break change interrupt */
 	MCF_PSC0_PSCCR = 0x10;		/* reset MR pointer */
 	MCF_PSC0_PSCIMR = 0x8700;	/* enable input port change interrupt, enable delta break interrupt, */
-								/* enable receiver interrupt/request, enable tranceiver interrupt/request */
+								/* enable receiver interrupt/request, enable transceiver interrupt/request */
 
 	MCF_PSC0_PSCACR = 0x03;		/* enable state change of CTS */
 	MCF_PSC0_PSCMR1 = 0xb3;		/* 8 bit, no parity */
@@ -290,11 +290,11 @@ void init_fbcs()
 	xprintf("FlexBus chip select registers initialization: ");
 
 	/* Flash */
-	MCF_FBCS0_CSAR = 0xE0000000;	/* flash base address */
-	MCF_FBCS0_CSCR = 0x00001180;	/* 16 bit 4ws aa */
-	MCF_FBCS0_CSMR = 0x007F0001;	/* 8MB on */
+	MCF_FBCS0_CSAR = 0xE0000000;			/* flash base address */
+	MCF_FBCS0_CSCR = 0x00001180;			/* 16 bit 4ws aa */
+	MCF_FBCS0_CSMR = 0x007F0001;			/* 8MB on */
 
-	MCF_FBCS1_CSAR = 0xFFF00000;	/* ATARI I/O ADRESS */
+	MCF_FBCS1_CSAR = 0xFFF00000;			/* ATARI I/O ADRESS */
 	MCF_FBCS1_CSCR = MCF_FBCS_CSCR_PS_16	/* 16BIT PORT */
 	    | MCF_FBCS_CSCR_WS(8)				/* DEFAULT 8WS */
 	    | MCF_FBCS_CSCR_AA;					/* AA */
