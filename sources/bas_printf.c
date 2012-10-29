@@ -41,16 +41,16 @@
  * The eighth/sixteenth bit of characters is used to prevent recognition,
  * and eventually stripped.
  */
-#define		META		0200
-#define		ASCII		0177
-# define	QUOTE 	((char)	0200)	/* Eighth char bit used for 'ing */
-# define	TRIM		0177	/* Mask to strip quote bit */
-# define	UNDER		0000000	/* No extra bits to do both */
-# define	BOLD		0000000	/* Bold flag */
-# define	STANDOUT	META	/* Standout flag */
-# define	LITERAL		0000000	/* Literal character flag */
-# define	ATTRIBUTES	0200	/* The bits used for attributes */
-# define	CHAR		0000177	/* Mask to mask out the character */
+#define	META		0200
+#define	ASCII		0177
+#define	QUOTE		((char)	0200)	/* Eighth char bit used for 'ing */
+#define	TRIM		0177	/* Mask to strip quote bit */
+#define	UNDER		0000000	/* No extra bits to do both */
+#define	BOLD		0000000	/* Bold flag */
+#define	STANDOUT	META	/* Standout flag */
+#define	LITERAL		0000000	/* Literal character flag */
+#define	ATTRIBUTES	0200	/* The bits used for attributes */
+#define	CHAR		0000177	/* Mask to mask out the character */
 
 #define INF	32766		/* should be bigger than any field to print */
 
