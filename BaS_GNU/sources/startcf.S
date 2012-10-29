@@ -9,7 +9,7 @@ _startup:
 
 		/* disable interrupts */
 warmstart:
-		move.w #0x2700,sr
+		move.w	#0x2700,sr
 
 		/* Initialize MBAR */
 
