@@ -392,6 +392,8 @@ void init_pll(void)
 #define NOP() __asm__ __volatile__("nop\n\t" : : : "memory")
 
 void init_video_ddr(void) {
+	xprintf("init video RAM: ");
+
 	* (volatile uint16_t *) 0xf0000400 = 0xb;	/* set cke = 1, cs=1, config = 1 */
 	NOP();
 
@@ -417,6 +419,8 @@ void init_video_ddr(void) {
 	NOP();
 
 	* (uint32_t *) 0xf0000400 = 0x01070002; /* fifo on, refresh on, ddrcs und cke on, video dac on */
+
+	xprintf("finished\r\n");
 }
 
 
