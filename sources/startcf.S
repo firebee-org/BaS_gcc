@@ -1,15 +1,16 @@
 		.equ	MCF_MMU_MMUCR, __MMUBAR + 0
+		.global _startup
 
-_startup:
 		.extern	_initialize_hardware
 		.extern _rt_mbar
 
+_startup:
 		bra.s	warmstart
 		jmp		___BOOT_FLASH + 8 		/* that's also our reset vector */
 
 		/* disable interrupts */
 warmstart:
-		move.w	#0x2700,sr
+		move.w #0x2700,SR
 
 		/* Initialize MBAR */
 
@@ -25,7 +26,7 @@ warmstart:
 		move.l	d0,MCF_MMU_MMUCR
 
 		/* Initialize RAMBARs: locate SRAM and validate it */
-		move.l	#__RAMBAR0 + 0x7,d0 	/* supervisor only */
+		move.l	#__RAMBAR0 + 0x7,%d0 	/* supervisor only */
 		movec	d0,RAMBAR0
 		move.l	#__RAMBAR1 + 0x1,d0
 		movec	d0,RAMBAR1
