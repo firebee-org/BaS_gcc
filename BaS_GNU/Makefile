@@ -78,8 +78,8 @@ AOBJS=$(patsubst $(SRCDIR)/%.o,$(OBJDIR)/%.o,$(patsubst %.S,%.o,$(ASRCS)))
 
 OBJS=$(COBJS) $(AOBJS)
 	
-.PHONY all: $(FLASH_EXEC)
-.PHONY ram: $(RAM_EXEC)
+all: $(FLASH_EXEC)
+ram: $(RAM_EXEC)
 .PHONY clean:
 	@ rm -f $(FLASH_EXEC) $(FLASH_EXEC).elf $(RAM_EXEC) $(RAM_EXEC).elf $(STRT_OBJ) $(OBJS)\
 			$(MAPFILE) $(LDCFILE) depend 
