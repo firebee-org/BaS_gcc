@@ -77,7 +77,7 @@ void init_slt(void)
 {
 	xprintf("slice timer initialization: ");
 	MCF_SLT0_STCNT = 0xffffffff;
-	MCF_SLT0_SCR = 0x05000000;
+	MCF_SLT0_SCR = MCF_SLT_SCR_TEN | MCF_SLT_SCR_IEN | MCF_SLT_SCR_RUN;	/* enable and run continuously */
 	xprintf("finished\r\n");
 }
 
@@ -283,16 +283,19 @@ void init_ddram(void)
 }
 
 /*
- * init FB_CSx
+ * initialize FlexBus chip select registers
  */
 void init_fbcs()
 {
 	xprintf("FlexBus chip select registers initialization: ");
 
 	/* Flash */
-	MCF_FBCS0_CSAR = 0xE0000000;			/* flash base address */
-	MCF_FBCS0_CSCR = 0x00001180;			/* 16 bit 4ws aa */
-	MCF_FBCS0_CSMR = 0x007F0001;			/* 8MB on */
+	MCF_FBCS0_CSAR = 0xE0000000;	/* flash base address */
+	MCF_FBCS0_CSCR = MCF_FBCS_CSCR_PS_16 |
+			MCF_FBCS_CSCR_WS(4)|
+			MCF_FBCS_CSCR_AA;
+	MCF_FBCS0_CSMR = MCF_FBCS_CSMR_BAM_8M |
+			MCF_FBCS_CSMR_V;				/* 8 MByte on */
 
 	MCF_FBCS1_CSAR = 0xFFF00000;			/* ATARI I/O ADRESS */
 	MCF_FBCS1_CSCR = MCF_FBCS_CSCR_PS_16	/* 16BIT PORT */
@@ -317,7 +320,7 @@ void init_fbcs()
 	MCF_FBCS4_CSCR = MCF_FBCS_CSCR_PS_32	// 32BIT PORT
 	    | MCF_FBCS_CSCR_BSTR				// BURST READ ENABLE
 	    | MCF_FBCS_CSCR_BSTW;				// BURST WRITE ENABLE
-	MCF_FBCS4_CSMR = MCF_FBCS_CSMR_BAM_1G	// 4000'0000-7FFF'FFFF
+	MCF_FBCS4_CSMR = MCF_FBCS_CSMR_BAM_4M	// 4000'0000-7FFF'FFFF
 			  | MCF_FBCS_CSMR_V;
 
 	xprintf("finished\r\n");
