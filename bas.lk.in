@@ -90,6 +90,10 @@ SECTIONS {
 		*(.data)
 		*(.bss)
 		
+#if (FORMAT == elf32-m68k)
+	*(.rodata)
+	*(.rodata.*)
+#endif
 		_bas_end = ABSOLUTE(.);
 	} > ram
 
