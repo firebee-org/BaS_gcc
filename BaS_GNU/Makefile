@@ -13,9 +13,11 @@ COMPILE_ELF=N
 ifeq (Y,$(COMPILE_ELF))
 TCPREFIX=m68k-elf-
 EXE=elf
+FORMAT=elf32-m68k
 else 
 TCPREFIX=m68k-atari-mint-
 EXE=s19
+FORMAT=srec
 endif
 
 CC=$(TCPREFIX)gcc
@@ -26,6 +28,7 @@ OBJCOPY=$(TCPREFIX)objcopy
 INCLUDE=-Iinclude
 CFLAGS=-mcpu=5474\
 	   -Wall\
+	   -g\
 	   -Wno-multichar\
 	   -Os\
 	   -fomit-frame-pointer\
@@ -83,9 +86,11 @@ $(FLASH_EXEC): TARGET_ADDRESS=0xe0000000
 $(RAM_EXEC): TARGET_ADDRESS=0x10000000
 
 $(FLASH_EXEC) $(RAM_EXEC): $(STRT_OBJ) $(OBJS)
-	$(CPP) -P -DTARGET_ADDRESS=$(TARGET_ADDRESS) $(LDCSRC) -o $(LDCFILE)
-	$(LD) --oformat srec -Map $(MAPFILE) --cref -T $(LDCFILE) -o $@
+	$(CPP) -P -DTARGET_ADDRESS=$(TARGET_ADDRESS) -DFORMAT=$(FORMAT) $(LDCSRC) -o $(LDCFILE)
+	$(LD) --oformat $(FORMAT) -Map $(MAPFILE) --cref -T $(LDCFILE) -o $@
+ifneq ($(COMPILE_ELF),Y)
 	objcopy -I srec -O elf32-big --alt-machine-code 4 $@ $@.elf
+endif
 	
 # compile init_fpga with -mbitfield for testing purposes
 $(OBJDIR)/init_fpga.o:	CFLAGS += -mbitfield
