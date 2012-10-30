@@ -494,6 +494,12 @@ void test_upd720101(void)
 	xprintf("finished\r\n");
 }
 
+static void wait_i2c_transfer_finished(void)
+{
+	while (!(MCF_I2C_I2SR & MCF_I2C_I2SR_IIF));	/* wait until interrupt bit has been set */
+	MCF_I2C_I2SR &= ~MCF_I2C_I2SR_IIF; 			/* clear interrupt bit (byte transfer finished */
+}
+
 /*
  * TFP410 (DVI) on
  */
@@ -504,58 +510,53 @@ void dvi_on(void) {
 	
 	xprintf("DVI digital video output initialization: ");
 
-	MCF_I2C_I2FDR = 0x3c;	// 100kHz standard
+	MCF_I2C_I2FDR = 0x3c;		/* divide system clock by 1280: 100kHz standard */
 
 	do {
-		MCF_I2C_I2ICR = 0x0;
-		MCF_I2C_I2CR = 0x0;
-		MCF_I2C_I2CR = 0xA;
-		RBYT = MCF_I2C_I2DR;
-		MCF_I2C_I2SR = 0x0;
-		MCF_I2C_I2CR = 0x0;
-		MCF_I2C_I2ICR = 0x01;
-		MCF_I2C_I2CR = 0xb0;
-		MCF_I2C_I2DR = 0x7a; // ADRESSE TFP410
+		/* disable all i2c interrupt routing targets */
+		MCF_I2C_I2ICR &= ~(MCF_I2C_I2ICR_IE | MCF_I2C_I2ICR_RE | MCF_I2C_I2ICR_TE | MCF_I2C_I2ICR_BNBE);
 
-		while (!(MCF_I2C_I2SR & MCF_I2C_I2SR_IIF))
-			; // warten auf fertig
+		/* disable i2c, disable i2c interrupts, slave, recieve, i2c = acknowledge, no repeat start */
+		MCF_I2C_I2CR = 0x0;
 
-		MCF_I2C_I2SR &= 0xfd; // clear bit
-		if (MCF_I2C_I2SR & MCF_I2C_I2SR_RXAK)
+		/* repeat start, transmit acknowledge */
+		MCF_I2C_I2CR = MCF_I2C_I2CR_RSTA | MCF_I2C_I2CR_TXAK;
+
+		RBYT = MCF_I2C_I2DR;	/* read a byte */
+		MCF_I2C_I2SR = 0x0;		/* clear status register */
+		MCF_I2C_I2CR = 0x0;		/* disable i2c */
+
+		MCF_I2C_I2ICR = MCF_I2C_I2ICR_IE;	/* route i2c interrupts to cpu */
+		/* i2c enable, master mode, transmit acknowledge */
+		MCF_I2C_I2CR = MCF_I2C_I2CR_IEN | MCF_I2C_I2CR_MSTA | MCF_I2C_I2CR_MTX;
+
+		MCF_I2C_I2DR = 0x7a;				/* send data: address of TFP410 */
+
+		wait_i2c_transfer_finished();
+		if (MCF_I2C_I2SR & MCF_I2C_I2SR_RXAK)		/* next try if no acknowledge */
 			continue;
 
-		MCF_I2C_I2DR = 0x00; // SUB ADRESS 0
-		while (!(MCF_I2C_I2SR & MCF_I2C_I2SR_IIF))
-			;
+		MCF_I2C_I2DR = 0x00;						/* send data: SUB ADRESS 0 */
+		wait_i2c_transfer_finished();
 
-		MCF_I2C_I2SR &= 0xfd;
-		MCF_I2C_I2CR |= 0x4; // repeat start
-		MCF_I2C_I2DR = 0x7b; // beginn read
+		MCF_I2C_I2CR |= MCF_I2C_I2CR_RSTA;			/* repeat start */
+		MCF_I2C_I2DR = 0x7b;						/* begin read */
 
-		while (!(MCF_I2C_I2SR & MCF_I2C_I2SR_IIF))
-			; // warten auf fertig
-
-		MCF_I2C_I2SR &= 0xfd; // clear bit
-
-		if (MCF_I2C_I2SR & MCF_I2C_I2SR_RXAK)
+		wait_i2c_transfer_finished();
+		if (MCF_I2C_I2SR & MCF_I2C_I2SR_RXAK)		/* next try if no acknowledge */
 			continue;
 
-		MCF_I2C_I2CR &= 0xef; // switch to rx
-		DBYT = MCF_I2C_I2DR; // dummy read
+		MCF_I2C_I2CR &= ~MCF_I2C_I2CR_MTX;			/* switch to receive mode */
+		DBYT = MCF_I2C_I2DR; 						/* dummy read */
 
-		while (!(MCF_I2C_I2SR & MCF_I2C_I2SR_IIF))
-			;
+		wait_i2c_transfer_finished();
 
-		MCF_I2C_I2SR &= 0xfd;
+		MCF_I2C_I2CR |= MCF_I2C_I2CR_TXAK; 			/* transmit acknowledge enable */
+		RBYT = MCF_I2C_I2DR;						/* read a byte */
 
-		MCF_I2C_I2CR |= 0x08; // txak=1
-		RBYT = MCF_I2C_I2DR;
+		wait_i2c_transfer_finished();
 
-		while (!(MCF_I2C_I2SR & MCF_I2C_I2SR_IIF))
-			;
-
-		MCF_I2C_I2SR &= 0xfd;
-		MCF_I2C_I2CR = 0x80; // stop
+		MCF_I2C_I2CR = MCF_I2C_I2CR_IEN;			/* stop */
 
 		DBYT = MCF_I2C_I2DR; // dummy read
 
@@ -565,64 +566,46 @@ void dvi_on(void) {
 		MCF_I2C_I2CR = 0x0; // stop
 		MCF_I2C_I2SR = 0x0; // clear sr
 
-		while ((MCF_I2C_I2SR & MCF_I2C_I2SR_IBB))
-			; // wait auf bus free
+		while ((MCF_I2C_I2SR & MCF_I2C_I2SR_IBB));	/* wait for bus free */
 
 		MCF_I2C_I2CR = 0xb0; // on tx master
 		MCF_I2C_I2DR = 0x7A;
 
-		while (!(MCF_I2C_I2SR & MCF_I2C_I2SR_IIF))
-			; // warten auf fertig
-
-		MCF_I2C_I2SR &= 0xfd; // clear bit
+		wait_i2c_transfer_finished();
 
 		if (MCF_I2C_I2SR & MCF_I2C_I2SR_RXAK)
 			continue;
 
 		MCF_I2C_I2DR = 0x08; // SUB ADRESS 8
 
-		while (!(MCF_I2C_I2SR & MCF_I2C_I2SR_IIF))
-			;
+		wait_i2c_transfer_finished();
 
-		MCF_I2C_I2SR &= 0xfd;
 		MCF_I2C_I2DR = 0xbf; // ctl1: power on, T:M:D:S: enable
 
-		while (!(MCF_I2C_I2SR & MCF_I2C_I2SR_IIF))
-			;
+		wait_i2c_transfer_finished();
 
-		MCF_I2C_I2SR &= 0xfd;
-		;
 		MCF_I2C_I2CR = 0x80; // stop
 		DBYT = MCF_I2C_I2DR; // dummy read
 		MCF_I2C_I2SR = 0x0; // clear sr
 
-		while ((MCF_I2C_I2SR & MCF_I2C_I2SR_IBB))
-			; // wait auf bus free
+		while ((MCF_I2C_I2SR & MCF_I2C_I2SR_IBB)); /* wait until bus free */
 
 		MCF_I2C_I2CR = 0xb0;
 		MCF_I2C_I2DR = 0x7A;
 
-		while (!(MCF_I2C_I2SR & MCF_I2C_I2SR_IIF))
-			; // warten auf fertig
-
-		MCF_I2C_I2SR &= 0xfd; // clear bit
+		wait_i2c_transfer_finished();
 
 		if (MCF_I2C_I2SR & MCF_I2C_I2SR_RXAK)
 			continue;
 
 		MCF_I2C_I2DR = 0x08; // SUB ADRESS 8
 
-		while (!(MCF_I2C_I2SR & MCF_I2C_I2SR_IIF))
-			;
+		wait_i2c_transfer_finished();
 
-		MCF_I2C_I2SR &= 0xfd;
 		MCF_I2C_I2CR |= 0x4; // repeat start
 		MCF_I2C_I2DR = 0x7b; // beginn read
 
-		while (!(MCF_I2C_I2SR & MCF_I2C_I2SR_IIF))
-			; // warten auf fertig
-
-		MCF_I2C_I2SR &= 0xfd; // clear bit
+		wait_i2c_transfer_finished();
 
 		if (MCF_I2C_I2SR & MCF_I2C_I2SR_RXAK)
 			continue;
@@ -630,20 +613,15 @@ void dvi_on(void) {
 		MCF_I2C_I2CR &= 0xef; // switch to rx
 		DBYT = MCF_I2C_I2DR; // dummy read
 
-		while (!(MCF_I2C_I2SR & MCF_I2C_I2SR_IIF))
-			;
-
-		MCF_I2C_I2SR &= 0xfd;
+		wait_i2c_transfer_finished();
 		MCF_I2C_I2CR |= 0x08; // txak=1
 
 		wait_50us();
 
 		RBYT = MCF_I2C_I2DR;
 
-		while (!(MCF_I2C_I2SR & MCF_I2C_I2SR_IIF))
-			;
+		wait_i2c_transfer_finished();
 
-		MCF_I2C_I2SR &= 0xfd;
 		MCF_I2C_I2CR = 0x80; // stop
 
 		DBYT = MCF_I2C_I2DR; // dummy read
