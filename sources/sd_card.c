@@ -12,7 +12,7 @@ void sd_card_idle(void)
 			"bsr		sd_idle\n\t"
 			/* output */:
 			/* input */ :
-			/* clobber */: "a0","a1","a2","a3","a4","a5","a6",
+			/* clobber */: "a0","a1","a2","a3","a4","a5",
 			              "d0","d1","d2","d3","d4","d5","d6","d7","memory"
 	);
 }
@@ -28,7 +28,7 @@ int sd_card_init(void)
 		"bsr.l			sd_init\n\t"
 		/* output */: "=r" (ret)
 		/* input */ :
-		/* clobber */: "a0","a1","a2","a3","a4","a5","a6",
+		/* clobber */: "a0","a1","a2","a3","a4","a5",
 		              "d1","d2","d3","d4","d5","d6","d7","memory"
 	);
 

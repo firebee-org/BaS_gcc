@@ -5,21 +5,16 @@
 open $1
 reset
 
-# notify flashlib that we have flash at address 0xE0000000, length 0x7FFFFF, plugin is flash29
-#flash 0xE0000000 flash29
-# do not flash yet. First check if board can be initialized correctly
+wait
 
 # set VBR
-write-ctrl 0x0801 0x00000000
+#write-ctrl 0x0801 0x00000000
 sleep 10
 # Turn on MBAR at 0xFF00_0000
 write-ctrl 0x0C0F 0xFF000000
-sleep 10
-write-ctrl 0x0C0F 0xFF000000
 
 # Turn on MMUBAR at 0xFF04_0000
-#write-ctrl 0x0008	0xFF000001
-#write 0xFF000008 0x00000000 4
+write-ctrl 0x0008	0xFF040001
 
 # Turn on RAMBAR0 at address FF10_0000 
 write-ctrl 0x0C04 0xFF100007
@@ -32,38 +27,49 @@ sleep 10
 write 0xFF000500 0xE0000000 4
 write 0xFF000508 0x00001180 4
 write 0xFF000504 0x007F0001 4
+# Init CS1 (Atari I/O address range)
+#write 0xFF00050C 0xFFF00000 4
+#write 0xFF000514 0x00002180 4
+#write 0xFF000510 0x000F0001 4
+# Init CS2 (FireBee 32 bit I/O address range)
+#write 0xFF000518 0xF0000000 4
+#write 0xFF000520 0x00002100 4
+#write 0xFF00051C 0x07FF0001 4
+# Init CS3 (FireBee 16 bit I/O address range)
+#write 0xFF000524 0xF8000000 4
+#write 0xFF00052C 0x00000180 4
+#write 0xFF000528 0x03FF0001 4
+# Init CS4 (FireBee video address range)
+#write 0xFF000530 0x40000000 4
+#write 0xFF000538 0x00000018 4
+#write 0xFF000534 0x003F0001 4
+
 
 # SDRAM Initialization @ 0000_0000 - 1FFF_FFFF 512Mbytes
 write 0xFF000004 0x000002AA 4	# SDRAMDS configuration
-sleep 10
 write 0xFF000020 0x0000001A 4	# SDRAM CS0 configuration (128Mbytes 0000_0000 - 07FF_FFFF)
-sleep 10
 write 0xFF000024 0x0800001A 4	# SDRAM CS1 configuration (128Mbytes 0800_0000 - 0FFF_FFFF)
-sleep 10
 write 0xFF000028 0x1000001A 4	# SDRAM CS2 configuration (128Mbytes 1000_0000 - 17FF_FFFF)
-sleep 10
 write 0xFF00002C 0x1800001A 4	# SDRAM CS3 configuration (128Mbytes 1800_0000 - 1FFF_FFFF)
-sleep 10
 write 0xFF000108 0x73622830 4	# SDCFG1
-sleep 10
 write 0xFF00010C 0x46770000 4	# SDCFG2
-sleep 10
 
 write 0xFF000104 0xE10D0002 4	# SDCR + IPALL
-sleep 10
 write 0xFF000100 0x40010000 4	# SDMR (write to LEMR)
-sleep 10
 write 0xFF000100 0x048D0000 4	# SDMR (write to LMR)
-sleep 10
 write 0xFF000104 0xE10D0002 4	# SDCR + IPALL
-sleep 10
 write 0xFF000104 0xE10D0004 4	# SDCR + IREF (first refresh)
-sleep 10
 write 0xFF000104 0xE10D0004 4	# SDCR + IREF (first refresh)
-sleep 10
 write 0xFF000100 0x008D0000 4	# SDMR (write to LMR)
-sleep 10
 write 0xFF000104 0x710D0F00 4	# SDCR (lock SDMR and enable refresh)
 
-load -v ram.s19.elf
-execute 0x10000000
+write 0xFF000240 0x80000000 4	# disable watchdog arbiter
+
+# notify flashlib that we have flash at address 0xE0000000, length 0x7FFFFF, plugin is flash29
+flash 0xE0000000 flash29
+# do not flash yet. First check if board can be initialized correctly
+
+load -v ram.elf
+wait
+sleep 1000
+execute
