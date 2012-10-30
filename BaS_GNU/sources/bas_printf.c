@@ -66,7 +66,7 @@ static void xputchar(int c)
 			"bsr			printf_helper\n\t"
 			/* output */:
 			/* input */: "r" (c)
-			/* clobber */: "d0","d2","a0"
+			/* clobber */: "d0","d2","a0","memory"
 	);
 }
 

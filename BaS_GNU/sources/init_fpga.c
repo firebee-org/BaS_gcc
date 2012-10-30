@@ -14,32 +14,28 @@
 #define FPGA_CONF_DONE	(1 << 5)
 
 extern void xprintf_before_copy(const char *fmt, ...);
-#define xprintf	 xprintf_before_copy
+extern void display_progress_before_copy(void);
+extern void wait_10ms();
 
+#define xprintf	 xprintf_before_copy
+#define display_progress display_progress_before_copy
 /*
  * load FPGA
  */
 void init_fpga(void)
 {
-	register uint8_t *fpga_data;
+	register uint32_t *fpga_data;
 	register int i;
 
-	xprintf("FPGA load data...");
+	xprintf("FPGA load data...\r\n");
 
 
 	MCF_GPIO_PODR_FEC1L &= ~FPGA_CLOCK;		/* FPGA clock => low */
 	MCF_GPIO_PODR_FEC1L &= ~FPGA_CONFIG;	/* FPGA config => low */
 
-	while (((MCF_GPIO_PPDSDR_FEC1L & FPGA_STATUS)) || ((MCF_GPIO_PPDSDR_FEC1L & FPGA_CONF_DONE)));
-	wait_10us();
-
-	MCF_GPIO_PODR_FEC1L |= FPGA_CONFIG;		/* pull FPGA_CONFIG high */
-	wait_10us();
-
-	while (!(MCF_GPIO_PPDSDR_FEC1L & FPGA_STATUS))	/* wait until status becomes high */
-	{
-		wait_10us();
-	}
+	while ((MCF_GPIO_PPDSDR_FEC1L & FPGA_STATUS) && (MCF_GPIO_PPDSDR_FEC1L & FPGA_CONF_DONE));
+	MCF_GPIO_PODR_FEC1L |= FPGA_CONFIG;				/* pull FPGA_CONFIG high */
+	while (!(MCF_GPIO_PPDSDR_FEC1L & FPGA_STATUS));	/* wait until status becomes high */
 
 	/*
 	 * excerpt from an Altera configuration manual:
@@ -60,11 +56,17 @@ void init_fpga(void)
 	 * which is pulled high by a pull-up resistor. A low to high transition on CONF_DONE indicates
 	 * configuration is complete and initialization of the device can begin.
 	 */
-	fpga_data = (uint8_t *) FPGA_FLASH_DATA;
+	fpga_data = (uint32_t *) FPGA_FLASH_DATA;
 	do
 	{
-		uint8_t value = *fpga_data++;
-		for (i = 0; i < 8; i++, value >>= 1)
+		uint32_t value = *fpga_data++;
+
+		if (((int) fpga_data % 0x100) == 0) {
+			xprintf("%08x  ", fpga_data);
+			display_progress();
+		}
+
+		for (i = 0; i < 32; i++, value >>= 1)
 		{
 
 			if (value & 1)
@@ -81,9 +83,9 @@ void init_fpga(void)
 			MCF_GPIO_PODR_FEC1L |= FPGA_CLOCK;
 			MCF_GPIO_PODR_FEC1L &= ~FPGA_CLOCK;
 		}
-	} while (!(MCF_GPIO_PPDSDR_FEC1L & FPGA_CONF_DONE) && (fpga_data < FPGA_FLASH_DATA_END));
+	} while ((!(MCF_GPIO_PPDSDR_FEC1L & FPGA_CONF_DONE)) && (fpga_data < (uint32_t *) FPGA_FLASH_DATA_END));
 
-	if (fpga_data < FPGA_FLASH_DATA_END)
+	if (fpga_data < (uint32_t *) FPGA_FLASH_DATA_END)
 	{
 		for (i = 0; i < 4000; i++)
 		{

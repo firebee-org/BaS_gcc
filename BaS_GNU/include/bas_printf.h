@@ -8,4 +8,6 @@ extern void xvprintf(const char *fmt, va_list va);
 extern void xprintf(const char *fmt, ...);
 extern void xsnprintf(char *str, size_t size, const char *fmt, ...);
 
+extern void display_progress(void);
+
 #endif /* _BAS_PRINTF_H_ */
