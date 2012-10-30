@@ -8,7 +8,9 @@
 # installation, but allows source level debugging over BDM with a recent gdb (tested with 7.5),
 # the m68k BDM tools from sourceforge (http://bdm.sourceforge.net) and a BDM pod (TBLCF and P&E tested).
 
-COMPILE_ELF=N
+# can be either "Y" or "N" (without quotes). "Y" for using the m68k-elf-, "N" for using the m68k-atari-mint
+# toolchain
+COMPILE_ELF=Y
 
 ifeq (Y,$(COMPILE_ELF))
 TCPREFIX=m68k-elf-
