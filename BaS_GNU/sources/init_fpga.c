@@ -24,7 +24,7 @@ extern void wait_10ms();
  */
 void init_fpga(void)
 {
-	register uint32_t *fpga_data;
+	register uint8_t *fpga_data;
 	register int i;
 
 	xprintf("FPGA load data...\r\n");
@@ -56,17 +56,17 @@ void init_fpga(void)
 	 * which is pulled high by a pull-up resistor. A low to high transition on CONF_DONE indicates
 	 * configuration is complete and initialization of the device can begin.
 	 */
-	fpga_data = (uint32_t *) FPGA_FLASH_DATA;
+	fpga_data = (uint8_t *) FPGA_FLASH_DATA;
 	do
 	{
-		uint32_t value = *fpga_data++;
+		uint8_t value = *fpga_data++;
 
 		if (((int) fpga_data % 0x100) == 0) {
 			xprintf("%08x  ", fpga_data);
 			display_progress();
 		}
 
-		for (i = 0; i < 32; i++, value >>= 1)
+		for (i = 0; i < 8; i++, value >>= 1)
 		{
 
 			if (value & 1)
@@ -83,9 +83,9 @@ void init_fpga(void)
 			MCF_GPIO_PODR_FEC1L |= FPGA_CLOCK;
 			MCF_GPIO_PODR_FEC1L &= ~FPGA_CLOCK;
 		}
-	} while ((!(MCF_GPIO_PPDSDR_FEC1L & FPGA_CONF_DONE)) && (fpga_data < (uint32_t *) FPGA_FLASH_DATA_END));
+	} while ((!(MCF_GPIO_PPDSDR_FEC1L & FPGA_CONF_DONE)) || (fpga_data < (uint8_t *) FPGA_FLASH_DATA_END));
 
-	if (fpga_data < (uint32_t *) FPGA_FLASH_DATA_END)
+	if (fpga_data < (uint8_t *) FPGA_FLASH_DATA_END)
 	{
 		for (i = 0; i < 4000; i++)
 		{
