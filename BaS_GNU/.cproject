@@ -126,16 +126,6 @@
 		<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId=""/>
 		<scannerConfigBuildInfo instanceId="cdt.managedbuild.toolchain.gnu.cross.base.500844171.756690686;cdt.managedbuild.toolchain.gnu.cross.base.500844171.756690686.;cdt.managedbuild.tool.gnu.cross.c.compiler.359669870;cdt.managedbuild.tool.gnu.c.compiler.input.374200372">
 			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfileC"/>
-			<profile id="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfileC">
-				<buildOutputProvider>
-					<openAction enabled="true" filePath=""/>
-					<parser enabled="true"/>
-				</buildOutputProvider>
-				<scannerInfoProvider id="specsFile">
-					<runAction arguments="-E -P -v -dD &quot;${plugin_state_location}/specs.c&quot;" command="m68k-elf-gcc" useDefault="true"/>
-					<parser enabled="true"/>
-				</scannerInfoProvider>
-			</profile>
 		</scannerConfigBuildInfo>
 		<scannerConfigBuildInfo instanceId="cdt.managedbuild.toolchain.gnu.cross.base.500844171.756690686;cdt.managedbuild.toolchain.gnu.cross.base.500844171.756690686.;cdt.managedbuild.tool.gnu.cross.c.compiler.1024005096;cdt.managedbuild.tool.gnu.c.compiler.input.1427165564">
 			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfileC"/>
