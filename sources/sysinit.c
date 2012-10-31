@@ -632,8 +632,8 @@ void dvi_on(void) {
 		MCF_I2C_I2CR = 0x80; // stop
 
 		dummyByte = MCF_I2C_I2DR; // dummy read
-
-	} while (receivedByte != 0xbf && num_tries++ < 10);
+		num_tries++;
+	} while ((receivedByte != 0xbf) && (num_tries < 10));
 
 	if (num_tries >= 10) {
 		xprintf("FAILED!\r\n");
@@ -813,7 +813,7 @@ void initialize_hardware(void) {
 	} while (src < end);
 
 	/* we have copied a code area, so flush the caches */
-	flush_and_invalidate_caches();
+	//flush_and_invalidate_caches();
 
 	/* jump into the BaS in RAM */
 	extern void BaS(void);
