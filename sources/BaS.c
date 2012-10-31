@@ -8,8 +8,8 @@
 #include "MCF5475_SLT.h"
 #include "startcf.h"
 #include "cache.h"
+#include "bas_printf.h"
 
-#define uart_out_word(a)	MCF_PSC3_PSCTB_8BIT = (a)
 extern uint32_t Bas_base[];
 extern uint8_t tos_base[];
 
@@ -69,7 +69,6 @@ void BaS(void)
 		{
 			* (uint8_t *) 0xffff8963 = (uint8_t) MCF_PSC3_PSCRB_8BIT;	/* Copy the NVRAM data from the PIC to the FPGA */
 		}
-		uart_out_word(' OK.');
 	}
 
 	xprintf("copy EmuTOS: ");
