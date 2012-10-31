@@ -47,16 +47,16 @@ void BaS(void)
 	}
 	*/
 	/* Initialize the NVRAM */
+
+	xprintf("initialize the NVRAM: ");
 	MCF_PSC3_PSCTB_8BIT = 'ACPF';
 	wait_10ms();
 
-	uart_out_word('PIC ');
-
 	* (volatile uint8_t *) &_MBAR[0x860C] = (uint8_t) (MCF_PSC3_PSCRB_8BIT);
 	* (volatile uint8_t *) &_MBAR[0x860C] = (uint8_t) (MCF_PSC3_PSCRB_8BIT);
 	* (volatile uint8_t *) &_MBAR[0x860C] = (uint8_t) (MCF_PSC3_PSCRB_8BIT);
 
-	uart_out_word(0x0d0a);
+	xprintf("finished\r\n");
 
 	//MCF_PSC3_PSCTB_8BIT = 0x01;	/* request RTC data */
 
@@ -72,6 +72,7 @@ void BaS(void)
 		uart_out_word(' OK.');
 	}
 
+	xprintf("copy EmuTOS: ");
 
 	/* copy EMUTOS */
 	src = (uint8_t *)EMUTOS;
@@ -80,23 +81,23 @@ void BaS(void)
 		*dst++ = *src++;
 	}
 
+	xprintf("finished\r\n");
+
 	/* we have copied a code area, so flush the caches */
 	flush_and_invalidate_caches();
 
-	uart_out_word('MMU ');
+	xprintf("initialize MMU: ");
 	mmu_init();
-	uart_out_word(' OK.');
+	xprintf("finished\r\n");
 
-	uart_out_word('EXC ');
+	xprintf("initialize exception vector table: ");
 	vec_init();
-	uart_out_word(' OK.');
-
-	uart_out_word('ILLG');
 	illegal_table_make();
-	uart_out_word(' OK.');
+	xprintf("finished\r\n");
 		
 	/* interrupts */
 
+	xprintf("enable interrupts: ");
 	* (uint32_t *) 0xf0010004 = 0L;		/* disable all interrupts */
 	MCF_EPORT_EPPAR = 0xaaa8;			/* all interrupts on falling edge */
 
@@ -112,13 +113,17 @@ void BaS(void)
 	MCF_INTC_IMRH = 0xbffffffe;			/* psc3 and timer 0 int on */
 
 	MCF_MMU_MMUCR = MCF_MMU_MMUCR_EN;	/* MMU on */
+	xprintf("finished\r\n");
 
+	xprintf("IDE reset: ");
 	/* IDE reset */
 	* (uint8_t *) (0xffff8802 - 2) = 14;
 	* (uint8_t *) (0xffff8802 - 0) = 0x80;
 	wait_1ms();
 
 	* (uint8_t *) (0xffff8802 - 0) = 0;
+
+	xprintf("finished\r\n");
 
 	/*
 	 * video setup (25MHz)
