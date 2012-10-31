@@ -77,7 +77,7 @@ void init_slt(void)
 {
 	xprintf("slice timer initialization: ");
 	MCF_SLT0_STCNT = 0xffffffff;
-	MCF_SLT0_SCR = MCF_SLT_SCR_TEN | MCF_SLT_SCR_IEN | MCF_SLT_SCR_RUN;	/* enable and run continuously */
+	MCF_SLT0_SCR = MCF_SLT_SCR_TEN | MCF_SLT_SCR_RUN;	/* enable and run continuously */
 	xprintf("finished\r\n");
 }
 
