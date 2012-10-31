@@ -813,7 +813,7 @@ void initialize_hardware(void) {
 	} while (src < end);
 
 	/* we have copied a code area, so flush the caches */
-	//flush_and_invalidate_caches();
+	flush_and_invalidate_caches();
 
 	/* jump into the BaS in RAM */
 	extern void BaS(void);
