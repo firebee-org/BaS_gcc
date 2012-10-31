@@ -83,7 +83,7 @@ void init_fpga(void)
 			MCF_GPIO_PODR_FEC1L |= FPGA_CLOCK;
 			MCF_GPIO_PODR_FEC1L &= ~FPGA_CLOCK;
 		}
-	} while ((!(MCF_GPIO_PPDSDR_FEC1L & FPGA_CONF_DONE)) || (fpga_data < (uint8_t *) FPGA_FLASH_DATA_END));
+	} while ((!(MCF_GPIO_PPDSDR_FEC1L & FPGA_CONF_DONE)) && (fpga_data < (uint8_t *) FPGA_FLASH_DATA_END));
 
 	if (fpga_data < (uint8_t *) FPGA_FLASH_DATA_END)
 	{
