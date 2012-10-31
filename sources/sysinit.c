@@ -320,7 +320,7 @@ void init_fbcs()
 	MCF_FBCS4_CSCR = MCF_FBCS_CSCR_PS_32	// 32BIT PORT
 	    | MCF_FBCS_CSCR_BSTR				// BURST READ ENABLE
 	    | MCF_FBCS_CSCR_BSTW;				// BURST WRITE ENABLE
-	MCF_FBCS4_CSMR = MCF_FBCS_CSMR_BAM_4M	// 4000'0000-7FFF'FFFF
+	MCF_FBCS4_CSMR = MCF_FBCS_CSMR_BAM_1G	// 4000'0000-7FFF'FFFF
 			  | MCF_FBCS_CSMR_V;
 
 	xprintf("finished\r\n");
@@ -511,8 +511,8 @@ static void wait_i2c_transfer_finished(void)
  * TFP410 (DVI) on
  */
 void dvi_on(void) {
-	uint8_t RBYT;
-	uint8_t DBYT; /* only used for a dummy read */
+	uint8_t receivedByte;
+	uint8_t dummyByte; /* only used for a dummy read */
 	int num_tries = 0;
 	
 	xprintf("DVI digital video output initialization: ");
@@ -529,7 +529,7 @@ void dvi_on(void) {
 		/* repeat start, transmit acknowledge */
 		MCF_I2C_I2CR = MCF_I2C_I2CR_RSTA | MCF_I2C_I2CR_TXAK;
 
-		RBYT = MCF_I2C_I2DR;	/* read a byte */
+		receivedByte = MCF_I2C_I2DR;	/* read a byte */
 		MCF_I2C_I2SR = 0x0;		/* clear status register */
 		MCF_I2C_I2CR = 0x0;		/* disable i2c */
 
@@ -553,21 +553,21 @@ void dvi_on(void) {
 		if (MCF_I2C_I2SR & MCF_I2C_I2SR_RXAK)		/* next try if no acknowledge */
 			continue;
 
-		MCF_I2C_I2CR &= ~MCF_I2C_I2CR_MTX;			/* switch to receive mode */
-		DBYT = MCF_I2C_I2DR; 						/* dummy read */
+		MCF_I2C_I2CR &= 0xef; //~MCF_I2C_I2CR_MTX;			/* switch to receive mode */
+		dummyByte = MCF_I2C_I2DR; 						/* dummy read */
 
 		wait_i2c_transfer_finished();
 
 		MCF_I2C_I2CR |= MCF_I2C_I2CR_TXAK; 			/* transmit acknowledge enable */
-		RBYT = MCF_I2C_I2DR;						/* read a byte */
+		receivedByte = MCF_I2C_I2DR;						/* read a byte */
 
 		wait_i2c_transfer_finished();
 
 		MCF_I2C_I2CR = MCF_I2C_I2CR_IEN;			/* stop */
 
-		DBYT = MCF_I2C_I2DR; // dummy read
+		dummyByte = MCF_I2C_I2DR; // dummy read
 
-		if (RBYT != 0x4c)
+		if (receivedByte != 0x4c)
 			continue;
 
 		MCF_I2C_I2CR = 0x0; // stop
@@ -592,7 +592,7 @@ void dvi_on(void) {
 		wait_i2c_transfer_finished();
 
 		MCF_I2C_I2CR = 0x80; // stop
-		DBYT = MCF_I2C_I2DR; // dummy read
+		dummyByte = MCF_I2C_I2DR; // dummy read
 		MCF_I2C_I2SR = 0x0; // clear sr
 
 		while ((MCF_I2C_I2SR & MCF_I2C_I2SR_IBB)); /* wait until bus free */
@@ -618,29 +618,29 @@ void dvi_on(void) {
 			continue;
 
 		MCF_I2C_I2CR &= 0xef; // switch to rx
-		DBYT = MCF_I2C_I2DR; // dummy read
+		dummyByte = MCF_I2C_I2DR; // dummy read
 
 		wait_i2c_transfer_finished();
 		MCF_I2C_I2CR |= 0x08; // txak=1
 
 		wait_50us();
 
-		RBYT = MCF_I2C_I2DR;
+		receivedByte = MCF_I2C_I2DR;
 
 		wait_i2c_transfer_finished();
 
 		MCF_I2C_I2CR = 0x80; // stop
 
-		DBYT = MCF_I2C_I2DR; // dummy read
+		dummyByte = MCF_I2C_I2DR; // dummy read
 
-	} while (RBYT != 0xbf || num_tries++ < 10);
+	} while (receivedByte != 0xbf || num_tries++ < 10);
 
 	if (num_tries >= 10) {
 		xprintf("FAILED!\r\n");
 	} else {
 		xprintf("finished\r\n");
 	}
-	UNUSED(DBYT);
+	UNUSED(dummyByte);
 	// Avoid warning
 }
 
