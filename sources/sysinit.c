@@ -521,7 +521,7 @@ void dvi_on(void) {
 
 	do {
 		/* disable all i2c interrupt routing targets */
-		MCF_I2C_I2ICR &= ~(MCF_I2C_I2ICR_IE | MCF_I2C_I2ICR_RE | MCF_I2C_I2ICR_TE | MCF_I2C_I2ICR_BNBE);
+		MCF_I2C_I2ICR = 0x0; //~(MCF_I2C_I2ICR_IE | MCF_I2C_I2ICR_RE | MCF_I2C_I2ICR_TE | MCF_I2C_I2ICR_BNBE);
 
 		/* disable i2c, disable i2c interrupts, slave, recieve, i2c = acknowledge, no repeat start */
 		MCF_I2C_I2CR = 0x0;
@@ -633,7 +633,7 @@ void dvi_on(void) {
 
 		dummyByte = MCF_I2C_I2DR; // dummy read
 
-	} while (receivedByte != 0xbf || num_tries++ < 10);
+	} while (receivedByte != 0xbf && num_tries++ < 10);
 
 	if (num_tries >= 10) {
 		xprintf("FAILED!\r\n");
