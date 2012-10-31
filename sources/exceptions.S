@@ -1,7 +1,6 @@
 /*
  * initialize exception vectors
  */
-
 #include "startcf.h"
 
 		.extern __Bas_base
