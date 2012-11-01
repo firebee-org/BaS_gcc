@@ -45,11 +45,16 @@ set *((long *) 0xFF000100) = 0x008D0000
 set *((long *) 0xFF000104) = 0x710D0F00		
 end
 
+define cu
+!killall m68k-bdm-gdbserver
+end
+
 #
 # Wake up the board
 #
 
-define initBoard
+define ib
 addresses
 setup-dram
 end
+ib
