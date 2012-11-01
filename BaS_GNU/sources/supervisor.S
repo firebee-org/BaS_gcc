@@ -3,6 +3,7 @@
  */
 
 #include "startcf.h"
+#define cf_stack
 
 .extern _rt_cacr;
 .extern _rt_mod;
