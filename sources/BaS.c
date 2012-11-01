@@ -60,21 +60,21 @@ void BaS(void)
 
 	//MCF_PSC3_PSCTB_8BIT = 0x01;	/* request RTC data */
 
-	* (uint8_t *) &_MBAR[0x890C] = 0x01;
+	* (volatile uint8_t *) &_MBAR[0x890C] = 0x01;
 
 	//if (MCF_PSC3_PSCRB_8BIT == 0x81)
-	if (* (uint8_t *) &_MBAR[0X890C] == 0x81)
+	if (* (volatile uint8_t *) &_MBAR[0X890C] == 0x81)
 	{
 		for (i = 0; i < 64; i++)
 		{
-			* (uint8_t *) 0xffff8963 = (uint8_t) MCF_PSC3_PSCRB_8BIT;	/* Copy the NVRAM data from the PIC to the FPGA */
+			* (volatile int8_t *) 0xffff8963 = (uint8_t) MCF_PSC3_PSCRB_8BIT;	/* Copy the NVRAM data from the PIC to the FPGA */
 		}
 	}
 
 	xprintf("copy EmuTOS: ");
 
 	/* copy EMUTOS */
-	src = (uint8_t *)EMUTOS;
+	src = (uint8_t *) EMUTOS;
 	while (src < (uint8_t *)(EMUTOS + EMUTOS_SIZE))
 	{
 		*dst++ = *src++;
@@ -97,7 +97,7 @@ void BaS(void)
 	/* interrupts */
 
 	xprintf("enable interrupts: ");
-	* (uint32_t *) 0xf0010004 = 0L;		/* disable all interrupts */
+	* (volatile uint32_t *) 0xf0010004 = 0L;		/* disable all interrupts */
 	MCF_EPORT_EPPAR = 0xaaa8;			/* all interrupts on falling edge */
 
 	MCF_GPT0_GMS = MCF_GPT_GMS_ICT(1) |	/* timer 0 on, video change capture on rising edge */
@@ -105,7 +105,7 @@ void BaS(void)
 			MCF_GPT_GMS_TMS(1);
 	MCF_INTC_ICR62 = 0x3f;
 
-	* (uint8_t *) 0xf0010004 = 0xfe;	/* enable int 1-7 */
+	* (volatile uint8_t *) 0xf0010004 = 0xfe;	/* enable int 1-7 */
 	MCF_EPORT_EPIER = 0xfe;				/* int 1-7 on */
 	MCF_EPORT_EPFR = 0xff;				/* clear all pending interrupts */
 	MCF_INTC_IMRL = 0xffffff00;			/* int 1-7 on */
@@ -116,21 +116,21 @@ void BaS(void)
 
 	xprintf("IDE reset: ");
 	/* IDE reset */
-	* (uint8_t *) (0xffff8802 - 2) = 14;
-	* (uint8_t *) (0xffff8802 - 0) = 0x80;
+	* (volatile uint8_t *) (0xffff8802 - 2) = 14;
+	* (volatile uint8_t *) (0xffff8802 - 0) = 0x80;
 	wait_1ms();
 
-	* (uint8_t *) (0xffff8802 - 0) = 0;
+	* (volatile uint8_t *) (0xffff8802 - 0) = 0;
 
 	xprintf("finished\r\n");
 
 	/*
 	 * video setup (25MHz)
 	 */
-	* (uint32_t *) (0xf0000410 + 0) = 0x032002ba;	/* horizontal 640x480 */
-	* (uint32_t *) (0xf0000410 + 4) = 0x020c020a;	/* vertical 640x480 */
-	* (uint32_t *) (0xf0000410 + 8) = 0x0190015d;	/* horizontal 320x240 */
-	* (uint32_t *) (0xf0000410 + 12) = 0x020C020A;	/* vertical 320x230 */
+	* (volatile uint32_t *) (0xf0000410 + 0) = 0x032002ba;	/* horizontal 640x480 */
+	* (volatile uint32_t *) (0xf0000410 + 4) = 0x020c020a;	/* vertical 640x480 */
+	* (volatile uint32_t *) (0xf0000410 + 8) = 0x0190015d;	/* horizontal 320x240 */
+	* (volatile uint32_t *) (0xf0000410 + 12) = 0x020C020A;	/* vertical 320x230 */
 
 #ifdef _NOT_USED_
 //  32MHz
@@ -141,7 +141,7 @@ void BaS(void)
 #endif /* _NOT_USED_ */
 
 	/* fifo on, refresh on, ddrcs and cke on, video dac on */
-	* (uint32_t *) (0xf0000410 - 0x20) = 0x01070002;
+	* (volatile uint32_t *) (0xf0000410 - 0x20) = 0x01070002;
 
 	/*
 	 * memory setup
@@ -153,7 +153,7 @@ void BaS(void)
 		*adr++ = 0x0L;
 	}
 
-	* (uint8_t *) 0xffff8007 = 0x48;	/* FIXME: what's that ? */
+	* (volatile uint8_t *) 0xffff8007 = 0x48;	/* FIXME: what's that ? */
 
 	/* ST RAM */
 
