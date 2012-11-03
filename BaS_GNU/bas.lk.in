@@ -68,7 +68,6 @@ SECTIONS {
 		objs/startcf.o(.text) /* this one is the entry point so it must be the first */
 		objs/sysinit.o(.text)
 		objs/init_fpga.o(.text)
-		objs/cache.o(.text)
 #if (FORMAT == elf32-m68k)
 		*(.rodata)
 		*(.rodata.*)
@@ -85,6 +84,8 @@ SECTIONS {
 		objs/printf_helper.o(.text)
 		_xprintf_before_copy = _xprintf - (_BaS - LOADADDR(.bas));
 		_display_progress_before_copy = _display_progress - (_BaS - LOADADDR(.bas));
+		objs/cache.o(.text)
+		_flush_and_invalidate_caches_before_copy = _flush_and_invalidate_caches - (_BaS - LOADADDR(.bas));
 		objs/sd_card.o(.text)
 		objs/mmu.o(.text)
 		objs/exceptions.o(.text)
