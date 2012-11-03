@@ -14,6 +14,8 @@
 
 extern void xprintf_before_copy(const char *fmt, ...);
 #define xprintf	 xprintf_before_copy
+extern void flush_and_invalidate_caches_before_copy(void);
+#define flush_and_invalidate_caches flush_and_invalidate_caches_before_copy
 
 #define UNUSED(x)       (void)(x)               /* Unused variable         */
 
