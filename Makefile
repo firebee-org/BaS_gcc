@@ -98,9 +98,9 @@ endif
 $(OBJDIR)/init_fpga.o:	CFLAGS += -mbitfield
 
 # compile printf pc-relative so it can be used as well before and after copy of BaS
-$(OBJDIR)/printf.o:	CFLAGS += -mpcrel
+$(OBJDIR)/bas_printf.o:	CFLAGS += -mpcrel
 # the same for flush_and_invalidate_cache()
-$(OBJDIR)/cache.c: CFLAGS += -mpcrel
+$(OBJDIR)/cache.o: CFLAGS += -mpcrel
 
 $(OBJDIR)/%.o:$(SRCDIR)/%.c
 	$(CC) -c $(CFLAGS) $(INCLUDE) $< -o $@
