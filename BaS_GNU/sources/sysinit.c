@@ -24,42 +24,42 @@ extern volatile long _VRAM;	/* start address of video ram from linker script */
  */
 void wait_10ms(void)
 {
-	register uint32_t target = MCF_SLT_SCNT(0) - 1320000;
+	uint32_t target = MCF_SLT_SCNT(0) - 1320000;
 
 	while (MCF_SLT_SCNT(0) > target);
 }
 
 void wait_1ms(void)
 {
-	register uint32_t target = MCF_SLT_SCNT(0) - 132000;
+	uint32_t target = MCF_SLT_SCNT(0) - 132000;
 
 	while (MCF_SLT_SCNT(0) > target);
 }
 
 void wait_100us(void)
 {
-	register uint32_t target = MCF_SLT_SCNT(0) - 13200;
+	uint32_t target = MCF_SLT_SCNT(0) - 13200;
 
 	while (MCF_SLT_SCNT(0) > target);
 }
 
 void wait_50us(void)
 {
-	register uint32_t target = MCF_SLT_SCNT(0) - 6600;
+	uint32_t target = MCF_SLT_SCNT(0) - 6600;
 
 	while (MCF_SLT_SCNT(0) > target);
 }
 
 void wait_10us(void)
 {
-	register uint32_t target = MCF_SLT_SCNT(0) - 1320;
+	uint32_t target = MCF_SLT_SCNT(0) - 1320;
 
 	while (MCF_SLT_SCNT(0) > target);
 }
 
 void wait_1us(void)
 {
-	register uint32_t target = MCF_SLT_SCNT(0) - 132;
+	uint32_t target = MCF_SLT_SCNT(0) - 132;
 
 	while (MCF_SLT_SCNT(0) > target);
 }
@@ -329,8 +329,10 @@ void init_fbcs()
 
 void wait_pll(void)
 {
-	register uint32_t trgt = MCF_SLT0_SCNT - 100000;
-	do {
+	uint32_t trgt = MCF_SLT0_SCNT - 100000;
+	do
+	{
+		;
 	} while ((* (volatile int16_t *) 0xf0000800 < 0) && MCF_SLT0_SCNT > trgt);
 }
 
