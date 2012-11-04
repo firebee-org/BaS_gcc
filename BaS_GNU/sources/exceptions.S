@@ -1,3 +1,4 @@
+#define cf_stack
 /*
  * initialize exception vectors
  */
@@ -133,7 +134,7 @@
 		subq.l	#8,a7
 		movem.l	d0/a5,(a7)			// register sichern
 		lea		MCF_EPORT_EPFR,a5
-		move.b	#clr_int,(a5)		// clear int pending
+		move.b	#\clr_int,(a5)		// clear int pending
 // test auf protect mode ---------------------
 		move.b	DIP_SWITCHa,d0
 		btst	#7,d0 
@@ -142,7 +143,7 @@
 		movem.l	(a7),d0/a5			// register zur�ck
 		addq.l	#8,a7
 		move.l	\vector,-(a7)
-		move	#0x2200,sr
+		move	#0x2\200,sr
 		rts
 irq_protect:
 		move.l	usp,a5				// usp holen  
@@ -173,7 +174,7 @@ sev_supint:
 #endif
 irq_end:
 		move.l	a5,usp				// usp setzen
-		lea		vector,a5
+		lea		\vector,a5
 		adda.l	_rt_vbr,a5
 		move.l	(a5),12(a7)			// vectoradresse eintragen
 		move.b	#\int_mask,10(a7)	// intmaske setzen

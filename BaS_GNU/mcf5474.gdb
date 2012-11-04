@@ -1,16 +1,16 @@
 #
-# GDB Init script for the Coldfire 5206 processor.
-#
-# The main purpose of this script is to configure the 
-# DRAM controller so code can be loaded.
-#
+# GDB Init script for the Coldfire 5474 processor (firebee).
 #
 
 define addresses
 set $vbr   = 0x00000000
+monitor bdm-ctl-set 0x0801 0x00000000 
 set $mbar  = 0xFF000000
+monitor bdm-ctl-set 0x0C0F 0xFF000000
 set $rambar0 = 0xFF100000
+monitor bdm-ctl-set 0x0C04 0xFF100007
 set $rambar1 = 0xFF101000
+monitor bdm-ctl-set 0x0C05 0xFF101001
 end
 
 #
