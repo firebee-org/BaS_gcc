@@ -1,4 +1,3 @@
-#define cf_stack
 /*
  * initialize exception vectors
  */
@@ -391,7 +390,7 @@ access_mmu:
 		bne		bus_error
 		move.l	MCF_MMU_MMUAR,d0
 		cmp.l	#_Bas_base,d0		// max User RAM Bereich
-		bge		bus_error			// gr�sser -> bus error
+		bge		bus_error			// grösser -> bus error
 		bra		_mmutr_miss
 bus_error:
 		move.l	(sp)+,d0
