@@ -143,7 +143,7 @@
 		movem.l	(a7),d0/a5			// register zur�ck
 		addq.l	#8,a7
 		move.l	\vector,-(a7)
-		move	#0x2\200,sr
+		move	#0x2200,sr
 		rts
 irq_protect:
 		move.l	usp,a5				// usp holen  
