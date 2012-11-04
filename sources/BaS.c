@@ -124,6 +124,7 @@ void BaS(void)
 
 	xprintf("finished\r\n");
 
+	xprintf("enable video: ");
 	/*
 	 * video setup (25MHz)
 	 */
@@ -142,6 +143,9 @@ void BaS(void)
 
 	/* fifo on, refresh on, ddrcs and cke on, video dac on */
 	* (volatile uint32_t *) (0xf0000410 - 0x20) = 0x01070002;
+
+	xprintf("finished\r\n");
+
 
 	/*
 	 * memory setup
@@ -167,6 +171,7 @@ void BaS(void)
 	* (uint32_t *) 0x5a4 = (uint32_t) Bas_base;	/* ramtop TOS system variable */
 	* (uint32_t *) 0x5a8 = 0x1357bd13;	/* ramvalid TOS system variable */
 
+	xprintf("init ACIA: ");
 	/* init ACIA */
 	* (uint8_t *) 0xfffffc00 = 3;
 	__asm__ __volatile__("nop	\n\t" : : : "memory");
@@ -178,6 +183,8 @@ void BaS(void)
 	__asm__ __volatile__("nop	\n\t" : : : "memory");
 	* (uint8_t *) 0xfffffa11 = -1;
 	__asm__ __volatile__("nop	\n\t" : : : "memory");
+
+	xprintf("finished\r\n");
 
 	/* Test for pseudo-supervisor mode: DIP switch #6 down */
 	if (DIP_SWITCH & (1 << 7)) {
@@ -192,6 +199,9 @@ void BaS(void)
 		void *initial_sp;
 		void_func *initial_pc;
 	} ROM_HEADER;
+
+	xprintf("Call OS. BaS finished...\r\n");
+
 	ROM_HEADER* os_header = (ROM_HEADER*)tos_base;
 	os_header->initial_pc();
 }
