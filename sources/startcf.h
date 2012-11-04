@@ -1,4 +1,4 @@
-#ifdef _NOT_USED_
+
 #define cf_stack
 
 //#define ii_on
@@ -17,7 +17,6 @@
 #define halten_exg
 #define halten_movep
 #define halten_ewf
-#endif /* _NOT_USED_ */
 
 #define DIP_SWITCH		(*(volatile uint8_t *)(&_MBAR[0xA2C]))
 #define DIP_SWITCHa		__MBAR + 0xA2C
