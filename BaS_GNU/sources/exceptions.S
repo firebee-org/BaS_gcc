@@ -140,10 +140,10 @@
 		btst	#7,d0 
 		bne		irq_protect		// ja->
 // -------------------------------------------		
-		movem.l	(a7),d0/a5			// register zur�ck
+		movem.l	(a7),d0/a5			// register zurück
 		addq.l	#8,a7
 		move.l	\vector,-(a7)
-		move	#0x2200,sr
+		move	#0x2\int_mask\()00,sr
 		rts
 irq_protect:
 		move.l	usp,a5				// usp holen  
