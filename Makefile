@@ -35,7 +35,7 @@ CFLAGS=-mcpu=5474\
 	   -Os\
 	   -fomit-frame-pointer\
 	   -fno-strict-aliasing\
-	   -fno-builtin\
+	   -ffreestanding\
 	   -fleading-underscore\
 	   -Wa,--register-prefix-optional
 
