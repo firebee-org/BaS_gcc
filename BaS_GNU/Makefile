@@ -81,8 +81,9 @@ OBJS=$(COBJS) $(AOBJS)
 all: $(FLASH_EXEC)
 ram: $(RAM_EXEC)
 .PHONY clean:
-	@ rm -f $(FLASH_EXEC) $(FLASH_EXEC).elf $(RAM_EXEC) $(RAM_EXEC).elf $(STRT_OBJ) $(OBJS)\
-			$(MAPFILE) $(LDCFILE) depend 
+	@ rm -f $(FLASH_EXEC) $(FLASH_EXEC).elf $(FLASH_EXEC).s19\
+			$(RAM_EXEC) $(RAM_EXEC).elf $(RAM_EXEC).s19\
+			$(STRT_OBJ) $(OBJS) $(MAPFILE) $(LDCFILE) depend 
 
 $(FLASH_EXEC): TARGET_ADDRESS=0xe0000000
 $(RAM_EXEC): TARGET_ADDRESS=0x10000000
@@ -90,7 +91,9 @@ $(RAM_EXEC): TARGET_ADDRESS=0x10000000
 $(FLASH_EXEC) $(RAM_EXEC): $(STRT_OBJ) $(OBJS)
 	$(CPP) -P -DTARGET_ADDRESS=$(TARGET_ADDRESS) -DFORMAT=$(FORMAT) $(LDCSRC) -o $(LDCFILE)
 	$(LD) --oformat $(FORMAT) -Map $(MAPFILE) --cref -T $(LDCFILE) -o $@
-ifneq ($(COMPILE_ELF),Y)
+ifeq ($(COMPILE_ELF),Y)
+	$(OBJCOPY) -O srec $@ $@.s19
+else
 	objcopy -I srec -O elf32-big --alt-machine-code 4 $@ $@.elf
 endif
 	
