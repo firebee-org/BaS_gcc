@@ -92,8 +92,6 @@ SECTIONS {
 		*(.data)
 		*(.bss)	
 		. = ALIGN(4);
-
-		_bas_end = .;
 	} > ram
 
 	__BAS_LMA = LOADADDR(.bas);
