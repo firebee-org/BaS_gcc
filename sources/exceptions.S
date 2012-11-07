@@ -389,7 +389,7 @@ access_mmu:
 		btst	#1,d0
 		bne		bus_error
 		move.l	MCF_MMU_MMUAR,d0
-		cmp.l	#_Bas_base,d0		// max User RAM Bereich
+		cmp.l	#__FASTRAM_END,d0	// max User RAM Bereich
 		bge		bus_error			// grösser -> bus error
 		bra		_mmutr_miss
 bus_error:

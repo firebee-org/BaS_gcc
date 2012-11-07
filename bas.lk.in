@@ -10,9 +10,18 @@ SECTIONS {
 	/* Init CS0 (BootFLASH @ E000_0000 - E07F_FFFF 8Mbytes) */
 	___BOOT_FLASH           = TARGET_ADDRESS;
  	___BOOT_FLASH_SIZE      = 0x00800000;
+
 	/* SDRAM Initialization @ 0000_0000 - 1FFF_FFFF 512Mbytes */
  	___SDRAM                = 0x00000000;
  	___SDRAM_SIZE           = 0x20000000;
+
+	/* ST-RAM */
+	__STRAM                 = ___SDRAM;
+	__STRAM_END             = _tos_base;
+
+	/* FastRAM */
+	__FASTRAM               = 0x10000000;
+	__FASTRAM_END           = _Bas_base;
 
 	/* Flash components */
 	__FIRETOS               = 0xe0400000;
