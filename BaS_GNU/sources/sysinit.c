@@ -767,7 +767,6 @@ void initialize_hardware(void) {
 	uint32_t *src;	/* src address to read from flash */
 	uint32_t *end;	/* end address to read from flash */
 	uint32_t *dst;	/* destination address to copy to */
-	uint32_t *jmp;	/* address of BaS() routine to jmp at after copy */
 
 	/* Test for FireTOS switch: DIP switch #5 up */
 	if (!(DIP_SWITCH & (1 << 6))) {
@@ -808,7 +807,7 @@ void initialize_hardware(void) {
 	/* copy the BaS code contained in flash to its final location */
 	src = (uint32_t *)BAS_LMA;
 	end = (uint32_t *)(BAS_LMA + BAS_SIZE);
-	dst = jmp = (uint32_t *)BAS_IN_RAM;
+	dst = (uint32_t *)BAS_IN_RAM;
 
 	/* The linker script will ensure that the Bas size
 	 * is a multiple of the following.
