@@ -807,14 +807,16 @@ void initialize_hardware(void) {
 	end = (uint32_t *)(BAS_LMA + BAS_SIZE);
 	dst = jmp = (uint32_t *)BAS_VMA;
 
-	/* FIXME: beware of possible alignment */
-	do
+	/* The linker script will ensure that the Bas size
+	 * is a multiple of the following.
+	 */
+	while (src < end)
 	{
 		*dst++ = *src++;
 		*dst++ = *src++;
 		*dst++ = *src++;
 		*dst++ = *src++;
-	} while (src < end);
+	}
 
 	/* we have copied a code area, so flush the caches */
 	flush_and_invalidate_caches();

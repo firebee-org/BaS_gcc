@@ -91,7 +91,11 @@ SECTIONS {
 		objs/illegal_instruction.o(.text)
 		*(.data)
 		*(.bss)	
-		. = ALIGN(4);
+
+		/* The BaS copy routine assumes that tha BaS size
+		 * is a multiple of the following value.
+		 */
+		. = ALIGN(16);
 	} > ram
 
 	__BAS_LMA = LOADADDR(.bas);
