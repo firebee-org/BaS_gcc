@@ -4,9 +4,6 @@ MEMORY {
 }
 
 SECTIONS {
-	_Bas_base = 0x1FE00000;
-	_tos_base = 0x00e00000;
-	 
 	/* Init CS0 (BootFLASH @ E000_0000 - E07F_FFFF 8Mbytes) */
 	___BOOT_FLASH           = TARGET_ADDRESS;
  	___BOOT_FLASH_SIZE      = 0x00800000;
@@ -19,9 +16,15 @@ SECTIONS {
 	__STRAM                 = ___SDRAM;
 	__STRAM_END             = _tos_base;
 
+	/* TOS */
+	_tos_base               = 0x00e00000;
+
 	/* FastRAM */
 	__FASTRAM               = 0x10000000;
 	__FASTRAM_END           = _Bas_base;
+
+	/* BaS */
+	_Bas_base               = 0x1FE00000;
 
 	/* Flash components */
 	__FIRETOS               = 0xe0400000;
