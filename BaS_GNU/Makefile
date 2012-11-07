@@ -62,6 +62,7 @@ CSRCS= \
 	$(SRCDIR)/sd_card.c
 
 ASRCS= \
+	$(SRCDIR)/startcf.S \
 	$(SRCDIR)/printf_helper.S \
 	$(SRCDIR)/mmu.S \
 	$(SRCDIR)/sd_card_asm.S \
@@ -69,9 +70,6 @@ ASRCS= \
 	$(SRCDIR)/supervisor.S \
 	$(SRCDIR)/ewf.S \
 	$(SRCDIR)/illegal_instruction.S 
-
-STRT_SRC = startcf.S
-STRT_OBJ = $(OBJDIR)/startcf.o
 
 COBJS=$(patsubst $(SRCDIR)/%.o,$(OBJDIR)/%.o,$(patsubst %.c,%.o,$(CSRCS)))
 AOBJS=$(patsubst $(SRCDIR)/%.o,$(OBJDIR)/%.o,$(patsubst %.S,%.o,$(ASRCS)))
@@ -83,12 +81,12 @@ ram: $(RAM_EXEC)
 .PHONY clean:
 	@ rm -f $(FLASH_EXEC) $(FLASH_EXEC).elf $(FLASH_EXEC).s19\
 			$(RAM_EXEC) $(RAM_EXEC).elf $(RAM_EXEC).s19\
-			$(STRT_OBJ) $(OBJS) $(MAPFILE) $(LDCFILE) depend 
+			$(OBJS) $(MAPFILE) $(LDCFILE) depend 
 
 $(FLASH_EXEC): TARGET_ADDRESS=0xe0000000
 $(RAM_EXEC): TARGET_ADDRESS=0x10000000
 
-$(FLASH_EXEC) $(RAM_EXEC): $(STRT_OBJ) $(OBJS)
+$(FLASH_EXEC) $(RAM_EXEC): $(OBJS)
 	$(CPP) -P -DTARGET_ADDRESS=$(TARGET_ADDRESS) -DFORMAT=$(FORMAT) $(LDCSRC) -o $(LDCFILE)
 	$(LD) --oformat $(FORMAT) -Map $(MAPFILE) --cref -T $(LDCFILE) -o $@
 ifeq ($(COMPILE_ELF),Y)
