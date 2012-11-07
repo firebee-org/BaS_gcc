@@ -75,8 +75,6 @@ SECTIONS {
 #endif
 	} > flash
 
-#define BAS_LABEL_LMA(x) ((x) + (ABSOLUTE(__BAS_LMA) - ABSOLUTE(__BAS_VMA)))
-
 	.bas _Bas_base : AT (ADDR(.text) + SIZEOF(.text))
 	{
 		objs/BaS.o(.text)
@@ -84,10 +82,7 @@ SECTIONS {
 		objs/sd_card_asm.o(.text)
 		objs/bas_printf.o(.text)
 		objs/printf_helper.o(.text)
-		_xprintf_before_copy = BAS_LABEL_LMA(_xprintf);
-		_display_progress_before_copy = BAS_LABEL_LMA(_display_progress);
 		objs/cache.o(.text)
-		_flush_and_invalidate_caches_before_copy = BAS_LABEL_LMA(_flush_and_invalidate_caches);
 		objs/sd_card.o(.text)
 		objs/mmu.o(.text)
 		objs/exceptions.o(.text)
@@ -104,4 +99,14 @@ SECTIONS {
 	__BAS_LMA = LOADADDR(.bas);
 	__BAS_VMA = ADDR(.bas);
 	__BAS_SIZE = SIZEOF(.bas);
+
+	/* The following labels are BaS routines in the flash,
+	 * before they are copied to their final location in the RAM.
+	 * This is to allow using them before and after the actual copy.
+	 * Hence they must contain only pc-relative code (compiled with -mpcrel).
+	 */
+#define BAS_LABEL_LMA(x) ((x) + (ABSOLUTE(__BAS_LMA) - ABSOLUTE(__BAS_VMA)))
+	_xprintf_before_copy = BAS_LABEL_LMA(_xprintf);
+	_display_progress_before_copy = BAS_LABEL_LMA(_display_progress);
+	_flush_and_invalidate_caches_before_copy = BAS_LABEL_LMA(_flush_and_invalidate_caches);
 }
