@@ -21,10 +21,10 @@ SECTIONS {
 
 	/* FastRAM */
 	__FASTRAM               = 0x10000000;
-	__FASTRAM_END           = _Bas_base;
+	__FASTRAM_END           = __BAS_IN_RAM;
 
 	/* BaS */
-	_Bas_base               = 0x1FE00000;
+	__BAS_IN_RAM            = 0x1FE00000;
 
 	/* Flash components */
 	__FIRETOS               = 0xe0400000;
@@ -86,7 +86,7 @@ SECTIONS {
 #endif
 	} > flash
 
-	.bas _Bas_base :
+	.bas __BAS_IN_RAM :
 		/* The BaS is stored in the flash, just after the init part.
 		 * Then it will be copied to its final location in the RAM.
 		 * This data must be aligned for optimal copy loop speed.
@@ -115,7 +115,6 @@ SECTIONS {
 	} > ram
 
 	__BAS_LMA = LOADADDR(.bas);
-	__BAS_VMA = ADDR(.bas);
 	__BAS_SIZE = SIZEOF(.bas);
 
 	/* The following labels are BaS routines in the flash,
@@ -123,7 +122,7 @@ SECTIONS {
 	 * This is to allow using them before and after the actual copy.
 	 * Hence they must contain only pc-relative code (compiled with -mpcrel).
 	 */
-#define BAS_LABEL_LMA(x) ((x) + (__BAS_LMA - __BAS_VMA))
+#define BAS_LABEL_LMA(x) ((x) + (__BAS_LMA - __BAS_IN_RAM))
 	_xprintf_before_copy = BAS_LABEL_LMA(_xprintf);
 	_display_progress_before_copy = BAS_LABEL_LMA(_display_progress);
 	_flush_and_invalidate_caches_before_copy = BAS_LABEL_LMA(_flush_and_invalidate_caches);

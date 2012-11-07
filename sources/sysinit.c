@@ -756,8 +756,8 @@ extern uint8_t _FIRETOS[];
 extern uint8_t _BAS_LMA[];
 #define BAS_LMA ((uint32_t)_BAS_LMA) /* where the BaS is stored in flash */
 
-extern uint8_t _BAS_VMA[];
-#define BAS_VMA ((uint32_t)_BAS_VMA) /* where the BaS is run in RAM */
+extern uint8_t _BAS_IN_RAM[];
+#define BAS_IN_RAM ((uint32_t)_BAS_IN_RAM) /* where the BaS is run in RAM */
 
 extern uint8_t _BAS_SIZE[];
 #define BAS_SIZE ((uint32_t)_BAS_SIZE) /* size of the BaS, in bytes */
@@ -808,7 +808,7 @@ void initialize_hardware(void) {
 	/* copy the BaS code contained in flash to its final location */
 	src = (uint32_t *)BAS_LMA;
 	end = (uint32_t *)(BAS_LMA + BAS_SIZE);
-	dst = jmp = (uint32_t *)BAS_VMA;
+	dst = jmp = (uint32_t *)BAS_IN_RAM;
 
 	/* The linker script will ensure that the Bas size
 	 * is a multiple of the following.

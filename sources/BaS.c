@@ -10,8 +10,6 @@
 #include "cache.h"
 #include "bas_printf.h"
 
-extern uint32_t Bas_base[];
-
 /* imported routines */
 extern int mmu_init();
 extern int vec_init();
@@ -28,6 +26,8 @@ extern uint8_t _STRAM_END[];
 #define STRAM_END ((uint32_t)_STRAM_END)
 extern uint8_t _TOS[];
 #define TOS ((uint32_t)_TOS) /* final TOS location */
+extern uint8_t _FASTRAM_END[];
+#define FASTRAM_END ((uint32_t)_FASTRAM_END)
 extern uint8_t _EMUTOS[];
 #define EMUTOS ((uint32_t)_EMUTOS) /* where EmuTOS is stored in flash */
 extern uint8_t _EMUTOS_SIZE[];
@@ -171,7 +171,7 @@ void BaS(void)
 
 	/* TT-RAM */
 
-	* (uint32_t *) 0x5a4 = (uint32_t) Bas_base;	/* ramtop TOS system variable */
+	* (uint32_t *) 0x5a4 = (uint32_t) FASTRAM_END;	/* ramtop TOS system variable */
 	* (uint32_t *) 0x5a8 = 0x1357bd13;	/* ramvalid TOS system variable */
 
 	xprintf("init ACIA: ");
