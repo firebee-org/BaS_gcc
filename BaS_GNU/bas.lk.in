@@ -4,39 +4,39 @@ MEMORY {
 }
 
 SECTIONS {
-	_Bas_base = ABSOLUTE(0x1FE00000);
-	_tos_base = ABSOLUTE(0xe00000);
+	_Bas_base = 0x1FE00000;
+	_tos_base = 0x00e00000;
 	 
 	/* Init CS0 (BootFLASH @ E000_0000 - E07F_FFFF 8Mbytes) */
-	___BOOT_FLASH           = ABSOLUTE(TARGET_ADDRESS);
- 	___BOOT_FLASH_SIZE      = ABSOLUTE(0x00800000);
+	___BOOT_FLASH           = TARGET_ADDRESS;
+ 	___BOOT_FLASH_SIZE      = 0x00800000;
 	/* SDRAM Initialization @ 0000_0000 - 1FFF_FFFF 512Mbytes */
- 	___SDRAM                = ABSOLUTE(0x00000000);
- 	___SDRAM_SIZE           = ABSOLUTE(0x20000000);
+ 	___SDRAM                = 0x00000000;
+ 	___SDRAM_SIZE           = 0x20000000;
 
 	/* Flash components */
-	__FIRETOS               = ABSOLUTE(0xe0400000);
-	__EMUTOS                = ABSOLUTE(0xe0600000);
-	__EMUTOS_SIZE           = ABSOLUTE(0x00100000);
+	__FIRETOS               = 0xe0400000;
+	__EMUTOS                = 0xe0600000;
+	__EMUTOS_SIZE           = 0x00100000;
 
 	/* VIDEO RAM BASIS */
-	__VRAM                = ABSOLUTE(0x60000000);
+	__VRAM                  = 0x60000000;
 
 	/* Memory mapped registers */
- 	__MBAR                 = ABSOLUTE(0xFF000000);
- 	__MMUBAR               = ABSOLUTE(0xFF040000);
+ 	__MBAR                  = 0xFF000000;
+ 	__MMUBAR                = 0xFF040000;
 
 	/*
 	 * 4KB on-chip Core SRAM0: -> exception table and exception stack
 	 */
- 	__RAMBAR0              = ABSOLUTE(0xFF100000);
- 	__RAMBAR0_SIZE         = ABSOLUTE(0x00001000);
+ 	__RAMBAR0               = 0xFF100000;
+ 	__RAMBAR0_SIZE          = 0x00001000;
 
- 	__SUP_SP = ABSOLUTE(__RAMBAR0 + __RAMBAR0_SIZE - 4);
+ 	__SUP_SP = __RAMBAR0 + __RAMBAR0_SIZE - 4;
 
 	/* 4KB on-chip Core SRAM1: -> modified code */
- 	__RAMBAR1              = ABSOLUTE(0xFF101000);
- 	__RAMBAR1_SIZE         = ABSOLUTE(0x00001000);
+ 	__RAMBAR1               = 0xFF101000;
+ 	__RAMBAR1_SIZE          = 0x00001000;
 
 	/* system variables */
 	
@@ -60,8 +60,8 @@ SECTIONS {
 	_rt_mbar   = __RAMBAR0 + 0x844;   	/* (c)0f */
 
 	/* 32KB on-chip System SRAM */
- 	__SYS_SRAM             = ABSOLUTE(0xFF010000);
-	__SYS_SRAM_SIZE        = ABSOLUTE(0x00008000);
+ 	__SYS_SRAM              = 0xFF010000;
+	__SYS_SRAM_SIZE         = 0x00008000;
 
 	.text ___BOOT_FLASH :
 	{
@@ -93,7 +93,7 @@ SECTIONS {
 		*(.bss)	
 		. = ALIGN(4);
 
-		_bas_end = ABSOLUTE(.);
+		_bas_end = .;
 	} > ram
 
 	__BAS_LMA = LOADADDR(.bas);
@@ -105,7 +105,7 @@ SECTIONS {
 	 * This is to allow using them before and after the actual copy.
 	 * Hence they must contain only pc-relative code (compiled with -mpcrel).
 	 */
-#define BAS_LABEL_LMA(x) ((x) + (ABSOLUTE(__BAS_LMA) - ABSOLUTE(__BAS_VMA)))
+#define BAS_LABEL_LMA(x) ((x) + (__BAS_LMA - __BAS_VMA))
 	_xprintf_before_copy = BAS_LABEL_LMA(_xprintf);
 	_display_progress_before_copy = BAS_LABEL_LMA(_display_progress);
 	_flush_and_invalidate_caches_before_copy = BAS_LABEL_LMA(_flush_and_invalidate_caches);
