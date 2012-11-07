@@ -24,6 +24,8 @@ extern void wait_10ms();
 extern void wait_1ms();
 
 /* Symbols from the linker script */
+extern uint8_t _STRAM_END[];
+#define STRAM_END ((uint32_t)_STRAM_END)
 extern uint8_t _TOS[];
 #define TOS ((uint32_t)_TOS) /* final TOS location */
 extern uint8_t _EMUTOS[];
@@ -162,7 +164,7 @@ void BaS(void)
 
 	/* ST RAM */
 
-	* (uint32_t *) 0x42e = 0xe00000;	/* phystop TOS system variable */
+	* (uint32_t *) 0x42e = STRAM_END;	/* phystop TOS system variable */
 	* (uint32_t *) 0x420 = 0x752019f3;	/* memvalid TOS system variable */
 	* (uint32_t *) 0x43a = 0x237698aa;	/* memval2 TOS system variable */
 	* (uint32_t *) 0x51a = 0x5555aaaa;	/* memval3 TOS system variable */

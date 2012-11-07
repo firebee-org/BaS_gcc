@@ -817,7 +817,7 @@ video_chg_2page:
 		sub.l	d1,d2				// differenz = anzahl zeilen
 		mulu	d2,d4				// maximal 480 zeilen
 		add.l	d4,d0				// video gr�sse
-		cmp.l	#0xe00000,d0		// maximale addresse
+		cmp.l	#__STRAM_END,d0		// maximale addresse
 		bge		video_chg_end		// wenn gleich oder gr�sser -> fertig
 		moveq	#20,d4
 		move.l	d0,d2
