@@ -14,10 +14,10 @@ SECTIONS {
 
 	/* ST-RAM */
 	__STRAM                 = ___SDRAM;
-	__STRAM_END             = _tos_base;
+	__STRAM_END             = __TOS;
 
 	/* TOS */
-	_tos_base               = 0x00e00000;
+	__TOS                   = 0x00e00000;
 
 	/* FastRAM */
 	__FASTRAM               = 0x10000000;
