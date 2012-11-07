@@ -16,6 +16,7 @@
 	.extern cpusha
 	.extern _video_tlb
 	.extern _video_sbt
+	.extern __TOS
 
 /* Register read/write macros */
 #define MCF_MMU_MMUCR	__MMUBAR
@@ -136,9 +137,9 @@ _mmu_init:
 		move.l	d0,_video_tlb							// set page as video page
   		clr.l	_video_sbt								// clear time
 //-------------------------------------------------------------------------------------
-// 00e0'0000 locked		
- 		move.l	#0x00e00000|std_mmutr,d0
-		move.l	#0x00e00000|cb_mmudr|MCF_MMU_MMUDR_LK,d1						 
+// Make the TOS (in SDRAM) read-only
+ 		move.l	#__TOS+std_mmutr,d0
+		move.l	#__TOS+cb_mmudr+MCF_MMU_MMUDR_LK,d1
 		move.l	d0,MCF_MMU_MMUTR		
 		move.l	d1,MCF_MMU_MMUDR
  		move.l	d2,MCF_MMU_MMUOR						// setzen read only ?????? noch nicht

@@ -11,7 +11,6 @@
 #include "bas_printf.h"
 
 extern uint32_t Bas_base[];
-extern uint8_t tos_base[];
 
 /* imported routines */
 extern int mmu_init();
@@ -25,6 +24,8 @@ extern void wait_10ms();
 extern void wait_1ms();
 
 /* Symbols from the linker script */
+extern uint8_t _TOS[];
+#define TOS ((uint32_t)_TOS) /* final TOS location */
 extern uint8_t _EMUTOS[];
 #define EMUTOS ((uint32_t)_EMUTOS) /* where EmuTOS is stored in flash */
 extern uint8_t _EMUTOS_SIZE[];
@@ -36,7 +37,7 @@ void BaS(void)
 	int	az_sectors;
 	int	i;
 	uint8_t *src;
-	uint8_t *dst = tos_base;
+	uint8_t *dst = (uint8_t *)TOS;
 	uint32_t *adr;
 /*
 	az_sectors = sd_card_init();
@@ -202,6 +203,6 @@ void BaS(void)
 
 	xprintf("Call OS. BaS finished...\r\n");
 
-	ROM_HEADER* os_header = (ROM_HEADER*)tos_base;
+	ROM_HEADER* os_header = (ROM_HEADER*)TOS;
 	os_header->initial_pc();
 }
