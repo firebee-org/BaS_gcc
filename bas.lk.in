@@ -71,11 +71,15 @@ SECTIONS {
 #if (FORMAT == elf32-m68k)
 		*(.rodata)
 		*(.rodata.*)
-		. = ALIGN(4);
 #endif
 	} > flash
 
-	.bas _Bas_base : AT (ADDR(.text) + SIZEOF(.text))
+	.bas _Bas_base :
+		/* The BaS is stored in the flash, just after the init part.
+		 * Then it will be copied to its final location in the RAM.
+		 * This data must be aligned for optimal copy loop speed.
+		 */
+		AT (ALIGN(ADDR(.text) + SIZEOF(.text), 4))
 	{
 		objs/BaS.o(.text)
 		/* put other routines into the same segment (RAM) as BaS.o */ 
