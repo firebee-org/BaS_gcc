@@ -75,7 +75,7 @@ SECTIONS {
 #endif
 	} > flash
 
-	.bas _Bas_base : AT (ADDR(.text) + SIZEOF(.text))
+	.bas _Bas_base : AT (ADDR(.text) + SIZEOF(.text)) ALIGN(1024)
 	{
 		objs/BaS.o(.text)
 		/* put other routines into the same segment (RAM) as BaS.o */ 
