@@ -36,7 +36,7 @@ extern uint8_t _EMUTOS_SIZE[];
 /********************************************************************/
 void BaS(void)
 {
-	int	az_sectors;
+	//int	az_sectors;
 	int	i;
 	uint8_t *src;
 	uint8_t *dst = (uint8_t *)TOS;
