@@ -1,19 +1,33 @@
+/* This object file must be the first to be linked,
+ * so it will be placed at the very beginning of the ROM.
+ */
+
 		.equ	MCF_MMU_MMUCR, __MMUBAR + 0
-		.global _startup
+
+		.global _rom_header
+		.global _rom_entry
 
 		.extern	_initialize_hardware
 		.extern _rt_mbar
 
-_startup:
-		bra.s	warmstart
-		jmp		___BOOT_FLASH + 8 		/* that's also our reset vector */
+/* ROM header */
+_rom_header:
+		/* The first long is supposed to be the initial SP.
+		 * We replace it by bra.s to allow running the ROM from the first byte.
+		 * Then we add a fake jmp instruction for pretty disassembly.
+		 */
+		bra.s	_rom_entry	// Short jump to the real entry point
+		.short	0x4ef9		// Fake jmp instruction
 
+		/* The second long is the initial PC */
+		.long	_rom_entry	// Real entry point
+
+/* ROM entry point */
+_rom_entry:
 		/* disable interrupts */
-warmstart:
 		move.w #0x2700,SR
 
 		/* Initialize MBAR */
-
 		move.l	#__MBAR,d0
 		movec	d0,MBAR
 		move.l	d0,_rt_mbar
