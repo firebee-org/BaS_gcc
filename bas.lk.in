@@ -75,7 +75,7 @@ SECTIONS {
  	__SYS_SRAM              = 0xFF010000;
 	__SYS_SRAM_SIZE         = 0x00008000;
 
-	.text ___BOOT_FLASH :
+	.text :
 	{
 		objs/startcf.o(.text) /* this one is the entry point so it must be the first */
 		objs/sysinit.o(.text)
@@ -86,7 +86,7 @@ SECTIONS {
 #endif
 	} > flash
 
-	.bas __BAS_IN_RAM :
+	.bas :
 		/* The BaS is stored in the flash, just after the init part.
 		 * Then it will be copied to its final location in the RAM.
 		 * This data must be aligned for optimal copy loop speed.
