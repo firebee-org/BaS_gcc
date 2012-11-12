@@ -1,6 +1,6 @@
 MEMORY {
-   flash (RX)  : ORIGIN = TARGET_ADDRESS, LENGTH = 0x00200000
-   ram (WX) : ORIGIN = 0x1FE00000, LENGTH = 0x00100000		/* target to copy BaS to */
+   bas_rom (RX) : ORIGIN = TARGET_ADDRESS, LENGTH = 0x00200000
+   bas_ram (WX) : ORIGIN = 0x1FE00000, LENGTH = 0x00100000		/* target to copy BaS to */
 }
 
 SECTIONS {
@@ -86,7 +86,7 @@ SECTIONS {
 		*(.rodata)
 		*(.rodata.*)
 #endif
-	} > flash
+	} > bas_rom
 
 	.bas :
 		/* The BaS is stored in the flash, just after the init part.
@@ -114,7 +114,7 @@ SECTIONS {
 		 * is a multiple of the following value.
 		 */
 		. = ALIGN(16);
-	} > ram
+	} > bas_ram
 
 	/* The following labels are BaS routines in the flash,
 	 * before they are copied to their final location in the RAM.
