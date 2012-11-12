@@ -82,7 +82,7 @@ SECTIONS
 
 	/* BaS */
 	__BAS_LMA               = LOADADDR(.bas);
-	__BAS_IN_RAM            = 0x1FE00000;
+	__BAS_IN_RAM            = ADDR(.bas);
 	__BAS_SIZE              = SIZEOF(.bas);
 
 	/* Flash components */
