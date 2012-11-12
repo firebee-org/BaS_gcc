@@ -5,7 +5,7 @@
 
 		.extern __Bas_base
 		.extern __SUP_SP
-		.extern __BOOT_FLASH
+		.extern _rom_entry
 		.extern __RAMBAR0
 		.extern _rt_cacr
 		.extern _rt_mod
@@ -369,7 +369,7 @@ reset_vector:
 		move.l	#0x31415926,d0
 		cmp.l	0x426,d0			// reset vector g�ltg?
 		beq		std_exc_vec			// ja->
-		jmp		___BOOT_FLASH 		// sonst kaltstart
+		jmp		_rom_entry	 		// sonst kaltstart
 acess:
 		move.w	#0x2700,sr			// disable interrupt
 		move.l	d0,-(sp)			// ++ vr
