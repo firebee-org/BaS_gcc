@@ -1,9 +1,66 @@
-MEMORY {
+MEMORY
+{
    bas_rom (RX) : ORIGIN = TARGET_ADDRESS, LENGTH = 0x00200000
    bas_ram (WX) : ORIGIN = 0x1FE00000, LENGTH = 0x00100000		/* target to copy BaS to */
 }
 
-SECTIONS {
+SECTIONS
+{
+	/* BaS in ROM */
+	.text :
+	{
+		objs/startcf.o(.text) /* this one is the entry point so it must be the first */
+		objs/sysinit.o(.text)
+		objs/init_fpga.o(.text)
+#if (FORMAT == elf32-m68k)
+		*(.rodata)
+		*(.rodata.*)
+#endif
+	} > bas_rom
+
+	/* BaS in RAM */
+	.bas :
+		/* The BaS is stored in the flash, just after the init part.
+		 * Then it will be copied to its final location in the RAM.
+		 * This data must be aligned for optimal copy loop speed.
+		 */
+		AT (ALIGN(ADDR(.text) + SIZEOF(.text), 4))
+	{
+		objs/BaS.o(.text)
+		/* put other routines into the same segment (RAM) as BaS.o */ 
+		objs/sd_card_asm.o(.text)
+		objs/bas_printf.o(.text)
+		objs/printf_helper.o(.text)
+		objs/cache.o(.text)
+		objs/sd_card.o(.text)
+		objs/mmu.o(.text)
+		objs/exceptions.o(.text)
+		objs/supervisor.o(.text)
+		objs/ewf.o(.text)
+		objs/illegal_instruction.o(.text)
+		*(.data)
+		*(.bss)	
+
+		/* The BaS copy routine assumes that tha BaS size
+		 * is a multiple of the following value.
+		 */
+		. = ALIGN(16);
+	} > bas_ram
+
+	/* The following labels are BaS routines in the flash,
+	 * before they are copied to their final location in the RAM.
+	 * This is to allow using them before and after the actual copy.
+	 * Hence they must contain only pc-relative code (compiled with -mpcrel).
+	 */
+#define BAS_LABEL_LMA(x) ((x) + (__BAS_LMA - __BAS_IN_RAM))
+	_xprintf_before_copy = BAS_LABEL_LMA(_xprintf);
+	_display_progress_before_copy = BAS_LABEL_LMA(_display_progress);
+	_flush_and_invalidate_caches_before_copy = BAS_LABEL_LMA(_flush_and_invalidate_caches);
+
+	/*
+	 * Global memory map
+	 */
+
 	/* Init CS0 (BootFLASH @ E000_0000 - E07F_FFFF 8Mbytes) */
 	___BOOT_FLASH           = TARGET_ADDRESS;
  	___BOOT_FLASH_SIZE      = 0x00800000;
@@ -45,8 +102,7 @@ SECTIONS {
 	 */
  	__RAMBAR0               = 0xFF100000;
  	__RAMBAR0_SIZE          = 0x00001000;
-
- 	__SUP_SP = __RAMBAR0 + __RAMBAR0_SIZE - 4;
+ 	__SUP_SP                = __RAMBAR0 + __RAMBAR0_SIZE - 4;
 
 	/* 4KB on-chip Core SRAM1: -> modified code */
  	__RAMBAR1               = 0xFF101000;
@@ -76,53 +132,4 @@ SECTIONS {
 	/* 32KB on-chip System SRAM */
  	__SYS_SRAM              = 0xFF010000;
 	__SYS_SRAM_SIZE         = 0x00008000;
-
-	.text :
-	{
-		objs/startcf.o(.text) /* this one is the entry point so it must be the first */
-		objs/sysinit.o(.text)
-		objs/init_fpga.o(.text)
-#if (FORMAT == elf32-m68k)
-		*(.rodata)
-		*(.rodata.*)
-#endif
-	} > bas_rom
-
-	.bas :
-		/* The BaS is stored in the flash, just after the init part.
-		 * Then it will be copied to its final location in the RAM.
-		 * This data must be aligned for optimal copy loop speed.
-		 */
-		AT (ALIGN(ADDR(.text) + SIZEOF(.text), 4))
-	{
-		objs/BaS.o(.text)
-		/* put other routines into the same segment (RAM) as BaS.o */ 
-		objs/sd_card_asm.o(.text)
-		objs/bas_printf.o(.text)
-		objs/printf_helper.o(.text)
-		objs/cache.o(.text)
-		objs/sd_card.o(.text)
-		objs/mmu.o(.text)
-		objs/exceptions.o(.text)
-		objs/supervisor.o(.text)
-		objs/ewf.o(.text)
-		objs/illegal_instruction.o(.text)
-		*(.data)
-		*(.bss)	
-
-		/* The BaS copy routine assumes that tha BaS size
-		 * is a multiple of the following value.
-		 */
-		. = ALIGN(16);
-	} > bas_ram
-
-	/* The following labels are BaS routines in the flash,
-	 * before they are copied to their final location in the RAM.
-	 * This is to allow using them before and after the actual copy.
-	 * Hence they must contain only pc-relative code (compiled with -mpcrel).
-	 */
-#define BAS_LABEL_LMA(x) ((x) + (__BAS_LMA - __BAS_IN_RAM))
-	_xprintf_before_copy = BAS_LABEL_LMA(_xprintf);
-	_display_progress_before_copy = BAS_LABEL_LMA(_display_progress);
-	_flush_and_invalidate_caches_before_copy = BAS_LABEL_LMA(_flush_and_invalidate_caches);
 }
