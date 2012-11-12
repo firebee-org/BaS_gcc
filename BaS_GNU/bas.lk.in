@@ -62,7 +62,7 @@ SECTIONS
 	 */
 
 	/* Init CS0 (BootFLASH @ E000_0000 - E07F_FFFF 8Mbytes) */
-	___BOOT_FLASH           = TARGET_ADDRESS;
+	___BOOT_FLASH           = 0xe0000000;
  	___BOOT_FLASH_SIZE      = 0x00800000;
 
 	/* SDRAM Initialization @ 0000_0000 - 1FFF_FFFF 512Mbytes */
