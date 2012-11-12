@@ -24,7 +24,9 @@ SECTIONS {
 	__FASTRAM_END           = __BAS_IN_RAM;
 
 	/* BaS */
+	__BAS_LMA               = LOADADDR(.bas);
 	__BAS_IN_RAM            = 0x1FE00000;
+	__BAS_SIZE              = SIZEOF(.bas);
 
 	/* Flash components */
 	__FIRETOS               = 0xe0400000;
@@ -113,9 +115,6 @@ SECTIONS {
 		 */
 		. = ALIGN(16);
 	} > ram
-
-	__BAS_LMA = LOADADDR(.bas);
-	__BAS_SIZE = SIZEOF(.bas);
 
 	/* The following labels are BaS routines in the flash,
 	 * before they are copied to their final location in the RAM.
