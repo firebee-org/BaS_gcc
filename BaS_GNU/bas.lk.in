@@ -61,10 +61,6 @@ SECTIONS
 	 * Global memory map
 	 */
 
-	/* Init CS0 (BootFLASH @ E000_0000 - E07F_FFFF 8Mbytes) */
-	___BOOT_FLASH           = 0xe0000000;
- 	___BOOT_FLASH_SIZE      = 0x00800000;
-
 	/* SDRAM Initialization @ 0000_0000 - 1FFF_FFFF 512Mbytes */
  	___SDRAM                = 0x00000000;
  	___SDRAM_SIZE           = 0x20000000;
@@ -80,12 +76,16 @@ SECTIONS
 	__FASTRAM               = 0x10000000;
 	__FASTRAM_END           = __BAS_IN_RAM;
 
+	/* Init CS0 (BootFLASH @ E000_0000 - E07F_FFFF 8Mbytes) */
+	___BOOT_FLASH           = 0xe0000000;
+ 	___BOOT_FLASH_SIZE      = 0x00800000;
+
 	/* BaS */
 	__BAS_LMA               = LOADADDR(.bas);
 	__BAS_IN_RAM            = ADDR(.bas);
 	__BAS_SIZE              = SIZEOF(.bas);
 
-	/* Flash components */
+	/* Other flash components */
 	__FIRETOS               = 0xe0400000;
 	__EMUTOS                = 0xe0600000;
 	__EMUTOS_SIZE           = 0x00100000;
@@ -95,6 +95,12 @@ SECTIONS
 
 	/* Memory mapped registers */
  	__MBAR                  = 0xFF000000;
+
+	/* 32KB on-chip System SRAM */
+ 	__SYS_SRAM              = 0xFF010000;
+	__SYS_SRAM_SIZE         = 0x00008000;
+
+	/* MMU memory mapped registers */
  	__MMUBAR                = 0xFF040000;
 
 	/*
@@ -103,10 +109,6 @@ SECTIONS
  	__RAMBAR0               = 0xFF100000;
  	__RAMBAR0_SIZE          = 0x00001000;
  	__SUP_SP                = __RAMBAR0 + __RAMBAR0_SIZE - 4;
-
-	/* 4KB on-chip Core SRAM1: -> modified code */
- 	__RAMBAR1               = 0xFF101000;
- 	__RAMBAR1_SIZE          = 0x00001000;
 
 	/* system variables */
 	
@@ -129,7 +131,7 @@ SECTIONS
 	_video_sbt = __RAMBAR0 + 0x83C;
 	_rt_mbar   = __RAMBAR0 + 0x844;   	/* (c)0f */
 
-	/* 32KB on-chip System SRAM */
- 	__SYS_SRAM              = 0xFF010000;
-	__SYS_SRAM_SIZE         = 0x00008000;
+	/* 4KB on-chip Core SRAM1: -> modified code */
+ 	__RAMBAR1               = 0xFF101000;
+ 	__RAMBAR1_SIZE          = 0x00001000;
 }
