@@ -33,14 +33,83 @@ extern uint8_t _EMUTOS[];
 extern uint8_t _EMUTOS_SIZE[];
 #define EMUTOS_SIZE ((uint32_t)_EMUTOS_SIZE) /* size of EmuTOS, in bytes */
 
+void write_pic_byte(uint8_t value)
+{
+    /* Wait until the tramsmitter is ready */
+    while (!(MCF_PSC3_PSCSR & MCF_PSC_PSCSR_TXRDY)); 
+
+    /* Transmit the byte */
+    //MCF_PSC3_PSCTB_8BIT = value; // This define is actually 32-bit
+    *(volatile uint8_t*)(&MCF_PSC3_PSCTB_8BIT) = value; // Really 8-bit
+}
+
+uint8_t read_pic_byte(void)
+{
+    /* Wait until a byte has been received */
+    while (!(MCF_PSC3_PSCSR & MCF_PSC_PSCSR_RXRDY)); 
+
+    /* Return the received byte */
+    //return MCF_PSC3_PSCRB_8BIT; // This define is actually 32-bit
+    return *(volatile uint8_t*)(&MCF_PSC3_PSCTB_8BIT); // Really 8-bit
+}
+
+void pic_init(void)
+{
+	char answer[4];
+
+	xprintf("initialize the PIC: ");
+
+	/* Send the PIC initialization string */
+	write_pic_byte('A');
+	write_pic_byte('C');
+	write_pic_byte('P');
+	write_pic_byte('F');
+
+	/* Read the 3-char answer string. Should be "OK!". */
+	answer[0] = read_pic_byte();
+	answer[1] = read_pic_byte();
+	answer[2] = read_pic_byte();
+	answer[3] = '\0';
+
+	xprintf("%s\r\n", answer);
+}
+
+void nvram_init(void)
+{
+	int i;
+
+	xprintf("Restore the NVRAM data: ");
+
+	/* Request for NVRAM backup data */
+	write_pic_byte(0x01);
+
+	/* Check answer type */
+	if (read_pic_byte() != 0x81)
+	{
+		// FIXME: PIC protocol error
+		xprintf("FAILED\r\n");
+		return;
+	}
+
+	/* Restore the NVRAM backup to the FPGA */
+	for (i = 0; i < 64; i++)
+	{
+		uint8_t data = read_pic_byte();
+		*(volatile uint8_t*)0xffff8961 = i;
+		*(volatile uint8_t*)0xffff8963 = data;
+	}
+
+	xprintf("finished\r\n");
+}
+
 /********************************************************************/
 void BaS(void)
 {
 	//int	az_sectors;
-	int	i;
 	uint8_t *src;
 	uint8_t *dst = (uint8_t *)TOS;
 	uint32_t *adr;
+
 /*
 	az_sectors = sd_card_init();
 		
@@ -49,30 +118,9 @@ void BaS(void)
 		sd_card_idle();
 	}
 	*/
-	/* Initialize the NVRAM */
 
-	xprintf("initialize the NVRAM: ");
-	MCF_PSC3_PSCTB_8BIT = 'ACPF';
-	wait_10ms();
-
-	* (volatile uint8_t *) &_MBAR[0x860C] = (uint8_t) (MCF_PSC3_PSCRB_8BIT);
-	* (volatile uint8_t *) &_MBAR[0x860C] = (uint8_t) (MCF_PSC3_PSCRB_8BIT);
-	* (volatile uint8_t *) &_MBAR[0x860C] = (uint8_t) (MCF_PSC3_PSCRB_8BIT);
-
-	xprintf("finished\r\n");
-
-	//MCF_PSC3_PSCTB_8BIT = 0x01;	/* request RTC data */
-
-	* (volatile uint8_t *) &_MBAR[0x890C] = 0x01;
-
-	//if (MCF_PSC3_PSCRB_8BIT == 0x81)
-	if (* (volatile uint8_t *) &_MBAR[0X890C] == 0x81)
-	{
-		for (i = 0; i < 64; i++)
-		{
-			* (volatile int8_t *) 0xffff8963 = (uint8_t) MCF_PSC3_PSCRB_8BIT;	/* Copy the NVRAM data from the PIC to the FPGA */
-		}
-	}
+	pic_init();
+	nvram_init();
 
 	xprintf("copy EmuTOS: ");
 
