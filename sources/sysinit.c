@@ -22,49 +22,16 @@ extern void flush_and_invalidate_caches_before_copy(void);
 extern volatile long _VRAM;	/* start address of video ram from linker script */
 
 /*
- * wait routines
+ * wait for the specified number of us on slice timer 0. Replaces the original routines that had
+ * the number of useconds to wait for hardcoded in their name.
  */
-void wait_10ms(void)
+void wait(uint32_t us)
 {
-	uint32_t target = MCF_SLT_SCNT(0) - 1320000;
+	uint32_t target = MCF_SLT_SCNT(0) - (us * 132);
 
 	while (MCF_SLT_SCNT(0) > target);
 }
 
-void wait_1ms(void)
-{
-	uint32_t target = MCF_SLT_SCNT(0) - 132000;
-
-	while (MCF_SLT_SCNT(0) > target);
-}
-
-void wait_100us(void)
-{
-	uint32_t target = MCF_SLT_SCNT(0) - 13200;
-
-	while (MCF_SLT_SCNT(0) > target);
-}
-
-void wait_50us(void)
-{
-	uint32_t target = MCF_SLT_SCNT(0) - 6600;
-
-	while (MCF_SLT_SCNT(0) > target);
-}
-
-void wait_10us(void)
-{
-	uint32_t target = MCF_SLT_SCNT(0) - 1320;
-
-	while (MCF_SLT_SCNT(0) > target);
-}
-
-void wait_1us(void)
-{
-	uint32_t target = MCF_SLT_SCNT(0) - 132;
-
-	while (MCF_SLT_SCNT(0) > target);
-}
 
 /*
  * init SLICE TIMER 0 
@@ -627,7 +594,7 @@ void dvi_on(void) {
 		wait_i2c_transfer_finished();
 		MCF_I2C_I2CR |= 0x08; // txak=1
 
-		wait_50us();
+		wait(50);
 
 		receivedByte = MCF_I2C_I2DR;
 
@@ -698,7 +665,7 @@ void init_ac97(void) {
 		{
 			MCF_PSC2_PSCTB_AC97 = 0x00000000;	//SLOT2-12:RD REG ALLES 0
 		}
-		wait_50us();
+		wait(50);
 		
 		va = MCF_PSC2_PSCTB_AC97;
 		if ((va & 0x80000fff) == 0x80000800) {

@@ -18,8 +18,7 @@ extern void sd_card_idle();
 extern int sd_card_init();
 
 /* wait...() routines moved to sysinit.c */
-extern void wait_10ms();
-extern void wait_1ms();
+extern void wait(uint32_t us);
 
 /* Symbols from the linker script */
 extern uint8_t _STRAM_END[];
@@ -169,7 +168,7 @@ void BaS(void)
 	/* IDE reset */
 	* (volatile uint8_t *) (0xffff8802 - 2) = 14;
 	* (volatile uint8_t *) (0xffff8802 - 0) = 0x80;
-	wait_1ms();
+	wait(1);
 
 	* (volatile uint8_t *) (0xffff8802 - 0) = 0;
 
