@@ -114,7 +114,7 @@ void BaS(void)
 		
 	if (az_sectors > 0)
 	{
-		sd_card_idle();
+		//sd_card_idle();
 	}
 
 	pic_init();
