@@ -494,7 +494,7 @@ void dvi_on(void) {
 		/* disable all i2c interrupt routing targets */
 		MCF_I2C_I2ICR = 0x0; //~(MCF_I2C_I2ICR_IE | MCF_I2C_I2ICR_RE | MCF_I2C_I2ICR_TE | MCF_I2C_I2ICR_BNBE);
 
-		/* disable i2c, disable i2c interrupts, slave, recieve, i2c = acknowledge, no repeat start */
+		/* disable i2c, disable i2c interrupts, slave, receive, i2c = acknowledge, no repeat start */
 		MCF_I2C_I2CR = 0x0;
 
 		/* repeat start, transmit acknowledge */
@@ -509,8 +509,8 @@ void dvi_on(void) {
 		MCF_I2C_I2CR = MCF_I2C_I2CR_IEN | MCF_I2C_I2CR_MSTA | MCF_I2C_I2CR_MTX;
 
 		MCF_I2C_I2DR = 0x7a;				/* send data: address of TFP410 */
-
 		wait_i2c_transfer_finished();
+
 		if (MCF_I2C_I2SR & MCF_I2C_I2SR_RXAK)		/* next try if no acknowledge */
 			continue;
 

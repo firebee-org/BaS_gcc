@@ -104,19 +104,18 @@ void nvram_init(void)
 /********************************************************************/
 void BaS(void)
 {
-	//int	az_sectors;
+	int	az_sectors;
 	uint8_t *src;
 	uint8_t *dst = (uint8_t *)TOS;
 	uint32_t *adr;
 
-/*
+
 	az_sectors = sd_card_init();
 		
 	if (az_sectors > 0)
 	{
 		sd_card_idle();
 	}
-	*/
 
 	pic_init();
 	nvram_init();
