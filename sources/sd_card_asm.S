@@ -378,15 +378,15 @@ sd_8M:
 sd_ok:
 		move.l		#LONGASC(' ', 'O', 'K', '!'),(a6)
 		move.l		#0x0a0d,(a6)
-		halt
-		halt
+		//halt
+		//halt
 		rts
 // subs ende -------------------------------
 sd_V1:
 		move.l   #LONGASC('n', 'o', 'n', '!'),(a6)
 		move.l	#0x0a0d,(a6)
-		halt
-		halt
+		//halt
+		//halt
 		rts
 sd_error:
 		move.l  #LONGASC('E', 'r', 'r', 'o'),(a0)
