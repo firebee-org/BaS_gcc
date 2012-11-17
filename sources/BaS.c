@@ -9,6 +9,7 @@
 #include "startcf.h"
 #include "cache.h"
 #include "bas_printf.h"
+#include "bas_types.h"
 
 /* imported routines */
 extern int mmu_init();
@@ -18,7 +19,8 @@ extern void sd_card_idle();
 extern int sd_card_init();
 
 /* wait...() routines moved to sysinit.c */
-extern void wait(uint32_t us);
+extern inline void wait(uint32_t us);
+extern inline bool waitfor(uint32_t us,int (*condition)(void));
 
 /* Symbols from the linker script */
 extern uint8_t _STRAM_END[];
@@ -32,10 +34,27 @@ extern uint8_t _EMUTOS[];
 extern uint8_t _EMUTOS_SIZE[];
 #define EMUTOS_SIZE ((uint32_t)_EMUTOS_SIZE) /* size of EmuTOS, in bytes */
 
+static inline bool pic_txready(void)
+{
+	if (MCF_PSC3_PSCSR & MCF_PSC_PSCSR_TXRDY)
+		return TRUE;
+
+	return FALSE;
+}
+
+static inline bool pic_rxready(void)
+{
+	if (MCF_PSC3_PSCSR & MCF_PSC_PSCSR_RXRDY)
+		return TRUE;
+
+	return FALSE;
+}
+
 void write_pic_byte(uint8_t value)
 {
-    /* Wait until the tramsmitter is ready */
-    while (!(MCF_PSC3_PSCSR & MCF_PSC_PSCSR_TXRDY)); 
+    /* Wait until the tramsmitter is ready or 1000us are passed */
+	waitfor(1000, pic_txready);
+    //while (!(MCF_PSC3_PSCSR & MCF_PSC_PSCSR_TXRDY));
 
     /* Transmit the byte */
     //MCF_PSC3_PSCTB_8BIT = value; // This define is actually 32-bit
@@ -44,8 +63,8 @@ void write_pic_byte(uint8_t value)
 
 uint8_t read_pic_byte(void)
 {
-    /* Wait until a byte has been received */
-    while (!(MCF_PSC3_PSCSR & MCF_PSC_PSCSR_RXRDY)); 
+    /* Wait until a byte has been received or 1000us are passed */
+	waitfor(1000, pic_rxready);
 
     /* Return the received byte */
     //return MCF_PSC3_PSCRB_8BIT; // This define is actually 32-bit

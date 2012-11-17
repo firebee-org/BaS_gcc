@@ -11,6 +11,7 @@
 #include "cache.h"
 #include "sysinit.h"
 #include "bas_printf.h"
+#include "bas_types.h"
 
 extern void xprintf_before_copy(const char *fmt, ...);
 #define xprintf	 xprintf_before_copy
@@ -25,14 +26,28 @@ extern volatile long _VRAM;	/* start address of video ram from linker script */
  * wait for the specified number of us on slice timer 0. Replaces the original routines that had
  * the number of useconds to wait for hardcoded in their name.
  */
-void wait(uint32_t us)
+inline void wait(uint32_t us)
 {
 	uint32_t target = MCF_SLT_SCNT(0) - (us * 132);
 
 	while (MCF_SLT_SCNT(0) > target);
 }
 
+/*
+ * the same as above, with a checker function which gets called while
+ * busy waiting and allows for an early return if it returns true
+ */
+inline bool waitfor(uint32_t us, int (*condition)(void))
+{
+	uint32_t target = MCF_SLT_SCNT(0) - (us * 132);
 
+	do
+	{
+		if ((*condition)())
+			return TRUE;
+	} while (MCF_SLT_SCNT(0) > target);
+	return FALSE;
+}
 /*
  * init SLICE TIMER 0 
  * all  = 32.538 sec = 30.736mHz
@@ -472,10 +487,23 @@ void test_upd720101(void)
 	xprintf("finished\r\n");
 }
 
+static bool i2c_transfer_finished(void)
+{
+	if (MCF_I2C_I2SR & MCF_I2C_I2SR_IIF)
+		return TRUE;
+
+	return FALSE;
+}
+
 static void wait_i2c_transfer_finished(void)
 {
-	while (!(MCF_I2C_I2SR & MCF_I2C_I2SR_IIF));	/* wait until interrupt bit has been set */
+	waitfor(100000, i2c_transfer_finished);		/* wait until interrupt bit has been set */
 	MCF_I2C_I2SR &= ~MCF_I2C_I2SR_IIF; 			/* clear interrupt bit (byte transfer finished */
+}
+
+static bool i2c_bus_free(void)
+{
+	return (MCF_I2C_I2SR & MCF_I2C_I2SR_IBB);
 }
 
 /*
@@ -508,7 +536,7 @@ void dvi_on(void) {
 		/* i2c enable, master mode, transmit acknowledge */
 		MCF_I2C_I2CR = MCF_I2C_I2CR_IEN | MCF_I2C_I2CR_MSTA | MCF_I2C_I2CR_MTX;
 
-		MCF_I2C_I2DR = 0x7a;				/* send data: address of TFP410 */
+		MCF_I2C_I2DR = 0x7a;						/* send data: address of TFP410 */
 		wait_i2c_transfer_finished();
 
 		if (MCF_I2C_I2SR & MCF_I2C_I2SR_RXAK)		/* next try if no acknowledge */
@@ -524,13 +552,13 @@ void dvi_on(void) {
 		if (MCF_I2C_I2SR & MCF_I2C_I2SR_RXAK)		/* next try if no acknowledge */
 			continue;
 
-		MCF_I2C_I2CR &= 0xef; //~MCF_I2C_I2CR_MTX;			/* switch to receive mode */
-		dummyByte = MCF_I2C_I2DR; 						/* dummy read */
+		MCF_I2C_I2CR &= 0xef; //~MCF_I2C_I2CR_MTX;	/* switch to receive mode */
+		dummyByte = MCF_I2C_I2DR; 					/* dummy read */
 
 		wait_i2c_transfer_finished();
 
 		MCF_I2C_I2CR |= MCF_I2C_I2CR_TXAK; 			/* transmit acknowledge enable */
-		receivedByte = MCF_I2C_I2DR;						/* read a byte */
+		receivedByte = MCF_I2C_I2DR;				/* read a byte */
 
 		wait_i2c_transfer_finished();
 
@@ -544,7 +572,7 @@ void dvi_on(void) {
 		MCF_I2C_I2CR = 0x0; // stop
 		MCF_I2C_I2SR = 0x0; // clear sr
 
-		while ((MCF_I2C_I2SR & MCF_I2C_I2SR_IBB));	/* wait for bus free */
+		waitfor(10000, i2c_bus_free);
 
 		MCF_I2C_I2CR = 0xb0; // on tx master
 		MCF_I2C_I2DR = 0x7A;
@@ -566,7 +594,7 @@ void dvi_on(void) {
 		dummyByte = MCF_I2C_I2DR; // dummy read
 		MCF_I2C_I2SR = 0x0; // clear sr
 
-		while ((MCF_I2C_I2SR & MCF_I2C_I2SR_IBB)); /* wait until bus free */
+		waitfor(10000, i2c_bus_free);
 
 		MCF_I2C_I2CR = 0xb0;
 		MCF_I2C_I2DR = 0x7A;
