@@ -174,6 +174,16 @@ void init_gpio(void)
 
 	// ALLE DIR NORMAL INPUT = 0
 	MCF_GPIO_PDDR_FEC1L = 0b00011110;	/* OUT: 4=LED,3=PRG_DQ0,2=#FPGA_CONFIG,1=PRG_CLK(FPGA) */
+
+#define FPGA_STATUS		(1 << 0)
+#define FPGA_CLOCK		(1 << 1)
+#define FPGA_CONFIG		(1 << 2)
+#define FPGA_DATA0		(1 << 3)
+#define FPGA_CONF_DONE	(1 << 5)
+
+	/* pull FPGA config to low as early as possible */
+	MCF_GPIO_PODR_FEC1L &= ~FPGA_CLOCK;		/* FPGA clock => low */
+	MCF_GPIO_PODR_FEC1L &= ~FPGA_CONFIG;	/* FPGA config => low */
 }
 
 /*
