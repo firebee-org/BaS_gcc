@@ -8,11 +8,11 @@
 #ifndef BAS_TYPES_H_
 #define BAS_TYPES_H_
 
-#ifndef _CPLUSPLUS_
+#ifndef __cplusplus
 typedef int bool;
 #define TRUE	1
 #define FALSE	0
-#endif /* _CPLUSPLUS_ */
+#endif /* __cplusplus */
 
 
 
