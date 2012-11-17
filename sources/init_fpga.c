@@ -85,6 +85,8 @@ void init_fpga(void)
 		}
 	} while ((!(MCF_GPIO_PPDSDR_FEC1L & FPGA_CONF_DONE)) && (fpga_data < (uint8_t *) FPGA_FLASH_DATA_END));
 
+	xprintf("finished copying. Clocking\r\n");
+
 	if (fpga_data < (uint8_t *) FPGA_FLASH_DATA_END)
 	{
 		for (i = 0; i < 4000; i++)

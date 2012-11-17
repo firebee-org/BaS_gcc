@@ -1,9 +1,10 @@
-#!/usr/local/bin/bdmctrl
+#!/usr/local/bin/bdmctrl -v10
 #
 # firebee board initialization for bdmctrl 
 #
 open $1
 reset
+sleep 10000
 
 wait
 
@@ -28,21 +29,21 @@ write 0xFF000500 0xE0000000 4
 write 0xFF000508 0x00001180 4
 write 0xFF000504 0x007F0001 4
 # Init CS1 (Atari I/O address range)
-#write 0xFF00050C 0xFFF00000 4
-#write 0xFF000514 0x00002180 4
-#write 0xFF000510 0x000F0001 4
+write 0xFF00050C 0xFFF00000 4
+write 0xFF000514 0x00002180 4
+write 0xFF000510 0x000F0001 4
 # Init CS2 (FireBee 32 bit I/O address range)
-#write 0xFF000518 0xF0000000 4
-#write 0xFF000520 0x00002100 4
-#write 0xFF00051C 0x07FF0001 4
+write 0xFF000518 0xF0000000 4
+write 0xFF000520 0x00002100 4
+write 0xFF00051C 0x07FF0001 4
 # Init CS3 (FireBee 16 bit I/O address range)
-#write 0xFF000524 0xF8000000 4
-#write 0xFF00052C 0x00000180 4
-#write 0xFF000528 0x03FF0001 4
+write 0xFF000524 0xF8000000 4
+write 0xFF00052C 0x00000180 4
+write 0xFF000528 0x03FF0001 4
 # Init CS4 (FireBee video address range)
-#write 0xFF000530 0x40000000 4
-#write 0xFF000538 0x00000018 4
-#write 0xFF000534 0x003F0001 4
+write 0xFF000530 0x40000000 4
+write 0xFF000538 0x00000018 4
+write 0xFF000534 0x003F0001 4
 
 
 # SDRAM Initialization @ 0000_0000 - 1FFF_FFFF 512Mbytes
@@ -69,6 +70,7 @@ write 0xFF000240 0x80000000 4	# disable watchdog arbiter
 flash 0xE0000000 flash29
 # do not flash yet. First check if board can be initialized correctly
 
+# load -v bas.elf
 load -v ram.elf
 wait
 sleep 1000

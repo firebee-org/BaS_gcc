@@ -40,7 +40,7 @@ _rom_entry:
 		move.l	d0,MCF_MMU_MMUCR
 
 		/* Initialize RAMBARs: locate SRAM and validate it */
-		move.l	#__RAMBAR0 + 0x7,%d0 	/* supervisor only */
+		move.l	#__RAMBAR0 + 0x7,d0 	/* supervisor only */
 		movec	d0,RAMBAR0
 		move.l	#__RAMBAR1 + 0x1,d0
 		movec	d0,RAMBAR1
