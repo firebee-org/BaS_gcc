@@ -277,7 +277,7 @@ void BaS(void)
 		void_func *initial_pc;
 	} ROM_HEADER;
 
-	xprintf("Call OS. BaS finished...\r\n");
+	xprintf("Call OS. BaS initialization finished...\r\n");
 
 	ROM_HEADER* os_header = (ROM_HEADER*)TOS;
 	os_header->initial_pc();
