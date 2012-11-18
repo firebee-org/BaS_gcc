@@ -19,8 +19,8 @@ extern void sd_card_idle();
 extern int sd_card_init();
 
 /* wait...() routines moved to sysinit.c */
-extern inline void wait(uint32_t us);
-extern inline bool waitfor(uint32_t us,int (*condition)(void));
+extern inline void wait(volatile uint32_t us);
+extern inline volatile bool waitfor(volatile uint32_t us,int (*condition)(void));
 
 /* Symbols from the linker script */
 extern uint8_t _STRAM_END[];
