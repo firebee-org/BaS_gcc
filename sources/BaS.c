@@ -242,18 +242,24 @@ void BaS(void)
 	* (uint32_t *) 0x5a4 = FASTRAM_END;	/* ramtop TOS system variable */
 	* (uint32_t *) 0x5a8 = 0x1357bd13;	/* ramvalid TOS system variable */
 
+#define NOP() __asm__ __volatile__("nop\n\t" : : : "memory")
+
 	xprintf("init ACIA: ");
 	/* init ACIA */
 	* (uint8_t *) 0xfffffc00 = 3;
-	__asm__ __volatile__("nop	\n\t" : : : "memory");
+	NOP();
+
 	* (uint8_t *) 0xfffffc04 = 3;
-	__asm__ __volatile__("nop	\n\t" : : : "memory");
+	NOP();
+
 	* (uint8_t *) 0xfffffc00 = 0x96;
-	__asm__ __volatile__("nop	\n\t" : : : "memory");
+	NOP();
+
 	* (uint8_t *) 0xfffffa0f = -1;
-	__asm__ __volatile__("nop	\n\t" : : : "memory");
+	NOP();
+
 	* (uint8_t *) 0xfffffa11 = -1;
-	__asm__ __volatile__("nop	\n\t" : : : "memory");
+	NOP();
 
 	xprintf("finished\r\n");
 
