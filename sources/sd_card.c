@@ -6,7 +6,9 @@
 #include <MCF5475.h>
 #include "bas_printf.h"
 
-extern void wait(uint32_t value);
+extern void wait(volatile uint32_t value);
+
+#ifdef _NOT_USED_	/* disabled assembler routines */
 
 void sd_card_idle(void)
 {
@@ -37,6 +39,7 @@ int sd_card_init(void)
 
 	return ret;
 }
+#endif /* _NOT_USED_ */
 
 uint32_t sd_com(uint32_t command)
 {
@@ -51,7 +54,7 @@ uint32_t sd_com(uint32_t command)
 	return ret;
 }
 
-void sd_init(void)
+void sd_card_init(void)
 {
 	uint32_t ret;
 	int i;
@@ -89,7 +92,6 @@ void sd_init(void)
 	wait(10000);
 
 	MCF_DSPI_DMCR = 0x800d3c00;
-
 	for (i = 0; i < 10; i++)
 	{
 		ret = sd_com(0x082000ff);
@@ -107,8 +109,14 @@ void sd_init(void)
 		ret = sd_com(0x082000ff);
 	}
 
+	MCF_DSPI_DMCR = 0x800d3c00;
+
 	wait(10000);
 
 	xprintf("finished\r\n");
+}
+
+void sd_card_idle(void)
+{
 }
 
