@@ -4,6 +4,9 @@
 
 #include <stdint.h>
 #include <MCF5475.h>
+#include "bas_printf.h"
+
+extern void wait(uint32_t value);
 
 void sd_card_idle(void)
 {
@@ -33,5 +36,80 @@ int sd_card_init(void)
 	);
 
 	return ret;
+}
+
+uint32_t sd_com(uint32_t command)
+{
+	uint32_t ret;
+
+	MCF_DSPI_DTFR = command;
+
+	while (! (MCF_DSPI_DSR & MCF_DSPI_DSR_TCF));	/* wait until DSPI transfer complete */
+	ret = MCF_DSPI_DRFR;							/* read DSPI Rx FIFO register */
+	MCF_DSPI_DSR = 0xffffffff;						/* clear DSPI status register */
+
+	return ret;
+}
+
+void sd_init(void)
+{
+	uint32_t ret;
+
+	xprintf("SD-Card initialization: ");
+
+	MCF_PAD_PAR_DSPI = 0x1fff;
+	MCF_PAD_PAR_TIMER = 0xff;			/*
+										 * FIXME: really necessary or just an oversight
+										 * that PAD_PAR_DSPI is only 16 bit?
+										 */
+
+	MCF_DSPI_DMCR = MCF_DSPI_DMCR_MSTR |	/* 8 bit CS5 on */
+					MCF_DSPI_DMCR_CSIS3 |
+					MCF_DSPI_DMCR_CSIS2 |
+					MCF_DSPI_DMCR_DTXF |
+					MCF_DSPI_DMCR_DRXF |
+					MCF_DSPI_DMCR_CTXF |
+					MCF_DSPI_DMCR_CRXF;		/* 0x800d3c00 */
+
+	MCF_DSPI_DCTAR0 = MCF_DSPI_DCTAR_TRSZ(0b111) |	/* transfer size = 8 bit */
+					  MCF_DSPI_DCTAR_PCSSCK(0b01) |	/* 3 clock DSPICS to DSPISCK delay prescaler */
+					  MCF_DSPI_DCTAR_PASC_3CLK |	/* 3 clock DSPISCK to DSPICS negation prescaler */
+					  MCF_DSPI_DCTAR_PDT_3CLK |		/* 3 clock delay between DSPICS assertions prescaler */
+					  MCF_DSPI_DCTAR_PBR_3CLK |		/* 3 clock prescaler */
+					  MCF_DSPI_DCTAR_ASC(0b1001) |	/* 1024 */
+					  MCF_DSPI_DCTAR_DT(0b1001) |	/* 1024 */
+					  MCF_DSPI_DCTAR_BR(0b0111);
+													/* 0x38558897 */
+
+	MCF_DSPI_DSR = 0xffffffff; 	/* clear DSPI status register */
+	wait(1000);					/* wait 1ms */
+
+	MCF_DSPI_DMCR = 0xc00d3c00;
+	wait(10000);
+
+	MCF_DSPI_DMCR = 0x800d3c00;
+
+	ret = sd_com(0x082000ff);
+	ret = sd_com(0x082000ff);
+	ret = sd_com(0x082000ff);
+	ret = sd_com(0x082000ff);
+	ret = sd_com(0x082000ff);
+	ret = sd_com(0x082000ff);
+	ret = sd_com(0x082000ff);
+	ret = sd_com(0x082000ff);
+	ret = sd_com(0x082000ff);
+	ret = sd_com(0x082000ff);
+
+	MCF_DSPI_DMCR = 0x802d3c00;
+	ret = sd_com(0x08200000);
+	ret = sd_com(0x08200000);
+
+	MCF_DSPI_DMCR = 0x800d3c00;
+	ret = sd_com(0x082000ff);
+	ret = sd_com(0x082000ff);
+
+	wait(10000);
+
+	xprintf("finished\r\n");
 }
 
