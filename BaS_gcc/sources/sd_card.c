@@ -41,11 +41,16 @@ int sd_card_init(void)
 }
 #endif /* _NOT_USED_ */
 
-uint32_t sd_com(uint32_t command)
+/*
+ * Write data to the DSPI TX FIFO register
+ * First 16 bits are the SPI command field (basically say only HOW to transfer the second
+ * half), second are the data to transfer
+ */
+uint32_t sd_com(uint32_t data)
 {
 	uint32_t ret;
 
-	MCF_DSPI_DTFR = command;
+	MCF_DSPI_DTFR = data;	/* write value to TX FIFO */
 
 	while (! (MCF_DSPI_DSR & MCF_DSPI_DSR_TCF));	/* wait until DSPI transfer complete */
 	ret = MCF_DSPI_DRFR;							/* read DSPI Rx FIFO register */
@@ -57,6 +62,15 @@ uint32_t sd_com(uint32_t command)
 void sd_card_init(void)
 {
 	uint32_t ret;
+	const uint32_t DSPI_DMCR_CONF = MCF_DSPI_DMCR_MSTR |	/* FireBee is DSPI master*/	/* 8 bit CS5 on */
+			MCF_DSPI_DMCR_CSIS3 |	/* CS3 inactive */
+			MCF_DSPI_DMCR_CSIS2 |	/* CS2 inactive */
+			MCF_DSPI_DMCR_DTXF |	/* disable transmit FIFO */
+			MCF_DSPI_DMCR_DRXF |	/* disable receive FIFO */
+			MCF_DSPI_DMCR_CTXF |	/* clear transmit FIFO */
+			MCF_DSPI_DMCR_CRXF;		/* clear receive FIFO */
+			/* 0x800d3c00 */
+
 	int i;
 
 	xprintf("SD-Card initialization: ");
@@ -67,13 +81,7 @@ void sd_card_init(void)
 										 * that PAD_PAR_DSPI is only 16 bit?
 										 */
 
-	MCF_DSPI_DMCR = MCF_DSPI_DMCR_MSTR |	/* 8 bit CS5 on */
-					MCF_DSPI_DMCR_CSIS3 |
-					MCF_DSPI_DMCR_CSIS2 |
-					MCF_DSPI_DMCR_DTXF |
-					MCF_DSPI_DMCR_DRXF |
-					MCF_DSPI_DMCR_CTXF |
-					MCF_DSPI_DMCR_CRXF;		/* 0x800d3c00 */
+	MCF_DSPI_DMCR = DSPI_DMCR_CONF;
 
 	MCF_DSPI_DCTAR0 = MCF_DSPI_DCTAR_TRSZ(0b111) |	/* transfer size = 8 bit */
 					  MCF_DSPI_DCTAR_PCSSCK(0b01) |	/* 3 clock DSPICS to DSPISCK delay prescaler */
@@ -88,28 +96,32 @@ void sd_card_init(void)
 	MCF_DSPI_DSR = 0xffffffff; 	/* clear DSPI status register */
 	wait(1000);					/* wait 1ms */
 
-	MCF_DSPI_DMCR = 0xc00d3c00;
+	MCF_DSPI_DMCR = DSPI_DMCR_CONF | MCF_DSPI_DMCR_CSCK; /* enable continuous serial comms clock */
+	/* 0xc00d3c00 */
+
 	wait(10000);
 
-	MCF_DSPI_DMCR = 0x800d3c00;
+	MCF_DSPI_DMCR = DSPI_DMCR_CONF;
 	for (i = 0; i < 10; i++)
 	{
-		ret = sd_com(0x082000ff);
+		ret = sd_com(MCF_DSPI_DTFR_EOQ | MCF_DSPI_DTFR_CS5 | 0x00FF);
 	}
 
-	MCF_DSPI_DMCR = 0x802d3c00;
+	MCF_DSPI_DMCR = DSPI_DMCR_CONF | MCF_DSPI_DMCR_CSIS5; /* CS5 inactive */
+	/* 0x802d3c00; */
+
 	for (i = 0; i < 2; i++)
 	{
-		ret = sd_com(0x08200000);
+		ret = sd_com(MCF_DSPI_DTFR_EOQ | MCF_DSPI_DTFR_CS5);
 	}
 
-	MCF_DSPI_DMCR = 0x800d3c00;
+	MCF_DSPI_DMCR = DSPI_DMCR_CONF;
 	for (i = 0; i < 2; i++)
 	{
-		ret = sd_com(0x082000ff);
+		ret = sd_com(MCF_DSPI_DTFR_EOQ | MCF_DSPI_DTFR_CS5 | 0x00FF);
 	}
 
-	MCF_DSPI_DMCR = 0x800d3c00;
+	MCF_DSPI_DMCR = DSPI_DMCR_CONF;
 
 	wait(10000);
 
