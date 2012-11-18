@@ -54,6 +54,7 @@ uint32_t sd_com(uint32_t command)
 void sd_init(void)
 {
 	uint32_t ret;
+	int i;
 
 	xprintf("SD-Card initialization: ");
 
@@ -89,24 +90,22 @@ void sd_init(void)
 
 	MCF_DSPI_DMCR = 0x800d3c00;
 
-	ret = sd_com(0x082000ff);
-	ret = sd_com(0x082000ff);
-	ret = sd_com(0x082000ff);
-	ret = sd_com(0x082000ff);
-	ret = sd_com(0x082000ff);
-	ret = sd_com(0x082000ff);
-	ret = sd_com(0x082000ff);
-	ret = sd_com(0x082000ff);
-	ret = sd_com(0x082000ff);
-	ret = sd_com(0x082000ff);
+	for (i = 0; i < 10; i++)
+	{
+		ret = sd_com(0x082000ff);
+	}
 
 	MCF_DSPI_DMCR = 0x802d3c00;
-	ret = sd_com(0x08200000);
-	ret = sd_com(0x08200000);
+	for (i = 0; i < 2; i++)
+	{
+		ret = sd_com(0x08200000);
+	}
 
 	MCF_DSPI_DMCR = 0x800d3c00;
-	ret = sd_com(0x082000ff);
-	ret = sd_com(0x082000ff);
+	for (i = 0; i < 2; i++)
+	{
+		ret = sd_com(0x082000ff);
+	}
 
 	wait(10000);
 
