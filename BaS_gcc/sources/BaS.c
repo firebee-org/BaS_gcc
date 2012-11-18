@@ -34,6 +34,9 @@ extern uint8_t _EMUTOS[];
 extern uint8_t _EMUTOS_SIZE[];
 #define EMUTOS_SIZE ((uint32_t)_EMUTOS_SIZE) /* size of EmuTOS, in bytes */
 
+/*
+ * check if it is possible to transfer data to PIC
+ */
 static inline bool pic_txready(void)
 {
 	if (MCF_PSC3_PSCSR & MCF_PSC_PSCSR_TXRDY)
@@ -42,6 +45,9 @@ static inline bool pic_txready(void)
 	return FALSE;
 }
 
+/*
+ * check if it is possible to receive data from PIC
+ */
 static inline bool pic_rxready(void)
 {
 	if (MCF_PSC3_PSCSR & MCF_PSC_PSCSR_RXRDY)
@@ -54,10 +60,8 @@ void write_pic_byte(uint8_t value)
 {
     /* Wait until the tramsmitter is ready or 1000us are passed */
 	waitfor(1000, pic_txready);
-    //while (!(MCF_PSC3_PSCSR & MCF_PSC_PSCSR_TXRDY));
 
     /* Transmit the byte */
-    //MCF_PSC3_PSCTB_8BIT = value; // This define is actually 32-bit
     *(volatile uint8_t*)(&MCF_PSC3_PSCTB_8BIT) = value; // Really 8-bit
 }
 
@@ -67,7 +71,6 @@ uint8_t read_pic_byte(void)
 	waitfor(1000, pic_rxready);
 
     /* Return the received byte */
-    //return MCF_PSC3_PSCRB_8BIT; // This define is actually 32-bit
     return *(volatile uint8_t*)(&MCF_PSC3_PSCTB_8BIT); // Really 8-bit
 }
 
