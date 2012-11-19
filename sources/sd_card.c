@@ -85,6 +85,7 @@ inline uint16_t sd_send_word(uint16_t word)
 int sd_card_init(void)
 {
 	uint32_t ret;
+	uint8_t rb;
 	int i;
 
 	xprintf("SD-Card initialization: ");
@@ -120,7 +121,7 @@ int sd_card_init(void)
 	ret = sd_com(MCF_DSPI_DTFR_EOQ | MCF_DSPI_DTFR_CS5 | 0x00FF);
 	for (i = 1; i < 10; i++)
 	{
-		ret = sd_send_byte(0xff);
+		rb = sd_send_byte(0xff);
 	}
 
 	MCF_DSPI_DMCR = DSPI_DMCR_CONF | MCF_DSPI_DMCR_CSIS5; /* CS5 inactive */
@@ -133,7 +134,7 @@ int sd_card_init(void)
 
 	MCF_DSPI_DMCR = DSPI_DMCR_CONF;
 	ret = sd_com(MCF_DSPI_DTFR_EOQ | MCF_DSPI_DTFR_CS5 | 0x00FF);
-	ret = sd_send_byte(0xff);
+	rb = sd_send_byte(0xff);
 
 	MCF_DSPI_DMCR = DSPI_DMCR_CONF;
 
@@ -175,21 +176,21 @@ void sd_card_idle(void)
 
 void sd_card_read_ic(void)
 {
-	uint32_t ret;
+	uint8_t rb;
 
 	while (/* no suitable data received */ 1)
 	{
-		ret = sd_send_byte(0xFF);
-		ret = sd_send_byte(0x48);
-		ret = sd_send_byte(0x00);
-		ret = sd_send_byte(0x00);
-		ret = sd_send_byte(0x01);
-		ret = sd_send_byte(0xaa);
-		ret = sd_send_byte(0x87);
+		rb = sd_send_byte(0xFF);
+		rb = sd_send_byte(0x48);
+		rb = sd_send_byte(0x00);
+		rb = sd_send_byte(0x00);
+		rb = sd_send_byte(0x01);
+		rb = sd_send_byte(0xaa);
+		rb = sd_send_byte(0x87);
 
-		ret = sd_card_get_status();
+		rb = sd_card_get_status();
 
-		if ((ret & 0xff) == 5)
+		if (rb == 5)
 		{
 			; /* sd v1 */
 		}
@@ -197,19 +198,19 @@ void sd_card_read_ic(void)
 		{
 			continue;
 		}
-		ret = sd_send_byte(0xff);
+		rb = sd_send_byte(0xff);
 		/* move.b d5,d0 ? */
 	}
 }
 
-uint32_t sd_card_get_status(void)
+uint8_t sd_card_get_status(void)
 {
-	uint32_t ret;
+	uint8_t ret;
 
 	do
 	{
 		ret = sd_send_byte(0xFF);
-	} while ((ret & 0xff) == 0xff);
+	} while (ret == 0xff);
 
 	return ret;
 }
