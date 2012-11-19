@@ -90,7 +90,7 @@ int sd_card_init(void)
 
 	xprintf("SD-Card initialization: ");
 
-	MCF_PAD_PAR_DSPI = 0x1fff;
+	MCF_PAD_PAR_DSPI = 0x1fff;	/* configure all DSPI GPIO pins for DSPI usage */
 	MCF_PAD_PAR_TIMER = 0xff;			/*
 										 * FIXME: really necessary or just an oversight
 										 * that PAD_PAR_DSPI is only 16 bit?
