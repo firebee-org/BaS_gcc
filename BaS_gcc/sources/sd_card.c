@@ -62,7 +62,7 @@ uint32_t sd_com(uint32_t data)
 
 /*
  * transfer a byte to SPI. This only works if the rest of the DSPI TX FIFO has been
- * initialized previously (either by sd_com or a direct register write.
+ * initialized previously (either by sd_com or a direct register write).
  * Returns a byte received from SPI (contents of the RX FIFO).
  */
 inline uint8_t sd_byte(uint8_t byte)
