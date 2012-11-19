@@ -7,8 +7,8 @@
  *      Author: mfro
  */
 
-#ifndef SD_CARD_H_
-#define SD_CARD_H_
+#ifndef _SD_CARD_H_
+#define _SD_CARD_H_
 
 #include <MCF5475.h>
 
@@ -29,4 +29,4 @@ extern uint32_t sd_com(uint32_t data);
 extern void sd_card_idle(void);
 
 
-#endif /* SD_CARD_H_ */
+#endif /* _SD_CARD_H_ */
