@@ -60,7 +60,29 @@ uint32_t sd_com(uint32_t data)
 	return ret;
 }
 
-void sd_card_init(void)
+/*
+ * transfer a byte to SPI. This only works if the rest of the DSPI TX FIFO has been
+ * initialized previously (either by sd_com or a direct register write.
+ * Returns a byte received from SPI (contents of the RX FIFO).
+ */
+inline uint8_t sd_byte(uint8_t byte)
+{
+	* (volatile uint8_t *) (&MCF_DSPI_DTFR + 3) = byte;
+
+	return * (volatile uint8_t *) (&MCF_DSPI_DRFR + 3);
+}
+
+/*
+ * as above, but word sized
+ */
+inline uint16_t sd_word(uint16_t word)
+{
+	* (volatile uint16_t *) (&MCF_DSPI_DTFR + 2) = word;
+
+	return * (volatile uint16_t *) (&MCF_DSPI_DRFR + 2);
+}
+
+int sd_card_init(void)
 {
 	uint32_t ret;
 	int i;
@@ -117,10 +139,78 @@ void sd_card_init(void)
 
 	wait(10000);
 
+	sd_card_idle();
+
 	xprintf("finished\r\n");
+
+	return 0;
 }
 
 void sd_card_idle(void)
 {
+	int i;
+	int j;
+	uint32_t ret;
+
+	for (i = 0; i < 100; i++)
+	{
+		ret = sd_com(MCF_DSPI_DTFR_EOQ | MCF_DSPI_DTFR_CS5 | 0x00FF);
+		ret = sd_com(MCF_DSPI_DTFR_EOQ | MCF_DSPI_DTFR_CS5 | 0x0040);
+		ret = sd_com(MCF_DSPI_DTFR_EOQ | MCF_DSPI_DTFR_CS5 | 0x0000);
+		ret = sd_com(MCF_DSPI_DTFR_EOQ | MCF_DSPI_DTFR_CS5 | 0x0000);
+		ret = sd_com(MCF_DSPI_DTFR_EOQ | MCF_DSPI_DTFR_CS5 | 0x0000);
+		ret = sd_com(MCF_DSPI_DTFR_EOQ | MCF_DSPI_DTFR_CS5 | 0x0000);
+		ret = sd_com(MCF_DSPI_DTFR_EOQ | MCF_DSPI_DTFR_CS5 | 0x0095);
+
+		for (j = 0; j < 6; j++)
+		{
+			ret = sd_com(MCF_DSPI_DTFR_EOQ | MCF_DSPI_DTFR_CS5 | 0x00FF);
+
+			if (ret & 0x01)
+			{
+				break;
+			}
+		}
+	}
 }
 
+void sd_card_read_ic(void)
+{
+	uint32_t ret;
+
+	while (/* no suitable data received */ 1)
+	{
+		ret = sd_com(MCF_DSPI_DTFR_EOQ | MCF_DSPI_DTFR_CS5 | 0x00FF);
+		ret = sd_com(MCF_DSPI_DTFR_EOQ | MCF_DSPI_DTFR_CS5 | 0x0048);
+		ret = sd_com(MCF_DSPI_DTFR_EOQ | MCF_DSPI_DTFR_CS5 | 0x0000);
+		ret = sd_com(MCF_DSPI_DTFR_EOQ | MCF_DSPI_DTFR_CS5 | 0x0000);
+		ret = sd_com(MCF_DSPI_DTFR_EOQ | MCF_DSPI_DTFR_CS5 | 0x0001);
+		ret = sd_com(MCF_DSPI_DTFR_EOQ | MCF_DSPI_DTFR_CS5 | 0x00aa);
+		ret = sd_com(MCF_DSPI_DTFR_EOQ | MCF_DSPI_DTFR_CS5 | 0x0087);
+
+		ret = sd_card_get_status();
+
+		if ((ret & 0xff) == 5)
+		{
+			; /* sd v1 */
+		}
+		else
+		{
+			continue;
+		}
+		ret = sd_com(MCF_DSPI_DTFR_EOQ | MCF_DSPI_DTFR_CS5 | 0x00ff);
+		/* move.b d5,d0 ? */
+	}
+}
+
+uint32_t sd_card_get_status(void)
+{
+	uint32_t ret;
+
+	do
+	{
+		ret = sd_com(MCF_DSPI_DTFR_EOQ | MCF_DSPI_DTFR_CS5 | 0x00FF);
+	} while ((ret & 0xff) == 0xff);
+
+	return ret;
+}
