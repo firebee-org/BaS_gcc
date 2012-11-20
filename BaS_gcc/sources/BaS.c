@@ -10,17 +10,16 @@
 #include "cache.h"
 #include "bas_printf.h"
 #include "bas_types.h"
+#include "sd_card.h"
 
 /* imported routines */
 extern int mmu_init();
 extern int vec_init();
 extern int illegal_table_make();
-extern void sd_card_idle();
-extern int sd_card_init();
 
 /* wait...() routines moved to sysinit.c */
 extern inline void wait(volatile uint32_t us);
-extern inline volatile bool waitfor(volatile uint32_t us,int (*condition)(void));
+extern inline volatile bool waitfor(volatile uint32_t us, int (*condition)(void));
 
 /* Symbols from the linker script */
 extern uint8_t _STRAM_END[];
