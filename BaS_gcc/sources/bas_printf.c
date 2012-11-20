@@ -385,6 +385,7 @@ void display_progress()
 {
 	static int _progress_index;
 	char progress_char[] = "|/-\\";
+
 	xputchar(progress_char[_progress_index++ % strlen(progress_char)]);
 	xputchar('\r');
 }
