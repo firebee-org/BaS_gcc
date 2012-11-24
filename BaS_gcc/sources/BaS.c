@@ -57,7 +57,7 @@ static inline bool pic_rxready(void)
 
 void write_pic_byte(uint8_t value)
 {
-    /* Wait until the tramsmitter is ready or 1000us are passed */
+    /* Wait until the transmitter is ready or 1000us are passed */
 	waitfor(1000, pic_txready);
 
     /* Transmit the byte */
@@ -75,7 +75,7 @@ uint8_t read_pic_byte(void)
 
 void pic_init(void)
 {
-	char answer[4];
+	char answer[4] = "OLD";
 
 	xprintf("initialize the PIC: ");
 
@@ -91,7 +91,14 @@ void pic_init(void)
 	answer[2] = read_pic_byte();
 	answer[3] = '\0';
 
-	xprintf("%s\r\n", answer);
+	if (answer[0] != 'O' || answer[1] != 'K' || answer[2] != '!')
+	{
+		xprintf("PIC initialization failed. Already initialized?\r\n");
+	}
+	else
+	{
+		xprintf("%s\r\n", answer);
+	}
 }
 
 void nvram_init(void)
@@ -135,7 +142,7 @@ void BaS(void)
 		
 	if (az_sectors > 0)
 	{
-		//sd_card_idle();
+		sd_card_idle();
 	}
 
 	pic_init();
