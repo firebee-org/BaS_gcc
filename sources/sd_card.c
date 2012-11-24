@@ -205,7 +205,21 @@ void sd_card_read_ic(void)
 
 		if (rb == 5)
 		{
-			; /* sd v1 */
+			while (rb == 5)
+			{
+				rb = sd_send_byte(0xff);
+				rb = sd_send_byte(0x7a);
+				rb = sd_send_byte(0x00);
+				rb = sd_send_byte(0x00);
+				rb = sd_send_byte(0x00);
+				rb = sd_send_byte(0x00);
+				rb = sd_send_byte(0x01);
+				rb = sd_card_get_status();
+			}
+		}
+		else if (rb == 1)
+		{
+			//sd_card_read_ic();
 		}
 		else
 		{
