@@ -37,7 +37,7 @@ inline void wait(uint32_t us)
  * the same as above, with a checker function which gets called while
  * busy waiting and allows for an early return if it returns true
  */
-inline volatile bool waitfor(volatile uint32_t us, int (*condition)(void))
+inline bool waitfor(uint32_t us, int (*condition)(void))
 {
 	uint32_t target = MCF_SLT_SCNT(0) - (us * 132);
 
