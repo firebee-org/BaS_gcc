@@ -26,7 +26,7 @@ extern volatile long _VRAM;	/* start address of video ram from linker script */
  * wait for the specified number of us on slice timer 0. Replaces the original routines that had
  * the number of useconds to wait for hardcoded in their name.
  */
-inline volatile void wait(uint32_t us)
+inline void wait(uint32_t us)
 {
 	uint32_t target = MCF_SLT_SCNT(0) - (us * 132);
 
