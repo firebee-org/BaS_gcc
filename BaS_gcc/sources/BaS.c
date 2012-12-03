@@ -138,7 +138,7 @@ void BaS(void)
 	uint32_t *adr;
 
 
-	az_sectors = sd_card_init();
+	az_sectors = spi_init();
 		
 	if (az_sectors > 0)
 	{
