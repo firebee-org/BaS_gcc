@@ -15,7 +15,12 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with BaS_gcc.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * Copyright 2010 - 2012 F. Aschwanden
+ * Copyright 2011 - 2012 V. Riviere
+ * Copyright 2012        M. Froeschle
  */
+
 .global 	_illegal_instruction
 .global 	_illegal_table_make
 
