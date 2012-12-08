@@ -796,6 +796,8 @@ void initialize_hardware(void) {
 	if (!(DIP_SWITCH & (1 << 6))) {
 		/* Minimal hardware initialization */
 		init_gpio();
+		init_serial();
+		init_slt();
 		init_fbcs();
 		init_ddram();
 		init_fpga();
