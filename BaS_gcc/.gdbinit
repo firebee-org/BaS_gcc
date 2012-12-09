@@ -7,6 +7,8 @@ define tbtr
 end
 
 tr
+define run
+	continue
+end
 source mcf5474.gdb
-
 
