@@ -18,7 +18,6 @@ _rom_header:
 		 */
 		bra.s	_rom_entry	// Short jump to the real entry point
 		.short	0x4ef9		// Fake jmp instruction
-
 		/* The second long is the initial PC */
 		.long	_rom_entry	// Real entry point
 
