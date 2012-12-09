@@ -1,4 +1,4 @@
-#!/usr/local/bin/bdmctrl -v10
+#!/usr/local/bin/bdmctrl -D2
 #
 # firebee board initialization for bdmctrl 
 #
@@ -67,11 +67,11 @@ write 0xFF000104 0x710D0F00 4	# SDCR (lock SDMR and enable refresh)
 write 0xFF000240 0x80000000 4	# disable watchdog arbiter
 
 # notify flashlib that we have flash at address 0xE0000000, length 0x7FFFFF, plugin is flash29
-flash 0xE0000000 flash29
+flash 0xE0000000
 # do not flash yet. First check if board can be initialized correctly
 
-# load -v bas.elf
-load -v ram.elf
+load -v bas.elf
+#load -v ram.elf
 wait
-sleep 1000
+sleep 100
 execute
