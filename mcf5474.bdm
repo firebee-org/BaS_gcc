@@ -70,6 +70,17 @@ write 0xFF000240 0x80000000 4	# disable watchdog arbiter
 flash 0xE0000000
 # do not flash yet. First check if board can be initialized correctly
 
+#flash-plugin 0x10000000 0x4000 flash29.plugin
+erase 0xE0000000 0
+erase-wait 0xE0000000
+erase 0xE0000000 0x1000
+erase-wait 0xE0000000
+erase 0xE0000000 0x2000
+erase-wait 0xE0000000
+erase 0xE0000000 0x3000
+erase-wait 0xE0000000
+
+blank-chk 0xE0000000 0x0
 load -v bas.elf
 #load -v ram.elf
 wait

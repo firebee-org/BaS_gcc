@@ -798,6 +798,10 @@ void initialize_hardware(void) {
 		init_gpio();
 		init_serial();
 		init_slt();
+
+		xprintf("\r\nBaS_gcc for FireBee v 0.1\r\n", 0, 0);
+		xprintf("initializing hardware...\r\n");
+
 		init_fbcs();
 		init_ddram();
 		init_fpga();
