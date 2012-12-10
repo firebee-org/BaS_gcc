@@ -59,7 +59,8 @@ CSRCS= \
 	$(SRCDIR)/bas_printf.c \
 	$(SRCDIR)/BaS.c \
 	$(SRCDIR)/cache.c \
-	$(SRCDIR)/sd_card.c
+	$(SRCDIR)/sd_card.c \
+	$(SRCDIR)/wait.c
 
 ASRCS= \
 	$(SRCDIR)/startcf.S \

@@ -27,6 +27,7 @@ SECTIONS
 		AT (ALIGN(ADDR(.text) + SIZEOF(.text), 4))
 	{
 		objs/BaS.o(.text)
+		objs/wait.o(.text)
 		/* put other routines into the same segment (RAM) as BaS.o */ 
 		objs/sd_card_asm.o(.text)
 		objs/bas_printf.o(.text)
