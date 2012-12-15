@@ -3,6 +3,7 @@
 #include <sd_card.h>
 #include <bas_printf.h>
 #include <sysinit.h>
+#include <wait.h>
 #include <MCF5475.h>
 
 /*
@@ -168,7 +169,6 @@ static void xmit_spi_multi(const uint8_t *buff, uint32_t btx)
 
 static uint32_t card_ready(void)
 {
-	static uint32_t counter = 0;
 	uint8_t d;
 
 	d = xchg_spi(0xff);
