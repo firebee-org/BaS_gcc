@@ -1,0 +1,56 @@
+#!/usr/local/bin/bdmctrl -D2
+#
+# flash EmuTOS using bdmctrl
+#
+open $1
+reset
+
+# Init CS0 (BootFLASH @ E000_0000 - E07F_FFFF 8Mbytes)
+write 0xFF000500 0xE0000000 4
+write 0xFF000508 0x00001180 4
+write 0xFF000504 0x007F0001 4
+
+# notify flashlib that we have flash at address 0xE0000000, length 0x7FFFFF, plugin is flash29
+flash 0xe0000000
+
+# Erase flash from 0xE0600000 to 0xE06FFFFF (reserved space for EmuTOS)
+#
+# Caution: sector offset numbers need to be the ones from the x16 address range
+# column and they vary in size - needs to be exactly as in the data sheet (p. 9)
+#
+# contrary to documentation, it seems we need to erase-wait after each sector
+
+erase 0xe0000000 0x300000
+erase-wait 0xe0000000
+erase 0xe0000000 0x308000
+erase-wait 0xe0000000
+erase 0xe0000000 0x310000
+erase-wait 0xe0000000
+erase 0xe0000000 0x318000
+erase-wait 0xe0000000
+erase 0xe0000000 0x320000
+erase-wait 0xe0000000
+erase 0xe0000000 0x328000
+erase-wait 0xe0000000
+erase 0xe0000000 0x330000
+erase-wait 0xe0000000
+erase 0xe0000000 0x338000
+erase-wait 0xe0000000
+erase 0xe0000000 0x340000
+erase-wait 0xe0000000
+erase 0xe0000000 0x348000
+erase-wait 0xe0000000
+erase 0xe0000000 0x350000
+erase-wait 0xe0000000
+erase 0xe0000000 0x358000
+erase-wait 0xe0000000
+erase 0xe0000000 0x360000
+erase-wait 0xe0000000
+erase 0xe0000000 0x368000
+erase-wait 0xe0000000
+erase 0xe0000000 0x370000
+erase-wait 0xe0000000
+erase 0xe0000000 0x378000
+erase-wait 0xe0000000
+
+load -v emutosfb.elf

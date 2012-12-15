@@ -32,10 +32,11 @@
 #include "sd_card.h"
 #include <wait.h>
 
+#include <diskio.h>
+#include <ff.h>
 /* imported routines */
 extern int mmu_init();
 extern int vec_init();
-extern int illegal_table_make();
 
 /* Symbols from the linker script */
 extern uint8_t _STRAM_END[];
@@ -52,7 +53,7 @@ extern uint8_t _EMUTOS_SIZE[];
 /*
  * check if it is possible to transfer data to PIC
  */
-static inline bool pic_txready(void)
+static inline uint32_t pic_txready(void)
 {
 	if (MCF_PSC3_PSCSR & MCF_PSC_PSCSR_TXRDY)
 		return TRUE;
@@ -63,7 +64,7 @@ static inline bool pic_txready(void)
 /*
  * check if it is possible to receive data from PIC
  */
-static inline bool pic_rxready(void)
+static inline uint32_t pic_rxready(void)
 {
 	if (MCF_PSC3_PSCSR & MCF_PSC_PSCSR_RXRDY)
 		return TRUE;
@@ -145,25 +146,83 @@ void nvram_init(void)
 	xprintf("finished\r\n");
 }
 
-/********************************************************************/
+void enable_coldfire_interrupts()
+{
+	xprintf("enable interrupts: ");
+	* (volatile uint32_t *) 0xf0010004 = 0L;		/* disable all interrupts */
+	MCF_EPORT_EPPAR = 0xaaa8;			/* all interrupts on falling edge */
+
+	MCF_GPT0_GMS = MCF_GPT_GMS_ICT(1) |	/* timer 0 on, video change capture on rising edge */
+			MCF_GPT_GMS_IEN |
+			MCF_GPT_GMS_TMS(1);
+	MCF_INTC_ICR62 = 0x3f;
+
+	* (volatile uint8_t *) 0xf0010004 = 0xfe;	/* enable int 1-7 */
+	MCF_EPORT_EPIER = 0xfe;				/* int 1-7 on */
+	MCF_EPORT_EPFR = 0xff;				/* clear all pending interrupts */
+	MCF_INTC_IMRL = 0xffffff00;			/* int 1-7 on */
+	MCF_INTC_IMRH = 0xbffffffe;			/* psc3 and timer 0 int on */
+
+	xprintf("finished\r\n");
+}
+
+void disable_coldfire_interrupts()
+{
+	* (volatile uint32_t *) 0xf0010004 = 0L;		/* disable all interrupts */
+}
+
 void BaS(void)
 {
-	int	az_sectors;
 	uint8_t *src;
 	uint8_t *dst = (uint8_t *)TOS;
 	uint32_t *adr;
-
-
-	az_sectors = spi_init();
-		
-	if (az_sectors > 0)
-	{
-		sd_card_idle();
-	}
+	DRESULT res;
+	FATFS fs;
+	FRESULT fres;
 
 	pic_init();
 	nvram_init();
+	disk_initialize(0);
+	res = disk_status(0);
+	xprintf("disk status of SD card is %d\r\n", res);
+	if (res == RES_OK)
+	{
+		fres = f_mount(0, &fs);
+		xprintf("mount status of SD card fs is %d\r\n", fres);
+		if (fres == FR_OK)
+		{
+			DIR directory;
+			FIL file;
 
+			fres = f_opendir(&directory, "\\");
+			if (fres == FR_OK)
+			{
+				FILINFO fi;
+
+				while (((fres = f_readdir(&directory, &fi)) == FR_OK) && fi.fname[0])
+				{
+					xprintf("%13.13s %d\r\n", fi.fname, fi.fsize);
+				}
+			}
+			else
+			{
+				xprintf("could not open directory \"\\\" on SD-card! Error code: %d\r\n", fres);
+			}
+
+			fres = f_open(&file, "WELCOME.MSG", FA_READ);
+			if (fres == FR_OK)
+			{
+				char line[128];
+
+				while (f_gets(line, sizeof(line), &file))
+				{
+					xprintf("%s", line);
+				}
+			}
+			f_close(&file);
+		}
+		f_mount(0, 0L);	/* release work area */
+	}
 	xprintf("copy EmuTOS: ");
 
 	/* copy EMUTOS */
@@ -184,28 +243,11 @@ void BaS(void)
 
 	xprintf("initialize exception vector table: ");
 	vec_init();
-	illegal_table_make();
 	xprintf("finished\r\n");
-		
-	/* interrupts */
 
-	xprintf("enable interrupts: ");
-	* (volatile uint32_t *) 0xf0010004 = 0L;		/* disable all interrupts */
-	MCF_EPORT_EPPAR = 0xaaa8;			/* all interrupts on falling edge */
-
-	MCF_GPT0_GMS = MCF_GPT_GMS_ICT(1) |	/* timer 0 on, video change capture on rising edge */
-			MCF_GPT_GMS_IEN |
-			MCF_GPT_GMS_TMS(1);
-	MCF_INTC_ICR62 = 0x3f;
-
-	* (volatile uint8_t *) 0xf0010004 = 0xfe;	/* enable int 1-7 */
-	MCF_EPORT_EPIER = 0xfe;				/* int 1-7 on */
-	MCF_EPORT_EPFR = 0xff;				/* clear all pending interrupts */
-	MCF_INTC_IMRL = 0xffffff00;			/* int 1-7 on */
-	MCF_INTC_IMRH = 0xbffffffe;			/* psc3 and timer 0 int on */
+	enable_coldfire_interrupts();
 
 	MCF_MMU_MMUCR = MCF_MMU_MMUCR_EN;	/* MMU on */
-	xprintf("finished\r\n");
 
 	xprintf("IDE reset: ");
 	/* IDE reset */
@@ -216,7 +258,6 @@ void BaS(void)
 	* (volatile uint8_t *) (0xffff8802 - 0) = 0;
 
 	xprintf("finished\r\n");
-
 	xprintf("enable video: ");
 	/*
 	 * video setup (25MHz)
