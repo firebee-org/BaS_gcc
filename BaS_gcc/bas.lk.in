@@ -12,6 +12,8 @@ SECTIONS
 		objs/startcf.o(.text) /* this one is the entry point so it must be the first */
 		objs/sysinit.o(.text)
 		objs/init_fpga.o(.text)
+		objs/wait.o(.text)
+		
 #if (FORMAT == elf32-m68k)
 		*(.rodata)
 		*(.rodata.*)
@@ -29,15 +31,15 @@ SECTIONS
 		objs/BaS.o(.text)
 		objs/wait.o(.text)
 		/* put other routines into the same segment (RAM) as BaS.o */ 
-		objs/sd_card_asm.o(.text)
+		objs/unicode.o(.text)
+		objs/mmc.o(.text)
+		objs/ff.o(.text)
 		objs/bas_printf.o(.text)
 		objs/printf_helper.o(.text)
 		objs/cache.o(.text)
-		objs/sd_card.o(.text)
 		objs/mmu.o(.text)
 		objs/exceptions.o(.text)
 		objs/supervisor.o(.text)
-		objs/ewf.o(.text)
 		objs/illegal_instruction.o(.text)
 		*(.data)
 		*(.bss)	

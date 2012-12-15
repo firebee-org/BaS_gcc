@@ -328,10 +328,11 @@ void wait_pll(void)
 	} while ((* (volatile int16_t *) 0xf0000800 < 0) && MCF_SLT0_SCNT > trgt);
 }
 
-static volatile uint8_t *pll_base = (volatile uint8_t *) 0xf0000600;
 
 void init_pll(void)
 {
+	static volatile uint8_t *pll_base = (volatile uint8_t *) 0xf0000600;
+
 	xprintf("FPGA PLL initialization: ");
 
 	wait_pll();
@@ -482,7 +483,7 @@ void test_upd720101(void)
 			MCF_PCI_PCICAR_FUNCNUM(0) +
 			MCF_PCI_PCICAR_DWORD(57);
 
-		//* (uint8_t *) PCI_IO_OFFSET = 0x20;	// commented out (hangs currently)
+		//* (uint8_t *) PCI_IO_OFFSET = 0x20;
 	}
 	else
 	{
@@ -495,7 +496,7 @@ void test_upd720101(void)
 	xprintf("finished\r\n");
 }
 
-static bool i2c_transfer_finished(void)
+static uint32_t i2c_transfer_finished(void)
 {
 	if (MCF_I2C_I2SR & MCF_I2C_I2SR_IIF)
 		return TRUE;
@@ -509,7 +510,7 @@ static void wait_i2c_transfer_finished(void)
 	MCF_I2C_I2SR &= ~MCF_I2C_I2SR_IIF; 			/* clear interrupt bit (byte transfer finished */
 }
 
-static bool i2c_bus_free(void)
+static uint32_t i2c_bus_free(void)
 {
 	return (MCF_I2C_I2SR & MCF_I2C_I2SR_IBB);
 }
@@ -714,7 +715,7 @@ void init_ac97(void) {
 			}
 		}
 	}
-	uart_out_word(' NOT');
+
 livo:
 	// AUX VOLUME ->-0dB
 	MCF_PSC2_PSCTB_AC97 = 0xE0000000;	//START SLOT1 + SLOT2, FIRST FRAME
@@ -749,9 +750,6 @@ livo:
 }
 
 /* Symbols from the linker script */
-
-extern uint8_t _STRAM_END[];
-#define STRAM_END ((uint32_t)_STRAM_END)
 
 extern uint8_t _FIRETOS[];
 #define FIRETOS ((uint32_t)_FIRETOS) /* where FireTOS is stored in flash */

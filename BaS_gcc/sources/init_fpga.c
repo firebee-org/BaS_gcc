@@ -33,7 +33,6 @@
 
 extern void xprintf_before_copy(const char *fmt, ...);
 extern void display_progress_before_copy(void);
-extern void wait_10ms();
 
 #define xprintf	 xprintf_before_copy
 #define display_progress display_progress_before_copy

@@ -32,6 +32,7 @@ CFLAGS=-mcpu=5474\
 	   -Wall\
 	   -g\
 	   -Wno-multichar\
+	   -Winline\
 	   -Os\
 	   -fomit-frame-pointer\
 	   -fno-strict-aliasing\
@@ -59,19 +60,19 @@ CSRCS= \
 	$(SRCDIR)/bas_printf.c \
 	$(SRCDIR)/BaS.c \
 	$(SRCDIR)/cache.c \
-	$(SRCDIR)/sd_card.c \
+	$(SRCDIR)/mmc.c \
+	$(SRCDIR)/unicode.c \
+	$(SRCDIR)/ff.c \
 	$(SRCDIR)/wait.c
 
 ASRCS= \
 	$(SRCDIR)/startcf.S \
 	$(SRCDIR)/printf_helper.S \
 	$(SRCDIR)/mmu.S \
-	$(SRCDIR)/sd_card_asm.S \
 	$(SRCDIR)/exceptions.S \
 	$(SRCDIR)/supervisor.S \
-	$(SRCDIR)/ewf.S \
-	$(SRCDIR)/illegal_instruction.S 
-
+	$(SRCDIR)/illegal_instruction.S
+	
 COBJS=$(patsubst $(SRCDIR)/%.o,$(OBJDIR)/%.o,$(patsubst %.c,%.o,$(CSRCS)))
 AOBJS=$(patsubst $(SRCDIR)/%.o,$(OBJDIR)/%.o,$(patsubst %.S,%.o,$(ASRCS)))
 
