@@ -72,14 +72,14 @@ void sd_card_init(void)
 			fres = f_open(&file, FLASHCODE_NAME, FA_READ);
 			if (fres == FR_OK)
 			{
-				uint32_t size;	/* length of code piece read */
-				uint32_t total_size = 0L;
 				/*
 				 * yes, load and execute it
 				 *
 				 * FIXME: we will need some kind of user confirmation here
 				 * to avoid unwanted flashing or "bootsector viruses" before going productive
 				 */
+				uint32_t size;	/* length of code piece read */
+				uint32_t total_size = 0L;
 				uint32_t start_time = MCF_SLT_SCNT(0);
 				uint32_t end_time;
 				uint32_t time = 0;
