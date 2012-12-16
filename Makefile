@@ -63,6 +63,7 @@ CSRCS= \
 	$(SRCDIR)/mmc.c \
 	$(SRCDIR)/unicode.c \
 	$(SRCDIR)/ff.c \
+	$(SRCDIR)/sd_card.c \
 	$(SRCDIR)/wait.c
 
 ASRCS= \

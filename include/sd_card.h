@@ -33,12 +33,7 @@
 #include <MCF5475.h>
 #include <stdint.h>
 
-extern void spi_init(void);
-extern uint32_t sd_com(uint32_t data);
-extern void sd_card_idle(void);
-extern uint8_t sd_card_get_status(void);
-extern uint8_t spi_send_byte(uint8_t byte);
-extern uint16_t spi_send_word(uint16_t word);
+extern void sd_card_init(void);
 
 /* MMC card type flags (MMC_GET_TYPE) */
 #define CT_MMC		0x01		/* MMC ver 3 */
