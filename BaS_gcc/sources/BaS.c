@@ -29,7 +29,7 @@
 #include "cache.h"
 #include "bas_printf.h"
 #include "bas_types.h"
-#include "sd_card.h"
+#include <sd_card.h>
 #include <wait.h>
 
 #include <diskio.h>
@@ -176,53 +176,12 @@ void BaS(void)
 	uint8_t *src;
 	uint8_t *dst = (uint8_t *)TOS;
 	uint32_t *adr;
-	DRESULT res;
-	FATFS fs;
-	FRESULT fres;
 
 	pic_init();
 	nvram_init();
-	disk_initialize(0);
-	res = disk_status(0);
-	xprintf("disk status of SD card is %d\r\n", res);
-	if (res == RES_OK)
-	{
-		fres = f_mount(0, &fs);
-		xprintf("mount status of SD card fs is %d\r\n", fres);
-		if (fres == FR_OK)
-		{
-			DIR directory;
-			FIL file;
 
-			fres = f_opendir(&directory, "\\");
-			if (fres == FR_OK)
-			{
-				FILINFO fi;
+	sd_card_init();
 
-				while (((fres = f_readdir(&directory, &fi)) == FR_OK) && fi.fname[0])
-				{
-					xprintf("%13.13s %d\r\n", fi.fname, fi.fsize);
-				}
-			}
-			else
-			{
-				xprintf("could not open directory \"\\\" on SD-card! Error code: %d\r\n", fres);
-			}
-
-			fres = f_open(&file, "WELCOME.MSG", FA_READ);
-			if (fres == FR_OK)
-			{
-				char line[128];
-
-				while (f_gets(line, sizeof(line), &file))
-				{
-					xprintf("%s", line);
-				}
-			}
-			f_close(&file);
-		}
-		f_mount(0, 0L);	/* release work area */
-	}
 	xprintf("copy EmuTOS: ");
 
 	/* copy EMUTOS */
