@@ -392,7 +392,7 @@ DSTATUS disk_initialize(uint8_t drv)
 
 	if (Stat & STA_NODISK) return Stat;	/* Is card existing in the socket? */
 
-	//FCLK_SLOW();
+	FCLK_SLOW();
 	for (n = 10; n; n--) xchg_spi(0xFF);	/* Send 80 dummy clocks */
 
 	ty = 0;
