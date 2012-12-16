@@ -21,38 +21,9 @@
 
 /* Copyright (C) 2012, mfro, all rights reserved. */
 
-#define SSP_CH	1	/* SSP channel to use (0:SSP0, 1:SSP1) */
 
-#define	CCLK		100000000UL	/* cclk frequency [Hz] */
-#define PCLK_SSP	50000000UL	/* PCLK frequency for SSP [Hz] */
-#define SCLK_FAST	25000000UL	/* SCLK frequency under normal operation [Hz] */
-#define	SCLK_SLOW	400000UL	/* SCLK frequency under initialization [Hz] */
-
-#define	INS			(!(FIO2PIN1 & _BV(1)))	/* Socket status (true:Inserted, false:Empty) */
-#define	WP			0 /* Card write protection (true:yes, false:no) */
-
-#if SSP_CH == 0
-#define	SSPxDR		SSP0DR
-#define	SSPxSR		SSP0SR
-#define	SSPxCR0		SSP0CR0
-#define	SSPxCR1		SSP0CR1
-#define	SSPxCPSR	SSP0CPSR
-#define	CS_LOW()	{FIO0CLR2 = _BV(2);}	/* Set P0.18 low */
-#define	CS_HIGH()	{FIO0SET2 = _BV(2);}	/* Set P0.18 high */
-#define PCSSPx		PCSSP0
-#define	PCLKSSPx	PCLK_SSP0
-#elif SSP_CH == 1
-#define	SSPxDR		SSP1DR
-#define	SSPxSR		SSP1SR
-#define	SSPxCR0		SSP1CR0
-#define	SSPxCR1		SSP1CR1
-#define	SSPxCPSR	SSP1CPSR
 #define	CS_HIGH()	{ dspi_fifo_val &= ~MCF_DSPI_DTFR_CS5; }
 #define	CS_LOW()	{ dspi_fifo_val |= MCF_DSPI_DTFR_CS5; }
-#define PCSSPx		PCSSP1
-#define	PCLKSSPx	PCLK_SSP1
-#endif
-
 
 #define SPICLK_FAST() { MCF_DSPI_DCTAR0 = MCF_DSPI_DCTAR_TRSZ(0b111) |	/* transfer size = 8 bit */ \
 					  MCF_DSPI_DCTAR_PCSSCK(0b01) |	/* 3 clock DSPICS to DSPISCK delay prescaler */ \
@@ -663,6 +634,7 @@ DRESULT disk_ioctl (
 /  of 1 ms to generate card control timing.
 */
 
+#ifdef _NOT_USED_
 void disk_timerproc (void)
 {
 	uint8_t s;
@@ -678,3 +650,4 @@ void disk_timerproc (void)
 	//	s |= (STA_NODISK | STA_NOINIT);
 	Stat = s;
 }
+#endif /* _NOT_USED_ */
