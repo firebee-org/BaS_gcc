@@ -12,6 +12,15 @@
 #define WELCOME_NAME	"WELCOME.MSG"
 #define FLASHCODE_NAME	"BASFLASH.BIN"
 
+#define FLASHCODE_ADDRESS	0x01000000L
+
+/*
+ * initialize SD-card and FF FAT filesystem routines. Harness to load a file during boot.
+ *
+ * This is currently more like a proof of concept,
+ * but will be extended to load and execute a bootstrap flasher to be able to flash the Bee directly
+ * from card.
+ */
 void sd_card_init(void)
 {
 	DRESULT res;
@@ -63,12 +72,28 @@ void sd_card_init(void)
 			fres = f_open(&file, FLASHCODE_NAME, FA_READ);
 			if (fres == FR_OK)
 			{
+				uint32_t size;	/* length of code piece read */
+				uint32_t total_size = 0L;
 				/*
 				 * yes, load and execute it
 				 *
 				 * FIXME: we will need some kind of user confirmation here
 				 * to avoid unwanted flashing or "bootsector viruses" before going productive
 				 */
+				uint32_t start_time = MCF_SLT_SCNT(0);
+				uint32_t end_time;
+				uint32_t time = 0;
+
+				while ((fres = f_read(&file, (void *) FLASHCODE_ADDRESS, 1024, &size)) == FR_OK)
+				{
+					total_size += size / 1024;
+					//xprintf("read hunk of %d bytes, total_size = %d kBytes\r\n", size, total_size);
+				}
+				end_time = MCF_SLT_SCNT(0);
+				time = (end_time - start_time) / 132L;
+				xprintf("result of f_read: %ld, %ld kbytes read\r\n", fres, total_size);
+				xprintf("time to load %s: %ld s\r\n", FLASHCODE_NAME, time / 1000 / 100);
+				xprintf("equals to about %ld kBytes/second\r\n", total_size / (time / 1000 / 100));
 
 			}
 			f_close(&file);
