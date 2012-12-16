@@ -29,10 +29,10 @@
 					  MCF_DSPI_DCTAR_PCSSCK(0b01) |	/* 3 clock DSPICS to DSPISCK delay prescaler */ \
 					  MCF_DSPI_DCTAR_PASC_3CLK |	/* 3 clock DSPISCK to DSPICS negation prescaler */ \
 					  MCF_DSPI_DCTAR_PDT_3CLK |		/* 3 clock delay between DSPICS assertions prescaler */ \
-					  MCF_DSPI_DCTAR_PBR_3CLK |		/* 3 clock prescaler */ \
+					  MCF_DSPI_DCTAR_PBR_1CLK |		/* 1 clock prescaler */ \
 					  MCF_DSPI_DCTAR_ASC(0b1001) |	/* 1024 */ \
 					  MCF_DSPI_DCTAR_DT(0b1001) |	/* 1024 */ \
-					  MCF_DSPI_DCTAR_BR(0b0000); }
+					  MCF_DSPI_DCTAR_BR(0b0001); }
 
 #define SPICLK_SLOW() { MCF_DSPI_DCTAR0 = MCF_DSPI_DCTAR_TRSZ(0b111) |	/* transfer size = 8 bit */ \
 					  MCF_DSPI_DCTAR_PCSSCK(0b01) |	/* 3 clock DSPICS to DSPISCK delay prescaler */ \
