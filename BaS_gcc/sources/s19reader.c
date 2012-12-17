@@ -43,8 +43,8 @@ typedef struct srec2	/* two byte address field */
 	uint16_t address;		/* [2 + 2] */
 	uint8_t data[64];		/* [4 + length] */
 } __attribute__((packed)) SREC2;
-#define SREC2_DATALEN(a) ((a)->length - 2)
-#define SREC2_CHECKSUM(a) ((a)->data[SREC2_DATALEN(a) - 1])
+#define SREC2_DATALEN(a) ((a)->length - 2)	/* returns the length of the data array (including the last checksum byte) */
+#define SREC2_CHECKSUM(a) ((a)->data[SREC2_DATALEN(a) - 1])	/* returns the checksum byte */
 
 typedef struct srec4	/* four byte address field */
 {
@@ -53,8 +53,8 @@ typedef struct srec4	/* four byte address field */
 	uint32_t address;		/* [2 + 4] */
 	uint8_t data[64];		/* [6 + length] */
 } __attribute__((packed)) SREC4;
-#define SREC4_DATALEN(a) ((a)->length - 4)
-#define SREC4_CHECKSUM(a) ((a)->data[SREC4_DATALEN(a) - 1])
+#define SREC4_DATALEN(a) ((a)->length - 4)	/* returns the length of the data array (including the last checksum byte) */
+#define SREC4_CHECKSUM(a) ((a)->data[SREC4_DATALEN(a) - 1]) /* returns the checksum byte */
 
 
 uint8_t nibble_to_byte(uint8_t nibble)
