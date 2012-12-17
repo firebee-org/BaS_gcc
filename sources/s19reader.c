@@ -28,6 +28,7 @@
 #include <sd_card.h>
 #include <diskio.h>
 #include <ff.h>
+#include <s19reader.h>
 
 typedef enum { FALSE, TRUE } bool;
 typedef enum { OK, FAIL } err_t;
@@ -65,10 +66,7 @@ uint8_t nibble_to_byte(uint8_t nibble)
 		return 10 + nibble - 'A';
 	else if ((nibble >= 'a' && nibble <= 'f'))
 		return 10 + nibble - 'a';
-	else
-	{
-		/* FIXME: do a clean error exit */
-	}
+	return 0;
 }
 
 uint8_t hex_to_byte(uint8_t hex[2])
@@ -229,7 +227,7 @@ err_t read_srecords(char *filename, uint32_t *start_address, uint32_t *actual_le
 	return ret;
 }
 
-void flasher_load(void)
+void flasher_load(char *flasher_filename)
 {
 	DRESULT res;
 	FRESULT fres;
@@ -250,7 +248,11 @@ void flasher_load(void)
 		xprintf("mount status of SD card fs is %d\r\n", fres);
 		if (fres == FR_OK)
 		{
-			err = read_srecords("../BaS_gcc_trunk/ram.elf.s19", &start_address, &length, buffer, sizeof(buffer));
+			err = read_srecords(flasher_filename, &start_address, &length, buffer, sizeof(buffer));
+			if (err == OK)
+			{
+
+			}
 		}
 		f_mount(0, NULL);
 	}
