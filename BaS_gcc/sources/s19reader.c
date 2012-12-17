@@ -42,6 +42,9 @@ typedef enum { OK, FAIL } err_t;
 #define SREC_DATA32(a)	((uint8_t *)&((a)[6]))
 #define SREC_CHECKSUM(a)	(a)[SREC_COUNT(a) + 2 - 1]
 
+/*
+ * convert a single hex character into byte
+ */
 uint8_t nibble_to_byte(uint8_t nibble)
 {
 	if ((nibble >= '0') && (nibble <= '9'))
@@ -53,23 +56,32 @@ uint8_t nibble_to_byte(uint8_t nibble)
 	return 0;
 }
 
+/*
+ * convert two hex characters into byte
+ */
 uint8_t hex_to_byte(uint8_t hex[2])
 {
 	return 16 * (nibble_to_byte(hex[0])) + (nibble_to_byte(hex[1]));
 }
 
+/*
+ * convert four hex characters into a 16 bit word
+ */
 uint16_t hex_to_word(uint8_t hex[4])
 {
 	return 256 * hex_to_byte(&hex[0]) + hex_to_byte(&hex[2]);
 }
 
+/*
+ * convert eight hex characters into a 32 bit word
+ */
 uint32_t hex_to_long(uint8_t hex[8])
 {
 	return 65536 * hex_to_word(&hex[0]) + hex_to_word(&hex[4]);
 }
 
 /*
- * compute the checksum
+ * compute the record checksum
  *
  * it consists of the one's complement of the byte sum of the data from the count field until the end
  */
@@ -85,6 +97,7 @@ uint8_t checksum(uint8_t arr[])
 	return ~checksum;
 }
 
+#ifdef _NOT_USED_
 void print_record(uint8_t *arr)
 {
 	switch (SREC_TYPE(arr))
@@ -116,7 +129,11 @@ void print_record(uint8_t *arr)
 			break;
 	}
 }
+#endif /* _NOT_USED_ */
 
+/*
+ * convert an S-record line into its corresponding byte vector (ASCII->binary)
+ */
 void line_to_vector(uint8_t *line, uint8_t *vector)
 {
 	int i;
@@ -136,6 +153,10 @@ void line_to_vector(uint8_t *line, uint8_t *vector)
 	}
 }
 
+/*
+ * read and parse a Motorola S-record file. Currently only records that the gcc toolchain emits are
+ * supported.
+ */
 err_t read_srecords(char *filename, uint32_t *start_address, uint32_t *actual_length, uint8_t *buffer, uint32_t buffer_length)
 {
 	FRESULT fres;
@@ -181,14 +202,7 @@ err_t read_srecords(char *filename, uint32_t *start_address, uint32_t *actual_le
 					}
 					break;
 
-				case 1:
-					xprintf("S1 record (two byte address field) found\r\n");
-					break;
-				case 2:
-					xprintf("S2 record (three byte address field) found\r\n");
-					break;
-				case 3:
-					// xprintf("S3 record (four byte address field) found\r\n");
+				case 3: /* four byte address field data record */
 					if (!found_block_header || found_block_end)
 					{
 						xprintf("S3 record found before S0 or after S7: S-records corrupt?\r\n");
@@ -197,10 +211,7 @@ err_t read_srecords(char *filename, uint32_t *start_address, uint32_t *actual_le
 					data_records++;
 					break;
 
-				case 5:
-					xprintf("S5 record (record count record) found\r\n");
-					break;
-				case 7:
+				case 7: /* four byte address field end record */
 					if (!found_block_header || found_block_end)
 					{
 						xprintf("S7 record found before S0 or after S7: S-records corrupt?\r\n");
@@ -210,12 +221,7 @@ err_t read_srecords(char *filename, uint32_t *start_address, uint32_t *actual_le
 						xprintf("S7 record (end) found after %d valid data blocks\r\n", data_records);
 					}
 					break;
-				case 8:
-					xprintf("S8 record (end of block) found\r\n");
-					break;
-				case 9:
-					xprintf("S9 record (end of block) found\r\n");
-					break;
+
 				default:
 					xprintf("unsupported record type (%d) found in line %d\r\n", vector[0], lineno);
 					ret = FAIL;
@@ -224,7 +230,7 @@ err_t read_srecords(char *filename, uint32_t *start_address, uint32_t *actual_le
 			}
 			else
 			{
-				xprintf("illegal character ('%c') found on line %d. Probably not an S-Record file\r\n", line[0], lineno);
+				xprintf("illegal character ('%c') found on line %d: S-records corrupt?\r\n", line[0], lineno);
 				ret = FAIL;
 				break;
 			}
@@ -252,11 +258,9 @@ void flasher_load(char *flasher_filename)
 
 	disk_initialize(0);
 	res = disk_status(0);
-	xprintf("disk status of SD card is %d\r\r\n", res);
 	if (res == RES_OK)
 	{
 		fres = f_mount(0, &fs);
-		xprintf("mount status of SD card fs is %d\r\n", fres);
 		if (fres == FR_OK)
 		{
 			err = read_srecords(flasher_filename, &start_address, &length, buffer, sizeof(buffer));
@@ -265,8 +269,15 @@ void flasher_load(char *flasher_filename)
 
 			}
 		}
+		else
+		{
+			xprintf("could not mount FAT FS\r\n");
+		}
 		f_mount(0, NULL);
 	}
-
+	else
+	{
+		xprintf("could not initialize SD card\r\n");
+	}
 }
 
