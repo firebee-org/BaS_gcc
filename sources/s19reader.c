@@ -129,7 +129,6 @@ void line_to_vector(uint8_t *line, uint8_t *vector)
 	*vp++ = nibble_to_byte(*line); /* record type. Only one single nibble */
 	line++;
 
-	xprintf("  ");
 	for (i = 0; i <= length; i++)
 	{
 		*vp++ = hex_to_byte(line);
@@ -149,6 +148,8 @@ err_t read_srecords(char *filename, uint32_t *start_address, uint32_t *actual_le
 		int lineno = 0;
 		int data_records = 0;
 		bool found_block_header = FALSE;
+		bool found_block_end = FALSE;
+		bool found_block_data = FALSE;
 
 		xprintf("succesfully opened file \"%s\"\r\n", filename);
 
@@ -161,7 +162,7 @@ err_t read_srecords(char *filename, uint32_t *start_address, uint32_t *actual_le
 
 			if (line[0] == 'S')
 			{
-				print_record(vector);
+				//print_record(vector);
 				if (SREC_CHECKSUM(vector) != checksum(vector))
 				{
 					xprintf("invalid checksum in line %d\r\n", lineno);
@@ -171,8 +172,13 @@ err_t read_srecords(char *filename, uint32_t *start_address, uint32_t *actual_le
 				switch (vector[0])
 				{
 				case 0:	/* block header */
-					xprintf("S0 record (block header found)\r\n");
+					xprintf("S0 record (block header) found\r\n");
 					found_block_header = TRUE;
+					if (found_block_data || found_block_end)
+					{
+						xprintf("S7 or S3 record found before S0: S-records corrupt?\r\n");
+						ret = FAIL;
+					}
 					break;
 
 				case 1:
@@ -183,22 +189,26 @@ err_t read_srecords(char *filename, uint32_t *start_address, uint32_t *actual_le
 					break;
 				case 3:
 					// xprintf("S3 record (four byte address field) found\r\n");
-					if (found_block_header)
+					if (!found_block_header || found_block_end)
 					{
-						data_records++;
-					}
-					else
-					{
-						xprintf("found a data record without a block header before. Data is probably invalid\r\n");
+						xprintf("S3 record found before S0 or after S7: S-records corrupt?\r\n");
 						ret = FAIL;
 					}
+					data_records++;
 					break;
 
 				case 5:
 					xprintf("S5 record (record count record) found\r\n");
 					break;
 				case 7:
-					xprintf("S7 record (end of block) found after %d valid data blocks\r\n", data_records);
+					if (!found_block_header || found_block_end)
+					{
+						xprintf("S7 record found before S0 or after S7: S-records corrupt?\r\n");
+					}
+					else
+					{
+						xprintf("S7 record (end) found after %d valid data blocks\r\n", data_records);
+					}
 					break;
 				case 8:
 					xprintf("S8 record (end of block) found\r\n");
