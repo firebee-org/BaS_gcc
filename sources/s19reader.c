@@ -3,7 +3,7 @@
  *
  *  Created on: 17.12.2012
  *      Author: mfro
- *      (c) The ACP Firebee project
+ *      The ACP Firebee project
  *
  * This file is part of BaS_gcc.
  *
@@ -33,6 +33,9 @@ typedef enum { FALSE, TRUE } bool;
 typedef enum { OK, FAIL } err_t;
 #define NULL (void *) 0L
 
+/*
+ * beware: structures need to be packed to map correctly over character arrays
+ */
 typedef struct srec2	/* two byte address field */
 {
 	uint8_t record_type;	/* [0 + 1] for S0, S1, S9 */
