@@ -34,6 +34,9 @@
 
 #include <diskio.h>
 #include <ff.h>
+
+#include <s19reader.h>
+
 /* imported routines */
 extern int mmu_init();
 extern int vec_init();
@@ -181,6 +184,8 @@ void BaS(void)
 	nvram_init();
 
 	sd_card_init();
+
+	flasher_load("BASFLASH.S19");
 
 	xprintf("copy EmuTOS: ");
 
