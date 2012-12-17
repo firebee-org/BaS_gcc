@@ -34,29 +34,13 @@ typedef enum { FALSE, TRUE } bool;
 typedef enum { OK, FAIL } err_t;
 #define NULL (void *) 0L
 
-/*
- * beware: structures need to be packed to map correctly over character arrays
- */
-typedef struct srec2	/* two byte address field */
-{
-	uint8_t record_type;	/* [0 + 1] for S0, S1, S9 */
-	uint8_t length;			/* [1 + 1] number of valid bytes following */
-	uint16_t address;		/* [2 + 2] */
-	uint8_t data[64];		/* [4 + length] */
-} __attribute__((packed)) SREC2;
-#define SREC2_DATALEN(a) ((a)->length - 2)	/* returns the length of the data array (including the last checksum byte) */
-#define SREC2_CHECKSUM(a) ((a)->data[SREC2_DATALEN(a) - 1])	/* returns the checksum byte */
-
-typedef struct srec4	/* four byte address field */
-{
-	uint8_t record_type;	/* [0 + 1] for S3, S7 */
-	uint8_t length;			/* [1 + 1] */
-	uint32_t address;		/* [2 + 4] */
-	uint8_t data[64];		/* [6 + length] */
-} __attribute__((packed)) SREC4;
-#define SREC4_DATALEN(a) ((a)->length - 4)	/* returns the length of the data array (including the last checksum byte) */
-#define SREC4_CHECKSUM(a) ((a)->data[SREC4_DATALEN(a) - 1]) /* returns the checksum byte */
-
+#define SREC_TYPE(a) 	(a)[0]		/* type of record */
+#define SREC_COUNT(a) 	(a)[1]	/* length of valid bytes to follow */
+#define SREC_ADDR16(a) 	(256 * (a)[2] + (a)[3])	/* 2 byte address field */
+#define SREC_ADDR32(a) 	(0x1000000 * a[2] + 0x10000 * a[3] + 0x100 * (a)[4] + (a)[5])	/* 4 byte address field */
+#define SREC_DATA16(a)	((uint8_t *)&((a)[4]))
+#define SREC_DATA32(a)	((uint8_t *)&((a)[6]))
+#define SREC_CHECKSUM(a)	(a)[SREC_COUNT(a) + 2 - 1]
 
 uint8_t nibble_to_byte(uint8_t nibble)
 {
@@ -84,30 +68,46 @@ uint32_t hex_to_long(uint8_t hex[8])
 	return 65536 * hex_to_word(&hex[0]) + hex_to_word(&hex[4]);
 }
 
+/*
+ * compute the checksum
+ *
+ * it consists of the one's complement of the byte sum of the data from the count field until the end
+ */
+uint8_t checksum(uint8_t arr[])
+{
+	int i;
+	uint8_t checksum = SREC_COUNT(arr);
+
+	for (i = 0; i < SREC_COUNT(arr) - 1; i++)
+	{
+		checksum += arr[i + 2];
+	}
+	return ~checksum;
+}
+
 void print_record(uint8_t *arr)
 {
-	xprintf("S%d record:\r\n", arr[0]);
-	switch (arr[0]) {
+	switch (SREC_TYPE(arr))
+	{
 		case 0:
 		{
-			SREC2 *header = (SREC2 *) arr;
-
-			xprintf("type:           0x%x\r\n", header->record_type);
-			xprintf("byte count:     0x%x\r\n", header->length);
-			xprintf("address:        0x%x\r\n", header->address);
-			xprintf("module name:    %11.11s\r\n", header->data);
-			xprintf("checksum:       0x%x\r\n", SREC2_CHECKSUM(header));
+			xprintf("type 0x%x ", SREC_TYPE(arr));
+			xprintf("count 0x%x ", SREC_COUNT(arr));
+			xprintf("addr 0x%x ", SREC_ADDR16(arr));
+			xprintf("module %11.11s ", SREC_DATA16(arr));
+			xprintf("chk 0x%x 0x%x\r\n", SREC_CHECKSUM(arr), checksum(arr));
 		}
 		break;
 
 		case 3:
+		case 7:
 		{
-			SREC4 *header = (SREC4 *) arr;
-			xprintf("type:           0x%x\r\n", header->record_type);
-			xprintf("byte count:     0x%x\r\n", header->length);
-			xprintf("address:        0x08%x\r\n", header->address);
-			xprintf("data:           %02x, %0sx, %02x, %02x, ...\r\n", header->data[0], header->data[1], header->data[2], header->data[3]);
-			xprintf("checksum:       0x%x\r\n", SREC4_CHECKSUM(header));
+			xprintf("type 0x%x ", SREC_TYPE(arr));
+			xprintf("count 0x%x ", SREC_COUNT(arr));
+			xprintf("addr 0x%x ", SREC_ADDR32(arr));
+			xprintf("data %02x,%02x,%02x,%02x,... ",
+					SREC_DATA32(arr)[0], SREC_DATA32(arr)[1], SREC_DATA32(arr)[3], SREC_DATA32(arr)[4]);
+			xprintf("chk 0x%x 0x%x\r\n", SREC_CHECKSUM(arr), checksum(arr));
 		}
 		break;
 
@@ -132,14 +132,9 @@ void line_to_vector(uint8_t *line, uint8_t *vector)
 	xprintf("  ");
 	for (i = 0; i <= length; i++)
 	{
-		xprintf("%c%c", *line, *(line + 1));
 		*vp++ = hex_to_byte(line);
 		line += 2;
 	}
-	xprintf("\r\r\n");
-	for (i = 0; i < length + 2; i++)
-		xprintf("%02x", vector[i]);
-	xprintf("\r\r\n");
 }
 
 err_t read_srecords(char *filename, uint32_t *start_address, uint32_t *actual_length, uint8_t *buffer, uint32_t buffer_length)
@@ -167,20 +162,26 @@ err_t read_srecords(char *filename, uint32_t *start_address, uint32_t *actual_le
 			if (line[0] == 'S')
 			{
 				print_record(vector);
-				switch (line[1])
+				if (SREC_CHECKSUM(vector) != checksum(vector))
 				{
-				case '0':	/* block header */
+					xprintf("invalid checksum in line %d\r\n", lineno);
+					ret = FAIL;
+				}
+
+				switch (vector[0])
+				{
+				case 0:	/* block header */
 					xprintf("S0 record (block header found)\r\n");
 					found_block_header = TRUE;
 					break;
 
-				case '1':
+				case 1:
 					xprintf("S1 record (two byte address field) found\r\n");
 					break;
-				case '2':
+				case 2:
 					xprintf("S2 record (three byte address field) found\r\n");
 					break;
-				case '3':
+				case 3:
 					// xprintf("S3 record (four byte address field) found\r\n");
 					if (found_block_header)
 					{
@@ -193,20 +194,20 @@ err_t read_srecords(char *filename, uint32_t *start_address, uint32_t *actual_le
 					}
 					break;
 
-				case '5':
+				case 5:
 					xprintf("S5 record (record count record) found\r\n");
 					break;
-				case '7':
+				case 7:
 					xprintf("S7 record (end of block) found after %d valid data blocks\r\n", data_records);
 					break;
-				case '8':
+				case 8:
 					xprintf("S8 record (end of block) found\r\n");
 					break;
-				case '9':
+				case 9:
 					xprintf("S9 record (end of block) found\r\n");
 					break;
 				default:
-					xprintf("unsupported record type (%c) found in line %d\r\n", line[1], lineno);
+					xprintf("unsupported record type (%d) found in line %d\r\n", vector[0], lineno);
 					ret = FAIL;
 					break;
 				}
