@@ -88,8 +88,8 @@ static uint8_t CardType;			/* Card type flags */
 
 static uint32_t dspi_fifo_val = /* CONT disable continous chip select */
 								/* CTAS use DCTAR0 for clock and attributes */
-								MCF_DSPI_DTFR_EOQ; /* current transfer is last in queue */
-
+								MCF_DSPI_DTFR_EOQ | /* current transfer is last in queue */
+								MCF_DSPI_DTFR_CTCNT;
 
 /* Exchange a byte */
 static uint8_t xchg_spi(uint8_t byte)
@@ -102,8 +102,8 @@ static uint8_t xchg_spi(uint8_t byte)
 	MCF_DSPI_DSR = 0xffffffff;						/* clear DSPI status register */
 
 	fifo = MCF_DSPI_DRFR;
+	MCF_DSPI_DSR = 0xffffffff;
 	res = fifo & 0xff;
-
 	return res;
 }
 
@@ -166,7 +166,6 @@ static void deselect(void)
 {
 	CS_HIGH();
 	xchg_spi(0xFF);	/* Dummy clock (force DO hi-z for multiple slave SPI) */
-	MCF_DSPI_DSR = 0xffffffff;	/* clear status register */
 }
 
 
