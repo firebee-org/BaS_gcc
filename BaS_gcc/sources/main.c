@@ -15,7 +15,7 @@ void die (		/* Stop with dying message */
 	FRESULT rc	/* FatFs return value */
 )
 {
-	printf("Failed with rc=%u.\n", rc);
+	xprintf("Failed with rc=%u.\n", rc);
 	for (;;) ;
 }
 
@@ -34,11 +34,11 @@ int main (void)
 
 	f_mount(0, &Fatfs);		/* Register volume work area (never fails) */
 
-	printf("\nOpen an existing file (message.txt).\n");
+	xprintf("\nOpen an existing file (message.txt).\n");
 	rc = f_open(&Fil, "MESSAGE.TXT", FA_READ);
 	if (rc) die(rc);
 
-	printf("\nType the file content.\n");
+	xprintf("\nType the file content.\n");
 	for (;;) {
 		rc = f_read(&Fil, Buff, sizeof Buff, &br);	/* Read a chunk of file */
 		if (rc || !br) break;			/* Error or end of file */
@@ -47,39 +47,39 @@ int main (void)
 	}
 	if (rc) die(rc);
 
-	printf("\nClose the file.\n");
+	xprintf("\nClose the file.\n");
 	rc = f_close(&Fil);
 	if (rc) die(rc);
 
-	printf("\nCreate a new file (hello.txt).\n");
+	xprintf("\nCreate a new file (hello.txt).\n");
 	rc = f_open(&Fil, "HELLO.TXT", FA_WRITE | FA_CREATE_ALWAYS);
 	if (rc) die(rc);
 
-	printf("\nWrite a text data. (Hello world!)\n");
+	xprintf("\nWrite a text data. (Hello world!)\n");
 	rc = f_write(&Fil, "Hello world!\r\n", 14, &bw);
 	if (rc) die(rc);
-	printf("%u bytes written.\n", bw);
+	xprintf("%u bytes written.\n", bw);
 
-	printf("\nClose the file.\n");
+	xprintf("\nClose the file.\n");
 	rc = f_close(&Fil);
 	if (rc) die(rc);
 
-	printf("\nOpen root directory.\n");
+	xprintf("\nOpen root directory.\n");
 	rc = f_opendir(&dir, "");
 	if (rc) die(rc);
 
-	printf("\nDirectory listing...\n");
+	xprintf("\nDirectory listing...\n");
 	for (;;) {
 		rc = f_readdir(&dir, &fno);		/* Read a directory item */
 		if (rc || !fno.fname[0]) break;	/* Error or end of dir */
 		if (fno.fattrib & AM_DIR)
-			printf("   <dir>  %s\n", fno.fname);
+			xprintf("   <dir>  %s\n", fno.fname);
 		else
-			printf("%8lu  %s\n", fno.fsize, fno.fname);
+			xprintf("%8lu  %s\n", fno.fsize, fno.fname);
 	}
 	if (rc) die(rc);
 
-	printf("\nTest completed.\n");
+	xprintf("\nTest completed.\n");
 	for (;;) ;
 }
 

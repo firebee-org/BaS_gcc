@@ -64,7 +64,8 @@ CSRCS= \
 	$(SRCDIR)/unicode.c \
 	$(SRCDIR)/ff.c \
 	$(SRCDIR)/sd_card.c \
-	$(SRCDIR)/wait.c
+	$(SRCDIR)/wait.c \
+	$(SRCDIR)/s19reader.c
 
 ASRCS= \
 	$(SRCDIR)/startcf.S \
