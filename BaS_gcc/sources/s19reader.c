@@ -246,7 +246,7 @@ err_t read_srecords(char *filename, uint8_t **start_address, uint32_t *actual_le
 						xprintf("S3 record found before S0 or after S7: S-records corrupt?\r\n");
 						ret = FAIL;
 					}
-					ret = callback((uint8_t *) SREC_ADDR32(vector), SREC_DATA32(vector), SREC_COUNT(vector) - 4);
+					ret = callback((uint8_t *) SREC_ADDR32(vector), SREC_DATA32(vector), SREC_DATA32_SIZE(vector));
 					data_records++;
 					break;
 
