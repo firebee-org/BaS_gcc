@@ -83,38 +83,6 @@ void sd_card_init(void)
 				}
 			}
 			f_close(&file);
-
-			/*
-			 * let's see if we find our boot flashing executable on disk
-			 */
-			fres = f_open(&file, FLASHCODE_NAME, FA_READ);
-			if (fres == FR_OK)
-			{
-				/*
-				 * yes, load and execute it
-				 *
-				 * FIXME: we will need some kind of user confirmation here
-				 * to avoid unwanted flashing or "bootsector viruses" before going productive
-				 */
-				uint32_t size;	/* length of code piece read */
-				uint32_t total_size = 0L;
-				uint32_t start_time = MCF_SLT_SCNT(0);
-				uint32_t end_time;
-				uint32_t time = 0;
-
-				while ((fres = f_read(&file, (void *) FLASHCODE_ADDRESS, 1024, &size)) == FR_OK)
-				{
-					total_size += size / 1024;
-					//xprintf("read hunk of %d bytes, total_size = %d kBytes\r\n", size, total_size);
-				}
-				end_time = MCF_SLT_SCNT(0);
-				time = (end_time - start_time) / 132L;
-				xprintf("result of f_read: %ld, %ld kbytes read\r\n", fres, total_size);
-				xprintf("time to load %s: %ld s\r\n", FLASHCODE_NAME, time / 1000 / 100);
-				xprintf("equals to about %ld kBytes/second\r\n", total_size / (time / 1000 / 100));
-
-			}
-			f_close(&file);
 		}
 		f_mount(0, 0L);	/* release work area */
 	}

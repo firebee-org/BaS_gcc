@@ -333,6 +333,7 @@ void flasher_load(char *flasher_filename)
 	DRESULT res;
 	FRESULT fres;
 	FATFS fs;
+	FIL file;
 	err_t err;
 	void *start_address;
 	uint32_t length;
@@ -344,28 +345,41 @@ void flasher_load(char *flasher_filename)
 		fres = f_mount(0, &fs);
 		if (fres == FR_OK)
 		{
-			/* first pass: parse and check for inconsistencies */
-			xprintf("check file integrity: ");
-			err = read_srecords(flasher_filename, &start_address, &length, simulate);
-			if (err == OK)
+			if ((fres = f_open(&file, flasher_filename, FA_READ) != FR_OK))
 			{
-				/* next pass: copy data to destination */
-				xprintf("OK.\r\ncopy/flash data: ");
-				err = read_srecords(flasher_filename, &start_address, &length, memcpy);
+				xprintf("flasher file %s not present on disk\r\n", flasher_filename);
+			}
+			else
+			{
+				f_close(&file);
+
+				/* first pass: parse and check for inconsistencies */
+				xprintf("check file integrity: ");
+				err = read_srecords(flasher_filename, &start_address, &length, simulate);
 				if (err == OK)
 				{
-					/* next pass: verify data */
-					xprintf("OK.\r\nverify data: ");
-					err = read_srecords(flasher_filename, &start_address, &length, verify);
+					/* next pass: copy data to destination */
+					xprintf("OK.\r\ncopy/flash data: ");
+					err = read_srecords(flasher_filename, &start_address, &length, memcpy);
 					if (err == OK)
 					{
-						xprintf("OK.\r\n");
-						typedef void void_func(void);
-						void_func *func;
-						xprintf("target successfully written and verified. Start address: %p\r\n", start_address);
+						/* next pass: verify data */
+						xprintf("OK.\r\nverify data: ");
+						err = read_srecords(flasher_filename, &start_address, &length, verify);
+						if (err == OK)
+						{
+							xprintf("OK.\r\n");
+							typedef void void_func(void);
+							void_func *func;
+							xprintf("target successfully written and verified. Start address: %p\r\n", start_address);
 
-						func = start_address;
-						(*func)();
+							func = start_address;
+							(*func)();
+						}
+						else
+						{
+							xprintf("failed\r\n");
+						}
 					}
 					else
 					{
@@ -377,20 +391,16 @@ void flasher_load(char *flasher_filename)
 					xprintf("failed\r\n");
 				}
 			}
-			else
-			{
-				xprintf("failed\r\n");
-			}
 		}
 		else
 		{
-			xprintf("could not mount FAT FS\r\n");
+			// xprintf("could not mount FAT FS\r\n");
 		}
 		f_mount(0, NULL);
 	}
 	else
 	{
-		xprintf("could not initialize SD card\r\n");
+		// xprintf("could not initialize SD card\r\n");
 	}
 }
 
