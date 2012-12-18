@@ -10,5 +10,5 @@
 
 void basflash(void)
 {
-	xprintf("Hello from BASFLASH.S19!\r\n");
+	xprintf("\r\nHello from BASFLASH.S19!\r\n\r\n");
 }
