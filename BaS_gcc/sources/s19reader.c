@@ -178,7 +178,7 @@ typedef err_t (*memcpy_callback_t)(uint8_t *dst, uint8_t *src, uint32_t length);
 
 /*
  * read and parse a Motorola S-record file and copy contents to dst. The theory of operation is to read and parse the S-record file
- * and to use the supplied callback routine to copy the buffer to the destination when the supplied buffer gets full.
+ * and to use the supplied callback routine to copy the buffer to the destination once the S-record line is converted.
  * The memcpy callback can be anything (as long as it conforms parameter-wise) - a basically empty function to just let
  * read_srecords validate the file, a standard memcpy() to copy file contents to destination RAM or a more sophisticated
  * routine that does write/erase flash
@@ -307,13 +307,13 @@ err_t flash(uint8_t *dst, uint8_t *src, uint32_t length)
 {
 	err_t ret = OK;
 
-	/* do the actual flash */
+	/* TODO: do the actual flash */
 
 	return ret;
 }
 
 /*
- * this callback verifies the data against the S-record file contens after a write to destination
+ * this callback verifies the data against the S-record file contents after a write to destination
  */
 err_t verify(uint8_t *dst, uint8_t *src, uint32_t length)
 {
