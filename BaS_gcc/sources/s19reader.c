@@ -348,15 +348,15 @@ void flasher_load(char *flasher_filename)
 		fres = f_mount(0, &fs);
 		if (fres == FR_OK)
 		{
-			/* parse and check for inconsistencies */
+			/* first pass: parse and check for inconsistencies */
 			err = read_srecords(flasher_filename, &start_address, &length, simulate);
 			if (err == OK)
 			{
-				/* next pass: copy to destination */
+				/* next pass: copy data to destination */
 				err = read_srecords(flasher_filename, &start_address, &length, memcpy);
 				if (err == OK)
 				{
-					/* next pass: verify */
+					/* next pass: verify data */
 					err = read_srecords(flasher_filename, &start_address, &length, verify);
 					if (err == OK)
 					{
