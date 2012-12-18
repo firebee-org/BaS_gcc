@@ -297,10 +297,10 @@ err_t memcpy(uint8_t *dst, uint8_t *src, uint32_t length)
 {
 	uint8_t *end = src + length;
 
-	do {
+	do
+	{
 		*dst++ = *src++;
-	}
-	while (src < end);
+	} while (src < end);
 
 	return OK;
 }
@@ -321,11 +321,11 @@ err_t verify(uint8_t *dst, uint8_t *src, uint32_t length)
 {
 	uint8_t *end = src + length;
 
-	do {
+	do
+	{
 		if (*src++ != *dst++)
 			return FAIL;
-	}
-	while (src < end);
+	} while (src < end);
 
 	return OK;
 }
@@ -358,7 +358,23 @@ void flasher_load(char *flasher_filename)
 				{
 					/* next pass: verify */
 					err = read_srecords(flasher_filename, &start_address, &length, verify);
+					if (err == OK)
+					{
+						xprintf("target successfully written and verified\r\n");
+					}
+					else
+					{
+						xprintf("verification failed\r\n");
+					}
 				}
+				else
+				{
+					xprintf("copy memory pass failed\r\n");
+				}
+			}
+			else
+			{
+				xprintf("check file pass failed\r\n");
 			}
 		}
 		else
