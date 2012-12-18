@@ -1,0 +1,28 @@
+MEMORY
+{
+   flasher (WX) : ORIGIN = 0x10000000, LENGTH = 0x00100000		/* target to load basflash */
+}
+
+SECTIONS
+{
+	.text :
+	{
+		objs/basflash.o(.text)
+		objs/unicode.o(.text)
+		objs/mmc.o(.text)
+		objs/ff.o(.text)
+		objs/sd_card.o(.text)
+		objs/s19reader.o(.text)
+		objs/bas_printf.o(.text)
+		objs/printf_helper.o(.text)
+		objs/cache.o(.text)
+		*(.data)
+		*(.bss)	
+		*(.rodata)
+		*(.rodata.*)		
+	} > flasher
+	
+	/* Memory mapped registers */
+ 	__MBAR                  = 0xFF000000;
+	
+}

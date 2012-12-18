@@ -48,11 +48,13 @@ MAPFILE=bas.map
 # Linker control file. The final $(LDCFILE) is intermediate only (preprocessed  version of $(LDCSRC)
 LDCFILE=bas.lk
 LDCSRC=bas.lk.in
+LDCBFS=basflash.lk
 
 # this Makefile can create the BaS to flash or an arbitrary ram address (for BDM debugging). See
 # below for the definition of TARGET_ADDRESS
 FLASH_EXEC=bas.$(EXE)
 RAM_EXEC=ram.$(EXE)
+BASFLASH_EXEC=basflash.$(EXE)
 
 CSRCS= \
 	$(SRCDIR)/sysinit.c \
@@ -65,7 +67,8 @@ CSRCS= \
 	$(SRCDIR)/ff.c \
 	$(SRCDIR)/sd_card.c \
 	$(SRCDIR)/wait.c \
-	$(SRCDIR)/s19reader.c
+	$(SRCDIR)/s19reader.c\
+	$(SRCDIR)/basflash.c
 
 ASRCS= \
 	$(SRCDIR)/startcf.S \
@@ -82,9 +85,12 @@ OBJS=$(COBJS) $(AOBJS)
 	
 all: $(FLASH_EXEC)
 ram: $(RAM_EXEC)
+.PHONY basflash: $(BASFLASH_EXEC)
+
 .PHONY clean:
 	@ rm -f $(FLASH_EXEC) $(FLASH_EXEC).elf $(FLASH_EXEC).s19\
 			$(RAM_EXEC) $(RAM_EXEC).elf $(RAM_EXEC).s19\
+			$(BASFLASH_EXEC) $(BASFLASH_EXEC).elf $(BASFLASH_EXEC).s19 \
 			$(OBJS) $(MAPFILE) $(LDCFILE) depend 
 
 $(FLASH_EXEC): TARGET_ADDRESS=0xe0000000
@@ -98,7 +104,15 @@ ifeq ($(COMPILE_ELF),Y)
 else
 	objcopy -I srec -O elf32-big --alt-machine-code 4 $@ $@.elf
 endif
-	
+
+$(BASFLASH_EXEC): $(OBJS) $(LDCBFL)
+	$(LD) --oformat $(FORMAT) -Map $(MAPFILE) --cref -T $(LDCBFS) -o $@
+ifeq ($(COMPILE_ELF),Y)
+	$(OBJCOPY) -O srec $@ $@.s19
+else
+	objcopy -I srec -O elf32-big --alt-machine-code 4 $@ $@.elf
+endif	
+
 # compile init_fpga with -mbitfield for testing purposes
 $(OBJDIR)/init_fpga.o:	CFLAGS += -mbitfield
 
