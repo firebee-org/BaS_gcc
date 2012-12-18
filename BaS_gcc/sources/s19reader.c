@@ -31,16 +31,37 @@
 #include <s19reader.h>
 
 typedef enum { FALSE, TRUE } bool;
-typedef enum { OK, FAIL } err_t;
+typedef enum
+{
+	OK, 			/* no error */
+	FAIL,			/* general error aka "I don't know what went wrong" */
+	FILE_OPEN,		/* file open failed */
+	FILE_READ,		/* file read failed */
+	SREC_CORRUPT,	/* file doesn't seem to contain valid S-records */
+	MEMCPY_FAILED,	/* could not copy buffer to destination */
+	CODE_OVERLAPS,	/* copying would overwrite ourself */
+	VERIFY_FAILED	/* destination does not read as we've written to */
+} err_t;
+
 #define NULL (void *) 0L
 
-#define SREC_TYPE(a) 	(a)[0]		/* type of record */
-#define SREC_COUNT(a) 	(a)[1]	/* length of valid bytes to follow */
-#define SREC_ADDR16(a) 	(256 * (a)[2] + (a)[3])	/* 2 byte address field */
-#define SREC_ADDR32(a) 	(0x1000000 * a[2] + 0x10000 * a[3] + 0x100 * (a)[4] + (a)[5])	/* 4 byte address field */
-#define SREC_DATA16(a)	((uint8_t *)&((a)[4]))
-#define SREC_DATA32(a)	((uint8_t *)&((a)[6]))
-#define SREC_CHECKSUM(a)	(a)[SREC_COUNT(a) + 2 - 1]
+/*
+ * Yes, I know. The following doesn't really look like code should look like...
+ *
+ * I did try to map structures over the S-records with (packed) which didn't work reliably due to gcc _not_ packing them appropiate
+ * and finally ended up with this. Not nice, put paid (and working).
+ *
+ */
+#define SREC_TYPE(a) 		(a)[0]							/* type of record */
+#define SREC_COUNT(a) 		(a)[1]							/* length of valid bytes to follow */
+#define SREC_ADDR16(a) 		(256 * (a)[2] + (a)[3])			/* 2 byte address field */
+#define SREC_ADDR32(a) 		(0x1000000 * a[2] + 0x10000 *\
+							a[3] + 0x100 * (a)[4] + (a)[5])	/* 4 byte address field */
+#define SREC_DATA16(a)		((uint8_t *)&((a)[4]))			/* address of first byte of data in a record */
+#define SREC_DATA32(a)		((uint8_t *)&((a)[6]))			/* adress of first byte of a record with 32 bit address field */
+#define SREC_DATA16_SIZE(a)	(SREC_COUNT((a)) - 3)			/* length of the data[] array without the checksum field */
+#define SREC_DATA32_SIZE(a)	(SREC_COUNT((a)) - 5)			/* length of the data[] array without the checksum field */
+#define SREC_CHECKSUM(a)	(a)[SREC_COUNT(a) + 2 - 1]		/* record's checksum (two's complement of the sum of all bytes) */
 
 /*
  * convert a single hex character into byte
@@ -153,11 +174,28 @@ void line_to_vector(uint8_t *line, uint8_t *vector)
 	}
 }
 
+typedef err_t (*memcpy_callback_t)(uint8_t *dst, uint8_t *src, uint32_t length);
+
 /*
- * read and parse a Motorola S-record file. Currently only records that the gcc toolchain emits are
- * supported.
+ * read and parse a Motorola S-record file and copy contents to dst. The theory of operation is to read and parse the S-record file
+ * and to use the supplied callback routine to copy the buffer to the destination when the supplied buffer gets full.
+ * The memcpy callback can be anything (as long as it conforms parameter-wise) - a basically empty function to just let
+ * read_srecords validate the file, a standard memcpy() to copy file contents to destination RAM or a more sophisticated
+ * routine that does write/erase flash
+ *
+ * FIXME: Currently only records that the gcc toolchain emits are supported.
+ *
+ * Parameters:
+ *   IN
+ *   	filename - the filename that contains the S-records
+ *   	callback - the memcpy() routine discussed above
+ *   OUT
+ *   	start_address - the execution address of the code as read from the file. Can be used to jump into and execute it
+ *   	actual_length - the overall length of the binary code read from the file
+ *   returns
+ *   	OK or an err_t error code if anything failed
  */
-err_t read_srecords(char *filename, uint32_t *start_address, uint32_t *actual_length, uint8_t *buffer, uint32_t buffer_length)
+err_t read_srecords(char *filename, uint8_t **start_address, uint32_t *actual_length, memcpy_callback_t callback)
 {
 	FRESULT fres;
 	FIL file;
@@ -183,7 +221,6 @@ err_t read_srecords(char *filename, uint32_t *start_address, uint32_t *actual_le
 
 			if (line[0] == 'S')
 			{
-				//print_record(vector);
 				if (SREC_CHECKSUM(vector) != checksum(vector))
 				{
 					xprintf("invalid checksum in line %d\r\n", lineno);
@@ -200,6 +237,7 @@ err_t read_srecords(char *filename, uint32_t *start_address, uint32_t *actual_le
 						xprintf("S7 or S3 record found before S0: S-records corrupt?\r\n");
 						ret = FAIL;
 					}
+
 					break;
 
 				case 3: /* four byte address field data record */
@@ -208,6 +246,7 @@ err_t read_srecords(char *filename, uint32_t *start_address, uint32_t *actual_le
 						xprintf("S3 record found before S0 or after S7: S-records corrupt?\r\n");
 						ret = FAIL;
 					}
+					ret = callback((uint8_t *) SREC_ADDR32(vector), SREC_DATA32(vector), SREC_COUNT(vector) - 4);
 					data_records++;
 					break;
 
@@ -244,15 +283,61 @@ err_t read_srecords(char *filename, uint32_t *start_address, uint32_t *actual_le
 	return ret;
 }
 
+/*
+ * this callback just does nothing besides returning OK. Meant to do a dry run over the file to check its integrity
+ */
+err_t simulate()
+{
+	err_t ret = OK;
+
+	return ret;
+}
+
+err_t memcpy(uint8_t *dst, uint8_t *src, uint32_t length)
+{
+	uint8_t *end = src + length;
+
+	do {
+		*dst++ = *src++;
+	}
+	while (src < end);
+
+	return OK;
+}
+
+err_t flash(uint8_t *dst, uint8_t *src, uint32_t length)
+{
+	err_t ret = OK;
+
+	/* do the actual flash */
+
+	return ret;
+}
+
+/*
+ * this callback verifies the data against the S-record file contens after a write to destination
+ */
+err_t verify(uint8_t *dst, uint8_t *src, uint32_t length)
+{
+	uint8_t *end = src + length;
+
+	do {
+		if (*src++ != *dst++)
+			return FAIL;
+	}
+	while (src < end);
+
+	return OK;
+}
+
 void flasher_load(char *flasher_filename)
 {
 	DRESULT res;
 	FRESULT fres;
 	FATFS fs;
 	err_t err;
-	uint32_t start_address;
+	uint8_t *start_address;
 	uint32_t length;
-	uint8_t buffer[2048];
 
 	xprintf("S-record reader\r\n");
 
@@ -263,10 +348,17 @@ void flasher_load(char *flasher_filename)
 		fres = f_mount(0, &fs);
 		if (fres == FR_OK)
 		{
-			err = read_srecords(flasher_filename, &start_address, &length, buffer, sizeof(buffer));
+			/* parse and check for inconsistencies */
+			err = read_srecords(flasher_filename, &start_address, &length, simulate);
 			if (err == OK)
 			{
-
+				/* next pass: copy to destination */
+				err = read_srecords(flasher_filename, &start_address, &length, memcpy);
+				if (err == OK)
+				{
+					/* next pass: verify */
+					err = read_srecords(flasher_filename, &start_address, &length, verify);
+				}
 			}
 		}
 		else
