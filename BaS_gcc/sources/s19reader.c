@@ -195,7 +195,7 @@ typedef err_t (*memcpy_callback_t)(uint8_t *dst, uint8_t *src, uint32_t length);
  *   returns
  *   	OK or an err_t error code if anything failed
  */
-err_t read_srecords(char *filename, uint8_t **start_address, uint32_t *actual_length, memcpy_callback_t callback)
+err_t read_srecords(char *filename, void **start_address, uint32_t *actual_length, memcpy_callback_t callback)
 {
 	FRESULT fres;
 	FIL file;
@@ -209,8 +209,6 @@ err_t read_srecords(char *filename, uint8_t **start_address, uint32_t *actual_le
 		bool found_block_header = FALSE;
 		bool found_block_end = FALSE;
 		bool found_block_data = FALSE;
-
-		xprintf("succesfully opened file \"%s\"\r\n", filename);
 
 		while (ret == OK && (uint8_t *) f_gets((char *) line, sizeof(line), &file) != NULL)
 		{
@@ -230,7 +228,6 @@ err_t read_srecords(char *filename, uint8_t **start_address, uint32_t *actual_le
 				switch (vector[0])
 				{
 				case 0:	/* block header */
-					xprintf("S0 record (block header) found\r\n");
 					found_block_header = TRUE;
 					if (found_block_data || found_block_end)
 					{
@@ -257,7 +254,8 @@ err_t read_srecords(char *filename, uint8_t **start_address, uint32_t *actual_le
 					}
 					else
 					{
-						xprintf("S7 record (end) found after %d valid data blocks\r\n", data_records);
+						// xprintf("S7 record (end) found after %d valid data blocks\r\n", data_records);
+						*start_address = (void *) SREC_ADDR32(vector);
 					}
 					break;
 
@@ -336,10 +334,8 @@ void flasher_load(char *flasher_filename)
 	FRESULT fres;
 	FATFS fs;
 	err_t err;
-	uint8_t *start_address;
+	void *start_address;
 	uint32_t length;
-
-	xprintf("S-record reader\r\n");
 
 	disk_initialize(0);
 	res = disk_status(0);
@@ -349,32 +345,41 @@ void flasher_load(char *flasher_filename)
 		if (fres == FR_OK)
 		{
 			/* first pass: parse and check for inconsistencies */
+			xprintf("check file integrity: ");
 			err = read_srecords(flasher_filename, &start_address, &length, simulate);
 			if (err == OK)
 			{
 				/* next pass: copy data to destination */
+				xprintf("OK.\r\ncopy/flash data: ");
 				err = read_srecords(flasher_filename, &start_address, &length, memcpy);
 				if (err == OK)
 				{
 					/* next pass: verify data */
+					xprintf("OK.\r\nverify data: ");
 					err = read_srecords(flasher_filename, &start_address, &length, verify);
 					if (err == OK)
 					{
-						xprintf("target successfully written and verified\r\n");
+						xprintf("OK.\r\n");
+						typedef void void_func(void);
+						void_func *func;
+						xprintf("target successfully written and verified. Start address: %p\r\n", start_address);
+
+						func = start_address;
+						(*func)();
 					}
 					else
 					{
-						xprintf("verification failed\r\n");
+						xprintf("failed\r\n");
 					}
 				}
 				else
 				{
-					xprintf("copy memory pass failed\r\n");
+					xprintf("failed\r\n");
 				}
 			}
 			else
 			{
-				xprintf("check file pass failed\r\n");
+				xprintf("failed\r\n");
 			}
 		}
 		else
