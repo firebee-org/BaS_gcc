@@ -221,7 +221,8 @@ err_t read_srecords(char *filename, void **start_address, uint32_t *actual_lengt
 			{
 				if (SREC_CHECKSUM(vector) != checksum(vector))
 				{
-					xprintf("invalid checksum in line %d\r\n", lineno);
+					xprintf("invalid checksum 0x%x (should be 0x%x) in line %d\r\n",
+							SREC_CHECKSUM(vector), checksum(vector), lineno);
 					ret = FAIL;
 				}
 
