@@ -70,7 +70,8 @@ CSRCS= \
 	$(SRCDIR)/wait.c \
 	$(SRCDIR)/s19reader.c \
 	$(SRCDIR)/flash.c \
-	$(SRCDIR)/basflash.c
+	$(SRCDIR)/basflash.c \
+	$(SRCDIR)/flash.c
 
 ASRCS= \
 	$(SRCDIR)/startcf.S \
