@@ -25,33 +25,33 @@
  * Copyright 2012        M. Froeschle
  */
 
-
+#include <stdint.h>
 
 void chip_erase(uint8_t *address)
 {
-	* (address + 0xaaa) = 0xaa;
-	* (address + 0x555) = 0x55;
-	* (address + 0xaaa) = 0x80;
-	* (address + 0xaaa) = 0xaa;
-	* (address + 0x555) = 0x55;
-	* (address + 0xaaa) = 0x10;
+	* (volatile uint8_t *) (address + 0xaaa) = 0xaa;
+	* (volatile uint8_t *) (address + 0x555) = 0x55;
+	* (volatile uint8_t *) (address + 0xaaa) = 0x80;
+	* (volatile uint8_t *) (address + 0xaaa) = 0xaa;
+	* (volatile uint8_t *) (address + 0x555) = 0x55;
+	* (volatile uint8_t *) (address + 0xaaa) = 0x10;
 }
 
 void sector_erase(uint8_t *address, uint16_t sector)
 {
-	* (address + 0xaaa) = 0xaa;
-	* (address + 0x555) = 0x55;
-	* (address + 0xaaa) = 0x80;
-	* (address + 0xaaa) = 0xaa;
-	* (address + 0x555) = 0x55;
-	* (address + sector) = 0x30;
+	* (volatile uint8_t *) (address + 0xaaa) = 0xaa;
+	* (volatile uint8_t *) (address + 0x555) = 0x55;
+	* (volatile uint8_t *) (address + 0xaaa) = 0x80;
+	* (volatile uint8_t *) (address + 0xaaa) = 0xaa;
+	* (volatile uint8_t *) (address + 0x555) = 0x55;
+	* (volatile uint8_t *) (address + sector) = 0x30;
 
 	do {
 		;
-	} while (* (uint32_t *) (address + sector) != 0xffffffff);
+	} while (* (volatile uint32_t *) (address + sector) != 0xffffffff);
 }
 
-
+#ifdef _NOT_USED_
 * MX28LV640DB.alg
 	bra	lab0x5a
 	move.w	#0xaa,d0
@@ -107,3 +107,4 @@ lab0x88:
 	nop
 	halt
 	nop
+#endif /* _NOT_USED_ */
