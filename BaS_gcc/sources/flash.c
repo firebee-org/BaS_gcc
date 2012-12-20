@@ -51,6 +51,7 @@ void sector_erase(uint8_t *address, uint16_t sector)
 	} while (* (volatile uint32_t *) (address + sector) != 0xffffffff);
 }
 
+
 #ifdef _NOT_USED_
 * MX28LV640DB.alg
 	bra	lab0x5a
