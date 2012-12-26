@@ -132,7 +132,8 @@ $(OBJDIR)/%.o:$(SRCDIR)/%.S
 	$(CC) -c $(CFLAGS) -Wa,--bitwise-or $(INCLUDE) $< -o $@
 
 depend: $(ASRCS) $(CSRCS)
-	$(CC) $(CFLAGS) $(INCLUDE) -M $(ASRCS) $(CSRCS) > depend
+		$(CC) $(CFLAGS) $(INCLUDE) -M $(ASRCS) $(CSRCS) | sed -e 's/^\(.*\).o:/$(OBJDIR)\/\1.o:/' > depend
+
 	
 ifneq (clean,$(MAKECMDGOALS))
 -include depend
