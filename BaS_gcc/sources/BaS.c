@@ -183,10 +183,6 @@ void BaS(void)
 	pic_init();
 	nvram_init();
 
-	sd_card_init();
-
-	flasher_load("BASFLASH.S19");
-
 	xprintf("copy EmuTOS: ");
 
 	/* copy EMUTOS */
@@ -244,6 +240,8 @@ void BaS(void)
 
 	xprintf("finished\r\n");
 
+	sd_card_init();
+	flasher_load("BASFLASH.S19");
 
 	/*
 	 * memory setup
