@@ -44,7 +44,7 @@ void init_fpga(void)
 	register uint8_t *fpga_data;
 	register int i;
 
-	xprintf("FPGA load data...\r\n");
+	xprintf("FPGA load config... ");
 
 
 	MCF_GPIO_PODR_FEC1L &= ~FPGA_CLOCK;		/* FPGA clock => low */
@@ -77,12 +77,6 @@ void init_fpga(void)
 	do
 	{
 		uint8_t value = *fpga_data++;
-
-		if (((int) fpga_data % 0x100) == 0) {
-			xprintf("%08x  ", fpga_data);
-			display_progress();
-		}
-
 		for (i = 0; i < 8; i++, value >>= 1)
 		{
 
@@ -102,16 +96,15 @@ void init_fpga(void)
 		}
 	} while ((!(MCF_GPIO_PPDSDR_FEC1L & FPGA_CONF_DONE)) && (fpga_data < (uint8_t *) FPGA_FLASH_DATA_END));
 
-	xprintf("finished copying. Clocking\r\n");
-
 	if (fpga_data < (uint8_t *) FPGA_FLASH_DATA_END)
 	{
-		for (i = 0; i < 4000; i++)
+		while (fpga_data++ < (uint8_t *) FPGA_FLASH_DATA_END)
 		{
 			/* toggle a little more since it's fun ;) */
 			MCF_GPIO_PODR_FEC1L |= FPGA_CLOCK;
 			MCF_GPIO_PODR_FEC1L &= ~FPGA_CLOCK;
 		}
+
 		xprintf("finished\r\n");
 	}
 	else

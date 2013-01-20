@@ -31,7 +31,6 @@
 #include "sysinit.h"
 #include "bas_printf.h"
 #include "bas_types.h"
-#include <wait.h>
 
 extern void xprintf_before_copy(const char *fmt, ...);
 #define xprintf	 xprintf_before_copy
@@ -42,10 +41,32 @@ extern void flush_and_invalidate_caches_before_copy(void);
 
 extern volatile long _VRAM;	/* start address of video ram from linker script */
 
-static const int MAJOR_VERSION = 0;
-static const int MINOR_VERSION = 1;
+/*
+ * wait for the specified number of us on slice timer 0. Replaces the original routines that had
+ * the number of useconds to wait for hardcoded in their name.
+ */
+inline void wait(uint32_t us)
+{
+	uint32_t target = MCF_SLT_SCNT(0) - (us * 132);
 
+	while (MCF_SLT_SCNT(0) > target);
+}
 
+/*
+ * the same as above, with a checker function which gets called while
+ * busy waiting and allows for an early return if it returns true
+ */
+inline bool waitfor(uint32_t us, int (*condition)(void))
+{
+	uint32_t target = MCF_SLT_SCNT(0) - (us * 132);
+
+	do
+	{
+		if ((*condition)())
+			return TRUE;
+	} while (MCF_SLT_SCNT(0) > target);
+	return FALSE;
+}
 /*
  * init SLICE TIMER 0 
  * all  = 32.538 sec = 30.736mHz
@@ -328,11 +349,10 @@ void wait_pll(void)
 	} while ((* (volatile int16_t *) 0xf0000800 < 0) && MCF_SLT0_SCNT > trgt);
 }
 
+static volatile uint8_t *pll_base = (volatile uint8_t *) 0xf0000600;
 
 void init_pll(void)
 {
-	static volatile uint8_t *pll_base = (volatile uint8_t *) 0xf0000600;
-
 	xprintf("FPGA PLL initialization: ");
 
 	wait_pll();
@@ -483,7 +503,7 @@ void test_upd720101(void)
 			MCF_PCI_PCICAR_FUNCNUM(0) +
 			MCF_PCI_PCICAR_DWORD(57);
 
-		//* (uint8_t *) PCI_IO_OFFSET = 0x20;
+		//* (uint8_t *) PCI_IO_OFFSET = 0x20;	// commented out (hangs currently)
 	}
 	else
 	{
@@ -496,7 +516,7 @@ void test_upd720101(void)
 	xprintf("finished\r\n");
 }
 
-static uint32_t i2c_transfer_finished(void)
+static bool i2c_transfer_finished(void)
 {
 	if (MCF_I2C_I2SR & MCF_I2C_I2SR_IIF)
 		return TRUE;
@@ -510,7 +530,7 @@ static void wait_i2c_transfer_finished(void)
 	MCF_I2C_I2SR &= ~MCF_I2C_I2SR_IIF; 			/* clear interrupt bit (byte transfer finished */
 }
 
-static uint32_t i2c_bus_free(void)
+static bool i2c_bus_free(void)
 {
 	return (MCF_I2C_I2SR & MCF_I2C_I2SR_IBB);
 }
@@ -715,7 +735,7 @@ void init_ac97(void) {
 			}
 		}
 	}
-
+	uart_out_word(' NOT');
 livo:
 	// AUX VOLUME ->-0dB
 	MCF_PSC2_PSCTB_AC97 = 0xE0000000;	//START SLOT1 + SLOT2, FIRST FRAME
@@ -751,6 +771,9 @@ livo:
 
 /* Symbols from the linker script */
 
+extern uint8_t _STRAM_END[];
+#define STRAM_END ((uint32_t)_STRAM_END)
+
 extern uint8_t _FIRETOS[];
 #define FIRETOS ((uint32_t)_FIRETOS) /* where FireTOS is stored in flash */
 
@@ -775,24 +798,26 @@ void initialize_hardware(void) {
 		init_gpio();
 		init_serial();
 		init_slt();
-
-		xprintf("\r\nBaS_gcc for FireBee v %d.%d\r\n", MAJOR_VERSION, MINOR_VERSION);
+		init_fbcs();
+		init_ddram();
 		init_fpga();
+		/* FireTOS seems to have trouble to initialize the ST-RAM by itself, so... */
+		/* Validate ST RAM */
+		* (volatile uint32_t *) 0x42e = STRAM_END;	/* phystop TOS system variable */
+		* (volatile uint32_t *) 0x420 = 0x752019f3;	/* memvalid TOS system variable */
+		* (volatile uint32_t *) 0x43a = 0x237698aa;	/* memval2 TOS system variable */
+		* (volatile uint32_t *) 0x51a = 0x5555aaaa;	/* memval3 TOS system variable */
 
 		/* Jump into FireTOS */
 		typedef void void_func(void);
-		void_func* FireTOS = (void_func*) FIRETOS;
-		FireTOS(); // Should never return
+		void_func* FireTOS = (void_func*)FIRETOS;
+		FireTOS(); 	// Should never return
 		return;
 	}
 
 	init_gpio();
 	init_serial();
 	init_slt();
-
-	xprintf("\r\nBaS_gcc for FireBee v %d.%d\r\n", MAJOR_VERSION, MINOR_VERSION);
-	xprintf("initializing hardware...\r\n");
-
 	init_fbcs();
 	init_ddram();
 	init_PCI();
