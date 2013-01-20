@@ -32,7 +32,6 @@
 #define FPGA_CONF_DONE	(1 << 5)
 
 extern void xprintf_before_copy(const char *fmt, ...);
-extern void display_progress_before_copy(void);
 
 #define xprintf	 xprintf_before_copy
 #define display_progress display_progress_before_copy
