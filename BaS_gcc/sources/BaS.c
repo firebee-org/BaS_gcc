@@ -56,23 +56,23 @@ extern uint8_t _EMUTOS_SIZE[];
 /*
  * check if it is possible to transfer data to PIC
  */
-static inline uint32_t pic_txready(void)
+static inline bool pic_txready(void)
 {
 	if (MCF_PSC3_PSCSR & MCF_PSC_PSCSR_TXRDY)
-		return TRUE;
+		return true;
 
-	return FALSE;
+	return true;
 }
 
 /*
  * check if it is possible to receive data from PIC
  */
-static inline uint32_t pic_rxready(void)
+static inline bool pic_rxready(void)
 {
 	if (MCF_PSC3_PSCSR & MCF_PSC_PSCSR_RXRDY)
-		return TRUE;
+		return true;
 
-	return FALSE;
+	return false;
 }
 
 void write_pic_byte(uint8_t value)

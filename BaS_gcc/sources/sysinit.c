@@ -31,6 +31,7 @@
 #include "sysinit.h"
 #include "bas_printf.h"
 #include "bas_types.h"
+#include "wait.h"
 
 extern void xprintf_before_copy(const char *fmt, ...);
 #define xprintf	 xprintf_before_copy
@@ -41,32 +42,6 @@ extern void flush_and_invalidate_caches_before_copy(void);
 
 extern volatile long _VRAM;	/* start address of video ram from linker script */
 
-/*
- * wait for the specified number of us on slice timer 0. Replaces the original routines that had
- * the number of useconds to wait for hardcoded in their name.
- */
-inline __attribute__((always_inline)) void wait(uint32_t us)
-{
-	uint32_t target = MCF_SLT_SCNT(0) - (us * 132);
-
-	while (MCF_SLT_SCNT(0) > target);
-}
-
-/*
- * the same as above, with a checker function which gets called while
- * busy waiting and allows for an early return if it returns true
- */
-inline __attribute__((always_inline)) bool waitfor(uint32_t us, int (*condition)(void))
-{
-	uint32_t target = MCF_SLT_SCNT(0) - (us * 132);
-
-	do
-	{
-		if ((*condition)())
-			return TRUE;
-	} while (MCF_SLT_SCNT(0) > target);
-	return FALSE;
-}
 /*
  * init SLICE TIMER 0 
  * all  = 32.538 sec = 30.736mHz
@@ -519,9 +494,9 @@ void test_upd720101(void)
 static bool i2c_transfer_finished(void)
 {
 	if (MCF_I2C_I2SR & MCF_I2C_I2SR_IIF)
-		return TRUE;
+		return true;
 
-	return FALSE;
+	return false;
 }
 
 static void wait_i2c_transfer_finished(void)
