@@ -29,9 +29,7 @@
 #define BAS_TYPES_H_
 
 #ifndef __cplusplus
-typedef int bool;
-#define TRUE	1
-#define FALSE	0
+#include <stdbool.h>
 #endif /* __cplusplus */
 
 

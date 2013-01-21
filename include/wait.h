@@ -29,10 +29,10 @@
 
 #include <bas_types.h>
 
-typedef uint32_t (*checker_func)(void);
+typedef bool (*checker_func)(void);
 
 extern __inline__ void wait(uint32_t) __attribute__((always_inline));
-extern __inline__ uint32_t waitfor(uint32_t us, checker_func condition) __attribute__((always_inline));
+extern __inline__ bool waitfor(uint32_t us, checker_func condition) __attribute__((always_inline));
 /*
  * wait for the specified number of us on slice timer 0. Replaces the original routines that had
  * the number of useconds to wait for hardcoded in their name.
@@ -48,7 +48,7 @@ extern __inline__ void wait(uint32_t us)
  * the same as above, with a checker function which gets called while
  * busy waiting and allows for an early return if it returns true
  */
-extern __inline__ uint32_t waitfor(uint32_t us, checker_func condition)
+extern __inline__ bool waitfor(uint32_t us, checker_func condition)
 {
 	uint32_t target = MCF_SLT_SCNT(0) - (us * 132);
 	uint32_t res;
@@ -58,6 +58,6 @@ extern __inline__ uint32_t waitfor(uint32_t us, checker_func condition)
 		if ((res = (*condition)()))
 			return res;
 	} while (MCF_SLT_SCNT(0) > target);
-	return 0;
+	return false;
 }
 #endif /* _WAIT_H_ */

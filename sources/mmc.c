@@ -138,7 +138,7 @@ static void xmit_spi_multi(const uint8_t *buff, uint32_t btx)
 #endif
 
 
-static uint32_t card_ready(void)
+static bool card_ready(void)
 {
 	uint8_t d;
 
