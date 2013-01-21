@@ -37,7 +37,7 @@ extern void xprintf_before_copy(const char *fmt, ...);
 extern void flush_and_invalidate_caches_before_copy(void);
 #define flush_and_invalidate_caches flush_and_invalidate_caches_before_copy
 
-#define UNUSED(x)       (void)(x)               /* Unused variable         */
+#define UNUSED(x) (void)(x)               /* Unused variable         */
 
 extern volatile long _VRAM;	/* start address of video ram from linker script */
 
@@ -45,7 +45,7 @@ extern volatile long _VRAM;	/* start address of video ram from linker script */
  * wait for the specified number of us on slice timer 0. Replaces the original routines that had
  * the number of useconds to wait for hardcoded in their name.
  */
-inline void wait(uint32_t us)
+inline __attribute__((always_inline)) void wait(uint32_t us)
 {
 	uint32_t target = MCF_SLT_SCNT(0) - (us * 132);
 
@@ -56,7 +56,7 @@ inline void wait(uint32_t us)
  * the same as above, with a checker function which gets called while
  * busy waiting and allows for an early return if it returns true
  */
-inline bool waitfor(uint32_t us, int (*condition)(void))
+inline __attribute__((always_inline)) bool waitfor(uint32_t us, int (*condition)(void))
 {
 	uint32_t target = MCF_SLT_SCNT(0) - (us * 132);
 
@@ -730,7 +730,8 @@ void init_ac97(void) {
 			vc = MCF_PSC2_PSCTB_AC97;
 
 			/* FIXME: that looks more than suspicious (Fredi?) */
-			if ((va & 0xE0000fff) == 0xE0000800 & vb == 0x02000000 & vc == 0x00000000) {
+			/* fixed with parentheses to avoid compiler warnings, but this looks still more than wrong to me */
+			if (((va & 0xE0000fff) == 0xE0000800) & (vb == 0x02000000) & (vc == 0x00000000)) {
 				goto livo;
 			}
 		}
