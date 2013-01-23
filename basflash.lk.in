@@ -8,14 +8,7 @@ SECTIONS
 	.text :
 	{
 		objs/basflash.o(.text)
-		objs/unicode.o(.text)
-		objs/mmc.o(.text)
-		objs/ff.o(.text)
-		objs/sd_card.o(.text)
-		objs/s19reader.o(.text)
-		objs/bas_printf.o(.text)
-		objs/printf_helper.o(.text)
-		objs/cache.o(.text)
+
 		*(.data)
 		*(.bss)	
 		*(.rodata)
