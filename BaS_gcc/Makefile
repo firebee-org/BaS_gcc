@@ -26,6 +26,8 @@ CC=$(TCPREFIX)gcc
 LD=$(TCPREFIX)ld
 CPP=$(TCPREFIX)cpp
 OBJCOPY=$(TCPREFIX)objcopy
+AR=$(TCPREFIX)ar
+RANLIB=$(TCPREFIX)ranlib
 
 INCLUDE=-Iinclude
 CFLAGS=-mcpu=5474\
@@ -70,8 +72,7 @@ CSRCS= \
 	$(SRCDIR)/wait.c \
 	$(SRCDIR)/s19reader.c \
 	$(SRCDIR)/flash.c \
-	$(SRCDIR)/basflash.c \
-	$(SRCDIR)/flash.c
+	$(SRCDIR)/basflash.c
 
 ASRCS= \
 	$(SRCDIR)/startcf.S \
@@ -85,10 +86,12 @@ COBJS=$(patsubst $(SRCDIR)/%.o,$(OBJDIR)/%.o,$(patsubst %.c,%.o,$(CSRCS)))
 AOBJS=$(patsubst $(SRCDIR)/%.o,$(OBJDIR)/%.o,$(patsubst %.S,%.o,$(ASRCS)))
 
 OBJS=$(COBJS) $(AOBJS)
-	
+LIBBAS=libbas.a
+
 all: $(FLASH_EXEC)
 ram: $(RAM_EXEC)
 bfl: $(BASFLASH_EXEC)
+lib: $(LIBBAS)
 
 .PHONY clean:
 	@ rm -f $(FLASH_EXEC) $(FLASH_EXEC).elf $(FLASH_EXEC).s19 \
@@ -110,15 +113,19 @@ endif
 
 $(BASFLASH_EXEC): $(OBJS) $(LDCBFL)
 	$(CPP) -P -DTARGET_ADDRESS=$(BF_TARGET_ADDRESS) -DFORMAT=$(FORMAT) $(LDCBSRC) -o $(LDCBFS)
-	$(LD) --oformat $(FORMAT) -Map $(MAPFILE) --cref -T $(LDCBFS) -o $@
+	$(LD) --oformat $(FORMAT) -Map $(MAPFILE) --cref -T $(LDCBFS) -L. -lbas -o $@
 ifeq ($(COMPILE_ELF),Y)
 	$(OBJCOPY) -O srec $@ $@.s19
 else
 	objcopy -I srec -O elf32-big --alt-machine-code 4 $@ $@.elf
 endif	
 
+$(LIBBAS): $(OBJS)
+	$(AR) rv $@ $(OBJS)
+	$(RANLIB) $@
+	
 # compile init_fpga with -mbitfield for testing purposes
-$(OBJDIR)/init_fpga.o:	CFLAGS += -mbitfield
+#$(OBJDIR)/init_fpga.o:	CFLAGS += -mbitfield
 
 # compile printf pc-relative so it can be used as well before and after copy of BaS
 $(OBJDIR)/bas_printf.o:	CFLAGS += -mpcrel
