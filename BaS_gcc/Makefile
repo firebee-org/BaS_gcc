@@ -102,6 +102,7 @@ lib: $(LIBBAS)
 $(FLASH_EXEC): TARGET_ADDRESS=0xe0000000
 $(RAM_EXEC): TARGET_ADDRESS=0x10000000
 
+# the BaS final link stage
 $(FLASH_EXEC) $(RAM_EXEC): $(OBJS) $(LDCSRC)
 	$(CPP) -P -DTARGET_ADDRESS=$(TARGET_ADDRESS) -DFORMAT=$(FORMAT) $(LDCSRC) -o $(LDCFILE)
 	$(LD) --oformat $(FORMAT) -Map $(MAPFILE) --cref -T $(LDCFILE) -o $@
@@ -111,6 +112,7 @@ else
 	objcopy -I srec -O elf32-big --alt-machine-code 4 $@ $@.elf
 endif
 
+# the basflash (SD-card executable called from BaS) final link stage
 $(BASFLASH_EXEC): $(OBJS) $(LDCBFL)
 	$(CPP) -P -DTARGET_ADDRESS=$(BF_TARGET_ADDRESS) -DFORMAT=$(FORMAT) $(LDCBSRC) -o $(LDCBFS)
 	$(LD) --oformat $(FORMAT) -Map $(MAPFILE) --cref -T $(LDCBFS) -L. -lbas -o $@
