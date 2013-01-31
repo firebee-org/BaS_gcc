@@ -241,7 +241,7 @@ void BaS(void)
 	xprintf("finished\r\n");
 
 	sd_card_init();
-	flasher_load("BASFLASH.S19");
+	srec_execute("BASFLASH.S19");
 
 	/*
 	 * memory setup

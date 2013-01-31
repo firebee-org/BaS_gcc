@@ -1,5 +1,5 @@
 /*
- * bas_types.h
+ * s19reader.h
  *
  *  Created on: 17.11.2012
  *      Author: mfro
@@ -26,6 +26,6 @@
 #ifndef _S19READER_H_
 #define _S19READER_H_
 
-extern void flasher_load(char *flasher_filename);
+extern void srec_execute(char *filename);
 
 #endif /* _S19READER_H_ */

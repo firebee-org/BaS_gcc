@@ -329,7 +329,7 @@ err_t verify(uint8_t *dst, uint8_t *src, uint32_t length)
 	return OK;
 }
 
-void flasher_load(char *flasher_filename)
+void srec_execute(char *flasher_filename)
 {
 	DRESULT res;
 	FRESULT fres;
