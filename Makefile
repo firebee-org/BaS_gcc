@@ -71,8 +71,7 @@ CSRCS= \
 	$(SRCDIR)/sd_card.c \
 	$(SRCDIR)/wait.c \
 	$(SRCDIR)/s19reader.c \
-	$(SRCDIR)/flash.c \
-	$(SRCDIR)/basflash.c
+	$(SRCDIR)/flash.c
 
 ASRCS= \
 	$(SRCDIR)/startcf.S \
@@ -114,6 +113,7 @@ endif
 
 # the basflash (SD-card executable called from BaS) final link stage
 $(BASFLASH_EXEC): $(OBJS) $(LDCBFL)
+	$(CC) $(CFLAGS) $(INCLUDE) -c $(SRCDIR)/basflash.c -o $(OBJDIR)/basflash.o  
 	$(CPP) -P -DTARGET_ADDRESS=$(BF_TARGET_ADDRESS) -DFORMAT=$(FORMAT) $(LDCBSRC) -o $(LDCBFS)
 	$(LD) --oformat $(FORMAT) -Map $(MAPFILE) --cref -T $(LDCBFS) -L. -lbas -o $@
 ifeq ($(COMPILE_ELF),Y)
