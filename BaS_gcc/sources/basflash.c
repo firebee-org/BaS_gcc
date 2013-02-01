@@ -14,19 +14,38 @@
 
 typedef enum {OK, ERR} err_t;
 
-bool memcpy()
+uint32_t mx29lv640d_sector_groups[] =
 {
-	return true;
+	0xe0000000,	0xe0008000,	0xe0010000,	0xe0018000,	0xe0020000,	0xe0028000,	0xe0030000,	0xe0038000,
+	0xe0040000,	0xe0048000,	0xe0050000,	0xe0058000,	0xe0060000,	0xe0068000,	0xe0070000,	0xe0078000,
+	0xe0080000,	0xe0088000,	0xe0090000,	0xe0098000,	0xe00a0000,	0xe00a8000,	0xe00b0000,	0xe00b8000,
+	0xe00c0000,	0xe00c8000,	0xe00d0000,	0xe00d8000,	0xe00e0000,	0xe00e8000,	0xe00f0000,	0xe00f8000,
+	0xe0100000,	0xe0108000,	0xe0110000,	0xe0118000,	0xe0120000,	0xe0128000,	0xe0130000,	0xe0138000,
+};
+
+extern err_t simulate();
+extern err_t memcpy();
+extern err_t verify();
+
+err_t erase_flash_sector(const void *start_address)
+{
+	return OK;
 }
 
-bool verify()
+err_t erase_flash_region(void *start_address)
 {
-	return true;
-}
+	const uint32_t flash_region_size = 0x400000;	/* 4 MByte */
+	const uint32_t flash_sector_size = 0x2000;		/* 8 KByte */
+	err_t err;
 
-bool simulate()
-{
-	return true;
+	const void *p = start_address;
+
+	do {
+		err = erase_flash_sector(p);
+		p += flash_sector_size;
+	} while ((p < start_address + flash_region_size) && err == OK);
+
+	return err;
 }
 
 void srec_flash(char *flash_filename)
@@ -59,8 +78,11 @@ void srec_flash(char *flash_filename)
 				err = read_srecords(flash_filename, &start_address, &length, simulate);
 				if (err == OK)
 				{
+					xprintf("OK.\r\nerase flash area (from %p): ", start_address);
+					err = erase(start_address);
+
 					/* next pass: copy data to destination */
-					xprintf("OK.\r\ncopy/flash data: ");
+					xprintf("OK.\r\flash data: ");
 					err = read_srecords(flash_filename, &start_address, &length, memcpy);
 					if (err == OK)
 					{
