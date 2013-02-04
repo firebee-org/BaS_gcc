@@ -24,26 +24,14 @@
  */
 
 #include <stdint.h>
-#include <bas_printf.h>
-#include <sd_card.h>
-#include <diskio.h>
-#include <ff.h>
-#include <s19reader.h>
+#include <stdbool.h>
+#include <stdlib.h>
 
-typedef enum { FALSE, TRUE } bool;
-typedef enum
-{
-	OK, 			/* no error */
-	FAIL,			/* general error aka "I don't know what went wrong" */
-	FILE_OPEN,		/* file open failed */
-	FILE_READ,		/* file read failed */
-	SREC_CORRUPT,	/* file doesn't seem to contain valid S-records */
-	MEMCPY_FAILED,	/* could not copy buffer to destination */
-	CODE_OVERLAPS,	/* copying would overwrite ourself */
-	VERIFY_FAILED	/* destination does not read as we've written to */
-} err_t;
-
-#define NULL (void *) 0L
+#include "bas_printf.h"
+#include "sd_card.h"
+#include "diskio.h"
+#include "ff.h"
+#include "s19reader.h"
 
 /*
  * Yes, I know. The following doesn't really look like code should look like...
@@ -155,7 +143,7 @@ void print_record(uint8_t *arr)
 /*
  * convert an S-record line into its corresponding byte vector (ASCII->binary)
  */
-void line_to_vector(uint8_t *line, uint8_t *vector)
+static void line_to_vector(uint8_t *line, uint8_t *vector)
 {
 	int i;
 	int length;
@@ -173,8 +161,6 @@ void line_to_vector(uint8_t *line, uint8_t *vector)
 		line += 2;
 	}
 }
-
-typedef err_t (*memcpy_callback_t)(uint8_t *dst, uint8_t *src, uint32_t length);
 
 /*
  * read and parse a Motorola S-record file and copy contents to dst. The theory of operation is to read and parse the S-record file
@@ -206,9 +192,9 @@ err_t read_srecords(char *filename, void **start_address, uint32_t *actual_lengt
 		uint8_t line[80];
 		int lineno = 0;
 		int data_records = 0;
-		bool found_block_header = FALSE;
-		bool found_block_end = FALSE;
-		bool found_block_data = FALSE;
+		bool found_block_header = false;
+		bool found_block_end = false;
+		bool found_block_data = false;
 
 		while (ret == OK && (uint8_t *) f_gets((char *) line, sizeof(line), &file) != NULL)
 		{
@@ -229,7 +215,7 @@ err_t read_srecords(char *filename, void **start_address, uint32_t *actual_lengt
 				switch (vector[0])
 				{
 				case 0:	/* block header */
-					found_block_header = TRUE;
+					found_block_header = true;
 					if (found_block_data || found_block_end)
 					{
 						xprintf("S7 or S3 record found before S0: S-records corrupt?\r\n");
