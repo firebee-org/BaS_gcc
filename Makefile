@@ -45,10 +45,9 @@ CFLAGS=-mcpu=5474\
 SRCDIR=sources
 OBJDIR=objs
 
-MAPFILE=bas.map
-
 # Linker control file. The final $(LDCFILE) is intermediate only (preprocessed  version of $(LDCSRC)
 LDCFILE=bas.lk
+LDRFILE=ram.lk
 LDCSRC=bas.lk.in
 LDCBSRC=basflash.lk.in
 LDCBFS=bashflash.lk
@@ -87,7 +86,8 @@ AOBJS=$(patsubst $(SRCDIR)/%.o,$(OBJDIR)/%.o,$(patsubst %.S,%.o,$(ASRCS)))
 OBJS=$(COBJS) $(AOBJS)
 LIBBAS=libbas.a
 
-all: $(FLASH_EXEC)
+all: fls ram bfl lib
+fls: $(FLASH_EXEC)
 ram: $(RAM_EXEC)
 bfl: $(BASFLASH_EXEC)
 lib: $(LIBBAS)
@@ -99,10 +99,19 @@ lib: $(LIBBAS)
 			$(OBJS) $(OBJDIR)/basflash.o $(MAPFILE) $(LDCFILE) $(LIBBAS) $(LDCBFS) depend 
 
 $(FLASH_EXEC): TARGET_ADDRESS=0xe0000000
-$(RAM_EXEC): TARGET_ADDRESS=0x10000000
+$(FLASH_EXEC): LDCFILE=bas.lk
+$(FLASH_EXEC): MAPFILE=bas.map
 
-# the BaS final link stage
-$(FLASH_EXEC) $(RAM_EXEC): $(OBJS) $(LDCSRC)
+$(RAM_EXEC): TARGET_ADDRESS=0x10000000
+$(RAM_EXEC): LDCFILE=ram.lk
+$(RAM_EXEC): MAPFILE=ram.map
+
+$(BASFLASH_EXEC): TARGET_ADDRESS=0x00020000
+$(BASFLASH_EXEC): LDCFILE=basflash.lk
+$(BASFLASH_EXEC): MAPFILE=basflash.map
+
+# the final link stage
+$(FLASH_EXEC) $(RAM_EXEC): $(LIBBAS) $(LDCSRC)
 	$(CPP) -P -DTARGET_ADDRESS=$(TARGET_ADDRESS) -DFORMAT=$(FORMAT) $(LDCSRC) -o $(LDCFILE)
 	$(LD) --oformat $(FORMAT) -Map $(MAPFILE) --cref -T $(LDCFILE) -o $@
 ifeq ($(COMPILE_ELF),Y)
@@ -113,8 +122,8 @@ endif
 
 # the basflash (SD-card executable called from BaS) final link stage
 $(BASFLASH_EXEC): $(OBJDIR)/basflash.o $(LIBBAS) $(LDCBFL)
-	$(CPP) -P -DTARGET_ADDRESS=$(BF_TARGET_ADDRESS) -DFORMAT=$(FORMAT) $(LDCBSRC) -o $(LDCBFS)
-	$(LD) --oformat $(FORMAT) -Map $(MAPFILE) --cref -T $(LDCBFS) -L. -lbas -o $@
+	$(CPP) -P -DTARGET_ADDRESS=$(TARGET_ADDRESS) -DFORMAT=$(FORMAT) $(LDCBSRC) -o $(LDCFILE)
+	$(LD) --oformat $(FORMAT) -Map $(MAPFILE) --cref -T $(LDCFILE) -L. -lbas -o $@
 ifeq ($(COMPILE_ELF),Y)
 	$(OBJCOPY) -O srec $@ $@.s19
 else
