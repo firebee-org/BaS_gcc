@@ -12,8 +12,6 @@
 #include <ff.h>
 #include <s19reader.h>
 
-typedef enum {OK, ERR} err_t;
-
 uint32_t mx29lv640d_sector_groups[] =
 {
 	0xe0000000,	0xe0008000,	0xe0010000,	0xe0018000,	0xe0020000,	0xe0028000,	0xe0030000,	0xe0038000,
@@ -79,7 +77,7 @@ void srec_flash(char *flash_filename)
 				if (err == OK)
 				{
 					xprintf("OK.\r\nerase flash area (from %p): ", start_address);
-					err = erase(start_address);
+					err = erase_flash_region(start_address);
 
 					/* next pass: copy data to destination */
 					xprintf("OK.\r\flash data: ");

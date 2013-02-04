@@ -96,7 +96,7 @@ lib: $(LIBBAS)
 	@ rm -f $(FLASH_EXEC) $(FLASH_EXEC).elf $(FLASH_EXEC).s19 \
 			$(RAM_EXEC) $(RAM_EXEC).elf $(RAM_EXEC).s19 \
 			$(BASFLASH_EXEC) $(BASFLASH_EXEC).elf $(BASFLASH_EXEC).s19 \
-			$(OBJS) $(MAPFILE) $(LDCFILE) depend 
+			$(OBJS) $(OBJDIR)/basflash.o $(MAPFILE) $(LDCFILE) $(LIBBAS) $(LDCBFS) depend 
 
 $(FLASH_EXEC): TARGET_ADDRESS=0xe0000000
 $(RAM_EXEC): TARGET_ADDRESS=0x10000000
@@ -112,8 +112,7 @@ else
 endif
 
 # the basflash (SD-card executable called from BaS) final link stage
-$(BASFLASH_EXEC): $(OBJS) $(LDCBFL)
-	$(CC) $(CFLAGS) $(INCLUDE) -c $(SRCDIR)/basflash.c -o $(OBJDIR)/basflash.o  
+$(BASFLASH_EXEC): $(OBJDIR)/basflash.o $(LIBBAS) $(LDCBFL)
 	$(CPP) -P -DTARGET_ADDRESS=$(BF_TARGET_ADDRESS) -DFORMAT=$(FORMAT) $(LDCBSRC) -o $(LDCBFS)
 	$(LD) --oformat $(FORMAT) -Map $(MAPFILE) --cref -T $(LDCBFS) -L. -lbas -o $@
 ifeq ($(COMPILE_ELF),Y)

@@ -26,6 +26,21 @@
 #ifndef _S19READER_H_
 #define _S19READER_H_
 
+typedef enum
+{
+	OK, 			/* no error */
+	FAIL,			/* general error aka "I don't know what went wrong" */
+	FILE_OPEN,		/* file open failed */
+	FILE_READ,		/* file read failed */
+	SREC_CORRUPT,	/* file doesn't seem to contain valid S-records */
+	MEMCPY_FAILED,	/* could not copy buffer to destination */
+	CODE_OVERLAPS,	/* copying would overwrite ourself */
+	VERIFY_FAILED	/* destination does not read as we've written to */
+} err_t;
+
+typedef err_t (*memcpy_callback_t)(uint8_t *dst, uint8_t *src, uint32_t length);
+
 extern void srec_execute(char *filename);
+extern err_t read_srecords(char *filename, void **start_address, uint32_t *actual_length, memcpy_callback_t callback);
 
 #endif /* _S19READER_H_ */
