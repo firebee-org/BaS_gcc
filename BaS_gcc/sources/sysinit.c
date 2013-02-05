@@ -284,9 +284,25 @@ void init_ddram(void)
 		MCF_SDRAMC_SDCFG2 = 0x46770000;	/* SDCFG2 */
 #endif /* _NOT_USED_ */
 
+		MCF_SDRAMC_SDCR = MCF_SDRAMC_SDCR_IPALL			/* initiate Precharge All command */
+				| MCF_SDRAMC_SDCR_RCNT(13)				/* Refresh Count (= (x + 1) * 64 */
+				| MCF_SDRAMC_SDCR_MUX(1)				/* Muxing control */
+				| MCF_SDRAMC_SDCR_DDR
+				| MCF_SDRAMC_SDCR_CKE
+				| MCF_SDRAMC_SDCR_MODE_EN;
+
+		MCF_SDRAMC_SDMR = MCF_SDRAMC_SDMR_CMD			/* Generate an LMR/LEMR command */
+				| MCF_SDRAMC_SDMR_AD(0)					/* Address */
+				| MCF_SDRAMC_SDMR_BNKAD(1);				/* LEMR */
+		MCF_SDRAMC_SDMR = MCF_SDRAMC_SDMR_CMD			/* Generate an LMR/LEMR command */
+				| MCF_SDRAMC_SDMR_AD(0x123)
+				| MCF_SDRAMC_SDMR_BNKAD(0);				/* LMR */
+
+#ifdef _NOT_USED_
 		MCF_SDRAMC_SDCR = 0xE10D0002;	/* SDCR + IPALL */
 		MCF_SDRAMC_SDMR = 0x40010000;	/* SDMR (write to LEMR) */
 		MCF_SDRAMC_SDMR = 0x048D0000;	/* SDRM (write to LMR) */
+#endif /* _NOT_USED_ */
 		MCF_SDRAMC_SDCR = 0xE10D0002;	/* SDCR + IPALL */
 		MCF_SDRAMC_SDCR = 0xE10D0004;	/* SDCR + IREF (first refresh) */
 		MCF_SDRAMC_SDCR = 0xE10D0004;	/* SDCR + IREF (second refresh) */
