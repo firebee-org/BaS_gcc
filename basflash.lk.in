@@ -1,6 +1,6 @@
 MEMORY
 {
-   flasher (WX) : ORIGIN = 0x10000000, LENGTH = 0x00100000		/* target to load basflash */
+   flasher (WX) : ORIGIN = TARGET_ADDRESS, LENGTH = 0x00100000		/* target to load basflash */
 }
 
 SECTIONS
@@ -17,5 +17,6 @@ SECTIONS
 	
 	/* Memory mapped registers */
  	__MBAR                  = 0xFF000000;
-	
+	___BOOT_FLASH           = 0xe0000000;
+ 	___BOOT_FLASH_SIZE      = 0x00800000;	
 }
