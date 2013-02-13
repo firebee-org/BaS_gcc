@@ -12,7 +12,22 @@
 #include <ff.h>
 #include <s19reader.h>
 
-static uint32_t mx29lv640d_sector_groups[] =
+int strncmp(const char *s1, const char *s2, int max)
+{
+	return 0;
+}
+
+int strcpy(char *dst, const char *src)
+{
+
+}
+
+int strncat(char *dst, char *src, int max)
+{
+
+}
+
+static uint32_t mx29lv640d_flash_sectors[] =
 {
 	0xe0000000,	0xe0002000, 0xe0004000, 0xe0006000, 0xe0008000,	0xe000a000, 0xe000c000, 0xe000e000,
 	0xe0010000,	0xe0020000, 0xe0030000, 0xe0040000,	0xe0050000, 0xe0060000, 0xe0070000, 0xe0080000,
@@ -32,28 +47,39 @@ static uint32_t mx29lv640d_sector_groups[] =
 	0xe0710000, 0xe0720000, 0xe0730000, 0xe0740000, 0xe0750000, 0xe0760000, 0xe0770000, 0xe0780000,
 	0xe0790000, 0xe07a0000, 0xe07b0000, 0xe07c0000, 0xe07d0000, 0xe07e0000, 0xe07f0000, 0xe8000000
 };
+static const int num_flash_sectors = sizeof(mx29lv640d_flash_sectors) / sizeof(uint32_t);
 
 extern err_t simulate();
 extern err_t memcpy();
 extern err_t verify();
 
-err_t erase_flash_sector(const void *start_address)
+err_t erase_flash_sector(int sector_num)
 {
 	return OK;
 }
 
-err_t erase_flash_region(void *start_address)
+err_t erase_flash_region(void *start_address, uint32_t length)
 {
-	const uint32_t flash_region_size = 0x400000;	/* 4 MByte */
-	const uint32_t flash_sector_size = 0x2000;		/* 8 KByte */
 	err_t err;
+	int sector = -1;
+	int i;
 
-	const void *p = start_address;
+	/*
+	 * determine first sector to erase
+	 */
+	for (i = 0; i < num_flash_sectors; i++)
+	{
+		if (start_address >= (void *) mx29lv640d_flash_sectors[i] && start_address <= (void *) mx29lv640d_flash_sectors[i])
+			sector = i;
+	}
 
+	/*
+	 * erase sectors until free space equals length
+	 */
 	do {
-		err = erase_flash_sector(p);
-		p += flash_sector_size;
-	} while ((p < start_address + flash_region_size) && err == OK);
+		err = erase_flash_sector(sector);
+		sector++;
+	} while ((void *) mx29lv640d_flash_sectors[sector] < start_address + length && ! err);
 
 	return err;
 }
@@ -88,8 +114,8 @@ void srec_flash(char *flash_filename)
 				err = read_srecords(flash_filename, &start_address, &length, simulate);
 				if (err == OK)
 				{
-					xprintf("OK.\r\nerase flash area (from %p): ", start_address);
-					err = erase_flash_region(start_address);
+					xprintf("OK.\r\nerase flash area (from %p, length 0x%lx): ", start_address, length);
+					err = erase_flash_region(start_address, length);
 
 					/* next pass: copy data to destination */
 					xprintf("OK.\r\flash data: ");
@@ -137,86 +163,122 @@ void srec_flash(char *flash_filename)
 	}
 }
 
-void srec_load(char *flash_filename)
+err_t srec_load(char *flash_filename)
 {
-	DRESULT res;
 	FRESULT fres;
-	FATFS fs;
 	FIL file;
 	err_t err;
 	void *start_address;
 	uint32_t length;
 
-	// disk_initialize(0);
-	res = disk_status(0);
-	if (res == RES_OK)
+	if ((fres = f_open(&file, flash_filename, FA_READ) != FR_OK))
 	{
-		fres = f_mount(0, &fs);
-		if (fres == FR_OK)
-		{
-			if ((fres = f_open(&file, flash_filename, FA_READ) != FR_OK))
-			{
-				xprintf("flasher file %s not present on disk\r\n", flash_filename);
-			}
-			else
-			{
-				f_close(&file);
+		xprintf("flasher file %s not present on disk\r\n", flash_filename);
+	}
+	else
+	{
+		f_close(&file);
 
-				/* first pass: parse and check for inconsistencies */
-				xprintf("check file integrity: ");
-				err = read_srecords(flash_filename, &start_address, &length, simulate);
+		/* first pass: parse and check for inconsistencies */
+		xprintf("check file integrity: ");
+		err = read_srecords(flash_filename, &start_address, &length, simulate);
+		if (err == OK)
+		{
+			/* next pass: copy data to destination */
+			xprintf("OK.\r\ncopy/flash data: ");
+			err = read_srecords(flash_filename, &start_address, &length, memcpy);
+			if (err == OK)
+			{
+				/* next pass: verify data */
+				xprintf("OK.\r\nverify data: ");
+				err = read_srecords(flash_filename, &start_address, &length, verify);
 				if (err == OK)
 				{
-					/* next pass: copy data to destination */
-					xprintf("OK.\r\ncopy/flash data: ");
-					err = read_srecords(flash_filename, &start_address, &length, memcpy);
-					if (err == OK)
-					{
-						/* next pass: verify data */
-						xprintf("OK.\r\nverify data: ");
-						err = read_srecords(flash_filename, &start_address, &length, verify);
-						if (err == OK)
-						{
-							xprintf("OK.\r\n");
-							typedef void void_func(void);
-							void_func *func;
-							xprintf("target successfully written and verified. Start address: %p\r\n", start_address);
+					xprintf("OK.\r\n");
+					typedef void void_func(void);
+					void_func *func;
+					xprintf("target successfully written and verified. Start address: %p\r\n", start_address);
 
-							func = start_address;
-							(*func)();
-						}
-						else
-						{
-							xprintf("failed\r\n");
-						}
-					}
-					else
-					{
-						xprintf("failed\r\n");
-					}
+					func = start_address;
+					(*func)();
 				}
 				else
 				{
 					xprintf("failed\r\n");
 				}
 			}
+			else
+			{
+				xprintf("failed\r\n");
+			}
+		}
+		else
+		{
+			xprintf("failed\r\n");
+		}
+	}
+	return OK;
+}
+
+void basflash(void)
+{
+	const char *basflash_str = "\\BASFLASH\\";
+	const char *bastest_str = "\\BASTEST\\";
+	DRESULT res;
+	FRESULT fres;
+	FATFS fs;
+
+	xprintf("\r\nHello from BASFLASH.S19!\r\n\r\n");
+
+	/*
+	 * read \BASTEST\ folder contents (search for .S19-files). If found load them to their final destination
+	 * (after BaS has copied them, not their flash location) and return.
+	 *
+	 * Files located in the BASTEST-folder thus override those in flash. Useful for testing before flashing
+	 */
+	res = disk_status(0);
+	if (res == RES_OK)
+	{
+		fres = f_mount(0, &fs);
+		if (fres == FR_OK)
+		{
+			DIR directory;
+
+			fres = f_opendir(&directory, bastest_str);
+			if (fres == FR_OK)
+			{
+				FILINFO fileinfo;
+
+				fres = f_readdir(&directory, &fileinfo);
+				while (fres == FR_OK)
+				{
+					const char *ext = ".S19";
+					char path[30];
+
+					if (fileinfo.fname[0] != '\0')	/* found a file */
+					{
+						if (strncmp(&fileinfo.fname[13 - 4], ext, 4) == 0)	/* we have a .S19 file */
+						{
+							strcpy(path, bastest_str);
+							strncat(path, fileinfo.fname, 13);
+							if (srec_load(path) != OK)
+							{
+								// error handling
+							}
+						}
+					}
+					fres = f_readdir(&directory, &fileinfo);
+				}
+			}
+			else
+			{
+				xprintf("f_opendir %s failed with error code %d\r\n", bastest_str, fres);
+			}
 		}
 		else
 		{
 			// xprintf("could not mount FAT FS\r\n");
 		}
-		f_mount(0, 0L);
+		f_mount(0, 0L);		/* unmount SD card */
 	}
-	else
-	{
-		// xprintf("could not initialize SD card\r\n");
-	}
-}
-
-void basflash(void)
-{
-	const char *basauto_str = "\\BASAUTO\\";
-	const char *bassimu_str = "\\BASSIMU\\";
-
-	xprintf("\r\nHello from BASFLASH.S19!\r\n\r\n");
 }
