@@ -22,6 +22,7 @@
  */
 
 #include <stdint.h>
+#include <stdbool.h>
 
 #include "MCF5475.h"
 #include "MCF5475_SLT.h"
@@ -29,13 +30,12 @@
 #include "cache.h"
 #include "bas_printf.h"
 #include "bas_types.h"
-#include <sd_card.h>
-#include <wait.h>
+#include "sd_card.h"
+#include "wait.h"
 
-#include <diskio.h>
-#include <ff.h>
-
-#include <s19reader.h>
+#include "diskio.h"
+#include "ff.h"
+#include "s19reader.h"
 
 /* imported routines */
 extern int mmu_init();
