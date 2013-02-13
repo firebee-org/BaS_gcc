@@ -83,14 +83,14 @@ typedef struct romram
 {
 	uint32_t flash_address;
 	uint32_t ram_address;
+	char *name;
 } ROMRAM;
 
 static const struct romram flash_areas[] =
 {
-		/* TODO: add real addresses, leave BaS itself out for now (dangerous) */
-		{ 0xe0000000, 0 },	/* EmuTOS */
-		{ 0xe0000000, 0 },	/* FireTOS */
-		{ 0xe0000000, 0 },  /* FPGA config */
+		{ 0xe0600000, 0x00e00000, "EmuTOS" },	/* EmuTOS */
+		{ 0xe0400000, 0x00e00000, "FireTOS" },	/* FireTOS */
+		{ 0xe0700000, 0x00e00000, "FPGA" },  /* FPGA config */
 };
 static const int num_flash_areas = sizeof(flash_areas) / sizeof(struct romram);
 
