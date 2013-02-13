@@ -32,8 +32,10 @@
  * SUCH DAMAGE.
  */
 
+#include <stdarg.h>
 #include "MCF5475.h"
-#include <bas_printf.h>
+#include "bas_printf.h"
+
 /*
  * Lexical definitions.
  *
