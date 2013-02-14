@@ -96,7 +96,7 @@ lib: $(LIBBAS)
 	@ rm -f $(FLASH_EXEC) $(FLASH_EXEC).elf $(FLASH_EXEC).s19 \
 			$(RAM_EXEC) $(RAM_EXEC).elf $(RAM_EXEC).s19 \
 			$(BASFLASH_EXEC) $(BASFLASH_EXEC).elf $(BASFLASH_EXEC).s19 $(OBJDIR)/basflash.o \
-			$(OBJS) \
+			$(OBJS) $(LIBBAS) \
 			bas.lk bas.map ram.lk ram.map basflash.lk basflash.map depend 
 
 $(FLASH_EXEC): TARGET_ADDRESS=0xe0000000
