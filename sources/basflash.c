@@ -111,6 +111,10 @@ err_t erase_flash_region(void *start_address, uint32_t length)
 
 	/*
 	 * determine first sector to erase
+	 *
+	 * FIXME: if the start address of the .s19 file does not fall on a sector boundary, we
+	 * will probably erase vital code in the previous flash sector. This should not happen on the Firebee
+	 * where we have fixed areas for the different flash codes, but we should probably take care anyway
 	 */
 	for (i = 0; i < num_flash_sectors; i++)
 	{
@@ -120,6 +124,8 @@ err_t erase_flash_region(void *start_address, uint32_t length)
 
 	/*
 	 * erase sectors until free space equals length
+	 *
+	 * FIXME: same as above. Currently, there is no prevention against overlapping flash areas.
 	 */
 	do {
 		err = erase_flash_sector(sector);
