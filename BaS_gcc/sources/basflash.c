@@ -7,10 +7,10 @@
 
 #include <stdint.h>
 #include <stdbool.h>
-#include <bas_printf.h>
-#include <diskio.h>
-#include <ff.h>
-#include <s19reader.h>
+#include "bas_printf.h"
+#include "diskio.h"
+#include "ff.h"
+#include "s19reader.h"
 
 int strncmp(const char *s1, const char *s2, int max)
 {
