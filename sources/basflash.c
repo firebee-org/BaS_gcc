@@ -297,15 +297,22 @@ void basflash(void)
 				fres = f_readdir(&directory, &fileinfo);
 				while (fres == FR_OK)
 				{
-					const char *ext = ".S19";
+					const char *srec_ext = ".S19";
 					char path[30];
 
 					if (fileinfo.fname[0] != '\0')	/* found a file */
 					{
-						if (strncmp(&fileinfo.fname[13 - 4], ext, 4) == 0)	/* we have a .S19 file */
+						if (strncmp(&fileinfo.fname[13 - 4], srec_ext, 4) == 0)	/* we have a .S19 file */
 						{
+							/*
+							 * build path + filename
+							 */
 							strcpy(path, bastest_str);
 							strncat(path, fileinfo.fname, 13);
+
+							/*
+							 * load file
+							 */
 							if (srec_load(path) != OK)
 							{
 								// error handling
