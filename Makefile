@@ -111,7 +111,7 @@ $(BASFLASH_EXEC): TARGET_ADDRESS=0x00020000
 $(BASFLASH_EXEC): LDCFILE=basflash.lk
 $(BASFLASH_EXEC): MAPFILE=basflash.map
 
-# the final link stage
+# the final link stage (BaS in RAM and BaS in flash)
 $(FLASH_EXEC) $(RAM_EXEC): $(LIBBAS) $(LDCSRC)
 	$(CPP) -P -DTARGET_ADDRESS=$(TARGET_ADDRESS) -DFORMAT=$(FORMAT) $(LDCSRC) -o $(LDCFILE)
 	$(LD) --oformat $(FORMAT) -Map $(MAPFILE) --cref -T $(LDCFILE) -o $@
@@ -131,6 +131,7 @@ else
 	objcopy -I srec -O elf32-big --alt-machine-code 4 $@ $@.elf
 endif	
 
+# (re)create library. Currently suboptimal because it rewrites the whole lib even if only a single object changed
 $(LIBBAS): $(OBJS)
 	$(AR) rv $@ $(OBJS)
 	$(RANLIB) $@
