@@ -35,7 +35,8 @@ typedef enum
 	SREC_CORRUPT,	/* file doesn't seem to contain valid S-records */
 	MEMCPY_FAILED,	/* could not copy buffer to destination */
 	CODE_OVERLAPS,	/* copying would overwrite ourself */
-	VERIFY_FAILED	/* destination does not read as we've written to */
+	VERIFY_FAILED,	/* destination does not read as we've written to */
+	ILLEGAL_SECTOR	/* flash sector number invalid */
 } err_t;
 
 typedef err_t (*memcpy_callback_t)(uint8_t *dst, uint8_t *src, uint32_t length);

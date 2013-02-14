@@ -94,12 +94,41 @@ static const struct romram flash_areas[] =
 };
 static const int num_flash_areas = sizeof(flash_areas) / sizeof(struct romram);
 
+#define FLASH_ADDRESS 0xe0000000
+static volatile uint16_t *flash_unlock1 = (volatile uint16_t *) FLASH_ADDRESS + 0xaaa;
+static volatile uint16_t *flash_unlock2 = (volatile uint16_t *) FLASH_ADDRESS + 0x554;
+static const uint16_t cmd_unlock1 = 0xaa;
+static const uint16_t cmd_unlock2 = 0x55;
+static const uint16_t cmd_sector_erase1 = 0x80;
+static const uint16_t cmd_sector_erase2 = 0x30;
+static const uint16_t cmd_sector_erase_suspend = 0xb0;
+static const uint16_t cmd_sector_erase_resume = 0x30;
+static const uint16_t cmd_program = 0xa0;
+static const uint16_t cmd_autoselect = 0x90;
+static const uint16_t cmd_read = 0xf0;
+
 extern err_t simulate();
 extern err_t memcpy();
 extern err_t verify();
 
+/*
+ * erase a flash sector
+ *
+ * sector_num is the index into the sector table above.
+ *
+ * FIXME: need to disable data cache to ensure proper operation
+ */
 err_t erase_flash_sector(int sector_num)
 {
+	volatile uint32_t rd;
+	uint32_t size;
+
+	*flash_unlock1 = cmd_unlock1;
+	*flash_unlock2 = cmd_unlock2;
+	*flash_unlock1 = cmd_autoselect;
+	rd = * (volatile uint32_t *) FLASH_ADDRESS;
+	* (volatile uint32_t *) FLASH_ADDRESS = size;
+	(void) rd;	/* get rid of "unused variable" compiler warning */
 	return OK;
 }
 
@@ -122,16 +151,22 @@ err_t erase_flash_region(void *start_address, uint32_t length)
 			sector = i;
 	}
 
-	/*
-	 * erase sectors until free space equals length
-	 *
-	 * FIXME: same as above. Currently, there is no prevention against overlapping flash areas.
-	 */
-	do {
-		err = erase_flash_sector(sector);
-		sector++;
-	} while ((void *) mx29lv640d_flash_sectors[sector] < start_address + length && ! err);
-
+	if (sector >= 0 && sector <= num_flash_sectors)
+	{
+		/*
+		 * erase sectors until free space equals length
+		 *
+		 * FIXME: same as above. Currently, there is no prevention against overlapping flash areas.
+		 */
+		do {
+			err = erase_flash_sector(sector);
+			sector++;
+		} while ((void *) mx29lv640d_flash_sectors[sector] < start_address + length && ! err);
+	}
+	else
+	{
+		err = ILLEGAL_SECTOR;
+	}
 	return err;
 }
 
