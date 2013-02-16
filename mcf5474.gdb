@@ -4,11 +4,14 @@
 
 define addresses
 set $vbr   = 0x00000000
-monitor bdm-ctl-set 0x0801 0x00000000 
+monitor bdm-ctl-set 0x0801 0x00000000
+ 
 set $mbar  = 0xFF000000
 monitor bdm-ctl-set 0x0C0F 0xFF000000
+
 set $rambar0 = 0xFF100000
 monitor bdm-ctl-set 0x0C04 0xFF100007
+
 set $rambar1 = 0xFF101000
 monitor bdm-ctl-set 0x0C05 0xFF101001
 end
@@ -54,7 +57,8 @@ end
 #
 
 define ib
-addresses
-setup-dram
+	addresses
+	setup-dram
 end
+
 ib
