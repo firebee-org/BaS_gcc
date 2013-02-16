@@ -107,7 +107,7 @@ $(RAM_EXEC): TARGET_ADDRESS=0x10000000
 $(RAM_EXEC): LDCFILE=ram.lk
 $(RAM_EXEC): MAPFILE=ram.map
 
-$(BASFLASH_EXEC): TARGET_ADDRESS=0x00020000
+$(BASFLASH_EXEC): TARGET_ADDRESS=0x00100000
 $(BASFLASH_EXEC): LDCFILE=basflash.lk
 $(BASFLASH_EXEC): MAPFILE=basflash.map
 
@@ -122,7 +122,7 @@ else
 endif
 
 # the basflash (SD-card executable called from BaS) final link stage
-$(BASFLASH_EXEC): $(OBJDIR)/basflash.o $(LIBBAS) $(LDCBFL)
+$(BASFLASH_EXEC): $(OBJDIR)/basflash.o $(OBJDIR)/basflash_start.o $(LIBBAS) $(LDCBFL)
 	$(CPP) -P -DTARGET_ADDRESS=$(TARGET_ADDRESS) -DFORMAT=$(FORMAT) $(LDCBSRC) -o $(LDCFILE)
 	$(LD) --oformat $(FORMAT) -Map $(MAPFILE) --cref -T $(LDCFILE) -L. -lbas -o $@
 ifeq ($(COMPILE_ELF),Y)
