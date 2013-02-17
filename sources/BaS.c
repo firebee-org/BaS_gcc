@@ -205,8 +205,6 @@ void BaS(void)
 	vec_init();
 	xprintf("finished\r\n");
 
-	enable_coldfire_interrupts();
-
 	MCF_MMU_MMUCR = MCF_MMU_MMUCR_EN;	/* MMU on */
 
 	xprintf("IDE reset: ");
@@ -241,7 +239,6 @@ void BaS(void)
 	xprintf("finished\r\n");
 
 	sd_card_init();
-	srec_execute("BASFLASH.S19");
 
 	/*
 	 * memory setup
@@ -295,6 +292,8 @@ void BaS(void)
 		__asm__ __volatile__("move.w #0x0700,sr	\n\t" : : : "memory");
 	}
 
+	srec_execute("BASFLASH.S19");
+
 	/* Jump into the OS */
 	typedef void void_func(void);
 	typedef struct {
@@ -303,6 +302,7 @@ void BaS(void)
 	} ROM_HEADER;
 
 	xprintf("Call OS. BaS initialization finished...\r\n");
+	enable_coldfire_interrupts();
 
 	ROM_HEADER* os_header = (ROM_HEADER*)TOS;
 	os_header->initial_pc();

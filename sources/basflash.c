@@ -308,8 +308,8 @@ err_t srec_load(char *flash_filename)
 
 void basflash(void)
 {
-	const char *basflash_str = "\\BASFLASH\\";
-	const char *bastest_str = "\\BASTEST\\";
+	const char *basflash_str = "\\BASFLASH";
+	const char *bastest_str = "\\BASTEST";
 	DRESULT res;
 	FRESULT fres;
 	FATFS fs;
@@ -351,6 +351,7 @@ void basflash(void)
 							strcpy(path, bastest_str);
 							strncat(path, fileinfo.fname, 13);
 
+							xprintf("loading file %s\n", path);
 							/*
 							 * load file
 							 */

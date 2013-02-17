@@ -46,6 +46,7 @@ _rom_entry:
 
 		/* set stack pointer to end of SRAM1 */
 		lea 	__SUP_SP,a7
+		move.l	#0,(sp)
 
 		/* Initialize the processor caches.
 		 * The instruction cache is fully enabled.

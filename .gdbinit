@@ -1,12 +1,10 @@
 #set disassemble-next-line on
-define tr
+define pdtr
 	target remote | m68k-bdm-gdbserver pipe /dev/bdmcf3
+	monitor bdm-reset
 end
-define tbtr
+define tr
 	target remote | m68k-bdm-gdbserver pipe /dev/tblcf3
 end
-
-tr
-
 source mcf5474.gdb
 

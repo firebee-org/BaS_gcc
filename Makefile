@@ -35,8 +35,8 @@ CFLAGS=-mcpu=5474\
 	   -g\
 	   -Wno-multichar\
 	   -Winline\
-	   -Os\
-	   -fomit-frame-pointer\
+	   -O \
+	   -fno-omit-frame-pointer\
 	   -fno-strict-aliasing\
 	   -ffreestanding\
 	   -fleading-underscore\
@@ -107,7 +107,7 @@ $(RAM_EXEC): TARGET_ADDRESS=0x10000000
 $(RAM_EXEC): LDCFILE=ram.lk
 $(RAM_EXEC): MAPFILE=ram.map
 
-$(BASFLASH_EXEC): TARGET_ADDRESS=0x00040000
+$(BASFLASH_EXEC): TARGET_ADDRESS=0x00100000
 $(BASFLASH_EXEC): LDCFILE=basflash.lk
 $(BASFLASH_EXEC): MAPFILE=basflash.map
 
