@@ -1,6 +1,6 @@
 MEMORY
 {
-   bas_rom (RX) : ORIGIN = TARGET_ADDRESS, LENGTH = 0x00200000
+   bas_rom (RX) : ORIGIN = TARGET_ADDRESS, LENGTH = 0x00100000
    bas_ram (WX) : ORIGIN = 0x1FE00000, LENGTH = 0x00100000		/* target to copy BaS to */
 }
 

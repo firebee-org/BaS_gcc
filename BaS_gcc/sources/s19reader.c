@@ -32,6 +32,7 @@
 #include "diskio.h"
 #include "ff.h"
 #include "s19reader.h"
+#include "cache.h"
 
 /*
  * Yes, I know. The following doesn't really look like code should look like...
@@ -390,6 +391,7 @@ void srec_execute(char *flasher_filename)
 							xprintf("target successfully written and verified. Start address: %p\r\n", start_address);
 
 							func = start_address;
+							flush_and_invalidate_caches();
 							(*func)();
 						}
 						else
