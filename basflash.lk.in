@@ -15,20 +15,15 @@ SECTIONS
 		*(.rodata)
 		*(.rodata.*)		
 	} > flasher
-	
-		.bas :
-		/* The BaS is stored in the flash, just after the init part.
-		 * Then it will be copied to its final location in the RAM.
-		 * This data must be aligned for optimal copy loop speed.
-		 */
-		AT (ALIGN(ADDR(.text) + SIZEOF(.text), 4))
+
+	.bas :
 	{
 	}
-	
+		
 	#define BAS_LABEL_LMA(x) ((x))
 	_xprintf_before_copy = BAS_LABEL_LMA(_xprintf);
 	_display_progress_before_copy = BAS_LABEL_LMA(_display_progress);
-	_flush_and_invalidate_caches_before_copy = BAS_LABEL_LMA(_flush_and_invalidate_caches);
+	/* _flush_and_invalidate_caches_before_copy = BAS_LABEL_LMA(_flush_and_invalidate_caches); */
 	
 	/*
 	 * Global memory map

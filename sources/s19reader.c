@@ -43,12 +43,12 @@
 #define SREC_TYPE(a) 		(a)[0]							/* type of record */
 #define SREC_COUNT(a) 		(a)[1]							/* length of valid bytes to follow */
 #define SREC_ADDR16(a) 		(256 * (a)[2] + (a)[3])			/* 2 byte address field */
-#define SREC_ADDR32(a) 		(0x1000000 * a[2] + 0x10000 * \
-							a[3] + 0x100 * (a)[4] + (a)[5])	/* 4 byte address field */
 #define SREC_ADDR24(a)		(0x10000 * (a)[2] + 0x100 *  \
 							(a)[3] + (a)[4])				/* 3 byte address field */
+#define SREC_ADDR32(a) 		(0x1000000 * a[2] + 0x10000 * \
+							a[3] + 0x100 * (a)[4] + (a)[5])	/* 4 byte address field */
 #define SREC_DATA16(a)		((uint8_t *)&((a)[4]))			/* address of first byte of data in a record */
-#define SREC_DATA24(a)		((uint8_t *)&((a)[3]))			/* address of first data bite in 24 bit record */
+#define SREC_DATA24(a)		((uint8_t *)&((a)[5]))			/* address of first data byte in 24 bit record */
 #define SREC_DATA32(a)		((uint8_t *)&((a)[6]))			/* adress of first byte of a record with 32 bit address field */
 #define SREC_DATA16_SIZE(a)	(SREC_COUNT((a)) - 3)			/* length of the data[] array without the checksum field */
 #define SREC_DATA24_SIZE(a)	(SREC_COUNT((a)) - 4)			/* length of the data[] array without the checksum field */
@@ -147,22 +147,22 @@ void print_record(uint8_t *arr)
 /*
  * convert an S-record line into its corresponding byte vector (ASCII->binary)
  */
-static void line_to_vector(uint8_t *line, uint8_t *vector)
+static void line_to_vector(uint8_t *buff, uint8_t *vector)
 {
 	int i;
 	int length;
 	uint8_t *vp = vector;
 
-	length = hex_to_byte(line + 2);
+	length = hex_to_byte(buff + 2);
 
-	line++;
-	*vp++ = nibble_to_byte(*line); /* record type. Only one single nibble */
-	line++;
+	buff++;
+	*vp++ = nibble_to_byte(*buff); /* record type. Only one single nibble */
+	buff++;
 
 	for (i = 0; i <= length; i++)
 	{
-		*vp++ = hex_to_byte(line);
-		line += 2;
+		*vp++ = hex_to_byte(buff);
+		buff += 2;
 	}
 }
 
@@ -203,7 +203,7 @@ err_t read_srecords(char *filename, void **start_address, uint32_t *actual_lengt
 		while (ret == OK && (uint8_t *) f_gets((char *) line, sizeof(line), &file) != NULL)
 		{
 			lineno++;
-			uint8_t vector[64];
+			uint8_t vector[80];
 
 			line_to_vector(line, vector);	/* vector now contains the decoded contents of line, from line[1] on */
 
@@ -292,6 +292,7 @@ err_t read_srecords(char *filename, void **start_address, uint32_t *actual_lengt
 	else
 	{
 		xprintf("could not open file %s\r\n", filename);
+		ret = FILE_OPEN;
 	}
 	return ret;
 }
