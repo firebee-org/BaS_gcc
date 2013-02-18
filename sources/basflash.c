@@ -111,6 +111,27 @@ extern err_t simulate();
 extern err_t memcpy();
 extern err_t verify();
 
+
+/*
+ * unlock a flash sector
+ */
+
+err_t unlock_flash_sector(int sector_num)
+{
+	volatile uint32_t rd;
+	uint32_t size = (sector_num < num_flash_sectors ?
+						mx29lv640d_flash_sectors[sector_num + 1] - mx29lv640d_flash_sectors[sector_num] :
+						0);
+
+	*flash_unlock1 = cmd_unlock1;
+	*flash_unlock2 = cmd_unlock2;
+	*flash_unlock1 = cmd_autoselect;
+	rd = * (volatile uint32_t *) FLASH_ADDRESS;
+	* (volatile uint32_t *) FLASH_ADDRESS = size;
+	(void) rd;	/* get rid of "unused variable" compiler warning */
+	return OK;
+}
+
 /*
  * erase a flash sector
  *
@@ -121,15 +142,24 @@ extern err_t verify();
 err_t erase_flash_sector(int sector_num)
 {
 	volatile uint32_t rd;
-	uint32_t size;
+	uint32_t size = (sector_num < num_flash_sectors ?
+						mx29lv640d_flash_sectors[sector_num + 1] - mx29lv640d_flash_sectors[sector_num] :
+						0);
 
-	*flash_unlock1 = cmd_unlock1;
-	*flash_unlock2 = cmd_unlock2;
-	*flash_unlock1 = cmd_autoselect;
-	rd = * (volatile uint32_t *) FLASH_ADDRESS;
-	* (volatile uint32_t *) FLASH_ADDRESS = size;
-	(void) rd;	/* get rid of "unused variable" compiler warning */
-	return OK;
+	if (unlock_flash_sector(sector_num) == OK)
+	{
+		*flash_unlock1 = cmd_unlock1;
+		*flash_unlock2 = cmd_unlock2;
+		*flash_unlock1 = cmd_sector_erase1;
+		*flash_unlock1 = cmd_unlock1;
+		*flash_unlock2 = cmd_unlock2;
+		*flash_unlock1 = cmd_sector_erase1;
+		rd = * (volatile uint32_t *) FLASH_ADDRESS;
+		* (volatile uint32_t *) FLASH_ADDRESS = size;
+		(void) rd;	/* get rid of "unused variable" compiler warning */
+		return OK;
+	}
+	return ILLEGAL_SECTOR;
 }
 
 err_t erase_flash_region(void *start_address, uint32_t length)
