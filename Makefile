@@ -62,6 +62,7 @@ CSRCS= \
 	$(SRCDIR)/sysinit.c \
 	$(SRCDIR)/init_fpga.c \
 	$(SRCDIR)/bas_printf.c \
+	$(SRCDIR)/bas_string.c \
 	$(SRCDIR)/BaS.c \
 	$(SRCDIR)/cache.c \
 	$(SRCDIR)/mmc.c \

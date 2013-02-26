@@ -7,55 +7,13 @@
 
 #include <stdint.h>
 #include <stdbool.h>
+#include "bas_string.h"
 #include "bas_printf.h"
 #include "diskio.h"
 #include "ff.h"
 #include "s19reader.h"
 
-int strncmp(const char *s1, const char *s2, int max)
-{
-	int i;
-	int cmp;
 
-	for (i = 0; i < max; i++);
-	{
-		cmp = (*s1++ - *s2++);
-		if (cmp != 0) return cmp;
-	}
-	return cmp;
-}
-
-char *strcpy(char *dst, const char *src)
-{
-	while ((*dst++ = *src++));
-	return dst;
-}
-
-extern int strlen(char *str);
-
-#ifdef _NOT_USED_ /* already defined in printf.c */
-int strlen(char *str)
-{
-	int i = 0;
-
-	do {} while (str[i++]);
-	return i - 1;
-}
-#endif
-
-int strncat(char *dst, char *src, int max)
-{
-	int i;
-
-	dst = &dst[strlen(dst) + 1];
-	for (i = 0; i < max && *src; i++)
-	{
-		*dst++ = *src++;
-	}
-	*dst++ = '\0';
-
-	return i;
-}
 
 static uint32_t mx29lv640d_flash_sectors[] =
 {
