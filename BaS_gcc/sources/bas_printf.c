@@ -35,6 +35,7 @@
 #include <stdarg.h>
 #include "MCF5475.h"
 #include "bas_printf.h"
+#include "bas_string.h"
 
 /*
  * Lexical definitions.
@@ -69,35 +70,6 @@ static void xputchar(int c)
 			/* input */: "r" (c)
 			/* clobber */: "d0","d2","a0","memory"
 	);
-}
-
-#define isdigit(c)	(((c) >= '0') && ((c) <= '9'))
-#define isupper(c)	((c) >= 'A' && ((c) <= 'Z'))
-#define islower(c)	((c) >= 'a' && ((c) <= 'z'))
-#define isalpha(c)	(isupper((c)) || islower(c))
-#define tolower(c)	(isupper(c) ? ((c) + 'a' - 'A') : (c))
-
-static int atoi(const char *c)
-{
-	int value = 0;
-	while (isdigit(*c))
-	{
-		value *= 10;
-		value += (int) (*c - '0');
-		c++;
-	}
-	return value;
-}
-
-size_t strlen(const char *s)
-{
-	int length = 0;
-
-	while (*s++)
-	{
-		length++;
-	}
-	return length;
 }
 
 static void doprnt(void (*addchar)(int), const char *sfmt, va_list ap)
