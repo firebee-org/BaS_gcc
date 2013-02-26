@@ -65,10 +65,52 @@ static const uint16_t cmd_program = 0xa0;
 static const uint16_t cmd_autoselect = 0x90;
 static const uint16_t cmd_read = 0xf0;
 
-extern err_t simulate();
-extern err_t memcpy();
-extern err_t verify();
+/*
+ * this callback just does nothing besides returning OK. Meant to do a dry run over the file to check its integrity
+ */
+static err_t simulate()
+{
+	err_t ret = OK;
 
+	return ret;
+}
+
+static err_t memcpy(uint8_t *dst, uint8_t *src, uint32_t length)
+{
+	uint8_t *end = src + length;
+
+	do
+	{
+		*dst++ = *src++;
+	} while (src < end);
+
+	return OK;
+}
+
+static err_t flash(uint8_t *dst, uint8_t *src, uint32_t length)
+{
+	err_t ret = OK;
+
+	/* TODO: do the actual flash */
+
+	return ret;
+}
+
+/*
+ * this callback verifies the data against the S-record file contents after a write to destination
+ */
+static err_t verify(uint8_t *dst, uint8_t *src, uint32_t length)
+{
+	uint8_t *end = src + length;
+
+	do
+	{
+		if (*src++ != *dst++)
+			return FAIL;
+	} while (src < end);
+
+	return OK;
+}
 
 /*
  * unlock a flash sector
