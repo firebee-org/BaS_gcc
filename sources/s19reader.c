@@ -59,7 +59,7 @@
 /*
  * convert a single hex character into byte
  */
-uint8_t nibble_to_byte(uint8_t nibble)
+static uint8_t nibble_to_byte(uint8_t nibble)
 {
 	if ((nibble >= '0') && (nibble <= '9'))
 		return nibble - '0';
@@ -73,7 +73,7 @@ uint8_t nibble_to_byte(uint8_t nibble)
 /*
  * convert two hex characters into byte
  */
-uint8_t hex_to_byte(uint8_t hex[2])
+static uint8_t hex_to_byte(uint8_t hex[2])
 {
 	return 16 * (nibble_to_byte(hex[0])) + (nibble_to_byte(hex[1]));
 }
@@ -81,7 +81,7 @@ uint8_t hex_to_byte(uint8_t hex[2])
 /*
  * convert four hex characters into a 16 bit word
  */
-uint16_t hex_to_word(uint8_t hex[4])
+static uint16_t hex_to_word(uint8_t hex[4])
 {
 	return 256 * hex_to_byte(&hex[0]) + hex_to_byte(&hex[2]);
 }
@@ -89,7 +89,7 @@ uint16_t hex_to_word(uint8_t hex[4])
 /*
  * convert eight hex characters into a 32 bit word
  */
-uint32_t hex_to_long(uint8_t hex[8])
+static uint32_t hex_to_long(uint8_t hex[8])
 {
 	return 65536 * hex_to_word(&hex[0]) + hex_to_word(&hex[4]);
 }
@@ -99,7 +99,7 @@ uint32_t hex_to_long(uint8_t hex[8])
  *
  * it consists of the one's complement of the byte sum of the data from the count field until the end
  */
-uint8_t checksum(uint8_t arr[])
+static uint8_t checksum(uint8_t arr[])
 {
 	int i;
 	uint8_t checksum = SREC_COUNT(arr);
@@ -301,14 +301,14 @@ err_t read_srecords(char *filename, void **start_address, uint32_t *actual_lengt
 /*
  * this callback just does nothing besides returning OK. Meant to do a dry run over the file to check its integrity
  */
-err_t simulate()
+static err_t simulate()
 {
 	err_t ret = OK;
 
 	return ret;
 }
 
-err_t memcpy(uint8_t *dst, uint8_t *src, uint32_t length)
+static err_t memcpy(uint8_t *dst, uint8_t *src, uint32_t length)
 {
 	uint8_t *end = src + length;
 
@@ -320,7 +320,7 @@ err_t memcpy(uint8_t *dst, uint8_t *src, uint32_t length)
 	return OK;
 }
 
-err_t flash(uint8_t *dst, uint8_t *src, uint32_t length)
+static err_t flash(uint8_t *dst, uint8_t *src, uint32_t length)
 {
 	err_t ret = OK;
 
@@ -332,7 +332,7 @@ err_t flash(uint8_t *dst, uint8_t *src, uint32_t length)
 /*
  * this callback verifies the data against the S-record file contents after a write to destination
  */
-err_t verify(uint8_t *dst, uint8_t *src, uint32_t length)
+static err_t verify(uint8_t *dst, uint8_t *src, uint32_t length)
 {
 	uint8_t *end = src + length;
 

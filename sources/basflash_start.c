@@ -21,6 +21,6 @@ void startup(void)
 	__asm__ __volatile__("move.l	sp,%0\n\t" : "=g"(oldstack) : :);
 	__asm__ __volatile__("move.l	%0,sp\n\t" : : "g"(stackptr) : );
 	basflash();
-	__asm__ __volatile__("move.l	%0,sp\n\t" : : "g"(oldstack) :);
+	__asm__ __volatile__("move.l	%0,sp\n\t" : : "g"(oldstack) : "sp");
 	(void) stackptr; /* make compiler happy about unused variables */
 }
