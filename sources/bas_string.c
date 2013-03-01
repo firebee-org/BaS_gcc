@@ -12,9 +12,9 @@ int strncmp(const char *s1, const char *s2, int max)
 	int i;
 	int cmp;
 
-	for (i = 0; i < max; i++);
+	for (i = 0; i < max && *s1++ && *s2++; i++);
 	{
-		cmp = (*s1++ - *s2++);
+		cmp = (*s1 - *s2);
 		if (cmp != 0) return cmp;
 	}
 	return cmp;
@@ -46,20 +46,29 @@ size_t strlen(const char *s)
 
 	while (*s++);
 
-	return s - start;
+	return s - start - 1;
 }
 
 
-int strncat(char *dst, char *src, int max)
+char *strcat(char *dst, const char *src)
+{
+	char *ret = dst;
+	dst = &dst[strlen(dst)];
+	while ((*dst++ = *src++) != '\0');
+	return ret;
+}
+
+char *strncat(char *dst, const char *src, int max)
 {
 	int i;
+	char *ret = dst;
 
-	dst = &dst[strlen(dst) + 1];
+	dst = &dst[strlen(dst)];
 	for (i = 0; i < max && *src; i++)
 	{
 		*dst++ = *src++;
 	}
 	*dst++ = '\0';
 
-	return i;
+	return ret;
 }

@@ -13,7 +13,8 @@
 extern int strncmp(const char *s1, const char *s2, int max);
 extern char *strcpy(char *dst, const char *src);
 extern size_t strlen(const char *str);
-extern int strncat(char *dst, char *src, int max);
+extern char *strcat(char *dst, const char *src);
+extern char *strncat(char *dst, const char *src, int max);
 extern int atoi(const char *c);
 
 #define isdigit(c)	(((c) >= '0') && ((c) <= '9'))

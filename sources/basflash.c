@@ -353,19 +353,23 @@ void basflash(void)
 	 * Files located in the BASTEST-folder thus override those in flash. Useful for testing before flashing
 	 */
 	res = disk_status(0);
+	xprintf("disk_status(0) = %d\r\n", res);
 	if (res == RES_OK)
 	{
 		fres = f_mount(0, &fs);
+		xprintf("f_mount() = %d\r\n", fres);
 		if (fres == FR_OK)
 		{
 			DIR directory;
 
 			fres = f_opendir(&directory, bastest_str);
+			xprintf("f_opendir() = %d\r\n", fres);
 			if (fres == FR_OK)
 			{
 				FILINFO fileinfo;
 
 				fres = f_readdir(&directory, &fileinfo);
+				xprintf("f_readdir() = %d\r\n", fres);
 				while (fres == FR_OK)
 				{
 					const char *srec_ext = ".S19";
@@ -373,25 +377,31 @@ void basflash(void)
 
 					if (fileinfo.fname[0] != '\0')	/* found a file */
 					{
-						if (strncmp(&fileinfo.fname[13 - 4], srec_ext, 4) == 0)	/* we have a .S19 file */
+						xprintf("check file %s (%s == %s ?)\r\n", fileinfo.fname, &fileinfo.fname[strlen(fileinfo.fname) - 4], srec_ext);
+						if (strlen(fileinfo.fname) >= 4 && strncmp(&fileinfo.fname[strlen(fileinfo.fname) - 4], srec_ext, 4) == 0)	/* we have a .S19 file */
 						{
 							/*
 							 * build path + filename
 							 */
 							strcpy(path, bastest_str);
+							strcat(path, "\\");
 							strncat(path, fileinfo.fname, 13);
 
-							xprintf("loading file %s\n", path);
+							xprintf("loading file %s\r\n", path);
 							/*
 							 * load file
 							 */
 							if (srec_load(path) != OK)
 							{
+								xprintf("failed to load file %s\r\n", path);
 								// error handling
 							}
 						}
 					}
+					else
+						break;
 					fres = f_readdir(&directory, &fileinfo);
+					xprintf("f_readdir() = %d\r\n", fres);
 				}
 			}
 			else
