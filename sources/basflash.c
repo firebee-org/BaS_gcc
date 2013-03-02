@@ -399,7 +399,7 @@ void basflash(void)
 						}
 					}
 					else
-						break;
+						break; /* exit if no file found */
 					fres = f_readdir(&directory, &fileinfo);
 					xprintf("f_readdir() = %d\r\n", fres);
 				}
