@@ -191,7 +191,7 @@ err_t erase_flash_region(void *start_address, uint32_t length)
 		do {
 			err = erase_flash_sector(sector);
 			sector++;
-		} while ((void *) mx29lv640d_flash_sectors[sector] < start_address + length && ! err);
+		} while ((uint8_t *) mx29lv640d_flash_sectors[sector] < (uint8_t *) start_address + length && ! err);
 	}
 	else
 	{
@@ -210,7 +210,6 @@ void srec_flash(char *flash_filename)
 	void *start_address;
 	uint32_t length;
 
-	// disk_initialize(0);
 	res = disk_status(0);
 	if (res == RES_OK)
 	{
@@ -243,12 +242,14 @@ void srec_flash(char *flash_filename)
 						err = read_srecords(flash_filename, &start_address, &length, verify);
 						if (err == OK)
 						{
-							xprintf("OK.\r\n");
 							typedef void void_func(void);
 							void_func *func;
+
+							xprintf("OK.\r\n");
+
 							xprintf("target successfully written and verified. Start address: %p\r\n", start_address);
 
-							func = start_address;
+							func = (void_func *) start_address;
 							(*func)();
 						}
 						else
@@ -310,12 +311,13 @@ err_t srec_load(char *flash_filename)
 				err = read_srecords(flash_filename, &start_address, &length, verify);
 				if (err == OK)
 				{
-					xprintf("OK.\r\n");
 					typedef void void_func(void);
 					void_func *func;
+
+					xprintf("OK.\r\n");
 					xprintf("target successfully written and verified. Start address: %p\r\n", start_address);
 
-					func = start_address;
+					func = (void_func *) start_address;
 					(*func)();
 				}
 				else
