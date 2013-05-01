@@ -14,10 +14,17 @@
 
 static xhdi_call_fun old_vector = NULL;
 
-__attribute__((__interrupt__)) void *xhdi_sd_install(xhdi_call_fun ov)
+__attribute__((__interrupt__)) xhdi_call_fun xhdi_sd_install(xhdi_call_fun ov)
 {
 	old_vector = ov;
-	return (void *) xhdi_call;
+	/* THIS does not work: return (xhdi_call_fun) &xhdi_call; */
+	__asm__ __volatile__ (
+			"move.l		%[xhdi_call],d1\n\t"
+			"move.l		d1,(sp)\n\t"
+			: /* output */
+			: [xhdi_call]"g"(xhdi_call)
+			: "d1","memory");
+	return (xhdi_call_fun) xhdi_call;
 }
 
 uint32_t xhdi_version(void)
