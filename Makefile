@@ -71,7 +71,8 @@ CSRCS= \
 	$(SRCDIR)/sd_card.c \
 	$(SRCDIR)/wait.c \
 	$(SRCDIR)/s19reader.c \
-	$(SRCDIR)/flash.c
+	$(SRCDIR)/flash.c \
+	$(SRCDIR)/xhdi_sd.c
 
 ASRCS= \
 	$(SRCDIR)/startcf.S \
@@ -137,6 +138,9 @@ $(LIBBAS): $(OBJS)
 	$(AR) rv $@ $(OBJS)
 	$(RANLIB) $@
 	
+# compile xhdi_sd.c with -mshort to adhere to TOS argument passing conventions
+$(OBJDIR)/xhdi_sd.o: CFLAGS += -mshort
+
 # compile init_fpga with -mbitfield for testing purposes
 #$(OBJDIR)/init_fpga.o:	CFLAGS += -mbitfield
 
