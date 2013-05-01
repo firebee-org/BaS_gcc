@@ -12,6 +12,14 @@
 
 #define DRIVER_VERSION	0x130
 
+static xhdi_call_fun old_vector = NULL;
+
+__attribute__((__interrupt__)) void *xhdi_sd_install(xhdi_call_fun ov)
+{
+	old_vector = ov;
+	return (void *) xhdi_call;
+}
+
 uint32_t xhdi_version(void)
 {
 	return DRIVER_VERSION;
