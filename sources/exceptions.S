@@ -20,6 +20,7 @@
 		.extern _video_tlb
 		.extern _video_sbt
 		.extern cpusha
+		.extern _xhdi_sd_install	/* trap #0 exception vector for installation of xhdi SD card driver */
 
 /* Register read/write macros */
 #define MCF_MMU_MMUCR            			__MMUBAR
@@ -220,6 +221,9 @@ init_vec_loop:
 		move.l	a1,(a2)+			// mal standard vector f�r alle setzen
 		subq.l	#1,d0
 		bne		init_vec_loop
+
+		lea		_xhdi_sd_install,a0
+		move.l	a0,0x80				// trap #0 exception vector
 
 		move.l	#__SUP_SP,(a0)
 		lea		reset_vector(pc),a1
