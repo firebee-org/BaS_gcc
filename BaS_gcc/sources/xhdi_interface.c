@@ -302,7 +302,20 @@ uint32_t xhdi_call(int xhdi_fun, ...)
 	}
 		break;
 
+	case XHDI_REACCESS:
+	{
+		uint16_t major;
+		uint16_t minor;
+
+		major = va_arg(arguments, unsigned int);
+		minor = va_arg(arguments, unsigned int);
+
+		return xhdi_reaccess(major, minor);
+	}
+		break;
+
 	default:
+
 		;
 	}
 	xprintf("unknown XHDI function %d\r\n");
