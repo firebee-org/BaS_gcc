@@ -222,9 +222,6 @@ init_vec_loop:
 		subq.l	#1,d0
 		bne		init_vec_loop
 
-		lea		_xhdi_sd_install,a0
-		move.l	a0,0x80				// trap #0 exception vector
-
 		move.l	#__SUP_SP,(a0)
 		lea		reset_vector(pc),a1
 		move.l	a1,0x04(a0)
@@ -269,6 +266,8 @@ init_vec_loop:
   		move.l	a1,0xdc(a0)
 no_protect_vectors:
 		
+		lea		_xhdi_sd_install,a1
+		move.l	a1,0x80(a0)				// trap #0 exception vector
 
 // int 1-7
 		lea		irq1(pc),a1
