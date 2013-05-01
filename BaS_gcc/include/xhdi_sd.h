@@ -53,7 +53,7 @@
 /*
  * FIXME: dangerous TRAP here!
  *
- * all of these functions get compiled with "normal" GCC integers (32 bit). However, since they will be called
+ * all of these functions get compiled into BaS with "normal" GCC integers (32 bit). However, since they will be called
  * from code compiled with -mshort, integers must be declared uint32_t for those compilation units to adhere
  * to "normal" GCC calling conventions.
  *
@@ -67,7 +67,12 @@
 #define UINT16_T	uint16_t
 #endif
 
+/* a riddle: how do you typedef a function pointer to a function that returns its own type? ;) */
+typedef void* (*xhdi_call_fun)(int xhdi_fun, ...);
+
 extern uint32_t xhdi_call(int xhdi_fun, ...);
+
+extern void *xhdi_sd_install(xhdi_call_fun old_vector) __attribute__((__interrupt__));
 
 extern uint32_t xhdi_version(void);	/* XHDI 0 */
 
