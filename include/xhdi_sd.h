@@ -28,6 +28,7 @@
 #define XHDI_MINT_INFO			16
 #define XHDI_DOS_LIMITS			17
 #define XHDI_LAST_ACCESS		18
+#define XHDI_REACCESS			19
 
 /* XHDI error codes */
 
@@ -93,5 +94,5 @@ extern uint32_t xhdi_medium_changed(UINT16_T major, UINT16_T minor);	/* XHDI 15 
 extern uint32_t xhdi_mint_info(UINT16_T opcode, void *data);			/* XHDI 16 */
 extern uint32_t xhdi_dos_limits(UINT16_T which, uint32_t limit);		/* XHDI 17 */
 extern uint32_t xhdi_last_access(UINT16_T major, UINT16_T minor, uint32_t *ms);	/* XHDI 18 */
-
+extern uint32_t xhdi_reaccess(UINT16_T major, UINT16_T minor);	/* XHDI 19 */
 #endif /* _XHDI_SD_H_ */

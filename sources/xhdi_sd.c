@@ -120,3 +120,8 @@ uint32_t xhdi_last_access(UINT16_T major, UINT16_T minor, uint32_t *ms)
 {
 	return ERROR;
 }
+
+uint32_t xhdi_reaccess(UINT16_T major, UINT16_T minor)
+{
+	return ERROR;
+}
