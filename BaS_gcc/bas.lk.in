@@ -44,6 +44,8 @@ SECTIONS
 		objs/exceptions.o(.text)
 		objs/supervisor.o(.text)
 		objs/illegal_instruction.o(.text)
+		objs/xhdi_sd.o(.text)
+		objs/xhdi_interface.o(text)
 		*(.data)
 		*(.bss)	
 
