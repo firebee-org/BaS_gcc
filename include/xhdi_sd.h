@@ -72,7 +72,7 @@ typedef void* (*xhdi_call_fun)(int xhdi_fun, ...);
 
 extern uint32_t xhdi_call(int xhdi_fun, ...);
 
-extern void *xhdi_sd_install(xhdi_call_fun old_vector) __attribute__((__interrupt__));
+extern xhdi_call_fun xhdi_sd_install(xhdi_call_fun old_vector) __attribute__((__interrupt__));
 
 extern uint32_t xhdi_version(void);	/* XHDI 0 */
 
