@@ -72,7 +72,8 @@ CSRCS= \
 	$(SRCDIR)/wait.c \
 	$(SRCDIR)/s19reader.c \
 	$(SRCDIR)/flash.c \
-	$(SRCDIR)/xhdi_sd.c
+	$(SRCDIR)/xhdi_sd.c \
+	$(SRCDIR)/xhdi_interface.c
 
 ASRCS= \
 	$(SRCDIR)/startcf.S \

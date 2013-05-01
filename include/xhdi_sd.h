@@ -7,6 +7,48 @@
 #ifndef _XHDI_SD_H_
 #define _XHDI_SD_H_
 
+/* XHDI function numbers */
+
+#define XHDI_VERSION			0
+#define XHDI_INQUIRE_TARGET		1
+#define XHDI_RESERVE			2
+#define XHDI_LOCK				3
+#define XHDI_STOP				4
+#define XHDI_EJECT				5
+#define XHDI_DRIVEMAP			6
+#define XHDI_INQUIRE_DEVICE		7
+#define XHDI_INQUIRE_DRIVER		8
+#define XHDI_NEW_COOKIE			9
+#define XHDI_READ_WRITE			10
+#define XHDI_INQUIRE_TARGET2	11
+#define XHDI_INQUIRE_DEVICE2	12
+#define XHDI_DRIVER_SPECIAL		13
+#define XHDI_GET_CAPACITY		14
+#define XHDI_MEDIUM_CHANGED		15
+#define XHDI_MINT_INFO			16
+#define XHDI_DOS_LIMITS			17
+#define XHDI_LAST_ACCESS		18
+
+/* XHDI error codes */
+
+#define	E_OK		0		/* OK */
+#define ERROR		-1		/* unspecified error */
+#define EDRVNR		-2		/* drive not ready */
+#define EUNDEV		-15		/* invalid device/target number */
+#define EINVFN		-32		/* invalid function number */
+#define EACCDN		-36		/* access denied (device currently reserved) */
+#define EDRIVE		-46		/* BIOS device not served by driver */
+
+/* XHDI device capabilities */
+
+#define XH_TARGET_STOPPABLE	(1 << 0)
+#define XH_TARGET_REMOVABLE (1 << 1)
+#define XH_TARGET_LOCKABLE 	(1 << 2)
+#define XH_TARGET_EJECTABLE	(1 << 3)
+#define XH_TARGET_LOCKED	(1 << 29)
+#define XH_TARGET_STOPPED	(1 << 30)
+#define XH_TARGET_RESERVED	(1 << 31)
+
 /*
  * FIXME: dangerous TRAP here!
  *
@@ -27,11 +69,11 @@
 extern uint32_t xhdi_call(int xhdi_fun, ...);
 
 extern uint32_t xhdi_version(void);	/* XHDI 0 */
-extern uint32_t xhdi_inquire_target(uint32_t major, uint32_t minor, uint32_t block_size, uint32_t flags,
+extern uint32_t xhdi_inquire_target(UINT16_T major, UINT16_T minor, uint32_t *block_size, uint32_t *flags,
 		char *product_name);		/* XHDI 1 */
 extern uint32_t xhdi_reserve(UINT16_T major, UINT16_T minor, UINT16_T do_reserve, UINT16_T key);	/* XHDI 2 */
 extern uint32_t xhdi_lock(UINT16_T major, UINT16_T minor, UINT16_T do_lock, UINT16_T key);	/* XHDI 3 */
-extern uint32_t xhdi_stop(UINT16_T major, UINT16_T minor, UINT16_T do_lock, UINT16_T key);	/* XHDI 4 */
+extern uint32_t xhdi_stop(UINT16_T major, UINT16_T minor, UINT16_T do_stop, UINT16_T key);	/* XHDI 4 */
 extern uint32_t xhdi_eject(UINT16_T major, UINT16_T minor, UINT16_T do_eject, UINT16_T key);	/* XHDI 5 */
 extern uint32_t xhdi_drivemap(void);	/* XHDI 6 */
 extern uint32_t xhdi_inquire_device(UINT16_T bios_device, UINT16_T *major, UINT16_T *minor,

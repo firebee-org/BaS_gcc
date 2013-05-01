@@ -6,113 +6,117 @@
  */
 
 #include <stdint.h>
-#include <stdarg.h>
+#include <stddef.h>
 
 #include "xhdi_sd.h"
-#include "bas_printf.h"
 
-uint32_t xhdi_call(int xhdi_fun, ...)
+#define DRIVER_VERSION	0x130
+
+uint32_t xhdi_version(void)
 {
-	va_list arguments;
-	va_start(arguments, xhdi_fun);
+	return DRIVER_VERSION;
+}
 
-	switch(xhdi_fun)
+uint32_t xhdi_inquire_target(uint16_t major, uint16_t minor, uint32_t *block_size, uint32_t *flags,
+		char *product_name)
+{
+	if (block_size != NULL)
 	{
-	case 0:
-		return xhdi_version();
-		break;
-
-	case 1:
-	{
-		uint16_t major;
-		uint16_t minor;
-		uint32_t block_size;
-		uint32_t flags;
-		char *product_name;
-
-		major = va_arg(arguments, unsigned int);
-		minor = va_arg(arguments, unsigned int);
-		block_size = va_arg(arguments, uint32_t);
-		flags = va_arg(arguments, uint32_t);
-		product_name = va_arg(arguments, char *);
-		return xhdi_inquire_target((uint32_t) major, (uint32_t) minor, block_size, flags,
-				product_name);
+		*block_size = 512;
 	}
-		break;
+	*flags = XH_TARGET_REMOVABLE;	/* indicate that SD card can be removed */
 
-#ifdef test
-	case 2:
+	return E_OK;
+}
 
-		return xhdi_reserve();
-		break;
+uint32_t xhdi_reserve(UINT16_T major, UINT16_T minor, UINT16_T do_reserve, UINT16_T key)
+{
+	return ERROR;	/* device cannot be reserved */
+}
 
-	case 3:
-		return xhdi_lock();
-		break;
+uint32_t xhdi_lock(UINT16_T major, UINT16_T minor, UINT16_T do_lock, UINT16_T key)
+{
+	return ERROR;	/* device cannot be locked */
+}
 
-	case 4:
-		return xhdi_stop();
-		break;
+uint32_t xhdi_stop(UINT16_T major, UINT16_T minor, UINT16_T do_stop, UINT16_T key)
+{
+	return ERROR;	/* device cannot be locked */
+}
 
-	case 5:
-		return xhdi_eject();
-		break;
+uint32_t xhdi_eject(UINT16_T major, UINT16_T minor, UINT16_T do_eject, UINT16_T key)
+{
+	return ERROR;	/* device cannot be ejected */
+}
 
-	case 6:
-		return xhdi_drivemap();
-		break;
+uint32_t xhdi_drivemap(void)
+{
+	uint32_t map = 1;
 
-	case 7:
-		return xhdi_inquire_device();
-		break;
+	return map;
+}
 
-	case 8:
-		return xhdi_inquire_driver();
-		break;
+uint32_t xhdi_inquire_device(UINT16_T bios_device, UINT16_T *major, UINT16_T *minor,
+        uint32_t *start_sector, /* BPB */ void *bpb)
+{
+	return ERROR;
+}
 
-	case 9:
-		return xhdi_new_cookie();
-		break;
+uint32_t xhdi_inquire_driver(UINT16_T bios_device, char *name, char *version,
+		char *company, UINT16_T *ahdi_version, UINT16_T *maxIPL)
+{
+	return ERROR;
+}
 
-	case 10:
-		return xhdi_read_write();
-		break;
+uint32_t xhdi_new_cookie(void *newcookie)
+{
+	return ERROR;
+}
 
-	case 11:
-		return xhdi_inquire_target2();
-		break;
+uint32_t xhdi_read_write(UINT16_T major, UINT16_T minor, UINT16_T rwflag,
+        uint32_t recno, UINT16_T count, void *buf)
+{
+	return ERROR;
+}
 
-	case 12:
-		return xhdi_inquire_device2();
-		break;
+uint32_t xhdi_inquire_target2(UINT16_T major, UINT16_T minor, uint32_t *block_size,
+        uint32_t *device_flags, char *product_name, UINT16_T stringlen)
+{
+	return ERROR;
+}
 
-	case 13:
-		return xhdi_driver_special();
-		break;
+uint32_t xhdi_inquire_device2(UINT16_T bios_device, UINT16_T *major, UINT16_T *minor,
+        UINT16_T *start_sector, /* BPB */ void *bpb, uint32_t *blocks, char *partid)
+{
+	return ERROR;
+}
 
-	case 14:
-		return xhdi_get_capacity();
-		break;
+uint32_t xhdi_driver_special(uint32_t key1, uint32_t key2, UINT16_T subopcode, void *data)
+{
+	return ERROR;
+}
 
-	case 15:
-		return xhdi_medium_changed();
-		break;
+uint32_t xhdi_get_capacity(UINT16_T major, UINT16_T minor, uint32_t *blocks, uint32_t *bs)
+{
+	return ERROR;
+}
 
-	case 16:
-		return xhdi_mint_info();
-		break;
+uint32_t xhdi_medium_changed(UINT16_T major, UINT16_T minor)
+{
+	return ERROR;
+}
 
-	case 17:
-		return xhdi_dos_limits();
-		break;
+uint32_t xhdi_mint_info(UINT16_T opcode, void *data)
+{
+	return ERROR;
+}
 
-	case 18:
-		return xhdi_last_access();
-		break;
-#endif
-	default:
-		;
-	}
-	xprintf("unknown XHDI function %d\r\n");
-	return -32;
+uint32_t xhdi_dos_limits(UINT16_T which, uint32_t limit)
+{
+	return ERROR;
+}
+
+uint32_t xhdi_last_access(UINT16_T major, UINT16_T minor, uint32_t *ms)
+{
+	return ERROR;
 }
