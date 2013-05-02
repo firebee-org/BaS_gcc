@@ -34,7 +34,6 @@ static xhdi_call_fun old_vector = NULL;
 __attribute__((__interrupt__)) xhdi_call_fun xhdi_sd_install(xhdi_call_fun ov)
 {
 	old_vector = ov;
-	uint32_t *_drvbits = (uint32_t *) 0x4c2;
 
 	/* THIS does not work: return (xhdi_call_fun) &xhdi_call; */
 	__asm__ __volatile__ (
@@ -43,8 +42,6 @@ __attribute__((__interrupt__)) xhdi_call_fun xhdi_sd_install(xhdi_call_fun ov)
 			: /* output */
 			: [xhdi_call]"g"(xhdi_call)
 			: "d1","memory");
-
-	*_drvbits |= (1 << ('S' - 'A'));
 
 	return (xhdi_call_fun) xhdi_call;
 }
