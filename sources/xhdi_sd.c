@@ -17,7 +17,7 @@
  * along with BaS_gcc.  If not, see <http://www.gnu.org/licenses/>.
  *
  *  Created on: 01.05.2013
- *  Copyright 2012 M. Fröschle
+ *  Copyright 2012 M. Fr√∂schle
  */
 
 #include <stdint.h>
