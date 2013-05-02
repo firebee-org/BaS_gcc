@@ -17,17 +17,17 @@ static xhdi_call_fun old_vector = NULL;
 __attribute__((__interrupt__)) xhdi_call_fun xhdi_sd_install(xhdi_call_fun ov)
 {
 	old_vector = ov;
-	long *_drvbits = 0x4c2;
+	uint32_t *_drvbits = (uint32_t *) 0x4c2;
 
 	/* THIS does not work: return (xhdi_call_fun) &xhdi_call; */
 	__asm__ __volatile__ (
 			"move.l		%[xhdi_call],d1\n\t"
-			"move.l		d1,(sp)\n\t"
+			"move.l		d1,(sp)\n\t"	/* FIXME: dirty overwrite of saved register on stack with return value */
 			: /* output */
 			: [xhdi_call]"g"(xhdi_call)
 			: "d1","memory");
 
-	*_drvbits |= (1 << ('O' - 'A'));
+	*_drvbits |= (1 << ('S' - 'A'));
 
 	return (xhdi_call_fun) xhdi_call;
 }
@@ -71,7 +71,7 @@ uint32_t xhdi_eject(UINT16_T major, UINT16_T minor, UINT16_T do_eject, UINT16_T 
 
 uint32_t xhdi_drivemap(void)
 {
-	long map = (1 << ('O' - 'A'));
+	uint32_t map = (1 << ('S' - 'A'));
 
 	return map;
 }
