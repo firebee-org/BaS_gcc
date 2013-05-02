@@ -12,6 +12,23 @@
 
 #define DRIVER_VERSION	0x130
 
+typedef struct
+{
+  uint16_t recsiz;	/* bytes per sector                    */
+  uint16_t clsiz;	/* sectors per cluster                 */
+  uint16_t clsizb;	/* bytes per cluster                   */
+  uint16_t rdlen;	/* directory length                    */
+  uint16_t fsiz;	/* length of FAT                       */
+  uint16_t fatrec;	/* start of 2nd FAT                    */
+  uint16_t datrec;	/* 1st free sector                     */
+  uint16_t numcl;	/* overall number of clusters          */
+  uint16_t bflags;	/* flags                               */
+  	  	  	  	  	/* Bit 0: 0 (12-Bit-FAT), 1 16-Bit-FAT */
+  	  	  	  	    /* Bit 1: 0 (two FATs), 1 (one FAT)    */
+} __attribute__((__packed__)) BPB;
+
+static BPB sd_bpb[4];	/* space for four partitions on SD card */
+
 static xhdi_call_fun old_vector = NULL;
 
 __attribute__((__interrupt__)) xhdi_call_fun xhdi_sd_install(xhdi_call_fun ov)
