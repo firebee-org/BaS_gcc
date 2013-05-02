@@ -315,8 +315,7 @@ uint32_t xhdi_call(int xhdi_fun, ...)
 		break;
 
 	default:
-
-		;
+		break;
 	}
 	xprintf("unknown XHDI function %d\r\n");
 	return EINVFN;
