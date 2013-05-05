@@ -24,6 +24,7 @@
 #include <stddef.h>
 
 #include "xhdi_sd.h"
+#include "bas_printf.h"
 
 #define DRIVER_VERSION	0x130
 
@@ -50,7 +51,6 @@ __attribute__((__interrupt__)) xhdi_call_fun xhdi_sd_install(xhdi_call_fun ov)
 {
 	old_vector = ov;
 
-	/* THIS does not work: return (xhdi_call_fun) &xhdi_call; */
 	__asm__ __volatile__ (
 			"move.l		%[xhdi_call],d1\n\t"
 			"move.l		d1,(sp)\n\t"	/* FIXME: dirty overwrite of saved register on stack with return value */
@@ -58,17 +58,23 @@ __attribute__((__interrupt__)) xhdi_call_fun xhdi_sd_install(xhdi_call_fun ov)
 			: [xhdi_call]"g"(xhdi_call)
 			: "d1","memory");
 
+	/*
+	 * this is just to make the compiler happy, the return value is overwritten anyway. Therefore we previously overwrite
+	 * the saved register value on the stack so everything is as we want it to be
+	 */
 	return (xhdi_call_fun) xhdi_call;
 }
 
-uint32_t xhdi_version(void)
+uint16_t xhdi_version(void)
 {
+	xprintf("xhdi_version() called\r\n");
 	return DRIVER_VERSION;
 }
 
 uint32_t xhdi_inquire_target(uint16_t major, uint16_t minor, uint32_t *block_size, uint32_t *flags,
 		char *product_name)
 {
+	xprintf("xhdi_inquire_target() called\r\n");
 	if (block_size != NULL)
 	{
 		*block_size = 512;
@@ -78,99 +84,121 @@ uint32_t xhdi_inquire_target(uint16_t major, uint16_t minor, uint32_t *block_siz
 	return E_OK;
 }
 
-uint32_t xhdi_reserve(UINT16_T major, UINT16_T minor, UINT16_T do_reserve, UINT16_T key)
+uint32_t xhdi_reserve(uint16_t major, uint16_t minor, uint16_t do_reserve, uint16_t key)
 {
+	xprintf("xhdi_reserve() called\r\n");
 	return ERROR;	/* device cannot be reserved */
 }
 
-uint32_t xhdi_lock(UINT16_T major, UINT16_T minor, UINT16_T do_lock, UINT16_T key)
+uint32_t xhdi_lock(uint16_t major, uint16_t minor, uint16_t do_lock, uint16_t key)
 {
+	xprintf("xhdi_lock() called\r\n");
 	return ERROR;	/* device cannot be locked */
 }
 
-uint32_t xhdi_stop(UINT16_T major, UINT16_T minor, UINT16_T do_stop, UINT16_T key)
+uint32_t xhdi_stop(uint16_t major, uint16_t minor, uint16_t do_stop, uint16_t key)
 {
+	xprintf("xhdi_stop() called\r\n");
 	return ERROR;	/* device cannot be locked */
 }
 
-uint32_t xhdi_eject(UINT16_T major, UINT16_T minor, UINT16_T do_eject, UINT16_T key)
+uint32_t xhdi_eject(uint16_t major, uint16_t minor, uint16_t do_eject, uint16_t key)
 {
+	xprintf("xhdi_eject() called\r\n");
 	return ERROR;	/* device cannot be ejected */
 }
 
 uint32_t xhdi_drivemap(void)
 {
+<<<<<<< .mine
+	xprintf("xhdi_drivemap() called\r\n");
+	long map = (1 << ('S' - 'A'));
+=======
 	uint32_t map = (1 << ('S' - 'A'));
+>>>>>>> .r549
 
 	return map;
 }
 
-uint32_t xhdi_inquire_device(UINT16_T bios_device, UINT16_T *major, UINT16_T *minor,
+uint32_t xhdi_inquire_device(uint16_t bios_device, uint16_t *major, uint16_t *minor,
         uint32_t *start_sector, /* BPB */ void *bpb)
 {
+	xprintf("xhdi_inquire_device() called\r\n");
 	return ERROR;
 }
 
-uint32_t xhdi_inquire_driver(UINT16_T bios_device, char *name, char *version,
-		char *company, UINT16_T *ahdi_version, UINT16_T *maxIPL)
+uint32_t xhdi_inquire_driver(uint16_t bios_device, char *name, char *version,
+		char *company, uint16_t *ahdi_version, uint16_t *maxIPL)
 {
+	xprintf("xhdi_inquire_driver() called\r\n");
 	return ERROR;
 }
 
-uint32_t xhdi_new_cookie(void *newcookie)
+uint32_t xhdi_new_cookie(uint32_t newcookie)
 {
+	xprintf("xhdi_new_cookie() called\r\n");
 	return ERROR;
 }
 
-uint32_t xhdi_read_write(UINT16_T major, UINT16_T minor, UINT16_T rwflag,
-        uint32_t recno, UINT16_T count, void *buf)
+uint32_t xhdi_read_write(uint16_t major, uint16_t minor, uint16_t rwflag,
+        uint32_t recno, uint16_t count, void *buf)
 {
+	xprintf("xhdi_read_write() called\r\n");
 	return ERROR;
 }
 
-uint32_t xhdi_inquire_target2(UINT16_T major, UINT16_T minor, uint32_t *block_size,
-        uint32_t *device_flags, char *product_name, UINT16_T stringlen)
+uint32_t xhdi_inquire_target2(uint16_t major, uint16_t minor, uint32_t *block_size,
+        uint32_t *device_flags, char *product_name, uint16_t stringlen)
 {
+	xprintf("xhdi_inquire_target2() called\r\n");
 	return ERROR;
 }
 
-uint32_t xhdi_inquire_device2(UINT16_T bios_device, UINT16_T *major, UINT16_T *minor,
-        UINT16_T *start_sector, /* BPB */ void *bpb, uint32_t *blocks, char *partid)
+uint32_t xhdi_inquire_device2(uint16_t bios_device, uint16_t *major, uint16_t *minor,
+        uint32_t *start_sector, BPB *bpb, uint32_t *blocks, char *partid)
 {
+	xprintf("xhdi_inquire_device2() called\r\n");
 	return ERROR;
 }
 
-uint32_t xhdi_driver_special(uint32_t key1, uint32_t key2, UINT16_T subopcode, void *data)
+uint32_t xhdi_driver_special(uint32_t key1, uint32_t key2, uint16_t subopcode, void *data)
 {
+	xprintf("xhdi_driver_special() called\r\n");
 	return ERROR;
 }
 
-uint32_t xhdi_get_capacity(UINT16_T major, UINT16_T minor, uint32_t *blocks, uint32_t *bs)
+uint32_t xhdi_get_capacity(uint16_t major, uint16_t minor, uint32_t *blocks, uint32_t *bs)
 {
+	xprintf("xhdi_get_capacity() called\r\n");
 	return ERROR;
 }
 
-uint32_t xhdi_medium_changed(UINT16_T major, UINT16_T minor)
+uint32_t xhdi_medium_changed(uint16_t major, uint16_t minor)
 {
+	xprintf("xhdi_medium_changed() called\r\n");
 	return ERROR;
 }
 
-uint32_t xhdi_mint_info(UINT16_T opcode, void *data)
+uint32_t xhdi_mint_info(uint16_t opcode, void *data)
 {
+	xprintf("xhdi_mint_info() called\r\n");
 	return ERROR;
 }
 
-uint32_t xhdi_dos_limits(UINT16_T which, uint32_t limit)
+uint32_t xhdi_dos_limits(uint16_t which, uint32_t limit)
 {
+	xprintf("xhdi_dos_limits() called\r\n");
 	return ERROR;
 }
 
-uint32_t xhdi_last_access(UINT16_T major, UINT16_T minor, uint32_t *ms)
+uint32_t xhdi_last_access(uint16_t major, uint16_t minor, uint32_t *ms)
 {
+	xprintf("xhdi_last_access() called\r\n");
 	return ERROR;
 }
 
-uint32_t xhdi_reaccess(UINT16_T major, UINT16_T minor)
+uint32_t xhdi_reaccess(uint16_t major, uint16_t minor)
 {
+	xprintf("xhdi_reaccess() called\r\n");
 	return ERROR;
 }
