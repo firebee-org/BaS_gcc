@@ -26,12 +26,14 @@
 #include "xhdi_sd.h"
 #include "bas_printf.h"
 
-uint32_t xhdi_call(int xhdi_fun, ...)
-{
-	va_list arguments;
-	va_start(arguments, xhdi_fun);
 
-	switch (xhdi_fun)
+uint32_t xhdi_call(struct XHDICALL_args *stack)
+{
+	uint16_t opcode = stack->opcode;
+
+	xprintf("xhdi_call(): opcode %d\r\n", opcode);
+
+	switch (opcode)
 	{
 	case XHDI_VERSION:
 		return xhdi_version();
@@ -39,299 +41,275 @@ uint32_t xhdi_call(int xhdi_fun, ...)
 
 	case XHDI_INQUIRE_TARGET:
 	{
-		uint16_t major;
-		uint16_t minor;
-		uint32_t *block_size;
-		uint32_t *flags;
-		char *product_name;
+		struct XHINQTARGET_args
+		{
+			uint16_t opcode;
+			uint16_t major;
+			uint16_t minor;
+			uint32_t *blocksize;
+			uint32_t *deviceflags;
+			char *productname;
+		}*args = (struct XHINQTARGET_args *) stack;
 
-		major = va_arg(arguments, unsigned int);
-		minor = va_arg(arguments, unsigned int);
-		block_size = va_arg(arguments, uint32_t *);
-		flags = va_arg(arguments, uint32_t *);
-		product_name = va_arg(arguments, char *);
-		return xhdi_inquire_target(major, minor,
-				block_size, flags, product_name);
+		return xhdi_inquire_target(args->major, args->minor, args->blocksize,
+				args->deviceflags, args->productname);
 	}
 		break;
 
 	case XHDI_RESERVE:
 	{
-		uint16_t major;
-		uint16_t minor;
-		uint16_t do_reserve;
-		uint16_t key;
+		struct XHRESERVE_args
+		{
+			uint16_t opcode;
+			uint16_t major;
+			uint16_t minor;
+			uint16_t do_reserve;
+			uint16_t key;
+		}*args = (struct XHRESERVE_args *) stack;
 
-		major = va_arg(arguments, unsigned int);
-		minor = va_arg(arguments, unsigned int);
-		do_reserve = va_arg(arguments, unsigned int);
-		key = va_arg(arguments, unsigned int);
-
-		return xhdi_reserve(major, minor, do_reserve, key);
+		return xhdi_reserve(args->major, args->minor, args->do_reserve, args->key);
 	}
-		break;
 
 	case XHDI_LOCK:
 	{
-		uint16_t major;
-		uint16_t minor;
-		uint16_t do_lock;
-		uint16_t key;
+		struct XHLOCK_args
+		{
+			uint16_t opcode;
+			uint16_t major;
+			uint16_t minor;
+			uint16_t do_lock;
+			uint16_t key;
+		}*args = (struct XHLOCK_args *) stack;
 
-		major = va_arg(arguments, unsigned int);
-		minor = va_arg(arguments, unsigned int);
-		do_lock = va_arg(arguments, unsigned int);
-		key = va_arg(arguments, unsigned int);
-
-		return xhdi_lock(major, minor, do_lock, key);
+		return xhdi_lock(args->major, args->minor, args->do_lock, args->key);
 	}
-		break;
 
 	case XHDI_STOP:
 	{
-		uint16_t major;
-		uint16_t minor;
-		uint16_t do_stop;
-		uint16_t key;
+		struct XHSTOP_args
+		{
+			uint16_t opcode;
+			uint16_t major;
+			uint16_t minor;
+			uint16_t do_stop;
+			uint16_t key;
+		}*args = (struct XHSTOP_args *) stack;
 
-		major = va_arg(arguments, unsigned int);
-		minor = va_arg(arguments, unsigned int);
-		do_stop = va_arg(arguments, unsigned int);
-		key = va_arg(arguments, unsigned int);
-
-		return xhdi_stop(major, minor, do_stop, key);
+		return xhdi_stop(args->major, args->minor, args->do_stop, args->key);
 	}
-		break;
 
 	case XHDI_EJECT:
 	{
-		uint16_t major;
-		uint16_t minor;
-		uint16_t do_eject;
-		uint16_t key;
+		struct XHEJECT_args
+		{
+			uint16_t opcode;
+			uint16_t major;
+			uint16_t minor;
+			uint16_t do_eject;
+			uint16_t key;
+		}*args = (struct XHEJECT_args *) stack;
 
-		major = va_arg(arguments, unsigned int);
-		minor = va_arg(arguments, unsigned int);
-		do_eject = va_arg(arguments, unsigned int);
-		key = va_arg(arguments, unsigned int);
-
-		return xhdi_eject(major, minor, do_eject, key);
+		return xhdi_eject(args->major, args->minor, args->do_eject, args->key);
 	}
-		break;
 
 	case XHDI_DRIVEMAP:
+	{
 		return xhdi_drivemap();
-		break;
+	}
 
 	case XHDI_INQUIRE_DEVICE:
 	{
-		uint16_t bios_device;
-		uint16_t *major;
-		uint16_t *minor;
-		uint32_t *start_sector;
-		void *bpb;
+		struct XHINQDEV_args
+		{
+			uint16_t opcode;
+			uint16_t drv;
+			uint16_t *major;
+			uint16_t *minor;
+			uint32_t *start;
+			BPB *bpb;
+		}*args = (struct XHINQDEV_args *) stack;
 
-		bios_device = va_arg(arguments, unsigned int);
-		major = va_arg(arguments, uint16_t *);
-		minor = va_arg(arguments, uint16_t *);
-		start_sector = va_arg(arguments, uint32_t *);
-		bpb = va_arg(arguments, void *);
-
-		return xhdi_inquire_device(bios_device, major, minor, start_sector, bpb);
+		return xhdi_inquire_device(args->drv, args->major, args->minor, args->start,
+				args->bpb);
 	}
-		break;
 
 	case XHDI_INQUIRE_DRIVER:
 	{
-		uint16_t bios_device;
-		char *name;
-		char *version;
-		char *company;
-		uint16_t *ahdi_version;
-		uint16_t *maxIPL;
+		struct XHINQDRIVER_args
+		{
+			uint16_t opcode;
+			uint16_t dev;
+			char *name;
+			char *version;
+			char *company;
+			uint16_t *ahdi_version;
+			uint16_t *maxIPL;
+		}*args = (struct XHINQDRIVER_args *) stack;
 
-		bios_device = va_arg(arguments, unsigned int);
-		name = va_arg(arguments, char *);
-		version = va_arg(arguments, char *);
-		company = va_arg(arguments, char *);
-		ahdi_version = va_arg(arguments, uint16_t *);
-		maxIPL = va_arg(arguments, uint16_t *);
-
-		return xhdi_inquire_driver(bios_device, name, version, company,
-				ahdi_version, maxIPL);
+		return xhdi_inquire_driver(args->dev, args->name, args->version, args->company,
+				args->ahdi_version, args->maxIPL);
 	}
-		break;
 
 	case XHDI_NEW_COOKIE:
 	{
-		void *new_cookie;
+		struct XHNEWCOOKIE_args
+		{
+			uint16_t opcode;
+			uint32_t newcookie;
+		}*args = (struct XHNEWCOOKIE_args *) stack;
 
-		new_cookie = va_arg(arguments, void *);
-
-		return xhdi_new_cookie(new_cookie);
+		return xhdi_new_cookie(args->newcookie);
 	}
-		break;
 
 	case XHDI_READ_WRITE:
 	{
-		uint16_t major;
-		uint16_t minor;
-		uint16_t rwflag;
-		uint32_t recno;
-		uint16_t count;
-		void *buf;
+		struct XHREADWRITE_args
+		{
+			uint16_t opcode;
+			uint16_t major;
+			uint16_t minor;
+			uint16_t rw;
+			uint32_t sector;
+			uint16_t count;
+			void *buf;
+		}*args = (struct XHREADWRITE_args *) stack;
 
-		major = va_arg(arguments, unsigned int);
-		minor = va_arg(arguments, unsigned int);
-		rwflag = va_arg(arguments, unsigned int);
-		recno = va_arg(arguments, uint32_t);
-		count = va_arg(arguments, unsigned int);
-		buf = va_arg(arguments, void *);
-
-		return xhdi_read_write(major, minor, rwflag, recno, count, buf);
+		return xhdi_read_write(args->major, args->minor, args->rw, args->sector,
+				args->count, args->buf);
 	}
-		break;
 
 	case XHDI_INQUIRE_TARGET2:
 	{
-		uint16_t major;
-		uint16_t minor;
-		uint32_t *block_size;
-		uint32_t *device_flags;
-		char *product_name;
-		uint16_t strlen;
+		struct XHINQTARGET2_args
+		{
+			uint16_t opcode;
+			uint16_t major;
+			uint16_t minor;
+			uint32_t *blocksize;
+			uint32_t *deviceflags;
+			char *productname;
+			uint16_t stringlen;
+		}*args = (struct XHINQTARGET2_args *) stack;
 
-		major = va_arg(arguments, unsigned int);
-		minor = va_arg(arguments, unsigned int);
-		block_size = va_arg(arguments, uint32_t *);
-		device_flags = va_arg(arguments, uint32_t *);
-		product_name = va_arg(arguments, char *);
-		strlen = va_arg(arguments, unsigned int);
-
-		return xhdi_inquire_target2(major, minor, block_size, device_flags,
-				product_name, strlen);
+		return xhdi_inquire_target2(args->major, args->minor, args->blocksize,
+				args->deviceflags, args->productname, args->stringlen);
 	}
-		break;
 
 	case XHDI_INQUIRE_DEVICE2:
 	{
-		uint16_t bios_device;
-		uint16_t *major;
-		uint16_t *minor;
-		uint16_t *start_sector;
-		void *bpb;
-		uint32_t *blocks;
-		char *partid;
+		struct XHINQDEV2_args
+		{
+			uint16_t opcode;
+			uint16_t drv;
+			uint16_t *major;
+			uint16_t *minor;
+			uint32_t *start;
+			BPB *bpb;
+			uint32_t *blocks;
+			char *partid;
+		}*args = (struct XHINQDEV2_args *) stack;
 
-		bios_device = va_arg(arguments, unsigned int);
-		major = va_arg(arguments, uint16_t *);
-		minor = va_arg(arguments, uint16_t *);
-		start_sector = va_arg(arguments, uint16_t *);
-		bpb = va_arg(arguments, void *);
-		blocks = va_arg(arguments, uint32_t *);
-		partid = va_arg(arguments, char *);
-
-		return xhdi_inquire_device2(bios_device, major, minor, start_sector,
-				bpb, blocks, partid);
+		return xhdi_inquire_device2(args->drv, args->major, args->minor, args->start,
+				args->bpb, args->blocks, args->partid);
 	}
-		break;
 
 	case XHDI_DRIVER_SPECIAL:
 	{
-		uint32_t key1;
-		uint32_t key2;
-		uint16_t subopcode;
-		void *data;
+		struct XHDRIVERSPECIAL_args
+		{
+			uint16_t opcode;
+			uint32_t key1;
+			uint32_t key2;
+			uint16_t subopcode;
+			void *data;
+		}*args = (struct XHDRIVERSPECIAL_args *) stack;
 
-		key1 = va_arg(arguments, uint32_t);
-		key2 = va_arg(arguments, uint32_t);
-		subopcode = va_arg(arguments, unsigned int);
-		data = va_arg(arguments, void *);
-
-		return xhdi_driver_special(key1, key2, subopcode, data);
+		return xhdi_driver_special(args->key1, args->key2, args->subopcode,
+				args->data);
 	}
-		break;
 
 	case XHDI_GET_CAPACITY:
 	{
-		uint16_t major;
-		uint16_t minor;
-		uint32_t *blocks;
-		uint32_t *bs;
+		struct XHGETCAPACITY_args
+		{
+			uint16_t opcode;
+			uint16_t major;
+			uint16_t minor;
+			uint32_t *blocks;
+			uint32_t *blocksize;
+		}*args = (struct XHGETCAPACITY_args *) stack;
 
-		major = va_arg(arguments, unsigned int);
-		minor = va_arg(arguments, unsigned int);
-		blocks = va_arg(arguments, uint32_t *);
-		bs = va_arg(arguments, uint32_t *);
-
-		return xhdi_get_capacity(major, minor, blocks, bs);
+		return xhdi_get_capacity(args->major, args->minor, args->blocks,
+				args->blocksize);
 	}
-		break;
 
 	case XHDI_MEDIUM_CHANGED:
 	{
-		uint16_t major;
-		uint16_t minor;
+		struct XHMEDIUMCHANGED_args
+		{
+			uint16_t opcode;
+			uint16_t major;
+			uint16_t minor;
+		}*args = (struct XHMEDIUMCHANGED_args *) stack;
 
-		major = va_arg(arguments, unsigned int);
-		minor = va_arg(arguments, unsigned int);
-		return xhdi_medium_changed(major, minor);
+		return xhdi_medium_changed(args->major, args->minor);
 	}
-		break;
 
 	case XHDI_MINT_INFO:
 	{
-		uint16_t opcode;
-		void *data;
+		struct XHMINTINFO_args
+		{
+			uint16_t opcode;
+			uint16_t subopcode;
+			void *data;
+		}*args = (struct XHMINTINFO_args *) stack;
 
-		opcode = va_arg(arguments, unsigned int);
-		data = va_arg(arguments, void *);
-
-		return xhdi_mint_info(opcode, data);
+		return xhdi_mint_info(args->subopcode, args->data);
 	}
-		break;
 
 	case XHDI_DOS_LIMITS:
 	{
-		uint16_t which;
-		uint32_t limit;
+		struct XHDOSLIMITS_args
+		{
+			uint16_t opcode;
+			uint16_t which;
+			uint32_t limit;
+		}*args = (struct XHDOSLIMITS_args *) stack;
 
-		which = va_arg(arguments, unsigned int);
-		limit = va_arg(arguments, uint32_t);
-
-		return xhdi_dos_limits(which, limit);
+		return xhdi_dos_limits(args->which, args->limit);
 	}
-		break;
 
 	case XHDI_LAST_ACCESS:
 	{
-		uint16_t major;
-		uint16_t minor;
-		uint32_t *ms;
+		struct XHLASTACCESS_args
+		{
+			uint16_t opcode;
+			uint16_t major;
+			uint16_t minor;
+			uint32_t *ms;
+		}*args = (struct XHLASTACCESS_args *) stack;
 
-		major = va_arg(arguments, unsigned int);
-		minor = va_arg(arguments, unsigned int);
-		ms = va_arg(arguments, uint32_t *);
-
-		return xhdi_last_access(major, minor, ms);
+		return xhdi_last_access(args->major, args->minor, args->ms);
 	}
-		break;
 
 	case XHDI_REACCESS:
 	{
-		uint16_t major;
-		uint16_t minor;
+		struct XHREACCESS_args
+		{
+			uint16_t opcode;
+			uint16_t major;
+			uint16_t minor;
+		}*args = (struct XHREACCESS_args *) stack;
 
-		major = va_arg(arguments, unsigned int);
-		minor = va_arg(arguments, unsigned int);
-
-		return xhdi_reaccess(major, minor);
+		return xhdi_reaccess(args->major, args->minor);
 	}
-		break;
 
 	default:
+	{
+		xprintf("unknown XHDI function 0x%x\r\n", opcode);
+		return EINVFN;
 		break;
 	}
-	xprintf("unknown XHDI function %d\r\n");
-	return EINVFN;
+	}
 }
+
