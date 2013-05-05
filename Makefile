@@ -139,9 +139,6 @@ $(LIBBAS): $(OBJS)
 	$(AR) rv $@ $(OBJS)
 	$(RANLIB) $@
 	
-# compile xhdi_interface.c with -mshort to adhere to TOS argument passing conventions
-$(OBJDIR)/xhdi_interface.o: CFLAGS += -mshort
-
 # compile init_fpga with -mbitfield for testing purposes
 #$(OBJDIR)/init_fpga.o:	CFLAGS += -mbitfield
 
