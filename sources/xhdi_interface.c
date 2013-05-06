@@ -27,9 +27,9 @@
 #include "bas_printf.h"
 
 
-uint32_t xhdi_call(struct XHDICALL_args *stack)
+uint32_t xhdi_call(uint16_t *stack)
 {
-	uint16_t opcode = stack->opcode;
+	uint16_t opcode = *stack;
 
 	xprintf("xhdi_call(): opcode %d\r\n", opcode);
 
