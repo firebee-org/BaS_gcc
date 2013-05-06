@@ -142,6 +142,8 @@ $(LIBBAS): $(OBJS)
 # compile init_fpga with -mbitfield for testing purposes
 #$(OBJDIR)/init_fpga.o:	CFLAGS += -mbitfield
 
+# compile xhdi_interface -mshort to make it callable from (-mshort-compiled) EmuTOS
+$(OBJDIR)/xhdi_interface.o: CFLAGS += -mshort
 # compile printf pc-relative so it can be used as well before and after copy of BaS
 $(OBJDIR)/bas_printf.o:	CFLAGS += -mpcrel
 # the same for flush_and_invalidate_cache()
