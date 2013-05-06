@@ -25,6 +25,7 @@
 
 #include "xhdi_sd.h"
 #include "bas_printf.h"
+#include "bas_string.h"
 
 #define DRIVER_VERSION	0x130
 
@@ -36,6 +37,7 @@ static xhdi_call_fun old_vector = NULL;
 __attribute__((__interrupt__)) xhdi_call_fun xhdi_sd_install(xhdi_call_fun ov)
 {
 	old_vector = ov;
+	uint32_t *_drvbits = (uint32_t *) 0x4c2;
 
 	__asm__ __volatile__ (
 			"move.l		%[xhdi_call],d1\n\t"
@@ -44,6 +46,7 @@ __attribute__((__interrupt__)) xhdi_call_fun xhdi_sd_install(xhdi_call_fun ov)
 			: [xhdi_call]"g"(xhdi_call)
 			: "d1","memory");
 
+	*_drvbits |= (uint32_t) 1 << ('S' - 'A');
 	/*
 	 * this is just to make the compiler happy, the return value is overwritten anyway. Therefore we previously overwrite
 	 * the saved register value on the stack so everything is as we want it to be
@@ -112,8 +115,20 @@ uint32_t xhdi_inquire_device(uint16_t bios_device, uint16_t *major, uint16_t *mi
 uint32_t xhdi_inquire_driver(uint16_t bios_device, char *name, char *version,
 		char *company, uint16_t *ahdi_version, uint16_t *maxIPL)
 {
-	xprintf("xhdi_inquire_driver() called\r\n");
-	return ERROR;
+	xprintf("xhdi_inquire_driver() called. bios_device = %x, name = %p, version = %p,\r\n"
+			"company = %p, ahdi_version = %p, max_IPL = %p\r\n",
+			bios_device, name, version, company, ahdi_version, maxIPL);
+	if (bios_device == 'S' - 'A')
+	{
+		if (name != NULL) strcpy(name, "BaS SD-card driver");
+		if (version != NULL) strcpy(version, "0.1");
+		if (company != NULL) strcpy(company, "Markus Fröschle");
+		if (ahdi_version != NULL) *ahdi_version = 300;
+		if (maxIPL != NULL) *maxIPL = 7;
+
+		return E_OK;
+	}
+	return EUNDEV;
 }
 
 uint32_t xhdi_new_cookie(uint32_t newcookie)
@@ -125,8 +140,9 @@ uint32_t xhdi_new_cookie(uint32_t newcookie)
 uint32_t xhdi_read_write(uint16_t major, uint16_t minor, uint16_t rwflag,
         uint32_t recno, uint16_t count, void *buf)
 {
-	xprintf("xhdi_read_write() called\r\n");
-	return ERROR;
+	xprintf("xhdi_read_write() called: major = %x, minor = %x, rwflag = %x, \r\nrecno = %lx, count = %lx, buf = %p\r\n",
+			major, minor, rwflag, recno, count, buf);
+	return EUNDEV;
 }
 
 uint32_t xhdi_inquire_target2(uint16_t major, uint16_t minor, uint32_t *block_size,
@@ -140,7 +156,12 @@ uint32_t xhdi_inquire_device2(uint16_t bios_device, uint16_t *major, uint16_t *m
         uint32_t *start_sector, BPB *bpb, uint32_t *blocks, char *partid)
 {
 	xprintf("xhdi_inquire_device2() called\r\n");
-	return ERROR;
+
+	if (bios_device == 'S' - 'A')
+	{
+		return E_OK;
+	}
+	return EUNDEV;
 }
 
 uint32_t xhdi_driver_special(uint32_t key1, uint32_t key2, uint16_t subopcode, void *data)

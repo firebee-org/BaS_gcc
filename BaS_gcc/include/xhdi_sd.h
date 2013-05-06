@@ -86,12 +86,22 @@ typedef void* (*xhdi_call_fun)(int xhdi_fun, ...);
 
 struct XHDICALL_args
 {
-	uint16_t opcode;
+	unsigned int opcode;
 };
 
 extern unsigned long xhdi_call(struct XHDICALL_args stack);
 
 extern xhdi_call_fun xhdi_sd_install(xhdi_call_fun old_vector) __attribute__((__interrupt__));
+
+/*
+ * begin of XHDI calls. The following is a little tricky: since those functions can be called by code compiled with -mshort as
+ * well as from "normal" code, "-mshort"-code needs to be tricked to pass 16-bit values as 32-bit integers.
+ */
+#if __INT_MAX__ == 32767
+#define uint16_t unsigned long
+#define uint32_t unsigned long
+#warning -mshort trick activated
+#endif /* _MSHORT_ */
 
 extern uint16_t xhdi_version(void);	/* XHDI 0 */
 
@@ -139,4 +149,9 @@ extern uint32_t xhdi_last_access(uint16_t major, uint16_t minor, uint32_t *ms);	
 
 extern uint32_t xhdi_reaccess(uint16_t major, uint16_t minor);	/* XHDI 19 */
 
+/* disarm stack trick */
+#ifdef uint16_t
+#undef uint16_t
+#undef uint32_t
+#endif /* uint16_t */
 #endif /* _XHDI_SD_H_ */
