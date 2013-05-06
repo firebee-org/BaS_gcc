@@ -36,7 +36,7 @@ CFLAGS=-mcpu=5474\
 	   -Wno-multichar\
 	   -Winline\
 	   -O \
-	   -fno-omit-frame-pointer\
+	   -fomit-frame-pointer\
 	   -fno-strict-aliasing\
 	   -ffreestanding\
 	   -fleading-underscore\
