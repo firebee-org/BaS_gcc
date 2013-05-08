@@ -27,9 +27,9 @@
 #include "bas_printf.h"
 
 
-unsigned long xhdi_call(struct XHDICALL_args stack)
+uint32_t xhdi_call(struct XHDICALL_args stack)
 {
-	unsigned int opcode = stack.opcode;
+	uint32_t opcode = stack.opcode;
 
 	switch (opcode)
 	{
@@ -41,12 +41,12 @@ unsigned long xhdi_call(struct XHDICALL_args stack)
 	{
 		struct XHINQTARGET_args
 		{
-			char *productname;
-			unsigned long *deviceflags;
-			unsigned long *blocksize;
-			unsigned int minor;
-			unsigned int major;
 			unsigned int opcode;
+			unsigned int major;
+			unsigned int minor;
+			unsigned long *blocksize;
+			unsigned long *deviceflags;
+			char *productname;
 		}*args = (struct XHINQTARGET_args *) &stack;
 
 		return xhdi_inquire_target(args->major, args->minor, args->blocksize,
@@ -58,11 +58,11 @@ unsigned long xhdi_call(struct XHDICALL_args stack)
 	{
 		struct XHRESERVE_args
 		{
-			uint16_t key;
-			uint16_t do_reserve;
-			uint16_t minor;
-			uint16_t major;
 			uint16_t opcode;
+			uint16_t major;
+			uint16_t minor;
+			uint16_t do_reserve;
+			uint16_t key;
 		} *args = (struct XHRESERVE_args *) &stack;
 
 		return xhdi_reserve(args->major, args->minor, args->do_reserve, args->key);
@@ -119,12 +119,12 @@ unsigned long xhdi_call(struct XHDICALL_args stack)
 	{
 		struct XHINQDEV_args
 		{
+			uint16_t opcode;
+			uint16_t drv;
+			uint16_t *major;
+			uint16_t *minor;
+			uint32_t *start;
 			BPB *bpb;
-			unsigned long *start;
-			unsigned int *minor;
-			unsigned int *major;
-			unsigned int drv;
-			unsigned int opcode;
 		} *args = (struct XHINQDEV_args *) &stack;
 
 		return xhdi_inquire_device(args->drv, args->major, args->minor, args->start,
@@ -135,13 +135,13 @@ unsigned long xhdi_call(struct XHDICALL_args stack)
 	{
 		struct XHINQDRIVER_args
 		{
-			uint16_t *maxIPL;
-			uint16_t *ahdi_version;
-			char *company;
-			char *version;
-			char *name;
-			uint16_t dev;
 			uint16_t opcode;
+			uint16_t dev;
+			char *name;
+			char *version;
+			char *company;
+			uint16_t *ahdi_version;
+			uint16_t *maxIPL;
 		}*args = (struct XHINQDRIVER_args *) &stack;
 
 		return xhdi_inquire_driver(args->dev, args->name, args->version, args->company,
@@ -152,8 +152,8 @@ unsigned long xhdi_call(struct XHDICALL_args stack)
 	{
 		struct XHNEWCOOKIE_args
 		{
-			unsigned long newcookie;
 			uint16_t opcode;
+			uint32_t newcookie;
 		}*args = (struct XHNEWCOOKIE_args *) &stack;
 
 		return xhdi_new_cookie(args->newcookie);
@@ -163,18 +163,18 @@ unsigned long xhdi_call(struct XHDICALL_args stack)
 	{
 		struct XHREADWRITE_args
 		{
+			uint16_t opcode;
+			uint16_t major;
+			uint16_t minor;
+			uint16_t rw;
+			uint32_t sector;
+			uint16_t count;
 			void *buf;
-			unsigned int count;
-			unsigned long sector;
-			unsigned int rw;
-			unsigned int minor;
-			unsigned int major;
-			unsigned int opcode;
 		} *args = (struct XHREADWRITE_args *) &stack;
 
-		return xhdi_read_write((unsigned long) args->major, (unsigned long) args->minor,
-								(unsigned long) args->rw, args->sector,
-								(unsigned long) args->count, (unsigned long) args->buf);
+		return xhdi_read_write(args->major, args->minor,
+								args->rw, args->sector,
+								args->count, args->buf);
 	}
 
 	case XHDI_INQUIRE_TARGET2:
