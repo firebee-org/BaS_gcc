@@ -41,11 +41,11 @@ uint32_t xhdi_call(struct XHDICALL_args stack)
 	{
 		struct XHINQTARGET_args
 		{
-			unsigned int opcode;
-			unsigned int major;
-			unsigned int minor;
-			unsigned long *blocksize;
-			unsigned long *deviceflags;
+			uint16_t opcode;
+			uint16_t major;
+			uint16_t minor;
+			uint16_t *blocksize;
+			uint32_t *deviceflags;
 			char *productname;
 		}*args = (struct XHINQTARGET_args *) &stack;
 
