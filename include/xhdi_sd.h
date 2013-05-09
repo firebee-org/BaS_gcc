@@ -86,7 +86,7 @@ typedef void* (*xhdi_call_fun)(int xhdi_fun, ...);
 
 struct XHDICALL_args
 {
-	unsigned int opcode;
+	uint16_t opcode;
 };
 
 extern unsigned long xhdi_call(struct XHDICALL_args stack);

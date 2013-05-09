@@ -29,7 +29,7 @@
 
 uint32_t xhdi_call(struct XHDICALL_args stack)
 {
-	uint32_t opcode = stack.opcode;
+	uint16_t opcode = stack.opcode;
 
 	switch (opcode)
 	{
