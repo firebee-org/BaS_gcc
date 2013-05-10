@@ -27,9 +27,9 @@
 #include "bas_printf.h"
 
 
-uint32_t xhdi_call(struct XHDICALL_args stack)
+unsigned long xhdi_call(struct XHDICALL_args *stack)
 {
-	uint16_t opcode = stack.opcode;
+	uint16_t opcode = stack->opcode;
 
 	switch (opcode)
 	{
@@ -47,7 +47,7 @@ uint32_t xhdi_call(struct XHDICALL_args stack)
 			uint32_t *blocksize;
 			uint32_t *deviceflags;
 			char *productname;
-		}*args = (struct XHINQTARGET_args *) &stack;
+		}  *args = (struct XHINQTARGET_args *) stack;
 
 		return xhdi_inquire_target(args->major, args->minor, args->blocksize,
 				args->deviceflags, args->productname);
@@ -63,7 +63,7 @@ uint32_t xhdi_call(struct XHDICALL_args stack)
 			uint16_t minor;
 			uint16_t do_reserve;
 			uint16_t key;
-		} *args = (struct XHRESERVE_args *) &stack;
+		} *args = (struct XHRESERVE_args *) stack;
 
 		return xhdi_reserve(args->major, args->minor, args->do_reserve, args->key);
 	}
@@ -77,7 +77,7 @@ uint32_t xhdi_call(struct XHDICALL_args stack)
 			uint16_t minor;
 			uint16_t do_lock;
 			uint16_t key;
-		}*args = (struct XHLOCK_args *) &stack;
+		} *args = (struct XHLOCK_args *) stack;
 
 		return xhdi_lock(args->major, args->minor, args->do_lock, args->key);
 	}
@@ -91,7 +91,7 @@ uint32_t xhdi_call(struct XHDICALL_args stack)
 			uint16_t minor;
 			uint16_t do_stop;
 			uint16_t key;
-		}*args = (struct XHSTOP_args *) &stack;
+		} *args = (struct XHSTOP_args *) stack;
 
 		return xhdi_stop(args->major, args->minor, args->do_stop, args->key);
 	}
@@ -105,7 +105,7 @@ uint32_t xhdi_call(struct XHDICALL_args stack)
 			uint16_t minor;
 			uint16_t do_eject;
 			uint16_t key;
-		}*args = (struct XHEJECT_args *) &stack;
+		} *args = (struct XHEJECT_args *) stack;
 
 		return xhdi_eject(args->major, args->minor, args->do_eject, args->key);
 	}
@@ -125,7 +125,7 @@ uint32_t xhdi_call(struct XHDICALL_args stack)
 			uint16_t *minor;
 			uint32_t *start;
 			BPB *bpb;
-		} *args = (struct XHINQDEV_args *) &stack;
+		} *args = (struct XHINQDEV_args *) stack;
 
 		return xhdi_inquire_device(args->drv, args->major, args->minor, args->start,
 				args->bpb);
@@ -142,7 +142,7 @@ uint32_t xhdi_call(struct XHDICALL_args stack)
 			char *company;
 			uint16_t *ahdi_version;
 			uint16_t *maxIPL;
-		}*args = (struct XHINQDRIVER_args *) &stack;
+		} *args = (struct XHINQDRIVER_args *) stack;
 
 		return xhdi_inquire_driver(args->dev, args->name, args->version, args->company,
 				args->ahdi_version, args->maxIPL);
@@ -154,7 +154,7 @@ uint32_t xhdi_call(struct XHDICALL_args stack)
 		{
 			uint16_t opcode;
 			uint32_t newcookie;
-		}*args = (struct XHNEWCOOKIE_args *) &stack;
+		} *args = (struct XHNEWCOOKIE_args *) stack;
 
 		return xhdi_new_cookie(args->newcookie);
 	}
@@ -170,7 +170,7 @@ uint32_t xhdi_call(struct XHDICALL_args stack)
 			uint32_t sector;
 			uint16_t count;
 			void *buf;
-		} *args = (struct XHREADWRITE_args *) &stack;
+		} *args = (struct XHREADWRITE_args *) stack;
 
 		return xhdi_read_write(args->major, args->minor,
 								args->rw, args->sector,
@@ -188,7 +188,7 @@ uint32_t xhdi_call(struct XHDICALL_args stack)
 			uint32_t *deviceflags;
 			char *productname;
 			uint16_t stringlen;
-		}*args = (struct XHINQTARGET2_args *) &stack;
+		} *args = (struct XHINQTARGET2_args *) stack;
 
 		return xhdi_inquire_target2(args->major, args->minor, args->blocksize,
 				args->deviceflags, args->productname, args->stringlen);
@@ -206,7 +206,7 @@ uint32_t xhdi_call(struct XHDICALL_args stack)
 			BPB *bpb;
 			uint32_t *blocks;
 			char *partid;
-		}*args = (struct XHINQDEV2_args *) &stack;
+		} *args = (struct XHINQDEV2_args *) stack;
 
 		return xhdi_inquire_device2(args->drv, args->major, args->minor, args->start,
 				args->bpb, args->blocks, args->partid);
@@ -221,7 +221,7 @@ uint32_t xhdi_call(struct XHDICALL_args stack)
 			uint32_t key2;
 			uint16_t subopcode;
 			void *data;
-		}*args = (struct XHDRIVERSPECIAL_args *) &stack;
+		} *args = (struct XHDRIVERSPECIAL_args *) stack;
 
 		return xhdi_driver_special(args->key1, args->key2, args->subopcode,
 				args->data);
@@ -236,7 +236,7 @@ uint32_t xhdi_call(struct XHDICALL_args stack)
 			uint16_t minor;
 			uint32_t *blocks;
 			uint32_t *blocksize;
-		}*args = (struct XHGETCAPACITY_args *) &stack;
+		} *args = (struct XHGETCAPACITY_args *) stack;
 
 		return xhdi_get_capacity(args->major, args->minor, args->blocks,
 				args->blocksize);
@@ -249,7 +249,7 @@ uint32_t xhdi_call(struct XHDICALL_args stack)
 			uint16_t opcode;
 			uint16_t major;
 			uint16_t minor;
-		}*args = (struct XHMEDIUMCHANGED_args *) &stack;
+		} *args = (struct XHMEDIUMCHANGED_args *) stack;
 
 		return xhdi_medium_changed(args->major, args->minor);
 	}
@@ -261,7 +261,7 @@ uint32_t xhdi_call(struct XHDICALL_args stack)
 			uint16_t opcode;
 			uint16_t subopcode;
 			void *data;
-		}*args = (struct XHMINTINFO_args *) &stack;
+		} *args = (struct XHMINTINFO_args *) stack;
 
 		return xhdi_mint_info(args->subopcode, args->data);
 	}
@@ -273,7 +273,7 @@ uint32_t xhdi_call(struct XHDICALL_args stack)
 			uint16_t opcode;
 			uint16_t which;
 			uint32_t limit;
-		}*args = (struct XHDOSLIMITS_args *) &stack;
+		} *args = (struct XHDOSLIMITS_args *) stack;
 
 		return xhdi_dos_limits(args->which, args->limit);
 	}
@@ -286,7 +286,7 @@ uint32_t xhdi_call(struct XHDICALL_args stack)
 			uint16_t major;
 			uint16_t minor;
 			uint32_t *ms;
-		}*args = (struct XHLASTACCESS_args *) &stack;
+		} *args = (struct XHLASTACCESS_args *) stack;
 
 		return xhdi_last_access(args->major, args->minor, args->ms);
 	}
@@ -298,7 +298,7 @@ uint32_t xhdi_call(struct XHDICALL_args stack)
 			uint16_t opcode;
 			uint16_t major;
 			uint16_t minor;
-		}*args = (struct XHREACCESS_args *) &stack;
+		} *args = (struct XHREACCESS_args *) stack;
 
 		return xhdi_reaccess(args->major, args->minor);
 	}
