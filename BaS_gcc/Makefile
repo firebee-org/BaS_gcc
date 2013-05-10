@@ -81,7 +81,8 @@ ASRCS= \
 	$(SRCDIR)/mmu.S \
 	$(SRCDIR)/exceptions.S \
 	$(SRCDIR)/supervisor.S \
-	$(SRCDIR)/illegal_instruction.S
+	$(SRCDIR)/illegal_instruction.S \
+	$(SRCDIR)/xhdi_vec.S
 	
 COBJS=$(patsubst $(SRCDIR)/%.o,$(OBJDIR)/%.o,$(patsubst %.c,%.o,$(CSRCS)))
 AOBJS=$(patsubst $(SRCDIR)/%.o,$(OBJDIR)/%.o,$(patsubst %.S,%.o,$(ASRCS)))

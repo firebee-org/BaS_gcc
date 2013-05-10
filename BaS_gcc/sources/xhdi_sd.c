@@ -29,10 +29,10 @@
 
 #define DRIVER_VERSION	0x130
 
-
 static BPB sd_bpb[4];	/* space for four partitions on SD card */
 
 static xhdi_call_fun old_vector = NULL;
+extern xhdi_call_fun xhdi_vec;
 
 __attribute__((__interrupt__)) xhdi_call_fun xhdi_sd_install(xhdi_call_fun ov)
 {
@@ -43,7 +43,7 @@ __attribute__((__interrupt__)) xhdi_call_fun xhdi_sd_install(xhdi_call_fun ov)
 			"move.l		%[xhdi_call],d1\n\t"
 			"move.l		d1,(sp)\n\t"	/* FIXME: dirty overwrite of saved register on stack with return value */
 			: /* output */
-			: [xhdi_call]"g"(xhdi_call)
+			: [xhdi_call]"g"(xhdi_vec)
 			: "d1","memory");
 
 	*_drvbits |= (uint32_t) 1 << ('S' - 'A');

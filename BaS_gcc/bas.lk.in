@@ -46,6 +46,7 @@ SECTIONS
 		objs/illegal_instruction.o(.text)
 		objs/xhdi_sd.o(.text)
 		objs/xhdi_interface.o(text)
+		objs/xhdi_vec.o(text)
 		*(.data)
 		*(.bss)	
 

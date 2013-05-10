@@ -89,7 +89,7 @@ struct XHDICALL_args
 	uint16_t opcode;
 };
 
-extern unsigned long xhdi_call(struct XHDICALL_args stack);
+extern unsigned long xhdi_call(struct XHDICALL_args *stack);
 
 extern xhdi_call_fun xhdi_sd_install(xhdi_call_fun old_vector) __attribute__((__interrupt__));
 
