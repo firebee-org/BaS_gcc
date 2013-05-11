@@ -23,6 +23,7 @@ _xhdi_vec:
 		pea     16(sp)			// forward address of parameters on stack
 		jsr		_xhdi_call		// to internal routine
 		addq.l  #4,sp			// correct stack
+
 		movem.l (sp),d1/a0-a1	// restore registers
 		lea     12(sp),sp
 		rts
@@ -39,5 +40,7 @@ _old_vector:
 _xhdi_sd_install:
 		move.l	4(sp),d0		// address of the old XHDI vector
 		move.l	d0,_old_vector	// save it in case we need it
-		move.l	_xhdi_vec,d0	// return our BaS vector to TOS
+		move.l	#_xhdi_vec,d0	// return our BaS vector to TOS
+		move.l	d0,a0			//
+
 		rte
