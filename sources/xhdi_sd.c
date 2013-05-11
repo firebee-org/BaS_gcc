@@ -66,7 +66,6 @@ uint32_t xhdi_eject(uint16_t major, uint16_t minor, uint16_t do_eject, uint16_t 
 
 uint32_t xhdi_drivemap(void)
 {
-	debug_printf("xhdi_drivemap() called\r\n");
 	long map = (1 << ('S' - 'A'));
 
 	return map;
@@ -125,7 +124,7 @@ uint32_t xhdi_read_write(uint16_t major, uint16_t minor, uint16_t rwflag,
 				ret = ((rwflag & 1) ? disk_write(0, buf, recno, num_sectors) : disk_read(0, buf, recno, num_sectors));
 				if (ret != RES_OK && retries > max_retries)
 				{
-					debug_printf("error: %d\r\n", ret);
+					xprintf("error: %d\r\n", ret);
 					return ERROR;
 				}
 				else if (ret != RES_OK)
@@ -148,8 +147,6 @@ uint32_t xhdi_read_write(uint16_t major, uint16_t minor, uint16_t rwflag,
 uint32_t xhdi_inquire_target2(uint16_t major, uint16_t minor, uint32_t *block_size,
         uint32_t *device_flags, char *product_name, uint16_t stringlen)
 {
-	debug_printf("xhdi_inquire_target2(major=%d, minor=%d) called\r\n", major, minor);
-
 	if (major == MY_MAJOR)
 	{
 		if (block_size != NULL) *block_size = 512;
