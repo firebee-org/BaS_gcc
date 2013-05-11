@@ -132,31 +132,31 @@
 
 		move.w	#0x2700,sr			// disable interrupt
 		subq.l	#8,a7
-		movem.l	d0/a5,(a7)			// register sichern
+		movem.l	d0/a5,(a7)			// save registers
 		lea		MCF_EPORT_EPFR,a5
 		move.b	#\clr_int,(a5)		// clear int pending
 // test auf protect mode ---------------------
 		move.b	DIP_SWITCHa,d0
 		btst	#7,d0 
-		bne		irq_protect		// ja->
+		bne		irq_protect			// ja->
 // -------------------------------------------		
-		movem.l	(a7),d0/a5			// register zurück
+		movem.l	(a7),d0/a5			// restore registers
 		addq.l	#8,a7
 		move.l	\vector,-(a7)
 		move	#0x2\int_mask\()00,sr
 		rts
 irq_protect:
-		move.l	usp,a5				// usp holen  
-		tst.b	_rt_mod				// supervisor? 
-		bne		sev_supint			// ja ->
-		mov3q.l	#-1,_rt_mod			// auf supervisor setzen
-		move.l	a5,_rt_usp			// rt_usp speichern 
-		move.l	_rt_ssp,a5			// rt_ssp holen
+		move.l	usp,a5				// get usp
+		tst.b	_rt_mod				// supervisor mode active?
+		bne		sev_supint			// yes ->
+		mov3q.l	#-1,_rt_mod			// enable supervisor mode
+		move.l	a5,_rt_usp			// save rt_usp
+		move.l	_rt_ssp,a5			// get rt_ssp
 #ifdef cf_stack
-		move.l	12(a7),-(a5)		// pc transferieren 
+		move.l	12(a7),-(a5)		// transfer pc
 		move.l	8(a7),-(a5)			// sr,vec
 #else
-		move.w	8(a7),-(a5)			// vector nr.
+		move.w	8(a7),-(a5)			// vector no
 		move.l	12(a7),-(a5)		// pc verschieben
 		move.w	10(a7),-(a5)		// sr verschieben
 #endif
@@ -210,15 +210,15 @@ _vec_init:
  		clr.l	_rt_ssp
  		clr.l	_rt_usp
  		clr.l	_rt_vbr
-		move.l	#__RAMBAR0,d0		// sind in rambar0
+		move.l	#__RAMBAR0,d0		// exception vectors reside in rambar0
 		movec	d0,VBR
 		move.l	d0,a0
 		move.l	a0,a2
 init_vec:
 		move.l	#256,d0
-		lea		std_exc_vec(pc),a1		// standard vector
+		lea		std_exc_vec(pc),a1	// standard vector
 init_vec_loop:
-		move.l	a1,(a2)+			// mal standard vector f�r alle setzen
+		move.l	a1,(a2)+			// set standard vector for all exceptions
 		subq.l	#1,d0
 		bne		init_vec_loop
 
@@ -266,6 +266,8 @@ init_vec_loop:
   		move.l	a1,0xdc(a0)
 no_protect_vectors:
 		
+		// trap #0 (without any parameters for now) is used to provide BaS' XHDI
+		// routine address to EmuTOS.
 		lea		_xhdi_sd_install,a1
 		move.l	a1,0x80(a0)				// trap #0 exception vector
 
@@ -363,14 +365,14 @@ sev_sup:
 		add.l	_rt_vbr,d0			// + basis
 		move.l	d0,a5
 		move.l	(a5),12(a7)			// hier geht's weiter
-		movem.l	(a7),d0/a5			// register zur�ck
+		movem.l	(a7),d0/a5			// register zurück
 		addq.l	#8,a7
 		rte							// und weg 
 //*******************************************
 reset_vector:
 		move.w	#0x2700,sr			// disable interrupt
 		move.l	#0x31415926,d0
-		cmp.l	0x426,d0			// reset vector g�ltg?
+		cmp.l	0x426,d0			// reset vector gültg?
 		beq		std_exc_vec			// ja->
 		jmp		_rom_entry	 		// sonst kaltstart
 acess:
@@ -470,7 +472,7 @@ irq6:				// mfp
 // test auf timeout screen adr change -------------------------------------------------------
 		move.l	_video_sbt,d0
   		beq		irq6_non_sca		// wenn 0 nichts zu tun
-  		sub.l	#0x70000000,d0		// 14 sec abz�hlen
+  		sub.l	#0x70000000,d0		// 14 sec abzählen
 		lea		MCF_SLT0_SCNT,a5
   		cmp.l	(a5),d0				// aktuelle zeit weg
   		ble		irq6_non_sca		// noch nicht abgelaufen
@@ -490,13 +492,13 @@ irq6:				// mfp
  		swap	d4
  		move.l	d4,MCF_MMU_MMUAR
 		mvz.w	#0x10e,d4
- 		move.l	d4,MCF_MMU_MMUOR	// eintr�ge holen aus mmu
+ 		move.l	d4,MCF_MMU_MMUOR	// einträge holen aus mmu
  		nop
  		move.l	MCF_MMU_MMUTR,d4	// ID holen
  		lsr.l	#2,d4				// bit 9 bis 2
  		cmp.w	#sca_page_ID,d4		// ist screen change ID?
  		bne		irq6_sca_pn			// nein -> page keine screen area next
-// eintrag �ndern 		
+// eintrag �ndern
 		add.l	#std_mmutr,d0
 		move.l	d3,d1				// page 0?
 		beq		irq6_sca_pn0		// ja ->
@@ -530,9 +532,9 @@ irq6_sca_pn:
 
 		move.l	#0x2000,d0
 		move.l	d0,_video_tlb		// anfangszustand wieder herstellen
-  		clr.l	_video_sbt			// zeit l�schen
+  		clr.l	_video_sbt			// zeit löschen
 
-  		movem.l	(a7),d0-d4/a0-a1	// register zur�ck
+  		movem.l	(a7),d0-d4/a0-a1	// register zurück
   		lea		28(a7),a7
 irq6_non_sca:
 // test auf acsi dma -----------------------------------------------------------------
@@ -569,9 +571,9 @@ irq6_2:
 		move.l	0xF0020000,a5		// vector holen
 		add.l	_rt_vbr,a5			// basis
 		move.l	(a5),d0				// vector holen
-		move.l	4(a7),a5			// a5 zur�ck
+		move.l	4(a7),a5			// a5 zurück
 		move.l	d0,4(a7)			// vector eintragen
-		move.l	(a7)+,d0			// d0 zur�ck
+		move.l	(a7)+,d0			// d0 zurück
 		move	#0x2600,sr
 		rts
 irq6_3:
@@ -593,7 +595,7 @@ irq6_3:
 		move.l  0xF0020000,a5		// vector holen: intack routine
 		add.l	_rt_vbr,a5			// virtuelle VBR des Systems
 		move.l	(a5),12(a7)			// hier gehts weiter
-		movem.l	(a7),d0/a5			// register zur�ck
+		movem.l	(a7),d0/a5			// register zurück
 		addq.l	#8,a7
 		move.b	#6,2(a7)			// intmaske setzen
 		rte 						// und weg 
@@ -612,7 +614,7 @@ sev_sup6:
 		move.l  0xF0020000,a5		// vector holen: intack routine
 		add.l	_rt_vbr,a5			// virtuelle VBR des Systems
 		move.l	(a5),12(a7)			// hier gehts weiter
-		movem.l	(a7),d0/a5			// register zur�ck
+		movem.l	(a7),d0/a5			// register zurück
 		rts
 
 		.data
