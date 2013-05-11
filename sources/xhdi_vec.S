@@ -2,10 +2,9 @@
 // XHDI entry point
 //
 		.extern	_xhdi_call
+
 		.globl	_xhdi_vec
 		.globl	_xhdi_sd_install
-
-		.equ	_drvbits, 0x4c2
 
 //
 // this is where the XHDI cookie points to:
@@ -35,8 +34,7 @@ _old_vector:
 //
 _xhdi_sd_install:
 		move.l	4(sp),d0		// address of the old XHDI vector
-		move.l	d0,_old_vector	// save it in case we need it
+		move.l	d0,_old_vector	// save it - just in case we need it later
 		move.l	#_xhdi_vec,d0	// return our BaS vector to TOS
 		move.l	d0,a0			//
-
 		rte

@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<?fileVersion 4.0.0?><cproject storage_type_id="org.eclipse.cdt.core.XmlProjectDescriptionStorage">
+<?fileVersion 4.0.0?>
+
+<cproject storage_type_id="org.eclipse.cdt.core.XmlProjectDescriptionStorage">
 	<storageModule moduleId="org.eclipse.cdt.core.settings">
 		<cconfiguration id="cdt.managedbuild.toolchain.gnu.cross.base.500844171">
 			<storageModule buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider" id="cdt.managedbuild.toolchain.gnu.cross.base.500844171" moduleId="org.eclipse.cdt.core.settings" name="Default">
@@ -127,8 +129,9 @@
 							<targetPlatform archList="all" binaryParser="org.eclipse.cdt.core.ELF" id="cdt.managedbuild.targetPlatform.gnu.cross.1712307593" isAbstract="false" osList="all" superClass="cdt.managedbuild.targetPlatform.gnu.cross"/>
 							<builder id="cdt.managedbuild.builder.gnu.cross.1872779390" keepEnvironmentInBuildfile="false" managedBuildOn="false" name="Gnu Make Builder" superClass="cdt.managedbuild.builder.gnu.cross"/>
 							<tool id="cdt.managedbuild.tool.gnu.cross.c.compiler.1693427002" name="Cross GCC Compiler" superClass="cdt.managedbuild.tool.gnu.cross.c.compiler">
-								<option id="gnu.c.compiler.option.include.paths.559413321" superClass="gnu.c.compiler.option.include.paths" valueType="includePath">
+								<option id="gnu.c.compiler.option.include.paths.559413321" name="Include paths (-I)" superClass="gnu.c.compiler.option.include.paths" valueType="includePath">
 									<listOptionValue builtIn="false" value="/usr/m68k-elf/include"/>
+									<listOptionValue builtIn="false" value="/usr/lib/gcc/m68k-elf/4.6.3/include"/>
 								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.c.compiler.input.589685537" superClass="cdt.managedbuild.tool.gnu.c.compiler.input"/>
 							</tool>
@@ -212,13 +215,23 @@
 	</storageModule>
 	<storageModule moduleId="scannerConfiguration">
 		<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId=""/>
-		<scannerConfigBuildInfo instanceId="cdt.managedbuild.toolchain.gnu.cross.base.500844171.756690686;cdt.managedbuild.toolchain.gnu.cross.base.500844171.756690686.;cdt.managedbuild.tool.gnu.cross.c.compiler.283290301;cdt.managedbuild.tool.gnu.c.compiler.input.1445023059">
-			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfileC"/>
-		</scannerConfigBuildInfo>
 		<scannerConfigBuildInfo instanceId="cdt.managedbuild.toolchain.gnu.cross.base.500844171;cdt.managedbuild.toolchain.gnu.cross.base.500844171.251316721;cdt.managedbuild.tool.gnu.cross.c.compiler.1346392496;cdt.managedbuild.tool.gnu.c.compiler.input.2036594113">
 			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfileC"/>
 		</scannerConfigBuildInfo>
-		<scannerConfigBuildInfo instanceId="cdt.managedbuild.toolchain.gnu.cross.base.500844171;cdt.managedbuild.toolchain.gnu.cross.base.500844171.251316721;cdt.managedbuild.tool.gnu.cross.c.compiler.915906842;cdt.managedbuild.tool.gnu.c.compiler.input.1420707322">
+		<scannerConfigBuildInfo instanceId="cdt.managedbuild.toolchain.gnu.cross.base.500844171.756690686;cdt.managedbuild.toolchain.gnu.cross.base.500844171.756690686.;cdt.managedbuild.tool.gnu.cross.c.compiler.1024005096;cdt.managedbuild.tool.gnu.c.compiler.input.1427165564">
+			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfileC"/>
+			<profile id="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfileC">
+				<buildOutputProvider>
+					<openAction enabled="true" filePath=""/>
+					<parser enabled="true"/>
+				</buildOutputProvider>
+				<scannerInfoProvider id="specsFile">
+					<runAction arguments="-E -P -v -dD &quot;${plugin_state_location}/specs.c&quot;" command="m68k-atari-mint-gcc" useDefault="true"/>
+					<parser enabled="true"/>
+				</scannerInfoProvider>
+			</profile>
+		</scannerConfigBuildInfo>
+		<scannerConfigBuildInfo instanceId="cdt.managedbuild.toolchain.gnu.cross.base.500844171.756690686;cdt.managedbuild.toolchain.gnu.cross.base.500844171.756690686.;cdt.managedbuild.tool.gnu.cross.c.compiler.283290301;cdt.managedbuild.tool.gnu.c.compiler.input.1445023059">
 			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfileC"/>
 		</scannerConfigBuildInfo>
 		<scannerConfigBuildInfo instanceId="cdt.managedbuild.toolchain.gnu.cross.base.500844171.756690686">
@@ -234,24 +247,17 @@
 				</scannerInfoProvider>
 			</profile>
 		</scannerConfigBuildInfo>
-		<scannerConfigBuildInfo instanceId="cdt.managedbuild.toolchain.gnu.cross.base.500844171;cdt.managedbuild.toolchain.gnu.cross.base.500844171.2140460233;cdt.managedbuild.tool.gnu.cross.c.compiler.915906842.729509112;cdt.managedbuild.tool.gnu.c.compiler.input.2002421488">
-			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfileC"/>
-		</scannerConfigBuildInfo>
 		<scannerConfigBuildInfo instanceId="cdt.managedbuild.toolchain.gnu.cross.base.500844171.756690686;cdt.managedbuild.toolchain.gnu.cross.base.500844171.756690686.;cdt.managedbuild.tool.gnu.cross.c.compiler.359669870;cdt.managedbuild.tool.gnu.c.compiler.input.374200372">
 			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfileC"/>
 		</scannerConfigBuildInfo>
-		<scannerConfigBuildInfo instanceId="cdt.managedbuild.toolchain.gnu.cross.base.500844171.756690686;cdt.managedbuild.toolchain.gnu.cross.base.500844171.756690686.;cdt.managedbuild.tool.gnu.cross.c.compiler.1024005096;cdt.managedbuild.tool.gnu.c.compiler.input.1427165564">
+		<scannerConfigBuildInfo instanceId="cdt.managedbuild.toolchain.gnu.cross.base.500844171;cdt.managedbuild.toolchain.gnu.cross.base.500844171.251316721;cdt.managedbuild.tool.gnu.cross.c.compiler.915906842;cdt.managedbuild.tool.gnu.c.compiler.input.1420707322">
 			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfileC"/>
-			<profile id="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfileC">
-				<buildOutputProvider>
-					<openAction enabled="true" filePath=""/>
-					<parser enabled="true"/>
-				</buildOutputProvider>
-				<scannerInfoProvider id="specsFile">
-					<runAction arguments="-E -P -v -dD &quot;${plugin_state_location}/specs.c&quot;" command="m68k-atari-mint-gcc" useDefault="true"/>
-					<parser enabled="true"/>
-				</scannerInfoProvider>
-			</profile>
+		</scannerConfigBuildInfo>
+		<scannerConfigBuildInfo instanceId="cdt.managedbuild.toolchain.gnu.cross.base.500844171;cdt.managedbuild.toolchain.gnu.cross.base.500844171.2140460233;cdt.managedbuild.tool.gnu.cross.c.compiler.915906842.729509112;cdt.managedbuild.tool.gnu.c.compiler.input.2002421488">
+			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfileC"/>
+		</scannerConfigBuildInfo>
+		<scannerConfigBuildInfo instanceId="cdt.managedbuild.toolchain.gnu.cross.base.1557606920;cdt.managedbuild.toolchain.gnu.cross.base.1557606920.894087346;cdt.managedbuild.tool.gnu.cross.c.compiler.1693427002;cdt.managedbuild.tool.gnu.c.compiler.input.589685537">
+			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfileC"/>
 		</scannerConfigBuildInfo>
 	</storageModule>
 </cproject>
