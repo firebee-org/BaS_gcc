@@ -32,30 +32,6 @@
 
 static BPB sd_bpb[4];	/* space for four partitions on SD card */
 
-static xhdi_call_fun old_vector = NULL;
-extern uint32_t xhdi_vec(uint16_t *stack);
-
-__attribute__((__interrupt__)) xhdi_call_fun xhdi_sd_install(xhdi_call_fun ov)
-{
-	old_vector = ov;
-	uint32_t *_drvbits = (uint32_t *) 0x4c2;
-
-	__asm__ __volatile__ (
-			"move.l		%[xhdi_call],d1\n\t"
-			"move.l		d1,(sp)\n\t"	/* FIXME: dirty overwrite of saved register on stack with return value */
-			"move.l		d1,8(sp)\n\t"
-			: /* output */
-			: [xhdi_call]"g"(xhdi_vec)
-			: "d1","memory");
-
-	*_drvbits |= (uint32_t) 1 << ('S' - 'A');
-	/*
-	 * this is just to make the compiler happy, the return value is overwritten anyway. Therefore we previously overwrite
-	 * the saved register value on the stack so everything is as we want it to be
-	 */
-	return (xhdi_call_fun) xhdi_call;
-}
-
 uint16_t xhdi_version(void)
 {
 	xprintf("xhdi_version() called\r\n");
