@@ -30,6 +30,9 @@
 
 #define DRIVER_VERSION	0x130
 
+#define MY_MAJOR	65
+#define MY_MINOR 	0
+
 static BPB sd_bpb[4];	/* space for four partitions on SD card */
 
 uint16_t xhdi_version(void)
@@ -41,14 +44,7 @@ uint16_t xhdi_version(void)
 uint32_t xhdi_inquire_target(uint16_t major, uint16_t minor, uint32_t *block_size, uint32_t *flags,
 		char *product_name)
 {
-	xprintf("xhdi_inquire_target() called\r\n");
-	if (block_size != NULL)
-	{
-		*block_size = 512;
-	}
-	*flags = XH_TARGET_REMOVABLE;	/* indicate that SD card can be removed */
-
-	return E_OK;
+	return xhdi_inquire_target2(major, minor, block_size, flags, product_name, 33);
 }
 
 uint32_t xhdi_reserve(uint16_t major, uint16_t minor, uint16_t do_reserve, uint16_t key)
@@ -83,7 +79,7 @@ uint32_t xhdi_drivemap(void)
 	return map;
 }
 
-#define MY_MAJOR	255
+#define MY_MAJOR	65
 #define MY_MINOR 	0
 
 uint32_t xhdi_inquire_device(uint16_t bios_device, uint16_t *major, uint16_t *minor,
@@ -100,7 +96,7 @@ uint32_t xhdi_inquire_device(uint16_t bios_device, uint16_t *major, uint16_t *mi
 uint32_t xhdi_inquire_driver(uint16_t bios_device, char *name, char *version,
 		char *company, uint16_t *ahdi_version, uint16_t *maxIPL)
 {
-	xprintf("xhdi_inquire_driver() called. bios_device = %x, name = %p, version = %p,\r\n"
+	xprintf("xhdi_inquire_driver() called. bios_device = %d, name = %p, version = %p,\r\n"
 			"company = %p, ahdi_version = %p, max_IPL = %p\r\n",
 			bios_device, name, version, company, ahdi_version, maxIPL);
 	if (bios_device == 'S' - 'A')
@@ -125,28 +121,60 @@ uint32_t xhdi_new_cookie(uint32_t newcookie)
 uint32_t xhdi_read_write(uint16_t major, uint16_t minor, uint16_t rwflag,
         uint32_t recno, uint16_t count, void *buf)
 {
-	xprintf("xhdi_read_write() called: major = %x, minor = %x, rwflag = %x, \r\nrecno = %lx, count = %lx, buf = %p\r\n",
+	int ret;
+	uint16_t num_sectors;
+	int16_t s_count = count;
+	uint16_t retries;
+	const uint16_t max_retries = 5;
+	xprintf("xhdi_read_write() called: major = %d, minor = %d, rwflag = %d, \r\nrecno = %lx, count = %lx, buf = %p\r\n",
 			major, minor, rwflag, recno, count, buf);
 
-	if (major == MY_MAJOR && minor == MY_MINOR)
+	if (major == MY_MAJOR)
 	{
-		if (rwflag & 1)	/* write */
-		{
-			disk_write(0, buf, recno, count);
-		}
-		else if (rwflag & 1 == 0) /* read */
-		{
-			disk_read(0, buf, recno, count);
-		}
+		do {
+			num_sectors = ((s_count > 1) ? 1 : s_count);
+
+			retries = 0;
+			do {
+				ret = ((rwflag & 1) ? disk_write(0, buf, recno, num_sectors) : disk_read(0, buf, recno, num_sectors));
+				if (ret != RES_OK && retries > max_retries)
+				{
+					xprintf("error: %d\r\n", ret);
+					return ERROR;
+				}
+				else if (ret != RES_OK)
+				{
+					retries++;
+					continue;
+				}
+			} while (retries < max_retries && ret != RES_OK);
+
+			buf += num_sectors * 512;
+			recno += num_sectors;
+			s_count -= num_sectors;
+		} while (s_count > 0);
+		xprintf("call ok. %d sector(s) %s\r\n", count, ((rwflag & 1) ? "written" : "read"));
+		return E_OK;
 	}
-	return E_OK;
+	return EUNDEV;
 }
 
 uint32_t xhdi_inquire_target2(uint16_t major, uint16_t minor, uint32_t *block_size,
         uint32_t *device_flags, char *product_name, uint16_t stringlen)
 {
-	xprintf("xhdi_inquire_target2() called\r\n");
-	return ERROR;
+	xprintf("xhdi_inquire_target2(major=%d, minor=%d) called\r\n", major, minor);
+
+	if (major == MY_MAJOR)
+	{
+		if (block_size != NULL) *block_size = 512;
+		if (device_flags != NULL) *device_flags = XH_TARGET_REMOVABLE;
+		if (product_name != NULL) strncpy(product_name, "BaS SD driver", stringlen);
+
+		xprintf("returning block_size %d, device_flags %d, product_name %s \r\n", *block_size, *device_flags, *product_name);
+		return E_OK;
+
+	}
+	return EUNDEV;
 }
 
 uint32_t xhdi_inquire_device2(uint16_t bios_device, uint16_t *major, uint16_t *minor,
@@ -156,7 +184,6 @@ uint32_t xhdi_inquire_device2(uint16_t bios_device, uint16_t *major, uint16_t *m
 
 	if (bios_device == 'S' - 'A')
 	{
-
 		return E_OK;
 	}
 	return EUNDEV;
@@ -170,8 +197,19 @@ uint32_t xhdi_driver_special(uint32_t key1, uint32_t key2, uint16_t subopcode, v
 
 uint32_t xhdi_get_capacity(uint16_t major, uint16_t minor, uint32_t *blocks, uint32_t *bs)
 {
-	xprintf("xhdi_get_capacity() called\r\n");
-	return ERROR;
+	xprintf("xhdi_get_capacity(major=%d, minor=%d) called\r\n", major, minor);
+
+	if (major == MY_MAJOR)
+	{
+		if (disk_ioctl(0, GET_SECTOR_COUNT, blocks) != RES_OK)
+			return ERROR;
+		if (disk_ioctl(0, GET_SECTOR_SIZE, bs) != RES_OK)
+			return ERROR;
+		*bs = 512;
+		xprintf("returning %d blocks with %d blocksize (%d GB)\r\n", *blocks, *bs, *blocks / 2 / 1000 / 1000);
+		return E_OK;
+	}
+	return EUNDEV;
 }
 
 uint32_t xhdi_medium_changed(uint16_t major, uint16_t minor)

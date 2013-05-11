@@ -26,9 +26,9 @@
 #define	CS_LOW()	{ dspi_fifo_val |= MCF_DSPI_DTFR_CS5; }
 
 #define SPICLK_FAST() { MCF_DSPI_DCTAR0 = MCF_DSPI_DCTAR_TRSZ(0b111) |	/* transfer size = 8 bit */ \
-					  MCF_DSPI_DCTAR_PCSSCK(0b01) |	/* 1 clock DSPICS to DSPISCK delay prescaler */ \
-					  MCF_DSPI_DCTAR_PASC_1CLK |	/* 1 clock DSPISCK to DSPICS negation prescaler */ \
-					  MCF_DSPI_DCTAR_PDT_1CLK |		/* 1 clock delay between DSPICS assertions prescaler */ \
+					  MCF_DSPI_DCTAR_PCSSCK(0b11) |	/* 1 clock DSPICS to DSPISCK delay prescaler */ \
+					  MCF_DSPI_DCTAR_PASC_3CLK |	/* 1 clock DSPISCK to DSPICS negation prescaler */ \
+					  MCF_DSPI_DCTAR_PDT_3CLK |		/* 1 clock delay between DSPICS assertions prescaler */ \
 					  MCF_DSPI_DCTAR_PBR_3CLK |		/* 3 clock Baudrate prescaler */ \
 					  MCF_DSPI_DCTAR_ASC(0b0000) |	/* 2 */ \
 					  MCF_DSPI_DCTAR_DT(0b0000) |	/* 2 */ \
@@ -249,7 +249,7 @@ int rcvr_datablock (	/* 1:OK, 0:Error */
 )
 {
 	uint8_t token;
-	uint32_t target = MCF_SLT_SCNT(0) - (200 * 1000L * 132);
+	uint32_t target = MCF_SLT_SCNT(0) - (400 * 1000L * 132);
 
 	do {							/* Wait for DataStart token in timeout of 200ms */
 		token = xchg_spi(0xFF);

@@ -28,6 +28,13 @@ char *strcpy(char *dst, const char *src)
 	return ptr;
 }
 
+char *strncpy(char *dst, const char *src, int max)
+{
+	char *ptr = dst;
+
+	while ((*dst++ = *src++) != '\0' && max-- >= 0);
+	return ptr;
+}
 int atoi(const char *c)
 {
 	int value = 0;
