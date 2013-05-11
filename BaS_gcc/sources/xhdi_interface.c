@@ -27,9 +27,9 @@
 #include "bas_printf.h"
 
 
-unsigned long xhdi_call(struct XHDICALL_args *stack)
+unsigned long xhdi_call(uint16_t *stack)
 {
-	uint16_t opcode = stack->opcode;
+	uint16_t opcode = *stack;
 
 	switch (opcode)
 	{

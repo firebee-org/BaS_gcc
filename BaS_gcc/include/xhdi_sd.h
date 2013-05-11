@@ -84,12 +84,7 @@ typedef struct _BPB
 /* a riddle: how do you typedef a function pointer to a function that returns its own type? ;) */
 typedef void* (*xhdi_call_fun)(int xhdi_fun, ...);
 
-struct XHDICALL_args
-{
-	uint16_t opcode;
-};
-
-extern unsigned long xhdi_call(struct XHDICALL_args *stack);
+extern unsigned long xhdi_call(uint16_t *stack);
 
 extern xhdi_call_fun xhdi_sd_install(xhdi_call_fun old_vector) __attribute__((__interrupt__));
 
