@@ -5,6 +5,8 @@
 		.globl	_xhdi_vec
 		.globl	_xhdi_sd_install
 
+		.equ	_drvbits, 0x4c2
+
 //
 // this is where the XHDI cookie points to:
 //
@@ -13,14 +15,17 @@
 _xhdi_vec:
 		lea     -12(sp),sp		// save all used registers according to XHDI spec
 		movem.l d1/a0-a1,(sp)
+
+		move.l	_drvbits,d0
+		bset.l	#('S'-'A'),d0	// add drive S
+		move.l	d0,_drvbits
+
 		pea     16(sp)			// forward address of parameters on stack
 		jsr		_xhdi_call		// to internal routine
 		addq.l  #4,sp			// correct stack
 		movem.l (sp),d1/a0-a1	// restore registers
 		lea     12(sp),sp
 		rts
-
-		.equ	_drvbits, 0x4c2
 
 		.data
 _old_vector:
