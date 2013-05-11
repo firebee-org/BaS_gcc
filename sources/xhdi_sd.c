@@ -26,13 +26,14 @@
 #include "xhdi_sd.h"
 #include "bas_printf.h"
 #include "bas_string.h"
+#include "diskio.h"
 
 #define DRIVER_VERSION	0x130
 
 static BPB sd_bpb[4];	/* space for four partitions on SD card */
 
 static xhdi_call_fun old_vector = NULL;
-extern xhdi_call_fun xhdi_vec;
+extern uint32_t xhdi_vec(uint16_t *stack);
 
 __attribute__((__interrupt__)) xhdi_call_fun xhdi_sd_install(xhdi_call_fun ov)
 {
@@ -42,6 +43,7 @@ __attribute__((__interrupt__)) xhdi_call_fun xhdi_sd_install(xhdi_call_fun ov)
 	__asm__ __volatile__ (
 			"move.l		%[xhdi_call],d1\n\t"
 			"move.l		d1,(sp)\n\t"	/* FIXME: dirty overwrite of saved register on stack with return value */
+			"move.l		d1,8(sp)\n\t"
 			: /* output */
 			: [xhdi_call]"g"(xhdi_vec)
 			: "d1","memory");
@@ -105,11 +107,18 @@ uint32_t xhdi_drivemap(void)
 	return map;
 }
 
+#define MY_MAJOR	255
+#define MY_MINOR 	0
+
 uint32_t xhdi_inquire_device(uint16_t bios_device, uint16_t *major, uint16_t *minor,
         uint32_t *start_sector, /* BPB */ void *bpb)
 {
 	xprintf("xhdi_inquire_device() called\r\n");
-	return ERROR;
+	if (major != NULL) *major = MY_MAJOR;
+	if (minor != NULL) *minor = MY_MINOR;
+	if (start_sector != NULL) *start_sector = 0;
+
+	return E_OK;
 }
 
 uint32_t xhdi_inquire_driver(uint16_t bios_device, char *name, char *version,
@@ -142,7 +151,19 @@ uint32_t xhdi_read_write(uint16_t major, uint16_t minor, uint16_t rwflag,
 {
 	xprintf("xhdi_read_write() called: major = %x, minor = %x, rwflag = %x, \r\nrecno = %lx, count = %lx, buf = %p\r\n",
 			major, minor, rwflag, recno, count, buf);
-	return EUNDEV;
+
+	if (major == MY_MAJOR && minor == MY_MINOR)
+	{
+		if (rwflag & 1)	/* write */
+		{
+			disk_write(0, buf, recno, count);
+		}
+		else if (rwflag & 1 == 0) /* read */
+		{
+			disk_read(0, buf, recno, count);
+		}
+	}
+	return E_OK;
 }
 
 uint32_t xhdi_inquire_target2(uint16_t major, uint16_t minor, uint32_t *block_size,
@@ -159,6 +180,7 @@ uint32_t xhdi_inquire_device2(uint16_t bios_device, uint16_t *major, uint16_t *m
 
 	if (bios_device == 'S' - 'A')
 	{
+
 		return E_OK;
 	}
 	return EUNDEV;
