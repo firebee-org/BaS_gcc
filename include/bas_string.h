@@ -12,6 +12,7 @@
 
 extern int strncmp(const char *s1, const char *s2, int max);
 extern char *strcpy(char *dst, const char *src);
+char *strncpy(char *dst, const char *src, int max);
 extern size_t strlen(const char *str);
 extern char *strcat(char *dst, const char *src);
 extern char *strncat(char *dst, const char *src, int max);
