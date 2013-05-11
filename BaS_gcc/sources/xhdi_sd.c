@@ -117,7 +117,7 @@ uint32_t xhdi_read_write(uint16_t major, uint16_t minor, uint16_t rwflag,
 	if (major == MY_MAJOR)
 	{
 		do {
-			num_sectors = ((s_count > 127) ? 127 : s_count);
+			num_sectors = ((s_count > 1) ? 1 : s_count);
 
 			retries = 0;
 			do {
