@@ -26,12 +26,12 @@
 #define	CS_LOW()	{ dspi_fifo_val |= MCF_DSPI_DTFR_CS5; }
 
 #define SPICLK_FAST() { MCF_DSPI_DCTAR0 = MCF_DSPI_DCTAR_TRSZ(0b111) |	/* transfer size = 8 bit */ \
-					  MCF_DSPI_DCTAR_PCSSCK(0b11) |	/* 1 clock DSPICS to DSPISCK delay prescaler */ \
+					  MCF_DSPI_DCTAR_PCSSCK(0b01) |	/* 1 clock DSPICS to DSPISCK delay prescaler */ \
 					  MCF_DSPI_DCTAR_PASC_3CLK |	/* 1 clock DSPISCK to DSPICS negation prescaler */ \
 					  MCF_DSPI_DCTAR_PDT_3CLK |		/* 1 clock delay between DSPICS assertions prescaler */ \
 					  MCF_DSPI_DCTAR_PBR_3CLK |		/* 3 clock Baudrate prescaler */ \
-					  MCF_DSPI_DCTAR_ASC(0b0000) |	/* 2 */ \
-					  MCF_DSPI_DCTAR_DT(0b0000) |	/* 2 */ \
+					  MCF_DSPI_DCTAR_ASC(0b0001) |	/* 2 */ \
+					  MCF_DSPI_DCTAR_DT(0b0010) |	/* 2 */ \
 					  MCF_DSPI_DCTAR_BR(0b0000); }	/* clock / 2 */
 
 #define SPICLK_SLOW() { MCF_DSPI_DCTAR0 = MCF_DSPI_DCTAR_TRSZ(0b111) |	/* transfer size = 8 bit */ \
