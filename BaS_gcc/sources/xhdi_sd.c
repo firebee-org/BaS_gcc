@@ -46,22 +46,34 @@ uint32_t xhdi_inquire_target(uint16_t major, uint16_t minor, uint32_t *block_siz
 
 uint32_t xhdi_reserve(uint16_t major, uint16_t minor, uint16_t do_reserve, uint16_t key)
 {
-	return ERROR;	/* device cannot be reserved */
+	if (major == MY_MAJOR)
+		return ERROR;	/* device cannot be reserved */
+
+	return EUNDEV;
 }
 
 uint32_t xhdi_lock(uint16_t major, uint16_t minor, uint16_t do_lock, uint16_t key)
 {
-	return ERROR;	/* device cannot be locked */
+	if (major == MY_MAJOR)
+		return ERROR;	/* device cannot be locked */
+
+	return EUNDEV;
 }
 
 uint32_t xhdi_stop(uint16_t major, uint16_t minor, uint16_t do_stop, uint16_t key)
 {
-	return ERROR;	/* device cannot be locked */
+	if (major == MY_MAJOR)
+		return ERROR;	/* device cannot be locked */
+
+	return EUNDEV;
 }
 
 uint32_t xhdi_eject(uint16_t major, uint16_t minor, uint16_t do_eject, uint16_t key)
 {
-	return ERROR;	/* device cannot be ejected */
+	if (major == MY_MAJOR)
+		return ERROR;	/* device cannot be ejected */
+
+	return EUNDEV;
 }
 
 uint32_t xhdi_drivemap(void)
@@ -70,9 +82,6 @@ uint32_t xhdi_drivemap(void)
 
 	return map;
 }
-
-#define MY_MAJOR	65
-#define MY_MINOR 	0
 
 uint32_t xhdi_inquire_device(uint16_t bios_device, uint16_t *major, uint16_t *minor,
         uint32_t *start_sector, /* BPB */ void *bpb)
@@ -102,7 +111,7 @@ uint32_t xhdi_inquire_driver(uint16_t bios_device, char *name, char *version,
 
 uint32_t xhdi_new_cookie(uint32_t newcookie)
 {
-	return ERROR;
+	return EUNDEV;
 }
 
 uint32_t xhdi_read_write(uint16_t major, uint16_t minor, uint16_t rwflag,
@@ -117,7 +126,7 @@ uint32_t xhdi_read_write(uint16_t major, uint16_t minor, uint16_t rwflag,
 	if (major == MY_MAJOR)
 	{
 		do {
-			num_sectors = ((s_count > 1) ? 1 : s_count);
+			num_sectors = ((s_count > 127) ? 127 : s_count);
 
 			retries = 0;
 			do {
@@ -172,7 +181,7 @@ uint32_t xhdi_inquire_device2(uint16_t bios_device, uint16_t *major, uint16_t *m
 
 uint32_t xhdi_driver_special(uint32_t key1, uint32_t key2, uint16_t subopcode, void *data)
 {
-	return ERROR;
+	return EUNDEV;
 }
 
 uint32_t xhdi_get_capacity(uint16_t major, uint16_t minor, uint32_t *blocks, uint32_t *bs)
@@ -191,25 +200,28 @@ uint32_t xhdi_get_capacity(uint16_t major, uint16_t minor, uint32_t *blocks, uin
 
 uint32_t xhdi_medium_changed(uint16_t major, uint16_t minor)
 {
-	return ERROR;
+	if (major == MY_MAJOR)
+		return 1;	/* may have changed */
+
+	return EUNDEV;
 }
 
 uint32_t xhdi_mint_info(uint16_t opcode, void *data)
 {
-	return ERROR;
+	return EUNDEV;
 }
 
 uint32_t xhdi_dos_limits(uint16_t which, uint32_t limit)
 {
-	return ERROR;
+	return EUNDEV;
 }
 
 uint32_t xhdi_last_access(uint16_t major, uint16_t minor, uint32_t *ms)
 {
-	return ERROR;
+	return EUNDEV;
 }
 
 uint32_t xhdi_reaccess(uint16_t major, uint16_t minor)
 {
-	return ERROR;
+	return EUNDEV;
 }
