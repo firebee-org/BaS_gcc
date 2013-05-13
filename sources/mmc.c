@@ -103,7 +103,6 @@ static uint8_t xchg_spi(uint8_t byte)
 
 	fifo = MCF_DSPI_DRFR;
 
-	MCF_DSPI_DSR = 0xffffffff;
 	res = fifo & 0xff;
 	return res;
 }
