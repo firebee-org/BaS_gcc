@@ -97,13 +97,11 @@ static uint8_t xchg_spi(uint8_t byte)
 	uint32_t fifo = dspi_fifo_val | byte;
 	uint8_t res;
 
+	while (! (MCF_DSPI_DSR & MCF_DSPI_DSR_TCF));	/* wait until previous DSPI transfer completed */
 	MCF_DSPI_DTFR = fifo;
-	while (! (MCF_DSPI_DSR & MCF_DSPI_DSR_TCF));	/* wait until DSPI transfer complete */
-	MCF_DSPI_DSR = 0xffffffff;						/* clear DSPI status register */
 
-	while (! (MCF_DSPI_DSR & MCF_DSPI_DSR_TCF));	/* wait again for transfer to complete */
-
-	fifo = MCF_DSPI_DRFR;
+	while (! (MCF_DSPI_DSR & MCF_DSPI_DSR_TCF));	/* wait until previous DSPI transfer completed */
+	fifo = MCF_DSPI_DRFR;							/* read out return value */
 
 	MCF_DSPI_DSR = 0xffffffff;						/* clear status register */
 
