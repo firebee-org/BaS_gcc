@@ -126,20 +126,18 @@ uint32_t xhdi_read_write(uint16_t major, uint16_t minor, uint16_t rwflag,
 	if (major == MY_MAJOR)
 	{
 		do {
-			num_sectors = ((s_count > 127) ? 127 : s_count);
+			num_sectors = ((s_count > 128) ? 128 : s_count);
 
 			retries = 0;
 			do {
 				ret = ((rwflag & 1) ? disk_write(0, buf, recno, num_sectors) : disk_read(0, buf, recno, num_sectors));
-				if (ret != RES_OK && retries > max_retries)
-				{
-					xprintf("error: %d\r\n", ret);
-					return ERROR;
-				}
-				else if (ret != RES_OK)
+				if (ret != RES_OK)
 				{
 					retries++;
-					continue;
+					if (retries < max_retries) continue;
+
+					xprintf("error: %d\r\n", ret);
+					return ERROR;
 				}
 			} while (retries < max_retries && ret != RES_OK);
 
