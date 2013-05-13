@@ -97,14 +97,13 @@ static uint8_t xchg_spi(uint8_t byte)
 	uint32_t fifo = dspi_fifo_val | byte;
 	uint8_t res;
 
-	while (! (MCF_DSPI_DSR & MCF_DSPI_DSR_TCF));	/* wait until previous DSPI transfer completed */
 	MCF_DSPI_DTFR = fifo;
+	while (! (MCF_DSPI_DSR & MCF_DSPI_DSR_TCF));	/* wait until DSPI transfer complete */
+	MCF_DSPI_DSR = 0xffffffff;						/* clear DSPI status register */
 
-	while (! (MCF_DSPI_DSR & MCF_DSPI_DSR_TCF));	/* wait until previous DSPI transfer completed */
-	fifo = MCF_DSPI_DRFR;							/* read out return value */
+	fifo = MCF_DSPI_DRFR;
 
-	MCF_DSPI_DSR = 0xffffffff;						/* clear status register */
-
+	MCF_DSPI_DSR = 0xffffffff;
 	res = fifo & 0xff;
 	return res;
 }
@@ -193,9 +192,9 @@ static int select(void)	/* 1:OK, 0:Timeout */
 /*
  * Control SPI module (Platform dependent)
  */
-static void power_on(void)		/* Enable SSP module */
+static void power_on (void)	/* Enable SSP module */
 {
-	MCF_PAD_PAR_DSPI = 0x1fff;	/* configure all DSPI GPIO pins for DSPI usage */
+	MCF_PAD_PAR_DSPI = 0x1fff;			/* configure all DSPI GPIO pins for DSPI usage */
 
 	/*
 	 * FIXME: really necessary or just an oversight
@@ -233,7 +232,8 @@ static void power_on(void)		/* Enable SSP module */
 }
 
 
-static void power_off (void)		/* Disable SPI function */
+static
+void power_off (void)		/* Disable SPI function */
 {
 	select();				/* Wait for card ready */
 	deselect();
@@ -243,24 +243,25 @@ static void power_off (void)		/* Disable SPI function */
 /*-----------------------------------------------------------------------*/
 /* Receive a data packet from the MMC                                    */
 /*-----------------------------------------------------------------------*/
-static int rcvr_datablock(uint8_t *buff, uint32_t btr)
+static
+int rcvr_datablock (	/* 1:OK, 0:Error */
+	uint8_t *buff,			/* Data buffer */
+	uint32_t btr			/* Data block length (byte) */
+)
 {
 	uint8_t token;
-	uint32_t target = MCF_SLT_SCNT(0) - (200 * 1000L * 132);
+	uint32_t target = MCF_SLT_SCNT(0) - (400 * 1000L * 132);
 
-	/*
-	 * This loop will take a time. Insert rot_rdq() here for multitask envilonment.
-	 */
-	do {								/* Wait for DataStart token in timeout of 200ms */
+	do {							/* Wait for DataStart token in timeout of 200ms */
 		token = xchg_spi(0xFF);
+		/* This loop will take a time. Insert rot_rdq() here for multitask envilonment. */
 	} while ((token == 0xFF) && MCF_SLT_SCNT(0) > target);
+	if(token != 0xFE) return 0;		/* Function fails if invalid DataStart token or timeout */
 
-	if (token != 0xFE) return 0;		/* Function fails if invalid DataStart token or timeout */
+	rcvr_spi_multi(buff, btr);		/* Store trailing data to the buffer */
+	xchg_spi(0xFF); xchg_spi(0xFF);			/* Discard CRC */
 
-	rcvr_spi_multi(buff, btr);			/* Store trailing data to the buffer */
-	xchg_spi(0xFF); xchg_spi(0xFF);		/* Discard CRC */
-
-	return 1;							/* Function succeeded */
+	return 1;						/* Function succeeded */
 }
 
 
@@ -270,9 +271,14 @@ static int rcvr_datablock(uint8_t *buff, uint32_t btr)
 /*-----------------------------------------------------------------------*/
 
 #if _USE_WRITE
-static int xmit_datablock(const uint8_t *buff,	uint8_t token)
+static
+int xmit_datablock (	/* 1:OK, 0:Failed */
+	const uint8_t *buff,	/* Ponter to 512 byte data to be sent */
+	uint8_t token			/* Token */
+)
 {
 	uint8_t resp;
+
 
 	if (!wait_ready(500)) return 0;		/* Wait for card ready */
 
@@ -281,8 +287,7 @@ static int xmit_datablock(const uint8_t *buff,	uint8_t token)
 		xmit_spi_multi(buff, 512);		/* Data */
 		xchg_spi(0xFF); xchg_spi(0xFF);	/* Dummy CRC */
 
-		resp = xchg_spi(0xFF);			/* Receive data resp */
-
+		resp = xchg_spi(0xFF);				/* Receive data resp */
 		if ((resp & 0x1F) != 0x05)		/* Function fails if the data packet was not accepted */
 			return 0;
 	}
