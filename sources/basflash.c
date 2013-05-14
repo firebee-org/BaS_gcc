@@ -87,6 +87,7 @@ static err_t memcpy(uint8_t *dst, uint8_t *src, uint32_t length)
 	return OK;
 }
 
+#ifdef _NOT_USED_
 static err_t flash(uint8_t *dst, uint8_t *src, uint32_t length)
 {
 	err_t ret = OK;
@@ -95,6 +96,7 @@ static err_t flash(uint8_t *dst, uint8_t *src, uint32_t length)
 
 	return ret;
 }
+#endif /* _NOT_USED_ */
 
 /*
  * this callback verifies the data against the S-record file contents after a write to destination
@@ -340,7 +342,7 @@ err_t srec_load(char *flash_filename)
 
 void basflash(void)
 {
-	const char *basflash_str = "\\BASFLASH";
+	// const char *basflash_str = "\\BASFLASH";
 	const char *bastest_str = "\\BASTEST";
 	DRESULT res;
 	FRESULT fres;
