@@ -78,6 +78,7 @@ static uint8_t hex_to_byte(uint8_t hex[2])
 	return 16 * (nibble_to_byte(hex[0])) + (nibble_to_byte(hex[1]));
 }
 
+#ifdef _NOT_USED_
 /*
  * convert four hex characters into a 16 bit word
  */
@@ -93,6 +94,7 @@ static uint32_t hex_to_long(uint8_t hex[8])
 {
 	return 65536 * hex_to_word(&hex[0]) + hex_to_word(&hex[4]);
 }
+#endif /* _NOT_USED_ */
 
 /*
  * compute the record checksum
@@ -320,6 +322,7 @@ static err_t memcpy(uint8_t *dst, uint8_t *src, uint32_t length)
 	return OK;
 }
 
+#ifdef _NOT_USED_
 static err_t flash(uint8_t *dst, uint8_t *src, uint32_t length)
 {
 	err_t ret = OK;
@@ -328,6 +331,8 @@ static err_t flash(uint8_t *dst, uint8_t *src, uint32_t length)
 
 	return ret;
 }
+#endif /* _NOT_USED_ */
+
 
 /*
  * this callback verifies the data against the S-record file contents after a write to destination
