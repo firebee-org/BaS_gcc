@@ -819,12 +819,17 @@ void initialize_hardware(void) {
 		init_fbcs();
 		init_ddram();
 		init_fpga();
-		/* FireTOS seems to have trouble to initialize the ST-RAM by itself, so... */
+
 		/* Validate ST RAM */
 		* (volatile uint32_t *) 0x42e = STRAM_END;	/* phystop TOS system variable */
 		* (volatile uint32_t *) 0x420 = 0x752019f3;	/* memvalid TOS system variable */
 		* (volatile uint32_t *) 0x43a = 0x237698aa;	/* memval2 TOS system variable */
 		* (volatile uint32_t *) 0x51a = 0x5555aaaa;	/* memval3 TOS system variable */
+
+	    /* TT-RAM */
+
+	    * (uint32_t *) 0x5a4 = FASTRAM_END; /* ramtop TOS system variable */
+	    * (uint32_t *) 0x5a8 = 0x1357bd13;  /* ramvalid TOS system variable */
 
 		/* Jump into FireTOS */
 		typedef void void_func(void);
