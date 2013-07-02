@@ -804,6 +804,9 @@ extern uint8_t _BAS_IN_RAM[];
 extern uint8_t _BAS_SIZE[];
 #define BAS_SIZE ((uint32_t)_BAS_SIZE) /* size of the BaS, in bytes */
 
+extern uint8_t _FASTRAM_END[];
+#define FASTRAM_END ((uint32_t)_FASTRAM_END)
+
 void initialize_hardware(void) {
 	/* used in copy loop */
 	uint32_t *src;	/* src address to read from flash */
