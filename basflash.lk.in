@@ -21,8 +21,8 @@ SECTIONS
 	}
 		
 	#define BAS_LABEL_LMA(x) ((x))
-	_xprintf_before_copy = BAS_LABEL_LMA(_xprintf);
-	_display_progress_before_copy = BAS_LABEL_LMA(_display_progress);
+	/* _xprintf_before_copy = BAS_LABEL_LMA(_xprintf); */
+	/* _display_progress_before_copy = BAS_LABEL_LMA(_display_progress); */
 	/* _flush_and_invalidate_caches_before_copy = BAS_LABEL_LMA(_flush_and_invalidate_caches); */
 	
 	/*

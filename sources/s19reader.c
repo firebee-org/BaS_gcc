@@ -25,7 +25,6 @@
 
 #include <stdint.h>
 #include <stdbool.h>
-#include <stdlib.h>
 
 #include "bas_printf.h"
 #include "sd_card.h"
