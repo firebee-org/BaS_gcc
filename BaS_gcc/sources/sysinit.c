@@ -33,11 +33,6 @@
 #include "bas_types.h"
 #include "wait.h"
 
-extern void xprintf_before_copy(const char *fmt, ...);
-#define xprintf	 xprintf_before_copy
-extern void flush_and_invalidate_caches_before_copy(void);
-#define flush_and_invalidate_caches flush_and_invalidate_caches_before_copy
-
 #define UNUSED(x) (void)(x)               /* Unused variable         */
 
 extern volatile long _VRAM;	/* start address of video ram from linker script */
@@ -852,6 +847,7 @@ void initialize_hardware(void) {
 	//video_1280_1024();
 	init_ac97();
 
+#ifdef _NOT_USED_
 	/* copy the BaS code contained in flash to its final location */
 	src = (uint32_t *)BAS_LMA;
 	end = (uint32_t *)(BAS_LMA + BAS_SIZE);
@@ -872,6 +868,7 @@ void initialize_hardware(void) {
 	flush_and_invalidate_caches();
 
 	/* jump into the BaS in RAM */
+#endif /* _NOT_USED_ */
 	extern void BaS(void);
 	BaS();
 }
