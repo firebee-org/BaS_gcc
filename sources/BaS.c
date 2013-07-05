@@ -250,6 +250,9 @@ void BaS(void)
 		*adr++ = 0x0L;
 	}
 
+	/* set Falcon bus control register */
+	/* sets bit 3 and 6. Both are undefined on an original Falcon? */
+
 	* (volatile uint8_t *) 0xffff8007 = 0x48;	/* FIXME: what's that ? */
 
 	/* ST RAM */
