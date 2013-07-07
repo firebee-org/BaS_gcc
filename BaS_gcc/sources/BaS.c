@@ -227,10 +227,10 @@ void BaS(void)
 
 #ifdef _NOT_USED_
 //  32MHz
-		move.l	#0x037002ba,(a0)+			// horizontal 640x480
-		move.l	#0x020d020a,(a0)+			// vertikal 640x480
-		move.l	#0x02A001e0,(a0)+			// horizontal 320x240
-		move.l	#0x05a00160,(a0)+			// vertikal 320x240 
+	* (volatile uint32_t *) (0xf0000410 + 0) = 0x037002ba;	/* horizontal 640x480 */
+	* (volatile uint32_t *) (0xf0000410 + 4) = 0x020d020a;	/* vertical 640x480 */
+	* (volatile uint32_t *) (0xf0000410 + 8) = 0x02a001e0;	/* horizontal 320x240 */
+	* (volatile uint32_t *) (0xf0000410 + 12) = 0x05a00160;	/* vertical 320x230 */
 #endif /* _NOT_USED_ */
 
 	/* fifo on, refresh on, ddrcs and cke on, video dac on */
