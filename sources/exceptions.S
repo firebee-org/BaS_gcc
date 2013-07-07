@@ -302,18 +302,18 @@ vector_table_start:
 std_exc_vec:
 		move.w	#0x2700,sr			// disable interrupt
 		subq.l	#8,a7
-		movem.l	d0/a5,(a7)			// register sichern
+		movem.l	d0/a5,(a7)			// save registers
 // test auf protect mode -------------------------------
 		move.b	DIP_SWITCHa,d0
 		btst	#7,d0 
 		bne		stv_protect			// ja->
 //------------------------------------------------------
-		move.w	8(a7),d0			// vector holen
-		and.l	#0x3fc,d0			// vector nummer ausmaskieren
-		add.l	_rt_vbr,d0			// + basis
-		move.l	d0,a5
+		move.w	8(a7),d0			// fetch vector
+		and.l	#0x3fc,d0			// mask out vector number
+		add.l	_rt_vbr,d0			// + OS VBR
+		move.l	d0,a5				
 		move.l	(a5),d0
-		move.l	4(a7),a5			// a5 zur�ck
+		move.l	4(a7),a5			// restore a5
 		move.l	d0,4(a7)
 		move.w	10(a7),d0
 		bset	#13,d0				// super
