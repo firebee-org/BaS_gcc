@@ -42,6 +42,7 @@ CFLAGS=-mcpu=5474\
 	   -Wa,--register-prefix-optional
 
 SRCDIR=sources
+MCDSRC=mcdapi
 OBJDIR=objs
 
 # Linker control file. The final $(LDCFILE) is intermediate only (preprocessed  version of $(LDCSRC)
@@ -83,10 +84,16 @@ ASRCS= \
 	$(SRCDIR)/illegal_instruction.S \
 	$(SRCDIR)/xhdi_vec.S
 	
+MCDSRCS=\
+	$(MCDSRC)/MCD_dmaApi.c \
+	$(MCDSRC)/MCD_tasks.c \
+	$(MCDSRC)/MCD_tasksInit.c
+
 COBJS=$(patsubst $(SRCDIR)/%.o,$(OBJDIR)/%.o,$(patsubst %.c,%.o,$(CSRCS)))
 AOBJS=$(patsubst $(SRCDIR)/%.o,$(OBJDIR)/%.o,$(patsubst %.S,%.o,$(ASRCS)))
+MCDOBJS=$(patsubst $(MCDSRCS)/%.o,$(OBJDIR)/%.o,$(patsubst %.c,%.o,$(MCDSRCS)))
 
-OBJS=$(COBJS) $(AOBJS)
+OBJS=$(COBJS) $(AOBJS) $(MCDOBJS)
 LIBBAS=libbas.a
 
 all: fls ram bfl lib
