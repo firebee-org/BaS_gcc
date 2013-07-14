@@ -232,8 +232,7 @@ static void power_on(void)	/* Enable SSP module */
 }
 
 
-static
-void power_off (void)		/* Disable SPI function */
+static void power_off (void)		/* Disable SPI function */
 {
 	select();				/* Wait for card ready */
 	deselect();
@@ -243,11 +242,7 @@ void power_off (void)		/* Disable SPI function */
 /*-----------------------------------------------------------------------*/
 /* Receive a data packet from the MMC                                    */
 /*-----------------------------------------------------------------------*/
-static
-int rcvr_datablock (	/* 1:OK, 0:Error */
-	uint8_t *buff,			/* Data buffer */
-	uint32_t btr			/* Data block length (byte) */
-)
+static int rcvr_datablock(uint8_t *buff, uint32_t btr)
 {
 	uint8_t token;
 	int32_t target = MCF_SLT_SCNT(0) - (200L * 1000L * 132L);
@@ -277,11 +272,7 @@ int rcvr_datablock (	/* 1:OK, 0:Error */
 /*-----------------------------------------------------------------------*/
 
 #if _USE_WRITE
-static
-int xmit_datablock (	/* 1:OK, 0:Failed */
-	const uint8_t *buff,	/* Ponter to 512 byte data to be sent */
-	uint8_t token			/* Token */
-)
+static int xmit_datablock(const uint8_t *buff, uint8_t token)
 {
 	uint8_t resp;
 
@@ -306,13 +297,9 @@ int xmit_datablock (	/* 1:OK, 0:Failed */
 /* Send a command packet to the MMC                                      */
 /*-----------------------------------------------------------------------*/
 
-static uint8_t send_cmd (		/* Return value: R1 resp (bit7==1:Failed to send) */
-	uint8_t cmd,		/* Command index */
-	uint32_t arg		/* Argument */
-)
+static uint8_t send_cmd(uint8_t cmd, uint32_t arg)
 {
 	uint8_t n, res;
-
 
 	if (cmd & 0x80) {	/* Send a CMD55 prior to ACMD<n> */
 		cmd &= 0x7F;
@@ -448,12 +435,7 @@ DSTATUS disk_status(uint8_t drv)
 /* Read sector(s)                                                        */
 /*-----------------------------------------------------------------------*/
 
-DRESULT disk_read (
-	uint8_t drv,		/* Physical drive number (0) */
-	uint8_t *buff,		/* Pointer to the data buffer to store read data */
-	uint32_t sector,	/* Start sector number (LBA) */
-	uint8_t count		/* Number of sectors to read (1..128) */
-)
+DRESULT disk_read(uint8_t drv, uint8_t *buff, uint32_t sector, uint8_t count)
 {
 	if (drv || !count) return RES_PARERR;		/* Check parameter */
 	if (Stat & STA_NOINIT) return RES_NOTRDY;	/* Check if drive is ready */
@@ -486,12 +468,7 @@ DRESULT disk_read (
 /*-----------------------------------------------------------------------*/
 
 #if _USE_WRITE
-DRESULT disk_write (
-	uint8_t drv,			/* Physical drive number (0) */
-	const uint8_t *buff,	/* Ponter to the data to write */
-	uint32_t sector,		/* Start sector number (LBA) */
-	uint8_t count			/* Number of sectors to write (1..128) */
-)
+DRESULT disk_write(uint8_t drv,	const uint8_t *buff, uint32_t sector, uint8_t count)
 {
 	if (drv || !count) return RES_PARERR;		/* Check parameter */
 	if (Stat & STA_NOINIT) return RES_NOTRDY;	/* Check drive status */
@@ -527,11 +504,7 @@ DRESULT disk_write (
 /*-----------------------------------------------------------------------*/
 
 #if _USE_IOCTL
-DRESULT disk_ioctl (
-	uint8_t drv,		/* Physical drive number (0) */
-	uint8_t ctrl,		/* Control command code */
-	void *buff		/* Pointer to the conrtol data */
-)
+DRESULT disk_ioctl(uint8_t drv,	uint8_t ctrl, void *buff)
 {
 	DRESULT res;
 	uint8_t n, csd[16], *ptr = buff;
