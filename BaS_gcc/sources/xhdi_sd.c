@@ -136,7 +136,7 @@ uint32_t xhdi_read_write(uint16_t major, uint16_t minor, uint16_t rwflag,
 					retries++;
 					if (retries < max_retries) continue;
 
-					xprintf("SD card R/W error: %d\r\n", ret);
+					xprintf("SD card R/W error at sector %lx: %d\r\n", recno, ret);
 					return ERROR;
 				}
 			} while (retries < max_retries && ret != RES_OK);

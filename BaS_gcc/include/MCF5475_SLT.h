@@ -36,7 +36,7 @@
 
 #define MCF_SLT_STCNT(x)                     (*(volatile uint32_t*)(&_MBAR[0x900 + ((x)*0x10)]))
 #define MCF_SLT_SCR(x)                       (*(volatile uint32_t*)(&_MBAR[0x904 + ((x)*0x10)]))
-#define MCF_SLT_SCNT(x)                      (*(volatile uint32_t*)(&_MBAR[0x908 + ((x)*0x10)]))
+#define MCF_SLT_SCNT(x)                      (*(volatile int32_t*)(&_MBAR[0x908 + ((x)*0x10)]))
 #define MCF_SLT_SSR(x)                       (*(volatile uint32_t*)(&_MBAR[0x90C + ((x)*0x10)]))
 
 

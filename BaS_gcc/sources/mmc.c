@@ -23,24 +23,34 @@
 
 
 #define	CS_HIGH()	{ dspi_fifo_val &= ~MCF_DSPI_DTFR_CS5; }
-#define	CS_LOW()		{ dspi_fifo_val |= MCF_DSPI_DTFR_CS5; }
+#define	CS_LOW()	{ dspi_fifo_val |= MCF_DSPI_DTFR_CS5; }
 
+/*
+ * DCTAR_PBR (baud rate prescaler) and DCTAR_BR (baud rate scaler) together determine the SPI baud rate. The forumula is
+ *
+ * 	baud rate = system clock / DCTAR_PBR * 1 / DCTAR_BR.
+ *
+ * 	System clock for the Firebee is 133 MHZ.
+ *
+ * 	The SPICLK_FAST() example calculates as follows: baud rate = 133 MHz / 3 * 1 / 2 = 22,16 MHz
+ *  SPICLK_SLOW() should be between 100 and 400 kHz: 133 MHz / 1 * 1 / 1024 = 129 kHz
+ */
 #define SPICLK_FAST() { MCF_DSPI_DCTAR0 = MCF_DSPI_DCTAR_TRSZ(0b111) |	/* transfer size = 8 bit */ \
-					  MCF_DSPI_DCTAR_PCSSCK(0b01) |	/* 1 clock DSPICS to DSPISCK delay prescaler */ \
-					  MCF_DSPI_DCTAR_PASC_3CLK |	/* 1 clock DSPISCK to DSPICS negation prescaler */ \
-					  MCF_DSPI_DCTAR_PDT_3CLK |		/* 1 clock delay between DSPICS assertions prescaler */ \
-					  MCF_DSPI_DCTAR_PBR_3CLK |		/* 3 clock Baudrate prescaler */ \
+					  MCF_DSPI_DCTAR_PCSSCK(0b01) |	/* 3 clock DSPICS to DSPISCK delay prescaler */ \
+					  MCF_DSPI_DCTAR_PASC_1CLK |	/* 3 clock DSPISCK to DSPICS negation prescaler */ \
+					  MCF_DSPI_DCTAR_PDT_1CLK |		/* 3 clock delay between DSPICS assertions prescaler */ \
+					  MCF_DSPI_DCTAR_PBR_3CLK |		/* 3 clock baudrate prescaler */ \
 					  MCF_DSPI_DCTAR_ASC(0b0001) |	/* 2 */ \
 					  MCF_DSPI_DCTAR_DT(0b0010) |	/* 2 */ \
 					  MCF_DSPI_DCTAR_BR(0b0000); }	/* clock / 2 */
 
 #define SPICLK_SLOW() { MCF_DSPI_DCTAR0 = MCF_DSPI_DCTAR_TRSZ(0b111) |	/* transfer size = 8 bit */ \
-					  MCF_DSPI_DCTAR_PCSSCK(0b01) |	/* 3 clock DSPICS to DSPISCK delay prescaler */ \
-					  MCF_DSPI_DCTAR_PASC_3CLK |	/* 3 clock DSPISCK to DSPICS negation prescaler */ \
-					  MCF_DSPI_DCTAR_PDT_3CLK |		/* 3 clock delay between DSPICS assertions prescaler */ \
-					  MCF_DSPI_DCTAR_PBR_3CLK |		/* 3 clock prescaler */ \
-					  MCF_DSPI_DCTAR_ASC(0b1001) |	/* 1024 */ \
-					  MCF_DSPI_DCTAR_DT(0b1001) |	/* 1024 */ \
+					  MCF_DSPI_DCTAR_PCSSCK(0b11) |	/* 3 clock DSPICS to DSPISCK delay prescaler */ \
+					  MCF_DSPI_DCTAR_PASC_7CLK |	/* 3 clock DSPISCK to DSPICS negation prescaler */ \
+					  MCF_DSPI_DCTAR_PDT_7CLK |		/* 3 clock delay between DSPICS assertions prescaler */ \
+					  MCF_DSPI_DCTAR_PBR_1CLK |		/* 1 clock baudrate prescaler */ \
+					  MCF_DSPI_DCTAR_ASC(0b0001) |	/* 2 */ \
+					  MCF_DSPI_DCTAR_DT(0b0010) |	/* 2 */ \
 					  MCF_DSPI_DCTAR_BR(0b0111); }
 
 
@@ -86,24 +96,26 @@ static uint8_t CardType;			/* Card type flags */
 /* Send/Receive data to the MMC  (Platform dependent)                    */
 /*-----------------------------------------------------------------------*/
 
-static uint32_t dspi_fifo_val = /* CONT disable continous chip select */
+static uint32_t dspi_fifo_val = // MCF_DSPI_DTFR_CONT |	/* enable continous chip select */
 								/* CTAS use DCTAR0 for clock and attributes */
-								MCF_DSPI_DTFR_EOQ | /* current transfer is last in queue */
 								MCF_DSPI_DTFR_CTCNT;
 
 /* Exchange a byte */
-static uint8_t xchg_spi(uint8_t byte)
+static uint8_t xchg_spi(uint8_t byte, int last)
 {
 	uint32_t fifo = dspi_fifo_val | byte;
 	uint8_t res;
 
+	fifo |= (last ? 0 : MCF_DSPI_DTFR_CONT);				/* leave chip selects asserted during multiple transfers */
+	fifo |= (last ? MCF_DSPI_DTFR_EOQ : 0);					/* mark last transfer */
 	MCF_DSPI_DTFR = fifo;
-	while (! (MCF_DSPI_DSR & MCF_DSPI_DSR_TCF));	/* wait until DSPI transfer complete */
-	MCF_DSPI_DSR = 0xffffffff;							/* clear DSPI status register */
+	while (! (MCF_DSPI_DSR & MCF_DSPI_DSR_TCF));			/* wait until DSPI transfer complete */
 
-	fifo = MCF_DSPI_DRFR;
+	fifo = MCF_DSPI_DRFR;									/* read transferred word */
+	MCF_DSPI_DSR = 0xffffffff; 								/* clear DSPI status register */
 
 	res = fifo & 0xff;
+
 	return res;
 }
 
@@ -117,8 +129,9 @@ static void rcvr_spi_multi(uint8_t *buff, uint32_t count)
 {
 	int i;
 
-	for (i = 0; i < count; i++)
-		*buff++ = xchg_spi(0xff);
+	for (i = 0; i < count - 1; i++)
+		*buff++ = xchg_spi(0xff, 0);
+	*buff++ = xchg_spi(0xff, 1); 		/* transfer last byte and stop transmission */
 }
 
 
@@ -132,8 +145,9 @@ static void xmit_spi_multi(const uint8_t *buff, uint32_t btx)
 {
 	int i;
 
-	for (i = 0; i < btx; i++)
-		xchg_spi(*buff++);
+	for (i = 0; i < btx - 1; i++)
+		xchg_spi(*buff++, 0);
+	xchg_spi(*buff++, 1);				/* transfer last byte and indicate end of transmission */
 }
 #endif
 
@@ -142,7 +156,7 @@ static bool card_ready(void)
 {
 	uint8_t d;
 
-	d = xchg_spi(0xff);
+	d = xchg_spi(0xff, 1);
 	return (d == 0xff);
 }
 
@@ -165,7 +179,7 @@ static int wait_ready(uint32_t wt)
 static void deselect(void)
 {
 	CS_HIGH();
-	xchg_spi(0xFF);	/* Dummy clock (force DO hi-z for multiple slave SPI) */
+	xchg_spi(0xFF, 1);	/* Dummy clock (force DO hi-z for multiple slave SPI) */
 }
 
 
@@ -178,7 +192,7 @@ static int select(void)	/* 1:OK, 0:Timeout */
 {
 	CS_LOW();
 
-	xchg_spi(0xFF);	/* Dummy clock (force DO enabled) */
+	xchg_spi(0xFF, 1);	/* Dummy clock (force DO enabled) */
 
 	if (wait_ready(5000000))
 		return 1;	/* OK */
@@ -191,37 +205,24 @@ static int select(void)	/* 1:OK, 0:Timeout */
 /*
  * Control SPI module (Platform dependent)
  */
-static void power_on (void)	/* Enable SSP module */
+static void power_on(void)	/* Enable SSP module */
 {
 	MCF_PAD_PAR_DSPI = 0x1fff;			/* configure all DSPI GPIO pins for DSPI usage */
-
-	/*
-	 * FIXME: really necessary or just an oversight
-	 * that PAD_PAR_DSPI is only 16 bit?
-	 */
-	// MCF_PAD_PAR_TIMER = 0xff; leave off for now
 
 	/*
 	 * initialize DSPI module configuration register
 	 */
 	MCF_DSPI_DMCR = MCF_DSPI_DMCR_MSTR |	/* FireBee is DSPI master*/
-				MCF_DSPI_DMCR_CSIS5 |			/* CS5 inactive state high */
-				MCF_DSPI_DMCR_CSIS3 |			/* CS3 inactive state high */
-				MCF_DSPI_DMCR_CSIS2 |			/* CS2 inactive state high */
-				MCF_DSPI_DMCR_DTXF |				/* disable transmit FIFO */
-				MCF_DSPI_DMCR_DRXF |				/* disable receive FIFO */
-				MCF_DSPI_DMCR_CTXF |				/* clear transmit FIFO */
-				MCF_DSPI_DMCR_CRXF;				/* clear receive FIFO */
+				MCF_DSPI_DMCR_CSIS5 |		/* CS5 inactive state high */
+				MCF_DSPI_DMCR_CSIS3 |		/* CS3 inactive state high */
+				MCF_DSPI_DMCR_CSIS2 |		/* CS2 inactive state high */
+				MCF_DSPI_DMCR_DTXF |		/* disable transmit FIFO */
+				MCF_DSPI_DMCR_DRXF |		/* disable receive FIFO */
+				MCF_DSPI_DMCR_CTXF |		/* clear transmit FIFO */
+				MCF_DSPI_DMCR_CRXF;			/* clear receive FIFO */
 
 	/* initialize DSPI clock and transfer attributes register 0 */
-	MCF_DSPI_DCTAR0 = MCF_DSPI_DCTAR_TRSZ(0b111) |		/* transfer size = 8 bit */
-					  MCF_DSPI_DCTAR_PCSSCK(0b01) |			/* 3 clock DSPICS to DSPISCK delay prescaler */
-					  MCF_DSPI_DCTAR_PASC_3CLK |				/* 3 clock DSPISCK to DSPICS negation prescaler */
-					  MCF_DSPI_DCTAR_PDT_3CLK |				/* 3 clock delay between DSPICS assertions prescaler */
-					  MCF_DSPI_DCTAR_PBR_3CLK |				/* 3 clock prescaler */
-					  MCF_DSPI_DCTAR_ASC(0b1001) |			/* 1024 */
-					  MCF_DSPI_DCTAR_DT(0b1001) |				/* 1024 */
-					  MCF_DSPI_DCTAR_BR(0b0111);
+	SPICLK_SLOW();
 
 	CS_HIGH();					/* Set CS# high */
 
@@ -249,18 +250,24 @@ int rcvr_datablock (	/* 1:OK, 0:Error */
 )
 {
 	uint8_t token;
-	uint32_t target = MCF_SLT_SCNT(0) - (400 * 1000L * 132);
+	int32_t target = MCF_SLT_SCNT(0) - (200L * 1000L * 132L);
 
-	do {							/* Wait for DataStart token in timeout of 200ms */
-		token = xchg_spi(0xFF);
+	do {								/* Wait for DataStart token in timeout of 200ms */
+		token = xchg_spi(0xFF, 0);
 		/* This loop will take a time. Insert rot_rdq() here for multitask envilonment. */
 	} while ((token == 0xFF) && MCF_SLT_SCNT(0) > target);
-	if(token != 0xFE) return 0;		/* Function fails if invalid DataStart token or timeout */
+	if (token != 0xFE)
+	{
+		xprintf("invalid token in rcvr_datablock()!\r\n");
+		return 0;		/* Function fails if invalid DataStart token or timeout */
+	}
 
-	rcvr_spi_multi(buff, btr);		/* Store trailing data to the buffer */
-	xchg_spi(0xFF); xchg_spi(0xFF);			/* Discard CRC */
+	rcvr_spi_multi(buff, btr);						/* Store trailing data to the buffer */
 
-	return 1;						/* Function succeeded */
+	xchg_spi(0xFF, 1);
+	xchg_spi(0xFF, 1);			/* Discard CRC */
+
+	return 1;										/* Function succeeded */
 }
 
 
@@ -281,12 +288,12 @@ int xmit_datablock (	/* 1:OK, 0:Failed */
 
 	if (!wait_ready(500)) return 0;		/* Wait for card ready */
 
-	xchg_spi(token);					/* Send token */
+	xchg_spi(token, 1);					/* Send token */
 	if (token != 0xFD) {				/* Send data if token is other than StopTran */
 		xmit_spi_multi(buff, 512);		/* Data */
-		xchg_spi(0xFF); xchg_spi(0xFF);	/* Dummy CRC */
+		xchg_spi(0xFF, 1); xchg_spi(0xFF, 1);	/* Dummy CRC */
 
-		resp = xchg_spi(0xFF);				/* Receive data resp */
+		resp = xchg_spi(0xFF, 1);				/* Receive data resp */
 		if ((resp & 0x1F) != 0x05)		/* Function fails if the data packet was not accepted */
 			return 0;
 	}
@@ -318,21 +325,21 @@ static uint8_t send_cmd (		/* Return value: R1 resp (bit7==1:Failed to send) */
 	if (!select()) return 0xFF;
 
 	/* Send command packet */
-	xchg_spi(0x40 | cmd);				/* Start + command index */
-	xchg_spi((uint8_t)(arg >> 24));		/* Argument[31..24] */
-	xchg_spi((uint8_t)(arg >> 16));		/* Argument[23..16] */
-	xchg_spi((uint8_t)(arg >> 8));			/* Argument[15..8] */
-	xchg_spi((uint8_t)arg);				/* Argument[7..0] */
-	n = 0x01;							/* Dummy CRC + Stop */
-	if (cmd == CMD0) n = 0x95;			/* Valid CRC for CMD0(0) */
-	if (cmd == CMD8) n = 0x87;			/* Valid CRC for CMD8(0x1AA) */
-	xchg_spi(n);
+	xchg_spi(0x40 | cmd, 0);				/* Start + command index */
+	xchg_spi((uint8_t)(arg >> 24), 0);		/* Argument[31..24] */
+	xchg_spi((uint8_t)(arg >> 16), 0);		/* Argument[23..16] */
+	xchg_spi((uint8_t)(arg >> 8), 0);			/* Argument[15..8] */
+	xchg_spi((uint8_t)arg, 1);				/* Argument[7..0] */
+	n = 0x01;								/* Dummy CRC + Stop */
+	if (cmd == CMD0) n = 0x95;				/* Valid CRC for CMD0(0) */
+	if (cmd == CMD8) n = 0x87;				/* Valid CRC for CMD8(0x1AA) */
+	xchg_spi(n, 1);
 
 	/* Receive command resp */
-	if (cmd == CMD12) xchg_spi(0xFF);	/* Diacard following one byte when CMD12 */
-	n = 10;								/* Wait for response (10 bytes max) */
+	if (cmd == CMD12) xchg_spi(0xFF, 1);	/* Discard following one byte when CMD12 */
+	n = 10;									/* Wait for response (10 bytes max) */
 	do
-		res = xchg_spi(0xFF);
+		res = xchg_spi(0xFF, 1);
 	while ((res & 0x80) && --n);
 
 	return res;							/* Return received response */
@@ -357,45 +364,64 @@ DSTATUS disk_initialize(uint8_t drv)
 	uint8_t n, cmd, ty, ocr[4];
 
 
-	if (drv) return STA_NOINIT;			/* Supports only drive 0 */
+	if (drv)
+		return STA_NOINIT;			/* Supports only drive 0 */
 	power_on();							/* Initialize SPI */
 
-	if (Stat & STA_NODISK) return Stat;	/* Is card existing in the socket? */
+	if (Stat & STA_NODISK)
+		return Stat;	/* Is card existing in the socket? */
 
 	SPICLK_SLOW();
-	for (n = 10; n; n--) xchg_spi(0xFF);	/* Send 80 dummy clocks */
+
+	for (n = 10; n; n--)
+		xchg_spi(0xFF, 1);	/* Send 80 dummy clocks */
 
 	ty = 0;
 	if (send_cmd(CMD0, 0) == 1) {			/* Put the card SPI/Idle state */
-		uint32_t target = MCF_SLT_SCNT(0) - (1000L * 1000L * 132);	/* 1 sec */
+		int32_t target;
 
 		if (send_cmd(CMD8, 0x1AA) == 1) {	/* SDv2? */
-			for (n = 0; n < 4; n++) ocr[n] = xchg_spi(0xFF);	/* Get 32 bit return value of R7 resp */
-			if (ocr[2] == 0x01 && ocr[3] == 0xAA) {				/* Is the card supports vcc of 2.7-3.6V? */
+			for (n = 0; n < 4; n++)
+				ocr[n] = xchg_spi(0xFF, 1);	/* Get 32 bit return value of R7 resp */
+			if (ocr[2] == 0x01 && ocr[3] == 0xAA)
+			{
+				/* Is the card supports vcc of 2.7-3.6V? */
+				target = MCF_SLT_SCNT(0) - (1000L * 1000L * 132);	/* 1 sec */
 				while (MCF_SLT_SCNT(0) > target && send_cmd(ACMD41, 1UL << 30)) ;	/* Wait for end of initialization with ACMD41(HCS) */
+
+				target = MCF_SLT_SCNT(0) - (1000L * 1000L * 132);	/* 1 sec */
 				if (MCF_SLT_SCNT(0) > target && send_cmd(CMD58, 0) == 0) {		/* Check CCS bit in the OCR */
-					for (n = 0; n < 4; n++) ocr[n] = xchg_spi(0xFF);
+					for (n = 0; n < 4; n++)
+						ocr[n] = xchg_spi(0xFF, 1);
 					ty = (ocr[0] & 0x40) ? CT_SD2 | CT_BLOCK : CT_SD2;	/* Card id SDv2 */
 				}
 			}
-		} else {	/* Not SDv2 card */
-			if (send_cmd(ACMD41, 0) <= 1) 	{	/* SDv1 or MMC? */
-				ty = CT_SD1; cmd = ACMD41;	/* SDv1 (ACMD41(0)) */
+		}
+		else
+		{	/* Not SDv2 card */
+			if (send_cmd(ACMD41, 0) <= 1)
+			{	/* SDv1 or MMC? */
+				ty = CT_SD1;
+				cmd = ACMD41;	/* SDv1 (ACMD41(0)) */
 			} else {
-				ty = CT_MMC; cmd = CMD1;	/* MMCv3 (CMD1(0)) */
+				ty = CT_MMC;
+				cmd = CMD1;	/* MMCv3 (CMD1(0)) */
 			}
-			while (MCF_SLT_SCNT(0) > target && send_cmd(cmd, 0)) ;		/* Wait for end of initialization */
-			if (!MCF_SLT_SCNT(0) > target || send_cmd(CMD16, 512) != 0)	/* Set block length: 512 */
+			target = MCF_SLT_SCNT(0) - (1000L * 1000L * 132);			/* 1 sec */
+			while (MCF_SLT_SCNT(0) > target && send_cmd(cmd, 0));		/* Wait for end of initialization */
+
+			if (send_cmd(CMD16, 512) != 0)								/* Set block length: 512 */
 				ty = 0;
 		}
 	}
 	CardType = ty;	/* Card type */
 	deselect();
 
-	if (ty) {			/* OK */
+	if (ty) {					/* OK */
 		SPICLK_FAST();			/* Set fast clock */
 		Stat &= ~STA_NOINIT;	/* Clear STA_NOINIT flag */
-	} else {			/* Failed */
+	} else {	/* Failed */
+		xprintf("no card type detected in disk_initialize()\r\n");
 		power_off();
 		Stat = STA_NOINIT;
 	}
@@ -409,9 +435,7 @@ DSTATUS disk_initialize(uint8_t drv)
 /* Get disk status                                                       */
 /*-----------------------------------------------------------------------*/
 
-DSTATUS disk_status (
-	uint8_t drv		/* Physical drive number (0) */
-)
+DSTATUS disk_status(uint8_t drv)
 {
 	if (drv) return STA_NOINIT;		/* Supports only drive 0 */
 
@@ -549,9 +573,9 @@ DRESULT disk_ioctl (
 	case GET_BLOCK_SIZE :	/* Get erase block size in unit of sector (DWORD) */
 		if (CardType & CT_SD2) {	/* SDC ver 2.00 */
 			if (send_cmd(ACMD13, 0) == 0) {	/* Read SD status */
-				xchg_spi(0xFF);
+				xchg_spi(0xFF, 1);
 				if (rcvr_datablock(csd, 16)) {				/* Read partial block */
-					for (n = 64 - 16; n; n--) xchg_spi(0xFF);	/* Purge trailing data */
+					for (n = 64 - 16; n; n--) xchg_spi(0xFF, 1);	/* Purge trailing data */
 					*(uint32_t*)buff = 16UL << (csd[10] >> 4);
 					res = RES_OK;
 				}
@@ -601,14 +625,14 @@ DRESULT disk_ioctl (
 
 	case MMC_GET_OCR :		/* Read OCR (4 bytes) */
 		if (send_cmd(CMD58, 0) == 0) {	/* READ_OCR */
-			for (n = 4; n; n--) *ptr++ = xchg_spi(0xFF);
+			for (n = 4; n; n--) *ptr++ = xchg_spi(0xFF, 1);
 			res = RES_OK;
 		}
 		break;
 
 	case MMC_GET_SDSTAT :	/* Read SD status (64 bytes) */
 		if (send_cmd(ACMD13, 0) == 0) {	/* SD_STATUS */
-			xchg_spi(0xFF);
+			xchg_spi(0xFF, 1);
 			if (rcvr_datablock(ptr, 64))
 				res = RES_OK;
 		}

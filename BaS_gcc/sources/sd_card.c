@@ -86,9 +86,9 @@ void sd_card_init(void)
 				 */
 				uint32_t size;	/* length of code piece read */
 				uint32_t total_size = 0L;
-				uint32_t start_time = MCF_SLT_SCNT(0);
-				uint32_t end_time;
-				uint32_t time = 0;
+				int32_t start_time = MCF_SLT_SCNT(0);
+				int32_t end_time;
+				int32_t time = 0;
 
 				while ((fres = f_read(&file, (void *) FLASHCODE_ADDRESS, 1024 * 1000, &size)) == FR_OK && size > 0)
 				{

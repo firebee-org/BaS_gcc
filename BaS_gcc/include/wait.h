@@ -39,7 +39,7 @@ extern __inline__ bool waitfor(uint32_t us, checker_func condition) __attribute_
  */
 extern __inline__ void wait(uint32_t us)
 {
-	uint32_t target = MCF_SLT_SCNT(0) - (us * 132);
+	int32_t target = MCF_SLT_SCNT(0) - (us * 132);
 
 	while (MCF_SLT_SCNT(0) > target);
 }
@@ -50,7 +50,7 @@ extern __inline__ void wait(uint32_t us)
  */
 extern __inline__ bool waitfor(uint32_t us, checker_func condition)
 {
-	uint32_t target = MCF_SLT_SCNT(0) - (us * 132);
+	int32_t target = MCF_SLT_SCNT(0) - (us * 132);
 	uint32_t res;
 
 	do
