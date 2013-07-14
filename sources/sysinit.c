@@ -855,12 +855,12 @@ void initialize_hardware(void) {
 	//video_1280_1024();
 	init_ac97();
 
-#ifdef _NOT_USED_
-	/* copy the BaS code contained in flash to its final location */
-	src = (uint32_t *)BAS_LMA;
-	end = (uint32_t *)(BAS_LMA + BAS_SIZE);
-	dst = (uint32_t *)BAS_IN_RAM;
+	/* copy the BaS .data and .bss contained in flash to its final location */
+	src = (uint32_t *) BAS_LMA;
+	end = (uint32_t *) (BAS_LMA + BAS_SIZE);
+	dst = (uint32_t *) BAS_IN_RAM;
 
+	xprintf("copying BaS data (%p - %p) to RAM (%p)\r\n", src, end, dst);
 	/* The linker script will ensure that the Bas size
 	 * is a multiple of the following.
 	 */
@@ -871,12 +871,13 @@ void initialize_hardware(void) {
 		*dst++ = *src++;
 		*dst++ = *src++;
 	}
+	xprintf("finished.\r\n");
 
 	/* we have copied a code area, so flush the caches */
 	flush_and_invalidate_caches();
 
 	/* jump into the BaS in RAM */
-#endif /* _NOT_USED_ */
+
 	extern void BaS(void);
 	BaS();
 }
