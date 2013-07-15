@@ -24,6 +24,7 @@
 
 #include <MCF5475.h>
 #include "sysinit.h"
+#include <bas_printf.h>
 
 #define FPGA_STATUS		(1 << 0)
 #define FPGA_CLOCK		(1 << 1)
