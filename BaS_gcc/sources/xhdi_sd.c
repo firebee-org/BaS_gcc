@@ -126,7 +126,7 @@ uint32_t xhdi_read_write(uint16_t major, uint16_t minor, uint16_t rwflag,
 	if (major == MY_MAJOR)
 	{
 		do {
-			num_sectors = ((s_count > 128) ? 128 : s_count);
+			num_sectors = ((s_count > 63) ? 63 : s_count);
 
 			retries = 0;
 			do {
@@ -136,7 +136,7 @@ uint32_t xhdi_read_write(uint16_t major, uint16_t minor, uint16_t rwflag,
 					retries++;
 					if (retries < max_retries) continue;
 
-					xprintf("SD card R/W error at sector %lx: %d\r\n", recno, ret);
+					xprintf("SD card %s error at sector %lx: %d\r\n", (rwflag & 1) ? "write" : "read", recno, ret);
 					return ERROR;
 				}
 			} while (retries < max_retries && ret != RES_OK);
