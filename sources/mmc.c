@@ -245,15 +245,15 @@ static void power_off (void)		/* Disable SPI function */
 static int rcvr_datablock(uint8_t *buff, uint32_t btr)
 {
 	uint8_t token;
-	int32_t target = MCF_SLT_SCNT(0) - (200L * 1000L * 132L);
+	int32_t target = MCF_SLT_SCNT(0) - (500L * 1000L * 132L);
 
 	do {								/* Wait for DataStart token in timeout of 200ms */
 		token = xchg_spi(0xFF, 0);
-		/* This loop will take a time. Insert rot_rdq() here for multitask envilonment. */
+		/* This loop will take a time. Insert rot_rdq() here for multitask environment. */
 	} while ((token == 0xFF) && MCF_SLT_SCNT(0) > target);
 	if (token != 0xFE)
 	{
-		xprintf("invalid token in rcvr_datablock()!\r\n");
+		xprintf("invalid token (%x) in rcvr_datablock()!\r\n", token);
 		return 0;		/* Function fails if invalid DataStart token or timeout */
 	}
 
@@ -277,16 +277,24 @@ static int xmit_datablock(const uint8_t *buff, uint8_t token)
 	uint8_t resp;
 
 
-	if (!wait_ready(500)) return 0;		/* Wait for card ready */
+	if (!wait_ready(500 * 1000))
+	{
+		xprintf("card did not respond ready after 500 ms in xmit_datablock()\r\n");
+		return 0;		/* Wait for card ready */
+	}
 
 	xchg_spi(token, 1);					/* Send token */
 	if (token != 0xFD) {				/* Send data if token is other than StopTran */
 		xmit_spi_multi(buff, 512);		/* Data */
-		xchg_spi(0xFF, 1); xchg_spi(0xFF, 1);	/* Dummy CRC */
+		xchg_spi(0xFF, 1);
+		xchg_spi(0xFF, 1);				/* Dummy CRC */
 
-		resp = xchg_spi(0xFF, 1);				/* Receive data resp */
+		resp = xchg_spi(0xFF, 1);		/* Receive data resp */
 		if ((resp & 0x1F) != 0x05)		/* Function fails if the data packet was not accepted */
+		{
+			xprintf("card did not accept data packet in xmit_datablock()\r\n");
 			return 0;
+		}
 	}
 	return 1;
 }
@@ -299,32 +307,47 @@ static int xmit_datablock(const uint8_t *buff, uint8_t token)
 
 static uint8_t send_cmd(uint8_t cmd, uint32_t arg)
 {
-	uint8_t n, res;
+	int n;
+	int res;
 
-	if (cmd & 0x80) {	/* Send a CMD55 prior to ACMD<n> */
+	if (cmd & 0x80)
+	{	/* Send a CMD55 prior to ACMD<n> */
 		cmd &= 0x7F;
 		res = send_cmd(CMD55, 0);
-		if (res > 1) return res;
+		if (res > 1)
+			return res;
 	}
 
 	/* Select card */
 	deselect();
-	if (!select()) return 0xFF;
+	if (!select())
+		return 0xFF;
+
+	if (!wait_ready(500 * 1000))
+	{
+		xprintf("card did not respond ready after 500 ms in send_cmd()\r\n");
+		return 0xff;		/* Wait for card ready */
+	}
 
 	/* Send command packet */
 	xchg_spi(0x40 | cmd, 0);				/* Start + command index */
 	xchg_spi((uint8_t)(arg >> 24), 0);		/* Argument[31..24] */
 	xchg_spi((uint8_t)(arg >> 16), 0);		/* Argument[23..16] */
-	xchg_spi((uint8_t)(arg >> 8), 0);			/* Argument[15..8] */
+	xchg_spi((uint8_t)(arg >> 8), 0);		/* Argument[15..8] */
 	xchg_spi((uint8_t)arg, 1);				/* Argument[7..0] */
+
 	n = 0x01;								/* Dummy CRC + Stop */
-	if (cmd == CMD0) n = 0x95;				/* Valid CRC for CMD0(0) */
-	if (cmd == CMD8) n = 0x87;				/* Valid CRC for CMD8(0x1AA) */
-	xchg_spi(n, 1);
+	if (cmd == CMD0)
+		n = 0x95;				/* Valid CRC for CMD0(0) */
+	if (cmd == CMD8)
+		n = 0x87;				/* Valid CRC for CMD8(0x1AA) */
+	xchg_spi(n, 0);
 
 	/* Receive command resp */
-	if (cmd == CMD12) xchg_spi(0xFF, 1);	/* Discard following one byte when CMD12 */
-	n = 10;									/* Wait for response (10 bytes max) */
+	if (cmd == CMD12)
+		xchg_spi(0xFF, 0);	/* Discard following one byte when CMD12 */
+
+	n = 10000;				/* Wait for response (1000 bytes max) */
 	do
 		res = xchg_spi(0xFF, 1);
 	while ((res & 0x80) && --n);
@@ -440,7 +463,7 @@ DRESULT disk_read(uint8_t drv, uint8_t *buff, uint32_t sector, uint8_t count)
 	if (drv || !count) return RES_PARERR;		/* Check parameter */
 	if (Stat & STA_NOINIT) return RES_NOTRDY;	/* Check if drive is ready */
 
-	if (!(CardType & CT_BLOCK)) sector *= 512;	/* LBA ot BA conversion (byte addressing cards) */
+	if (!(CardType & CT_BLOCK)) sector *= 512;	/* LBA or BA conversion (byte addressing cards) */
 
 	if (count == 1) {	/* Single sector read */
 		if ((send_cmd(CMD17, sector) == 0)	/* READ_SINGLE_BLOCK */
@@ -470,29 +493,56 @@ DRESULT disk_read(uint8_t drv, uint8_t *buff, uint32_t sector, uint8_t count)
 #if _USE_WRITE
 DRESULT disk_write(uint8_t drv,	const uint8_t *buff, uint32_t sector, uint8_t count)
 {
+	int res;
+
 	if (drv || !count) return RES_PARERR;		/* Check parameter */
 	if (Stat & STA_NOINIT) return RES_NOTRDY;	/* Check drive status */
 	if (Stat & STA_PROTECT) return RES_WRPRT;	/* Check write protect */
 
-	if (!(CardType & CT_BLOCK)) sector *= 512;	/* LBA ==> BA conversion (byte addressing cards) */
+	if (!(CardType & CT_BLOCK))
+	{
+		sector *= 512;	/* LBA ==> BA conversion (byte addressing cards) */
+	}
 
-	if (count == 1) {	/* Single sector write */
-		if ((send_cmd(CMD24, sector) == 0)	/* WRITE_BLOCK */
-			&& xmit_datablock(buff, 0xFE))
+	if (count == 1)
+	{	/* Single sector write */
+		res = send_cmd(CMD24, sector);
+		if (res == 0)
+		{
 			count = 0;
+		}
+		else
+			xprintf("send_cmd(CMD24, ...) failed in disk_write()\r\n");
+
+		if (xmit_datablock(buff, 0xFE))
+		{
+			count = 0;
+		}
+		else
+		{
+			xprintf("xmit_datablock(buff, ...) failed in disk_write()\r\n");
+		}
 	}
 	else {				/* Multiple sector write */
 		if (CardType & CT_SDC) send_cmd(ACMD23, count);	/* Predefine number of sectors */
-		if (send_cmd(CMD25, sector) == 0) {	/* WRITE_MULTIPLE_BLOCK */
-			do {
+		if (send_cmd(CMD25, sector) == 0)
+		{	/* WRITE_MULTIPLE_BLOCK */
+			do
+			{
 				if (!xmit_datablock(buff, 0xFC)) break;
 				buff += 512;
 			} while (--count);
+
 			if (!xmit_datablock(0, 0xFD))	/* STOP_TRAN token */
+			{
 				count = 1;
+			}
 		}
 	}
 	deselect();
+
+	if (count)
+		xprintf("disk_write() failed (count=%d)\r\n", count);
 
 	return count ? RES_ERROR : RES_OK;	/* Return result */
 }
