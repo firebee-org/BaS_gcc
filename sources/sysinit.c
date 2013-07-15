@@ -359,7 +359,7 @@ void init_fbcs()
 
 void wait_pll(void)
 {
-	uint32_t trgt = MCF_SLT0_SCNT - 100000;
+	int32_t trgt = MCF_SLT0_SCNT - 100000;
 	do
 	{
 		;
