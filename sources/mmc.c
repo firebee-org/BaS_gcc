@@ -251,6 +251,13 @@ static int rcvr_datablock(uint8_t *buff, uint32_t btr)
 		token = xchg_spi(0xFF, 0);
 		/* This loop will take a time. Insert rot_rdq() here for multitask environment. */
 	} while ((token == 0xFF) && MCF_SLT_SCNT(0) > target);
+
+	if (token == 0xff)
+	{
+		xprintf("no data start token received after 500ms in rcvr_datablock\r\n");
+		return 0;
+	}
+
 	if (token != 0xFE)
 	{
 		xprintf("invalid token (%x) in rcvr_datablock()!\r\n", token);
@@ -296,6 +303,9 @@ static int xmit_datablock(const uint8_t *buff, uint8_t token)
 			return 0;
 		}
 	}
+
+	wait_ready(30000);
+
 	return 1;
 }
 #endif
