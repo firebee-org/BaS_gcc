@@ -35,23 +35,25 @@
  * 	The SPICLK_FAST() example calculates as follows: baud rate = 133 MHz / 3 * 1 / 2 = 22,16 MHz
  *  SPICLK_SLOW() should be between 100 and 400 kHz: 133 MHz / 1 * 1 / 1024 = 129 kHz
  */
-#define SPICLK_FAST() { MCF_DSPI_DCTAR0 = MCF_DSPI_DCTAR_TRSZ(0b111) |	/* transfer size = 8 bit */ \
+#define SPICLK_FAST() { MCF_DSPI_DCTAR0 = MCF_DSPI_DCTAR_TRSZ(0b0111) |	/* transfer size = 8 bit */ \
 					  MCF_DSPI_DCTAR_PCSSCK(0b01) |	/* 3 clock DSPICS to DSPISCK delay prescaler */ \
-					  MCF_DSPI_DCTAR_PASC_1CLK |	/* 3 clock DSPISCK to DSPICS negation prescaler */ \
-					  MCF_DSPI_DCTAR_PDT_1CLK |		/* 3 clock delay between DSPICS assertions prescaler */ \
+					  MCF_DSPI_DCTAR_PASC_3CLK |	/* 3 clock DSPISCK to DSPICS negation prescaler */ \
+					  MCF_DSPI_DCTAR_PDT_3CLK |		/* 3 clock delay between DSPICS assertions prescaler */ \
 					  MCF_DSPI_DCTAR_PBR_3CLK |		/* 3 clock baudrate prescaler */ \
+					  MCF_DSPI_DCTAR_CSSCK(8) |		/* delay scaler * 512 */\
 					  MCF_DSPI_DCTAR_ASC(0b0001) |	/* 2 */ \
 					  MCF_DSPI_DCTAR_DT(0b0010) |	/* 2 */ \
 					  MCF_DSPI_DCTAR_BR(0b0000); }	/* clock / 2 */
 
 #define SPICLK_SLOW() { MCF_DSPI_DCTAR0 = MCF_DSPI_DCTAR_TRSZ(0b111) |	/* transfer size = 8 bit */ \
-					  MCF_DSPI_DCTAR_PCSSCK(0b11) |	/* 3 clock DSPICS to DSPISCK delay prescaler */ \
-					  MCF_DSPI_DCTAR_PASC_7CLK |	/* 3 clock DSPISCK to DSPICS negation prescaler */ \
-					  MCF_DSPI_DCTAR_PDT_7CLK |		/* 3 clock delay between DSPICS assertions prescaler */ \
-					  MCF_DSPI_DCTAR_PBR_1CLK |		/* 1 clock baudrate prescaler */ \
-					  MCF_DSPI_DCTAR_ASC(0b0001) |	/* 2 */ \
-					  MCF_DSPI_DCTAR_DT(0b0010) |	/* 2 */ \
-					  MCF_DSPI_DCTAR_BR(0b0111); }
+					  MCF_DSPI_DCTAR_PCSSCK(0b01) |	/* 3 clock DSPICS to DSPISCK delay prescaler */ \
+					  MCF_DSPI_DCTAR_PASC_3CLK |	/* 3 clock DSPISCK to DSPICS negation prescaler */ \
+					  MCF_DSPI_DCTAR_PDT_3CLK |		/* 3 clock delay between DSPICS assertions prescaler */ \
+					  MCF_DSPI_DCTAR_PBR_3CLK |		/* 1 clock baudrate prescaler */ \
+					  MCF_DSPI_DCTAR_CSSCK(8) |		/* delay scaler * 512 */\
+					  MCF_DSPI_DCTAR_ASC(8) |	/* 2 */ \
+					  MCF_DSPI_DCTAR_DT(9) |	/* 2 */ \
+					  MCF_DSPI_DCTAR_BR(7); }
 
 
 
@@ -91,28 +93,31 @@ static volatile DSTATUS Stat = 0 /* STA_NOINIT */;	/* Physical drive status */
 static uint8_t CardType;			/* Card type flags */
 
 
+static uint32_t dspi_fifo_val = // MCF_DSPI_DTFR_CONT |	/* enable continous chip select */
+								/* CTAS use DCTAR0 for clock and attributes */
+								MCF_DSPI_DTFR_CTCNT;
+
 
 /*-----------------------------------------------------------------------*/
 /* Send/Receive data to the MMC  (Platform dependent)                    */
 /*-----------------------------------------------------------------------*/
 
-static uint32_t dspi_fifo_val = // MCF_DSPI_DTFR_CONT |	/* enable continous chip select */
-								/* CTAS use DCTAR0 for clock and attributes */
-								MCF_DSPI_DTFR_CTCNT;
-
-/* Exchange a byte */
+/*
+ * Exchange a byte. If last is false (0), there will be more bytes to follow (EOQ flag in DTFR left unset)
+ */
 static uint8_t xchg_spi(uint8_t byte, int last)
 {
-	uint32_t fifo = dspi_fifo_val | byte;
+	uint32_t fifo;
 	uint8_t res;
 
-	fifo |= (last ? 0 : MCF_DSPI_DTFR_CONT);				/* leave chip selects asserted during multiple transfers */
-	fifo |= (last ? MCF_DSPI_DTFR_EOQ : 0);					/* mark last transfer */
+	fifo =  byte & 0xff;							/* transfer bytes only */
+	fifo |= (last ? 0 : MCF_DSPI_DTFR_CONT);		/* leave chip selects asserted during multiple transfers */
+	fifo |= (last ? MCF_DSPI_DTFR_EOQ : 0);			/* mark last transfer */
 	MCF_DSPI_DTFR = fifo;
-	while (! (MCF_DSPI_DSR & MCF_DSPI_DSR_TCF));			/* wait until DSPI transfer complete */
+	while (! (MCF_DSPI_DSR & MCF_DSPI_DSR_TCF));	/* wait until DSPI transfer complete */
+	fifo = MCF_DSPI_DRFR;							/* read transferred word */
 
-	fifo = MCF_DSPI_DRFR;									/* read transferred word */
-	MCF_DSPI_DSR = 0xffffffff; 								/* clear DSPI status register */
+	MCF_DSPI_DSR = -1;		 						/* clear DSPI status register */
 
 	res = fifo & 0xff;
 
@@ -216,6 +221,7 @@ static void power_on(void)	/* Enable SSP module */
 				MCF_DSPI_DMCR_CSIS5 |		/* CS5 inactive state high */
 				MCF_DSPI_DMCR_CSIS3 |		/* CS3 inactive state high */
 				MCF_DSPI_DMCR_CSIS2 |		/* CS2 inactive state high */
+				MCF_DSPI_DMCR_CSIS0 |		/* CS0 inactive state high */
 				MCF_DSPI_DMCR_DTXF |		/* disable transmit FIFO */
 				MCF_DSPI_DMCR_DRXF |		/* disable receive FIFO */
 				MCF_DSPI_DMCR_CTXF |		/* clear transmit FIFO */
