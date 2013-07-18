@@ -186,11 +186,25 @@ uint32_t xhdi_get_capacity(uint16_t major, uint16_t minor, uint32_t *blocks, uin
 {
 	if (major == MY_MAJOR)
 	{
-		if (disk_ioctl(0, GET_SECTOR_COUNT, blocks) != RES_OK)
-			return ERROR;
-		if (disk_ioctl(0, GET_SECTOR_SIZE, bs) != RES_OK)
-			return ERROR;
-		*bs = 512;
+		if (blocks != 0)
+		{
+			if (disk_ioctl(0, GET_SECTOR_COUNT, blocks) != RES_OK)
+			{
+				xprintf("disk_ioctl(0, GET_SECTOR_COUNT, %p) failed in xhdi_get_capacity()\r\n");
+
+				return ERROR;
+			}
+		}
+
+		if (bs != 0)
+		{
+			if (disk_ioctl(0, GET_SECTOR_SIZE, bs) != RES_OK)
+			{
+				xprintf("disk_ioctl(0, GET_SECTOR_SIZE, %p) failed in xhdi_get_capacity()\r\n");
+
+				return ERROR;
+			}
+		}
 		return E_OK;
 	}
 	return EUNDEV;
