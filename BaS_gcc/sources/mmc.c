@@ -40,7 +40,7 @@
 					  MCF_DSPI_DCTAR_PASC_3CLK |	/* 3 clock DSPISCK to DSPICS negation prescaler */ \
 					  MCF_DSPI_DCTAR_PDT_3CLK |		/* 3 clock delay between DSPICS assertions prescaler */ \
 					  MCF_DSPI_DCTAR_PBR_3CLK |		/* 3 clock baudrate prescaler */ \
-					  MCF_DSPI_DCTAR_CSSCK(8) |		/* delay scaler * 512 */\
+					  MCF_DSPI_DCTAR_CSSCK(1) |		/* delay scaler * 4 */\
 					  MCF_DSPI_DCTAR_ASC(0b0001) |	/* 2 */ \
 					  MCF_DSPI_DCTAR_DT(0b0010) |	/* 2 */ \
 					  MCF_DSPI_DCTAR_BR(0b0000); }	/* clock / 2 */
