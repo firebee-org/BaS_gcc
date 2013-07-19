@@ -387,11 +387,12 @@ static uint8_t send_cmd(uint8_t cmd, uint32_t arg)
  */
 DSTATUS disk_initialize(uint8_t drv)
 {
-	uint8_t n, cmd, ty, ocr[4];
+	uint8_t n, cmd, card_type, ocr[4];
 
 
 	if (drv)
 		return STA_NOINIT;			/* Supports only drive 0 */
+
 	power_on();							/* Initialize SPI */
 
 	if (Stat & STA_NODISK)
@@ -402,7 +403,7 @@ DSTATUS disk_initialize(uint8_t drv)
 	for (n = 10; n; n--)
 		xchg_spi(0xFF, 1);	/* Send 80 dummy clocks */
 
-	ty = 0;
+	card_type = 0;
 	if (send_cmd(CMD0, 0) == 1) {			/* Put the card SPI/Idle state */
 		int32_t target;
 
@@ -419,7 +420,7 @@ DSTATUS disk_initialize(uint8_t drv)
 				if (MCF_SLT_SCNT(0) > target && send_cmd(CMD58, 0) == 0) {		/* Check CCS bit in the OCR */
 					for (n = 0; n < 4; n++)
 						ocr[n] = xchg_spi(0xFF, 1);
-					ty = (ocr[0] & 0x40) ? CT_SD2 | CT_BLOCK : CT_SD2;	/* Card id SDv2 */
+					card_type = (ocr[0] & 0x40) ? CT_SD2 | CT_BLOCK : CT_SD2;	/* Card id SDv2 */
 				}
 			}
 		}
@@ -427,23 +428,23 @@ DSTATUS disk_initialize(uint8_t drv)
 		{	/* Not SDv2 card */
 			if (send_cmd(ACMD41, 0) <= 1)
 			{	/* SDv1 or MMC? */
-				ty = CT_SD1;
+				card_type = CT_SD1;
 				cmd = ACMD41;	/* SDv1 (ACMD41(0)) */
 			} else {
-				ty = CT_MMC;
+				card_type = CT_MMC;
 				cmd = CMD1;	/* MMCv3 (CMD1(0)) */
 			}
 			target = MCF_SLT_SCNT(0) - (1000L * 1000L * 132);			/* 1 sec */
 			while (MCF_SLT_SCNT(0) > target && send_cmd(cmd, 0));		/* Wait for end of initialization */
 
 			if (send_cmd(CMD16, 512) != 0)								/* Set block length: 512 */
-				ty = 0;
+				card_type = 0;
 		}
 	}
-	CardType = ty;	/* Card type */
+	CardType = card_type;	/* Card type */
 	deselect();
 
-	if (ty) {					/* OK */
+	if (card_type) {					/* OK */
 		SPICLK_FAST();			/* Set fast clock */
 		Stat &= ~STA_NOINIT;	/* Clear STA_NOINIT flag */
 	} else {	/* Failed */
