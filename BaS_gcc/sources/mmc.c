@@ -22,8 +22,8 @@
 /* Copyright (C) 2012, mfro, all rights reserved. */
 
 
-#define	CS_HIGH()	{ dspi_fifo_val &= ~MCF_DSPI_DTFR_CS5; }
-#define	CS_LOW()	{ dspi_fifo_val |= MCF_DSPI_DTFR_CS5; }
+#define	CS_LOW()	{ dspi_fifo_val &= ~MCF_DSPI_DTFR_CS5; }
+#define	CS_HIGH()	{ dspi_fifo_val |= MCF_DSPI_DTFR_CS5; }
 
 /*
  * DCTAR_PBR (baud rate prescaler) and DCTAR_BR (baud rate scaler) together determine the SPI baud rate. The forumula is
