@@ -24,7 +24,9 @@
 *********************************************************************/
 
 /* Register read/write macros */
-#define MCF_MMU_MMUCR                        (*(volatile uint32_t*)(&_MMUBAR[0]))
+
+/* note the uint32_t_a - this is to avoid gcc warnings about pointer aliasing */
+#define MCF_MMU_MMUCR                        (*(volatile uint32_t_a*)(&_MMUBAR[0]))
 #define MCF_MMU_MMUOR                        (*(volatile uint32_t*)(&_MMUBAR[0x4]))
 #define MCF_MMU_MMUSR                        (*(volatile uint32_t*)(&_MMUBAR[0x8]))
 #define MCF_MMU_MMUAR                        (*(volatile uint32_t*)(&_MMUBAR[0x10]))
