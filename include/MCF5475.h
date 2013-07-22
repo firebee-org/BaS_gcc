@@ -23,6 +23,8 @@
  * linker symbols must be defined in the linker command file.
  */
 
+typedef uint32_t __attribute__((__may_alias__)) uint32_t_a;
+
 extern uint8_t _MBAR[];
 extern uint8_t _MMUBAR[];
 extern uint8_t _RAMBAR0[];
