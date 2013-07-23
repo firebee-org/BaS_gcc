@@ -208,7 +208,7 @@ void BaS(void)
 	xprintf("finished\r\n");
 
 	MCF_MMU_MMUCR = MCF_MMU_MMUCR_EN;	/* MMU on */
-	NOP();	/* force pipeline sync */
+	NOP();								/* force pipeline sync */
 
 	xprintf("IDE reset: ");
 	/* IDE reset */
