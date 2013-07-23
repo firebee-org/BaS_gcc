@@ -48,5 +48,20 @@
 /* Bit definitions and macros for MCF_SIU_JTAGID */
 #define MCF_SIU_JTAGID_JTAGID(x)             (((x)&0xFFFFFFFF)<<0)
 
+/* Bit definitions and macros for MCF_SIU_JTAGID */
+#define MCF_SIU_JTAGID_REV          (0xF0000000)
+#define MCF_SIU_JTAGID_PROCESSOR    (0x0FFFFFFF)
+#define MCF_SIU_JTAGID_MCF5485      (0x0800C01D)
+#define MCF_SIU_JTAGID_MCF5484      (0x0800D01D)
+#define MCF_SIU_JTAGID_MCF5483      (0x0800E01D)
+#define MCF_SIU_JTAGID_MCF5482      (0x0800F01D)
+#define MCF_SIU_JTAGID_MCF5481      (0x0801001D)
+#define MCF_SIU_JTAGID_MCF5480      (0x0801101D)
+#define MCF_SIU_JTAGID_MCF5475      (0x0801201D)
+#define MCF_SIU_JTAGID_MCF5474      (0x0801301D)
+#define MCF_SIU_JTAGID_MCF5473      (0x0801401D)
+#define MCF_SIU_JTAGID_MCF5472      (0x0801501D)
+#define MCF_SIU_JTAGID_MCF5471      (0x0801601D)
+#define MCF_SIU_JTAGID_MCF5470      (0x0801701D)
 
 #endif /* __MCF5475_SIU_H__ */
