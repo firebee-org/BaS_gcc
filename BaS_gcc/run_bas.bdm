@@ -1,4 +1,4 @@
-#!/usr/local/bin/bdmctrl -D2
+#!/usr/local/bin/bdmctrl -D2 -v9 -d9
 #
 # firebee board initialization for bdmctrl 
 #
@@ -6,44 +6,36 @@ open $1
 reset
 sleep 10
 
-wait
-
 # set VBR
-#write-ctrl 0x0801 0x00000000
-sleep 10
+write-ctrl 0x0801 0x00000000
 # Turn on MBAR at 0xFF00_0000
 write-ctrl 0x0C0F 0xFF000000
-
-# Turn on MMUBAR at 0xFF04_0000
-write-ctrl 0x0008	0xFF040001
-
 # Turn on RAMBAR0 at address FF10_0000 
 write-ctrl 0x0C04 0xFF100007
-sleep 10
 # Turn on RAMBAR1 at address FF10_1000 
 write-ctrl 0x0C05 0xFF101001
-sleep 10
 
 # Init CS0 (BootFLASH @ E000_0000 - E07F_FFFF 8Mbytes)
 write 0xFF000500 0xE0000000 4
-write 0xFF000508 0x00001180 4
+write 0xFF000508 0x00041180 4
 write 0xFF000504 0x007F0001 4
+
 # Init CS1 (Atari I/O address range)
-write 0xFF00050C 0xFFF00000 4
-write 0xFF000514 0x00002180 4
-write 0xFF000510 0x000F0001 4
+#write 0xFF00050C 0xFFF00000 4
+#write 0xFF000514 0x00002180 4
+#write 0xFF000510 0x000F0001 4
 # Init CS2 (FireBee 32 bit I/O address range)
-write 0xFF000518 0xF0000000 4
-write 0xFF000520 0x00002100 4
-write 0xFF00051C 0x07FF0001 4
+#write 0xFF000518 0xF0000000 4
+#write 0xFF000520 0x00002100 4
+#write 0xFF00051C 0x07FF0001 4
 # Init CS3 (FireBee 16 bit I/O address range)
-write 0xFF000524 0xF8000000 4
-write 0xFF00052C 0x00000180 4
-write 0xFF000528 0x03FF0001 4
+#write 0xFF000524 0xF8000000 4
+#write 0xFF00052C 0x00000180 4
+#write 0xFF000528 0x03FF0001 4
 # Init CS4 (FireBee video address range)
-write 0xFF000530 0x40000000 4
-write 0xFF000538 0x00000018 4
-write 0xFF000534 0x003F0001 4
+#write 0xFF000530 0x40000000 4
+#write 0xFF000538 0x00000018 4
+#write 0xFF000534 0x003F0001 4
 
 
 # SDRAM Initialization @ 0000_0000 - 1FFF_FFFF 512Mbytes
@@ -64,9 +56,7 @@ write 0xFF000104 0xE10D0004 4	# SDCR + IREF (first refresh)
 write 0xFF000100 0x008D0000 4	# SDMR (write to LMR)
 write 0xFF000104 0x710D0F00 4	# SDCR (lock SDMR and enable refresh)
 
-write 0xFF000240 0x80000000 4	# disable watchdog arbiter
-
 load -v ram.elf
 wait
-sleep 100
+sleep 10
 execute

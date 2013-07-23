@@ -84,28 +84,28 @@ _mmu_init:
 		move.l	d2,-(sp)
 
  		clr.l	d0
-		movec	d0,ASID				// ASID allways 0
-		move.l	d0,_rt_asid			// sichern
+		movec	d0,ASID				// ASID always 0
+		move.l	d0,_rt_asid			// save
 		
 		move.l	#0xC03FC040,d0		// data r/w precise  c000'0000-ffff'ffff
 		movec	d0,ACR0
-		move.l	d0,_rt_acr0			// sichern
+		move.l	d0,_rt_acr0			// save
 		
 		move.l	#0x601FC000,d0		// data r/w wt 6000'0000-7fff'ffff
 		movec	d0,ACR1
-		move.l	d0,_rt_acr1			// sichern
+		move.l	d0,_rt_acr1			// save
 		
 		move.l	#0xe007C400,d0		// instruction r wt e000'0000-e07f'ffff
 		movec	d0,ACR2
-		move.l	d0,_rt_acr2			// sichern
+		move.l	d0,_rt_acr2			// save
 
-		clr.l	d0					// acr3 aus
+		clr.l	d0					// acr3 off
 		movec	d0,ACR3
-		move.l	d0,_rt_acr3			// sichern
+		move.l	d0,_rt_acr3			// save
 
 		move.l	#__MMUBAR+1,d0
-		movec	d0,MMUBAR			//mmubar setzen
-		move.l	d0,_rt_mmubar		// sichern
+		movec	d0,MMUBAR			// set MMUBAR
+		move.l	d0,_rt_mmubar		// save
 		
 		nop
 		
@@ -188,8 +188,8 @@ _mmutr_miss:
 		or.l	#cb_mmudr,d0		
 		move.l	d0,MCF_MMU_MMUDR
 		moveq.l	#mmuord_d,d0					// MMU update data
-		move.l	d0,MCF_MMU_MMUOR				// setzen  
+		move.l	d0,MCF_MMU_MMUOR				// set
 		moveq.l	#mmuord_i,d0					// MMU update instruction
-		move.l	d0,MCF_MMU_MMUOR				// setzen  
+		move.l	d0,MCF_MMU_MMUOR				// set
 		move.l	(sp)+,d0
 		rte
