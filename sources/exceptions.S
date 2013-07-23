@@ -302,24 +302,27 @@ vector_table_start:
 std_exc_vec:
 		move.w	#0x2700,sr			// disable interrupt
 		subq.l	#8,a7
-		movem.l	d0/a5,(a7)			// save registers
-// test auf protect mode -------------------------------
-		move.b	DIP_SWITCHa,d0
+		movem.l	d0/a5,(sp)			// save registers
+
+		move.b	DIP_SWITCHa,d0		// "protect mode"?
 		btst	#7,d0 
-		bne		stv_protect			// ja->
-//------------------------------------------------------
-		move.w	8(a7),d0			// fetch vector
+		bne		stv_protect			// yes
+
+		move.w	8(sp),d0			// fetch vector
 		and.l	#0x3fc,d0			// mask out vector number
 		add.l	_rt_vbr,d0			// + OS VBR
 		move.l	d0,a5				
-		move.l	(a5),d0
-		move.l	4(a7),a5			// restore a5
-		move.l	d0,4(a7)
-		move.w	10(a7),d0
-		bset	#13,d0				// super
-		move.w	d0,sr				// orginal sr wert in super setzen
-		move.l	(a7)+,d0			// d0 zur�ck
-		rts
+		move.l	(a5),d0				// fetch exception routine address
+
+		move.l	4(sp),a5			// restore a5
+		move.l	d0,4(a7)			// store exception routine address
+
+		move.w	10(a7),d0			// restore original SR
+		bset	#13,d0				// set supervisor bit
+		move.w	d0,sr				//
+		move.l	(a7)+,d0			// restore d0
+		rts							// jump to exception routine
+
 stv_protect:
 		move.l	usp,a5				// usp holen  
 		tst.b	_rt_mod				// supervisor? 
@@ -372,9 +375,10 @@ sev_sup:
 reset_vector:
 		move.w	#0x2700,sr			// disable interrupt
 		move.l	#0x31415926,d0
-		cmp.l	0x426,d0			// reset vector gültg?
-		beq		std_exc_vec			// ja->
-		jmp		_rom_entry	 		// sonst kaltstart
+		cmp.l	0x426,d0			// _resvalid: reset vector valid?
+		beq		std_exc_vec			// yes->
+		jmp		_rom_entry	 		// no, cold start machine
+
 acess:
 		move.w	#0x2700,sr			// disable interrupt
 		move.l	d0,-(sp)			// ++ vr
@@ -389,16 +393,18 @@ acess:
 		cmpi.l	#0x0c02,d0
 		beq		access_mmu
 		bra		bus_error
+
 access_mmu:
 		move.l	MCF_MMU_MMUSR,d0
 		btst	#1,d0
 		bne		bus_error
 		move.l	MCF_MMU_MMUAR,d0
 		cmp.l	#__FASTRAM_END,d0	// max User RAM Bereich
-		bge		bus_error			// grösser -> bus error
+		bge		bus_error			// -> bus error
 		bra		_mmutr_miss
+
 bus_error:
-		move.l	(sp)+,d0
+		move.l	(sp)+,d0			// restore register
 		bra		std_exc_vec
 		
 zero_divide:
@@ -406,23 +412,25 @@ zero_divide:
 		move.l	a0,-(a7)
 		move.l	d0,-(a7)
 		move.l	12(a7),a0			// pc
-		move.w	(a0)+,d0			// befehlscode
+		move.w	(a0)+,d0			// command word
 		btst	#7,d0				// long?
 		beq		zd_word				// nein->
 		addq.l	#2,a0
+
 zd_word:
-		and.l	0x3f,d0				// ea ausmaskieren
-		cmp.w	#0x08,d0			// -(ax) oder weniger
+		and.l	0x3f,d0				// mask out ea field
+		cmp.w	#0x08,d0			// -(ax) or less?
 		ble		zd_end
 		addq.l	#2,a0
 		cmp.w	#0x39,d0			// xxx.L
 		bne		zd_nal
 		addq.l	#2,a0
 		bra		zd_end
+
 zd_nal:	cmp.w	#0x3c,d0			// immediate?
-		bne		zd_end				// nein->
+		bne		zd_end				// no->
 		btst	#7,d0				// long?
-		beq		zd_end				// nein
+		beq		zd_end				// no
 		addq.l	#2,a0
 zd_end:
 		move.l	a0,12(a7)
@@ -445,6 +453,7 @@ format:
 		halt
 		nop
 		nop
+
 //floating point		
 flpoow:
 		move.w	#0x2700,sr			// disable interrupt
@@ -453,33 +462,41 @@ flpoow:
 		nop
 irq1:
 		irq		0x64,1,0x02
+
 irq2:				// hbl
 								//		move.b	#3,2(a7)
 								//		rte
 		irq		0x68,2,0x04
+
 irq3:
 		irq		0x6c,3,0x08
+
 irq4:				// vbl
 		irq		0x70,4,0x10
+
 irq5:				// acp
 		irq		0x74,5,0x20
+
 irq6:				// mfp
 		move.w	#0x2700,sr			// disable interrupt
 		subq.l	#8,a7
-		movem.l	d0/a5,(a7)			// register sichern
+		movem.l	d0/a5,(a7)			// save registers
 		lea		MCF_EPORT_EPFR,a5
 		move.b	#0x40,(a5)			// clear int6
-// test auf timeout screen adr change -------------------------------------------------------
+
+// screen adr change timed out?
 		move.l	_video_sbt,d0
-  		beq		irq6_non_sca		// wenn 0 nichts zu tun
-  		sub.l	#0x70000000,d0		// 14 sec abzählen
+  		beq		irq6_non_sca		// nothing to do if 0
+  		sub.l	#0x70000000,d0		// substract 14 seconds
 		lea		MCF_SLT0_SCNT,a5
-  		cmp.l	(a5),d0				// aktuelle zeit weg
-  		ble		irq6_non_sca		// noch nicht abgelaufen
-  		lea		-28(a7),a7
-  		movem.l	d0-d4/a0-a1,(a7)	// register sichern
+  		cmp.l	(a5),d0				// time reached?
+  		ble		irq6_non_sca		// not yet
+
+  		lea		-28(a7),a7			// save more registers
+  		movem.l	d0-d4/a0-a1,(a7)	//
   		clr.l	d3					// beginn mit 0
-		bsr		cpusha				// cache leeren
+		bsr		cpusha				// clear caches
+
  // eintrag suchen
  irq6_next_sca:
  		move.l	d3,d0
