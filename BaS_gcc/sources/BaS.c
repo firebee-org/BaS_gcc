@@ -53,6 +53,8 @@ extern uint8_t _EMUTOS[];
 extern uint8_t _EMUTOS_SIZE[];
 #define EMUTOS_SIZE ((uint32_t)_EMUTOS_SIZE) /* size of EmuTOS, in bytes */
 
+#define NOP() __asm__ __volatile__("nop\n\t" : : : "memory")	/* need this to force pipeline sync after MMUCR write */
+
 /*
  * check if it is possible to transfer data to PIC
  */
@@ -206,6 +208,7 @@ void BaS(void)
 	xprintf("finished\r\n");
 
 	MCF_MMU_MMUCR = MCF_MMU_MMUCR_EN;	/* MMU on */
+	NOP();	/* force pipeline sync */
 
 	xprintf("IDE reset: ");
 	/* IDE reset */
@@ -266,8 +269,6 @@ void BaS(void)
 
 	* (uint32_t *) 0x5a4 = FASTRAM_END;	/* ramtop TOS system variable */
 	* (uint32_t *) 0x5a8 = 0x1357bd13;	/* ramvalid TOS system variable */
-
-#define NOP() __asm__ __volatile__("nop\n\t" : : : "memory")
 
 	xprintf("init ACIA: ");
 	/* init ACIA */
