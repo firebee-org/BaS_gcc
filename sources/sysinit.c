@@ -225,7 +225,7 @@ void init_serial(void)
 	MCF_PSC3_PSCCR = 0x05;
 	MCF_INTC_ICR32 = 0x3F;	//MAXIMALE PRIORITY/**********/
 
-	xprintf("serial interfaces initialization: finished\r\n");
+	xprintf("\r\nserial interfaces initialization: finished\r\n");
 }
 
 /********************************************************************/
@@ -843,6 +843,74 @@ void initialize_hardware(void) {
 
 	init_gpio();
 	init_serial();
+
+	/*
+	 * Determine cause(s) of Reset
+	 */
+	xprintf("\n\n");
+	if (MCF_SIU_RSR & MCF_SIU_RSR_RST)
+		xprintf("Reset. Cause: External Reset\r\n");
+	if (MCF_SIU_RSR & MCF_SIU_RSR_RSTWD)
+		xprintf("Reset. Cause: Watchdog Timer Reset\n");
+	if (MCF_SIU_RSR & MCF_SIU_RSR_RSTJTG)
+		xprintf("Reset. Cause: BDM/JTAG Reset\r\n");
+
+	/*
+	 * Clear the Reset Status Register
+	 */
+	MCF_SIU_RSR = (MCF_SIU_RSR_RST
+					| MCF_SIU_RSR_RSTWD
+					| MCF_SIU_RSR_RSTJTG);
+
+	/*
+	 * Determine which processor we are running on
+	 */
+	xprintf("JTAGID: ");
+	switch (MCF_SIU_JTAGID & MCF_SIU_JTAGID_PROCESSOR)
+	{
+		case MCF_SIU_JTAGID_MCF5485:
+			xprintf("MCF5485");
+			break;
+		case MCF_SIU_JTAGID_MCF5484:
+			xprintf("MCF5484");
+			break;
+		case MCF_SIU_JTAGID_MCF5483:
+			xprintf("MCF5483");
+			break;
+		case MCF_SIU_JTAGID_MCF5482:
+			xprintf("MCF5482");
+			break;
+		case MCF_SIU_JTAGID_MCF5481:
+			xprintf("MCF5481");
+			break;
+		case MCF_SIU_JTAGID_MCF5480:
+			xprintf("MCF5480");
+			break;
+		case MCF_SIU_JTAGID_MCF5475:
+			xprintf("MCF5475");
+			break;
+		case MCF_SIU_JTAGID_MCF5474:
+			xprintf("MCF5474");
+			break;
+		case MCF_SIU_JTAGID_MCF5473:
+			xprintf("MCF5473");
+			break;
+		case MCF_SIU_JTAGID_MCF5472:
+			xprintf("MCF5472");
+			break;
+		case MCF_SIU_JTAGID_MCF5471:
+			xprintf("MCF5471");
+			break;
+		case MCF_SIU_JTAGID_MCF5470:
+			xprintf("MCF5470");
+			break;
+	}
+
+	/*
+	 * Determine the processor revision
+	 */
+	xprintf(" (revision %d)\r\n",((MCF_SIU_JTAGID & MCF_SIU_JTAGID_REV) >> 28));
+
 	init_slt();
 	init_fbcs();
 	init_ddram();
