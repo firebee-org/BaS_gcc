@@ -84,28 +84,28 @@ _mmu_init:
 		move.l	d2,-(sp)
 
  		clr.l	d0
-		movec	d0,ASID				// ASID always 0
-		move.l	d0,_rt_asid			// save
+		movec	d0,ASID				// ASID allways 0
+		move.l	d0,_rt_asid			// save shadow register
 		
 		move.l	#0xC03FC040,d0		// data r/w precise  c000'0000-ffff'ffff
 		movec	d0,ACR0
-		move.l	d0,_rt_acr0			// save
+		move.l	d0,_rt_acr0			// save shadow register
 		
 		move.l	#0x601FC000,d0		// data r/w wt 6000'0000-7fff'ffff
 		movec	d0,ACR1
-		move.l	d0,_rt_acr1			// save
+		move.l	d0,_rt_acr1			// save shadow register
 		
 		move.l	#0xe007C400,d0		// instruction r wt e000'0000-e07f'ffff
 		movec	d0,ACR2
-		move.l	d0,_rt_acr2			// save
+		move.l	d0,_rt_acr2			// save shadow register
 
 		clr.l	d0					// acr3 off
 		movec	d0,ACR3
-		move.l	d0,_rt_acr3			// save
+		move.l	d0,_rt_acr3			// save shadow register
 
 		move.l	#__MMUBAR+1,d0
 		movec	d0,MMUBAR			// set MMUBAR
-		move.l	d0,_rt_mmubar		// save
+		move.l	d0,_rt_mmubar		// save shadow register
 		
 		nop
 		
