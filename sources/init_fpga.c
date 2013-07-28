@@ -93,7 +93,6 @@ void init_fpga(void)
 		}
 	} while ((!(MCF_GPIO_PPDSDR_FEC1L & FPGA_CONF_DONE)) && (fpga_data < (uint8_t *) FPGA_FLASH_DATA_END));
 
-#ifdef _NOT_USED_ /* doesn't seem to be needed */
 	if (fpga_data < (uint8_t *) FPGA_FLASH_DATA_END)
 	{
 		while (fpga_data++ < (uint8_t *) FPGA_FLASH_DATA_END)
@@ -102,12 +101,10 @@ void init_fpga(void)
 			MCF_GPIO_PODR_FEC1L |= FPGA_CLOCK;
 			MCF_GPIO_PODR_FEC1L &= ~FPGA_CLOCK;
 		}
-
 		xprintf("finished\r\n");
 	}
 	else
 	{
 		xprintf("FAILED!\r\n");
 	}
-#endif /* _NOT_USED_ */
 }

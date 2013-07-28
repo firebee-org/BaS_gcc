@@ -8,12 +8,15 @@ sleep 10
 
 # set VBR
 write-ctrl 0x0801 0x00000000
+
 # Turn on MBAR at 0xFF00_0000
 write-ctrl 0x0C0F 0xFF000000
+
 # Turn on RAMBAR0 at address FF10_0000 
 write-ctrl 0x0C04 0xFF100007
-# Turn on RAMBAR1 at address FF10_1000 
-write-ctrl 0x0C05 0xFF101001
+
+# Turn on RAMBAR1 at address FF10_1000 (disabled - not mapped by bdm currently)
+#write-ctrl 0x0C05 0xFF101001
 
 # Init CS0 (BootFLASH @ E000_0000 - E07F_FFFF 8Mbytes)
 write 0xFF000500 0xE0000000 4
