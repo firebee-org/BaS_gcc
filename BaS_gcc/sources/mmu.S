@@ -165,7 +165,6 @@ _mmu_init:
 		move.l	d2,MCF_MMU_MMUOR						// setzen data
 		move.l	d3,MCF_MMU_MMUOR						// setzen instr
 
-#ifdef _NOT_USED_
 // 1ff0'0000 locked (FIXME: why is this?)
 		move.l	#0x1FF00000|std_mmutr,d0
 		move.l	#0x1FF00000|copyback_mmudr|MCF_MMU_MMUDR_LK,d1
@@ -180,7 +179,6 @@ _mmu_init:
 		move.l	d1,MCF_MMU_MMUDR
 		move.l	d3,MCF_MMU_MMUOR						// setzen instr
 */
-#endif /* _NOT_USED_ */
 		move.l	(sp)+,d2			// Restore registers
 		move.l	(sp)+,d3
 		rts

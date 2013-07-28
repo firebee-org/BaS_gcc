@@ -902,6 +902,10 @@ void initialize_hardware(void) {
 			break;
 	}
 
+	/* make sure MMU is disabled */
+	MCF_MMU_MMUCR = 0;	/* MMU off */
+	NOP();								/* force pipeline sync */
+
 	/*
 	 * Determine the processor revision
 	 */
@@ -919,10 +923,7 @@ void initialize_hardware(void) {
 	//video_1280_1024();
 	init_ac97();
 
-	xprintf("copying BaS data (%p - %p) to RAM (%p)\r\n", BAS_LMA, BAS_LMA + BAS_SIZE, BAS_IN_RAM);
-	/* The linker script will ensure that the Bas size
-	 * is a multiple of the following.
-	 */
+	xprintf("copying BaS data (%p - %p) to RAM (%p - %p)\r\n", BAS_LMA, BAS_LMA + BAS_SIZE, BAS_IN_RAM, BAS_IN_RAM + BAS_SIZE);
 	memcpy((void *) BAS_IN_RAM, BAS_LMA, BAS_SIZE);
 	xprintf("finished.\r\n");
 
