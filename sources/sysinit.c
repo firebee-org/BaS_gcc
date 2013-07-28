@@ -30,6 +30,7 @@
 #include "cache.h"
 #include "sysinit.h"
 #include "bas_printf.h"
+#include "bas_string.h"
 #include "bas_types.h"
 #include "wait.h"
 
@@ -796,10 +797,10 @@ extern uint8_t _FIRETOS[];
 #define FIRETOS ((uint32_t)_FIRETOS) /* where FireTOS is stored in flash */
 
 extern uint8_t _BAS_LMA[];
-#define BAS_LMA ((uint32_t)_BAS_LMA) /* where the BaS is stored in flash */
+#define BAS_LMA (&_BAS_LMA[0]) /* where the BaS is stored in flash */
 
 extern uint8_t _BAS_IN_RAM[];
-#define BAS_IN_RAM ((uint32_t)_BAS_IN_RAM) /* where the BaS is run in RAM */
+#define BAS_IN_RAM (&_BAS_IN_RAM[0]) /* where the BaS is run in RAM */
 
 extern uint8_t _BAS_SIZE[];
 #define BAS_SIZE ((uint32_t)_BAS_SIZE) /* size of the BaS, in bytes */
@@ -808,11 +809,6 @@ extern uint8_t _FASTRAM_END[];
 #define FASTRAM_END ((uint32_t)_FASTRAM_END)
 
 void initialize_hardware(void) {
-	/* used in copy loop */
-	uint32_t *src;	/* src address to read from flash */
-	uint32_t *end;	/* end address to read from flash */
-	uint32_t *dst;	/* destination address to copy to */
-
 	/* Test for FireTOS switch: DIP switch #5 up */
 	if (!(DIP_SWITCH & (1 << 6))) {
 		/* Minimal hardware initialization */
@@ -923,22 +919,11 @@ void initialize_hardware(void) {
 	//video_1280_1024();
 	init_ac97();
 
-	/* copy the BaS .data and .bss contained in flash to its final location */
-	src = (uint32_t *) BAS_LMA;
-	end = (uint32_t *) (BAS_LMA + BAS_SIZE);
-	dst = (uint32_t *) BAS_IN_RAM;
-
-	xprintf("copying BaS data (%p - %p) to RAM (%p)\r\n", src, end, dst);
+	xprintf("copying BaS data (%p - %p) to RAM (%p)\r\n", BAS_LMA, BAS_LMA + BAS_SIZE, BAS_IN_RAM);
 	/* The linker script will ensure that the Bas size
 	 * is a multiple of the following.
 	 */
-	while (src < end)
-	{
-		*dst++ = *src++;
-		*dst++ = *src++;
-		*dst++ = *src++;
-		*dst++ = *src++;
-	}
+	memcpy((void *) BAS_IN_RAM, BAS_LMA, BAS_SIZE);
 	xprintf("finished.\r\n");
 
 	/* we have copied a code area, so flush the caches */

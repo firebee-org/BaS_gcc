@@ -100,9 +100,9 @@
 #define	 std_mmutr	(MCF_MMU_MMUTR_SG|MCF_MMU_MMUTR_V)
 #define	 mmuord_d	(                   MCF_MMU_MMUOR_ACC|MCF_MMU_MMUOR_UAA)
 #define	 mmuord_i	(MCF_MMU_MMUOR_ITLB|MCF_MMU_MMUOR_ACC|MCF_MMU_MMUOR_UAA)
-#define	 wt_mmudr	(MCF_MMU_MMUDR_SZ(00)|MCF_MMU_MMUDR_CM(00)|MCF_MMU_MMUDR_R|MCF_MMU_MMUDR_W|MCF_MMU_MMUDR_X)
-#define	 cb_mmudr	(MCF_MMU_MMUDR_SZ(00)|MCF_MMU_MMUDR_CM(01)|MCF_MMU_MMUDR_R|MCF_MMU_MMUDR_W|MCF_MMU_MMUDR_X)
-#define	 nc_mmudr	(MCF_MMU_MMUDR_SZ(00)|MCF_MMU_MMUDR_CM(10)|MCF_MMU_MMUDR_R|MCF_MMU_MMUDR_W|MCF_MMU_MMUDR_X)
+#define	 writethrough_mmudr	(MCF_MMU_MMUDR_SZ(00)|MCF_MMU_MMUDR_CM(00)|MCF_MMU_MMUDR_R|MCF_MMU_MMUDR_W|MCF_MMU_MMUDR_X)
+#define	 copyback_mmudr	(MCF_MMU_MMUDR_SZ(00)|MCF_MMU_MMUDR_CM(01)|MCF_MMU_MMUDR_R|MCF_MMU_MMUDR_W|MCF_MMU_MMUDR_X)
+#define	 nocache_precise_mmudr	(MCF_MMU_MMUDR_SZ(00)|MCF_MMU_MMUDR_CM(10)|MCF_MMU_MMUDR_R|MCF_MMU_MMUDR_W|MCF_MMU_MMUDR_X)
 //---------------------------------------------------
 /*********************************************************************
 *
@@ -519,10 +519,10 @@ irq6:				// mfp
 		add.l	#std_mmutr,d0
 		move.l	d3,d1				// page 0?
 		beq		irq6_sca_pn0		// ja ->
-		add.l	#cb_mmudr,d1		// sonst page cb
+		add.l	#copyback_mmudr,d1		// sonst page cb
 		bra		irq6_sca_pn1c
 irq6_sca_pn0:
-		add.l	#wt_mmudr|MCF_MMU_MMUDR_LK,d1	// page wt and locked
+		add.l	#writethrough_mmudr|MCF_MMU_MMUDR_LK,d1	// page wt and locked
 irq6_sca_pn1c:
 		mvz.w	#0x10b,d2			// MMU update 
 		move.l	d0,MCF_MMU_MMUTR	
@@ -824,7 +824,7 @@ video_copy_data_loop:
  		move.l	d4,MCF_MMU_MMUAR
 		move.l	d0,d1
 		add.l	#MCF_MMU_MMUTR_ID(sca_page_ID)|std_mmutr,d0
-		add.l	#0x60000000|wt_mmudr|MCF_MMU_MMUDR_LK,d1
+		add.l	#0x60000000|writethrough_mmudr|MCF_MMU_MMUDR_LK,d1
 		mvz.w	#0x10b,d2								// MMU update 
 		move.l	d0,MCF_MMU_MMUTR		
 		move.l	d1,MCF_MMU_MMUDR
