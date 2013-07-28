@@ -29,7 +29,7 @@ OBJCOPY=$(TCPREFIX)objcopy
 AR=$(TCPREFIX)ar
 RANLIB=$(TCPREFIX)ranlib
 
-INCLUDE=-Iinclude
+INCLUDE=-Iinclude -Imcdapi
 CFLAGS=-mcpu=5474\
 	   -Wall\
 	   -g\
@@ -72,6 +72,7 @@ CSRCS= \
 	$(SRCDIR)/wait.c \
 	$(SRCDIR)/s19reader.c \
 	$(SRCDIR)/flash.c \
+	$(SRCDIR)/spidma.c \
 	$(SRCDIR)/xhdi_sd.c \
 	$(SRCDIR)/xhdi_interface.c
 
@@ -113,7 +114,7 @@ $(FLASH_EXEC): TARGET_ADDRESS=0xe0000000
 $(FLASH_EXEC): LDCFILE=bas.lk
 $(FLASH_EXEC): MAPFILE=bas.map
 
-$(RAM_EXEC): TARGET_ADDRESS=0x00008000
+$(RAM_EXEC): TARGET_ADDRESS=0x1d000000
 $(RAM_EXEC): LDCFILE=ram.lk
 $(RAM_EXEC): MAPFILE=ram.map
 

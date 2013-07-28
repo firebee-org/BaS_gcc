@@ -7,4 +7,6 @@ define tbtr
 	target remote | m68k-bdm-gdbserver pipe /dev/tblcf3
 end
 source mcf5474.gdb
+set breakpoint auto-hw
+
 

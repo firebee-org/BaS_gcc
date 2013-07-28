@@ -93,7 +93,7 @@ static volatile DSTATUS Stat = 0 /* STA_NOINIT */;	/* Physical drive status */
 static uint8_t CardType;			/* Card type flags */
 
 
-static uint32_t dspi_fifo_val = // MCF_DSPI_DTFR_CONT |	/* enable continous chip select */
+static uint32_t dspi_fifo_val = MCF_DSPI_DTFR_CONT |	/* enable continous chip select */
 								/* CTAS use DCTAR0 for clock and attributes */
 								MCF_DSPI_DTFR_CTCNT;
 

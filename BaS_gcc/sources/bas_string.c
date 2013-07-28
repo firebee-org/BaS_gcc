@@ -7,6 +7,16 @@
 
 #include "bas_string.h"
 
+void *memcpy(void *dst, const void *src, size_t n)
+{
+	char *to = dst;
+
+	while (to < (char *) dst + n)
+		*to++ = * (char *) src++;
+
+	return dst;
+}
+
 int strncmp(const char *s1, const char *s2, int max)
 {
 	int i;

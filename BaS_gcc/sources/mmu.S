@@ -71,9 +71,9 @@
 #define	 std_mmutr	(MCF_MMU_MMUTR_SG|MCF_MMU_MMUTR_V)
 #define	 mmuord_d	(                   MCF_MMU_MMUOR_ACC|MCF_MMU_MMUOR_UAA)
 #define	 mmuord_i	(MCF_MMU_MMUOR_ITLB|MCF_MMU_MMUOR_ACC|MCF_MMU_MMUOR_UAA)
-#define	 wt_mmudr	(MCF_MMU_MMUDR_SZ(00)|MCF_MMU_MMUDR_CM(00)|MCF_MMU_MMUDR_R|MCF_MMU_MMUDR_W|MCF_MMU_MMUDR_X)
-#define	 cb_mmudr	(MCF_MMU_MMUDR_SZ(00)|MCF_MMU_MMUDR_CM(01)|MCF_MMU_MMUDR_R|MCF_MMU_MMUDR_W|MCF_MMU_MMUDR_X)
-#define	 nc_mmudr	(MCF_MMU_MMUDR_SZ(00)|MCF_MMU_MMUDR_CM(10)|MCF_MMU_MMUDR_R|MCF_MMU_MMUDR_W|MCF_MMU_MMUDR_X)
+#define	 writethrough_mmudr		(MCF_MMU_MMUDR_SZ(00)|MCF_MMU_MMUDR_CM(00)|MCF_MMU_MMUDR_R|MCF_MMU_MMUDR_W|MCF_MMU_MMUDR_X)
+#define	 copyback_mmudr			(MCF_MMU_MMUDR_SZ(00)|MCF_MMU_MMUDR_CM(01)|MCF_MMU_MMUDR_R|MCF_MMU_MMUDR_W|MCF_MMU_MMUDR_X)
+#define	 nocache_precise_mmudr	(MCF_MMU_MMUDR_SZ(00)|MCF_MMU_MMUDR_CM(10)|MCF_MMU_MMUDR_R|MCF_MMU_MMUDR_W|MCF_MMU_MMUDR_X)
 
 		.global _mmu_init
 		.global _mmutr_miss
@@ -112,66 +112,75 @@ _mmu_init:
 		move.l	#MCF_MMU_MMUOR_CA,d0	// clear all entries, 
 		move.l	d0,MCF_MMU_MMUOR		
 		nop
+
 // 0000'0000 locked
   		moveq.l	#0x00000000|std_mmutr,d0
-  		moveq.l	#0x00000000|cb_mmudr|MCF_MMU_MMUDR_LK,d1						 
-		moveq.l	#mmuord_d,d2								// MMU update date
-		moveq.l	#mmuord_i,d3								// MMU update instruction
+  		moveq.l	#0x00000000|copyback_mmudr|MCF_MMU_MMUDR_LK,d1
+		moveq.l	#mmuord_d,d2				// MMU update data
+		moveq.l	#mmuord_i,d3				// MMU update instruction
  		move.l	d0,MCF_MMU_MMUTR		
  		move.l	d1,MCF_MMU_MMUDR
- 		move.l	d2,MCF_MMU_MMUOR						// MMU update date
- 		move.l	d3,MCF_MMU_MMUOR						// MMU update instruction
+ 		move.l	d2,MCF_MMU_MMUOR			// MMU update data
+ 		move.l	d3,MCF_MMU_MMUOR			// MMU update instruction
 
 //---------------------------------------------------------------------------------------
 // 00d0'0000 locked ID=6
 // video ram: read write execute normal write true
  		move.l	#0x00d00000|MCF_MMU_MMUTR_ID(sca_page_ID)|std_mmutr,d0
-		move.l	#0x60d00000|wt_mmudr|MCF_MMU_MMUDR_LK,d1						 
+		move.l	#0x60d00000|writethrough_mmudr|MCF_MMU_MMUDR_LK,d1
 		move.l	d0,MCF_MMU_MMUTR		
 		move.l	d1,MCF_MMU_MMUDR
-		move.l	d2,MCF_MMU_MMUOR						// MMU update date
+		move.l	d2,MCF_MMU_MMUOR						// MMU update data
  		move.l	#0x00d00000|std_mmutr,d0
 		move.l	d3,MCF_MMU_MMUOR						// MMU update instruction  
 		
 		move.l	#0x2000,d0
 		move.l	d0,_video_tlb							// set page as video page
   		clr.l	_video_sbt								// clear time
+
+#ifdef _NOT_USED_
 //-------------------------------------------------------------------------------------
 // Make the TOS (in SDRAM) read-only
  		move.l	#__TOS+std_mmutr,d0
-		move.l	#__TOS+cb_mmudr+MCF_MMU_MMUDR_LK,d1
+		move.l	#__TOS+copyback_mmudr+MCF_MMU_MMUDR_LK,d1
 		move.l	d0,MCF_MMU_MMUTR		
 		move.l	d1,MCF_MMU_MMUDR
  		move.l	d2,MCF_MMU_MMUOR						// setzen read only ?????? noch nicht
 		move.l	d3,MCF_MMU_MMUOR						// setzen
+#endif /* _NOT_USED_ */
+
 // 00f0'0000 locked		
 		move.l	#0x00f00000|std_mmutr,d0
-		move.l	#0xfff00000|nc_mmudr|MCF_MMU_MMUDR_LK,d1						 
+		move.l	#0xfff00000|nocache_precise_mmudr|MCF_MMU_MMUDR_LK,d1
 		move.l	d0,MCF_MMU_MMUTR		
 		move.l	d1,MCF_MMU_MMUDR
-		move.l	d2,MCF_MMU_MMUOR						// maped to ffffxxx, precise,  
-		move.l	d3,MCF_MMU_MMUOR						// maped to ffffxxx, precise,  
+		move.l	d2,MCF_MMU_MMUOR						// mapped to ffffxxx, precise,
+		move.l	d3,MCF_MMU_MMUOR						// mapped to ffffxxx, precise,
+
 // 1fe0'0000 locked
 		move.l	#0x1FE00000|std_mmutr,d0
-		move.l	#0x1FE00000|cb_mmudr|MCF_MMU_MMUDR_LK,d1						 
+		move.l	#0x1FE00000|copyback_mmudr|MCF_MMU_MMUDR_LK,d1
 		move.l	d0,MCF_MMU_MMUTR		
 		move.l	d1,MCF_MMU_MMUDR
 		move.l	d2,MCF_MMU_MMUOR						// setzen data
 		move.l	d3,MCF_MMU_MMUOR						// setzen instr
-// 1ff0'0000 locked
+
+#ifdef _NOT_USED_
+// 1ff0'0000 locked (FIXME: why is this?)
 		move.l	#0x1FF00000|std_mmutr,d0
-		move.l	#0x1FF00000|cb_mmudr|MCF_MMU_MMUDR_LK,d1						 
+		move.l	#0x1FF00000|copyback_mmudr|MCF_MMU_MMUDR_LK,d1
 		move.l	d0,MCF_MMU_MMUTR		
 		move.l	d1,MCF_MMU_MMUDR
 		move.l	d2,MCF_MMU_MMUOR						// setzen data
 		move.l	d3,MCF_MMU_MMUOR						// setzen instr 
 // instr 0xFFF0'0000 nach 0x1FF0'0000 umleiten -->> short sprung 
 /*		move.l	#0xFFF00000|std_mmutr,d0
-		move.l	#0x1FF00000|cb_mmudr|MCF_MMU_MMUDR_LK,d1						 
+		move.l	#0x1FF00000|copyback_mmudr|MCF_MMU_MMUDR_LK,d1
 		move.l	d0,MCF_MMU_MMUTR		
 		move.l	d1,MCF_MMU_MMUDR
 		move.l	d3,MCF_MMU_MMUOR						// setzen instr
 */
+#endif /* _NOT_USED_ */
 		move.l	(sp)+,d2			// Restore registers
 		move.l	(sp)+,d3
 		rts
@@ -185,7 +194,7 @@ _mmutr_miss:
 		or.l	#std_mmutr,d0	
 		move.l	d0,MCF_MMU_MMUTR
 		and.l	#0xFFF00000,d0
-		or.l	#cb_mmudr,d0		
+		or.l	#copyback_mmudr,d0
 		move.l	d0,MCF_MMU_MMUDR
 		moveq.l	#mmuord_d,d0					// MMU update data
 		move.l	d0,MCF_MMU_MMUOR				// set

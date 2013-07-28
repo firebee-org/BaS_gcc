@@ -29,6 +29,7 @@
 #include "startcf.h"
 #include "cache.h"
 #include "bas_printf.h"
+#include "bas_string.h"
 #include "bas_types.h"
 #include "sd_card.h"
 #include "wait.h"
@@ -36,6 +37,7 @@
 #include "diskio.h"
 #include "ff.h"
 #include "s19reader.h"
+#include "spidma.h"
 
 /* imported routines */
 extern int mmu_init();
@@ -151,10 +153,15 @@ void nvram_init(void)
 	xprintf("finished\r\n");
 }
 
+/* ACP interrupt controller */
+#define FPGA_INTR_CONTRL	0xf0010000
+#define FPGA_INTR_ENABLE	0xf0010004
+#define FPGA_INTR_PENDIN	0xf0010008
+
 void enable_coldfire_interrupts()
 {
 	xprintf("enable interrupts: ");
-	* (volatile uint32_t *) 0xf0010004 = 0L;		/* disable all interrupts */
+	* (volatile uint32_t *) FPGA_INTR_CONTRL = 0L;		/* disable all interrupts */
 	MCF_EPORT_EPPAR = 0xaaa8;			/* all interrupts on falling edge */
 
 	MCF_GPT0_GMS = MCF_GPT_GMS_ICT(1) |	/* timer 0 on, video change capture on rising edge */
@@ -189,11 +196,7 @@ void BaS(void)
 
 	/* copy EMUTOS */
 	src = (uint8_t *) EMUTOS;
-	while (src < (uint8_t *)(EMUTOS + EMUTOS_SIZE))
-	{
-		*dst++ = *src++;
-	}
-
+	memcpy(dst, src, EMUTOS_SIZE);
 	xprintf("finished\r\n");
 
 	/* we have copied a code area, so flush the caches */
@@ -307,6 +310,8 @@ void BaS(void)
 
 	xprintf("Call OS. BaS initialization finished...\r\n");
 	enable_coldfire_interrupts();
+
+	spidma_init();
 
 	ROM_HEADER* os_header = (ROM_HEADER*)TOS;
 	os_header->initial_pc();
