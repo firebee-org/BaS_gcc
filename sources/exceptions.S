@@ -767,7 +767,7 @@ psc3_fertig:
 		RTE
 
 /*
- * timer 0: video change later also others
+ * general purpose timer 0 (GPT0): video change, later also others
  */
 timer0:
 		move	#0x2700,sr

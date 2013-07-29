@@ -167,7 +167,8 @@ void enable_coldfire_interrupts()
 	MCF_GPT0_GMS = MCF_GPT_GMS_ICT(1) |	/* timer 0 on, video change capture on rising edge */
 			MCF_GPT_GMS_IEN |
 			MCF_GPT_GMS_TMS(1);
-	MCF_INTC_ICR62 = 0x3f;
+										/* route GPT0 interrupt on interrupt controller */
+	MCF_INTC_ICR62 = 0x3f;				/* interrupt level 7, interrupt priority 7 */
 
 	*FPGA_INTR_ENABLE  = 0xfe;	/* enable int 1-7 */
 	MCF_EPORT_EPIER = 0xfe;				/* int 1-7 on */
