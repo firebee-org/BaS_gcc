@@ -39,7 +39,7 @@ typedef enum
 	ILLEGAL_SECTOR	/* flash sector number invalid */
 } err_t;
 
-typedef err_t (*memcpy_callback_t)(uint8_t *dst, uint8_t *src, uint32_t length);
+typedef err_t (*memcpy_callback_t)(uint8_t *dst, uint8_t *src, size_t length);
 
 extern void srec_execute(char *filename);
 extern err_t read_srecords(char *filename, void **start_address, uint32_t *actual_length, memcpy_callback_t callback);
