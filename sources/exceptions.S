@@ -819,7 +819,7 @@ loop_sr2:
 		cmp.b	d1,d2
 		bne		loop_sr2
 psc3_fertig:
-		movem.l	(a7),d0-d2/a0/a3	// register zur�ck
+		movem.l	(a7),d0-d2/a0/a3	// restore saved registers
 		lea		20(a7),a7
 		RTE
 
