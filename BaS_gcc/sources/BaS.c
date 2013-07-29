@@ -154,14 +154,14 @@ void nvram_init(void)
 }
 
 /* ACP interrupt controller */
-#define FPGA_INTR_CONTRL	0xf0010000
-#define FPGA_INTR_ENABLE	0xf0010004
-#define FPGA_INTR_PENDIN	0xf0010008
+#define FPGA_INTR_CONTRL	(volatile uint32_t *) 0xf0010000
+#define FPGA_INTR_ENABLE	(volatile uint32_t *) 0xf0010004
+#define FPGA_INTR_PENDIN	(volatile uint32_t *) 0xf0010008
 
 void enable_coldfire_interrupts()
 {
 	xprintf("enable interrupts: ");
-	* (volatile uint32_t *) FPGA_INTR_CONTRL = 0L;		/* disable all interrupts */
+	*FPGA_INTR_CONTRL = 0L;				/* disable all interrupts */
 	MCF_EPORT_EPPAR = 0xaaa8;			/* all interrupts on falling edge */
 
 	MCF_GPT0_GMS = MCF_GPT_GMS_ICT(1) |	/* timer 0 on, video change capture on rising edge */
@@ -169,7 +169,7 @@ void enable_coldfire_interrupts()
 			MCF_GPT_GMS_TMS(1);
 	MCF_INTC_ICR62 = 0x3f;
 
-	* (volatile uint8_t *) 0xf0010004 = 0xfe;	/* enable int 1-7 */
+	*FPGA_INTR_ENABLE  = 0xfe;	/* enable int 1-7 */
 	MCF_EPORT_EPIER = 0xfe;				/* int 1-7 on */
 	MCF_EPORT_EPFR = 0xff;				/* clear all pending interrupts */
 	MCF_INTC_IMRL = 0xffffff00;			/* int 1-7 on */
@@ -180,7 +180,11 @@ void enable_coldfire_interrupts()
 
 void disable_coldfire_interrupts()
 {
-	* (volatile uint32_t *) 0xf0010004 = 0L;		/* disable all interrupts */
+	*FPGA_INTR_ENABLE = 0;		/* disable all interrupts */
+	MCF_EPORT_EPIER = 0x0;
+	MCF_EPORT_EPFR = 0x0;
+	MCF_INTC_IMRL = 0xfffffffe;
+	MCF_INTC_IMRH = 0xffffffff;
 }
 
 void BaS(void)
