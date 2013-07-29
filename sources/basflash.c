@@ -75,18 +75,6 @@ static err_t simulate()
 	return ret;
 }
 
-static err_t memcpy(uint8_t *dst, uint8_t *src, uint32_t length)
-{
-	uint8_t *end = src + length;
-
-	do
-	{
-		*dst++ = *src++;
-	} while (src < end);
-
-	return OK;
-}
-
 #ifdef _NOT_USED_
 static err_t flash(uint8_t *dst, uint8_t *src, uint32_t length)
 {
@@ -101,7 +89,7 @@ static err_t flash(uint8_t *dst, uint8_t *src, uint32_t length)
 /*
  * this callback verifies the data against the S-record file contents after a write to destination
  */
-static err_t verify(uint8_t *dst, uint8_t *src, uint32_t length)
+static err_t verify(uint8_t *dst, uint8_t *src, size_t length)
 {
 	uint8_t *end = src + length;
 
@@ -164,7 +152,7 @@ err_t erase_flash_sector(int sector_num)
 	return ILLEGAL_SECTOR;
 }
 
-err_t erase_flash_region(void *start_address, uint32_t length)
+err_t erase_flash_region(void *start_address, size_t length)
 {
 	err_t err;
 	int sector = -1;

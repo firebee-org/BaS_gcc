@@ -27,6 +27,7 @@
 #include <stdbool.h>
 
 #include "bas_printf.h"
+#include "bas_string.h"
 #include "sd_card.h"
 #include "diskio.h"
 #include "ff.h"
@@ -309,17 +310,6 @@ static err_t simulate()
 	return ret;
 }
 
-static err_t memcpy(uint8_t *dst, uint8_t *src, uint32_t length)
-{
-	uint8_t *end = src + length;
-
-	do
-	{
-		*dst++ = *src++;
-	} while (src < end);
-
-	return OK;
-}
 
 #ifdef _NOT_USED_
 static err_t flash(uint8_t *dst, uint8_t *src, uint32_t length)
