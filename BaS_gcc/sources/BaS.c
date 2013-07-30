@@ -155,7 +155,7 @@ void nvram_init(void)
 
 /* ACP interrupt controller */
 #define FPGA_INTR_CONTRL	(volatile uint32_t *) 0xf0010000
-#define FPGA_INTR_ENABLE	(volatile uint32_t *) 0xf0010004
+#define FPGA_INTR_ENABLE	(volatile uint8_t *)  0xf0010004
 #define FPGA_INTR_PENDIN	(volatile uint32_t *) 0xf0010008
 
 void enable_coldfire_interrupts()
