@@ -22,9 +22,10 @@
  *
  */
 
-#include <MCF5475.h>
+#include "MCF5475.h"
 #include "sysinit.h"
-#include <bas_printf.h>
+#include "bas_printf.h"
+#include "wait.h"
 
 #define FPGA_STATUS		(1 << 0)
 #define FPGA_CLOCK		(1 << 1)
@@ -45,10 +46,14 @@ void init_fpga(void)
 
 
 	MCF_GPIO_PODR_FEC1L &= ~FPGA_CLOCK;		/* FPGA clock => low */
+
+	/* pulling FPGA_CONFIG to low resets the FPGA */
 	MCF_GPIO_PODR_FEC1L &= ~FPGA_CONFIG;	/* FPGA config => low */
+	wait(10);			/* give it some time to do its reset stuff */
 
 	while ((MCF_GPIO_PPDSDR_FEC1L & FPGA_STATUS) && (MCF_GPIO_PPDSDR_FEC1L & FPGA_CONF_DONE));
-	MCF_GPIO_PODR_FEC1L |= FPGA_CONFIG;				/* pull FPGA_CONFIG high */
+
+	MCF_GPIO_PODR_FEC1L |= FPGA_CONFIG;				/* pull FPGA_CONFIG high to start config cycle */
 	while (!(MCF_GPIO_PPDSDR_FEC1L & FPGA_STATUS));	/* wait until status becomes high */
 
 	/*
