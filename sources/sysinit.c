@@ -34,6 +34,9 @@
 #include "bas_types.h"
 #include "wait.h"
 
+#define MAJOR_VERSION	0
+#define MINOR_VERSION	7
+
 #define UNUSED(x) (void)(x)               /* Unused variable         */
 
 extern volatile long _VRAM;	/* start address of video ram from linker script */
@@ -321,12 +324,13 @@ void init_fbcs()
 	xprintf("FlexBus chip select registers initialization: ");
 
 	/* Flash */
-	MCF_FBCS0_CSAR = 0xE0000000;	/* flash base address */
+	MCF_FBCS0_CSAR = 0xE0000000;			/* flash base address */
 	MCF_FBCS0_CSCR = MCF_FBCS_CSCR_PS_16 |
-			MCF_FBCS_CSCR_WS(4)|
+			MCF_FBCS_CSCR_WS(6)|
 			MCF_FBCS_CSCR_AA;
 	MCF_FBCS0_CSMR = MCF_FBCS_CSMR_BAM_8M |
 			MCF_FBCS_CSMR_V;				/* 8 MByte on */
+
 
 	MCF_FBCS1_CSAR = 0xFFF00000;			/* ATARI I/O ADRESS */
 	MCF_FBCS1_CSCR = MCF_FBCS_CSCR_PS_16	/* 16BIT PORT */
@@ -844,6 +848,7 @@ void initialize_hardware(void) {
 	 * Determine cause(s) of Reset
 	 */
 	xprintf("\n\n");
+	xprintf("Firebee BASIS system (BaS) v %d.%d (%s, %s)\r\n\r\n", MAJOR_VERSION, MINOR_VERSION, __DATE__, __TIME__);
 	if (MCF_SIU_RSR & MCF_SIU_RSR_RST)
 		xprintf("Reset. Cause: External Reset\r\n");
 	if (MCF_SIU_RSR & MCF_SIU_RSR_RSTWD)
