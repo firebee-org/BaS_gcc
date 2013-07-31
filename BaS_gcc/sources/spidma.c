@@ -19,7 +19,9 @@ void *dma_memcpy(void *dst, void *src, size_t n)
 	int32_t start = MCF_SLT_SCNT(0);
 	int32_t end;
 
-	ret = MCD_startDma(0, src, 1, dst, 1, n, 1, DMA_ALWAYS, 0, MCD_SINGLE_DMA, 0);
+	xprintf("doing memory to memory DMA from %p to %p (%x bytes)\r\n", src, dst, n);
+
+	ret = MCD_startDma(0, src, n, dst, n, n, 1, DMA_ALWAYS, 7, MCD_SINGLE_DMA|MCD_TT_FLAGS_CW|MCD_TT_FLAGS_RL|MCD_TT_FLAGS_SP, 0);
 	if (ret == MCD_OK)
 	{
 		xprintf("DMA on channel 0 successfully started\r\n");
@@ -28,7 +30,33 @@ void *dma_memcpy(void *dst, void *src, size_t n)
 	do
 	{
 		ret = MCD_dmaStatus(0);
-		xprintf(".");
+		switch (ret)
+		{
+		case MCD_NO_DMA:
+			xprintf("MCD_NO_DMA: no DMA active on this channel\r\n");
+			break;
+		case MCD_IDLE:
+			xprintf("MCD_IDLE: DMA defined but not active (initiator not ready)\r\n");
+			break;
+		case MCD_RUNNING:
+			//xprintf("MCD_RUNNING: DMA active and working on this channel\r\n");
+			break;
+		case MCD_PAUSED:
+			xprintf("MCD_PAUSED: DMA defined and enabled, but currently paused\r\n");
+			break;
+		case MCD_HALTED:
+			xprintf("MCD_HALTED: DMA killed\r\n");
+			break;
+		case MCD_DONE:
+			xprintf("MCD_DONE: DMA finished\r\n");
+			break;
+		case MCD_CHANNEL_INVALID:
+			xprintf("MCD_CHANNEL_INVALID: invalid DMA channel\r\n");
+			break;
+		default:
+			xprintf("unknown DMA status %d\r\n", ret);
+			break;
+		}
 	} while (ret != MCD_DONE);
 	xprintf("\r\n");
 
@@ -57,7 +85,7 @@ int spidma_init(void)
 	xprintf("DMA API initialized. Tasks are at %p\r\n", SYS_SRAM);
 
 	// test
-	dma_memcpy((void *) 0x40000000, (void *) 0x30000000, 0x100000);
+	dma_memcpy((void *) 0x1e000000, (void *) 0x1f000000, 0xf00000);
 	xprintf("DMA finished\r\n");
 	return 1;
 }
