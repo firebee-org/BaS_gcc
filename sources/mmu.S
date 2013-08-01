@@ -138,7 +138,7 @@ _mmu_init:
 		move.l	d0,_video_tlb							// set page as video page
   		clr.l	_video_sbt								// clear time
 
-#ifdef _NOT_USED_
+
 //-------------------------------------------------------------------------------------
 // Make the TOS (in SDRAM) read-only
  		move.l	#__TOS+std_mmutr,d0
@@ -147,7 +147,6 @@ _mmu_init:
 		move.l	d1,MCF_MMU_MMUDR
  		move.l	d2,MCF_MMU_MMUOR						// setzen read only ?????? noch nicht
 		move.l	d3,MCF_MMU_MMUOR						// setzen
-#endif /* _NOT_USED_ */
 
 // 00f0'0000 locked		
 		move.l	#0x00f00000|std_mmutr,d0
