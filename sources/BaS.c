@@ -37,7 +37,7 @@
 #include "diskio.h"
 #include "ff.h"
 #include "s19reader.h"
-#include "spidma.h"
+#include "dma.h"
 
 /* imported routines */
 extern int mmu_init();

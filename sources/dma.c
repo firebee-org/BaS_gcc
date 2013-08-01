@@ -1,11 +1,11 @@
 /*
- * spidma.c
+ * dma.c
  *
  *  Created on: 27.07.2013
  *      Author: mfro
  */
 
-#include "spidma.h"
+#include "dma.h"
 #include <MCD_dma.h>
 #include "mcd_initiators.h"
 #include "bas_printf.h"
@@ -34,6 +34,7 @@ void *dma_memcpy(void *dst, void *src, size_t n)
 		{
 		case MCD_NO_DMA:
 			xprintf("MCD_NO_DMA: no DMA active on this channel\r\n");
+			return NULL;
 			break;
 		case MCD_IDLE:
 			xprintf("MCD_IDLE: DMA defined but not active (initiator not ready)\r\n");
@@ -46,12 +47,14 @@ void *dma_memcpy(void *dst, void *src, size_t n)
 			break;
 		case MCD_HALTED:
 			xprintf("MCD_HALTED: DMA killed\r\n");
+			return NULL;
 			break;
 		case MCD_DONE:
 			xprintf("MCD_DONE: DMA finished\r\n");
 			break;
 		case MCD_CHANNEL_INVALID:
 			xprintf("MCD_CHANNEL_INVALID: invalid DMA channel\r\n");
+			return NULL;
 			break;
 		default:
 			xprintf("unknown DMA status %d\r\n", ret);
@@ -62,7 +65,7 @@ void *dma_memcpy(void *dst, void *src, size_t n)
 
 	end = MCF_SLT_SCNT(0);
 
-	xprintf("took %d seconds (1 Mbyte)\r\n", (end - start) / 132 / 1000);
+	xprintf("took %d ms (1 Mbyte)\r\n", (end - start) / 132);
 #ifdef _NOT_USED_
 	__asm__ __volatile__("move.w	sr,d0\n\t"
 						 "stop		#0x270\n\t"

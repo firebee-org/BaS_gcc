@@ -30,7 +30,7 @@ SECTIONS
 		objs/supervisor.o(.text)
 		objs/illegal_instruction.o(.text)
 		objs/exceptions.o(.text)
-		objs/spidma.o(.text)
+		objs/dma.o(.text)
 		mcdapi/MCD_dmaApi.o(.text)
 		mcdapi/MCD_tasks.o(.text)
 		mcdapi/MCD_tasksInit.o(.text)
