@@ -812,6 +812,21 @@ extern uint8_t _BAS_SIZE[];
 extern uint8_t _FASTRAM_END[];
 #define FASTRAM_END ((uint32_t)_FASTRAM_END)
 
+void clear_datasegment(void)
+{
+	uint16_t *p;
+	extern uint16_t _BAS_DATA_START[];
+	uint16_t *BAS_DATA_START = &_BAS_DATA_START[0];
+	extern uint16_t _BAS_DATA_END[];
+	uint16_t *BAS_DATA_END = &_BAS_DATA_END[0];
+
+	p = BAS_DATA_START;
+	while (p < BAS_DATA_END)
+	{
+		*p++ = 0L;
+	}
+}
+
 void initialize_hardware(void) {
 	/* Test for FireTOS switch: DIP switch #5 up */
 	if (!(DIP_SWITCH & (1 << 6))) {
@@ -841,14 +856,17 @@ void initialize_hardware(void) {
 		return;
 	}
 
+	clear_datasegment();
+
 	init_gpio();
 	init_serial();
+
+	xprintf("\n\n");
+	xprintf("Firebee BASIS system (BaS) v %d.%d (%s, %s)\r\n\r\n", MAJOR_VERSION, MINOR_VERSION, __DATE__, __TIME__);
 
 	/*
 	 * Determine cause(s) of Reset
 	 */
-	xprintf("\n\n");
-	xprintf("Firebee BASIS system (BaS) v %d.%d (%s, %s)\r\n\r\n", MAJOR_VERSION, MINOR_VERSION, __DATE__, __TIME__);
 	if (MCF_SIU_RSR & MCF_SIU_RSR_RST)
 		xprintf("Reset. Cause: External Reset\r\n");
 	if (MCF_SIU_RSR & MCF_SIU_RSR_RSTWD)
