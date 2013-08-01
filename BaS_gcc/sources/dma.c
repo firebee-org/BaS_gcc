@@ -65,7 +65,7 @@ void *dma_memcpy(void *dst, void *src, size_t n)
 
 	end = MCF_SLT_SCNT(0);
 
-	xprintf("took %d ms (1 Mbyte)\r\n", (end - start) / 132);
+	xprintf("took %d ms (1 Mbyte)\r\n", (start - end) / 132 / 1000);
 #ifdef _NOT_USED_
 	__asm__ __volatile__("move.w	sr,d0\n\t"
 						 "stop		#0x270\n\t"
@@ -88,7 +88,7 @@ int spidma_init(void)
 	xprintf("DMA API initialized. Tasks are at %p\r\n", SYS_SRAM);
 
 	// test
-	dma_memcpy((void *) 0x1e000000, (void *) 0x1f000000, 0xf00000);
+	dma_memcpy((void *) 0x1e000000, (void *) 0xe0700000, 0x100000);
 	xprintf("DMA finished\r\n");
 	return 1;
 }
