@@ -62,6 +62,4 @@ write 0xFF000100 0x008D0000 4	# SDMR (write to LMR)
 write 0xFF000104 0x710D0F00 4	# SDCR (lock SDMR and enable refresh)
 
 load -v ram.elf
-wait
-sleep 10
 execute
