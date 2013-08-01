@@ -34,6 +34,42 @@
 #define FPGA_CONF_DONE	(1 << 5)
 
 
+void test_longword(void)
+{
+	uint32_t *fpga_data = (uint32_t *) FPGA_FLASH_DATA;
+
+	do
+	{
+		uint32_t value = *fpga_data++;
+		xprintf("LONGWORDS: addr=%p, value=%08x\r", fpga_data, value);
+	} while (fpga_data < (uint32_t *) FPGA_FLASH_DATA_END);
+	xprintf("finished. \r\n");
+}
+
+void test_word(void)
+{
+	uint16_t *fpga_data = (uint16_t *) FPGA_FLASH_DATA;
+
+	do
+	{
+		uint16_t value = *fpga_data++;
+		xprintf("WORDS: addr=%p, value=%04x\r", fpga_data, value);
+	} while (fpga_data < (uint16_t *) FPGA_FLASH_DATA_END);
+	xprintf("finished. \r\n");
+}
+
+void test_byte(void)
+{
+	uint8_t *fpga_data = (uint8_t *) FPGA_FLASH_DATA;
+
+	do
+	{
+		uint8_t value = *fpga_data++;
+		xprintf("LONGWORDS: addr=%p, value=%08x\r", fpga_data, value);
+	} while (fpga_data < (uint8_t *) FPGA_FLASH_DATA_END);
+	xprintf("finished. \r\n");
+}
+
 /*
  * load FPGA
  */
@@ -42,8 +78,15 @@ void init_fpga(void)
 	uint8_t *fpga_data;
 	int i;
 
+	xprintf("MCF_FBCS0_CSAR: %08x\r\n", MCF_FBCS0_CSAR);
+	xprintf("MCF_FBCS0_CSCR: %08x\r\n", MCF_FBCS0_CSCR);
+	xprintf("MCF_FBCS0_CSMR: %08x\r\n", MCF_FBCS0_CSMR);
+
 	xprintf("FPGA load config... ");
 
+	//test_longword();
+	//test_word();
+	//test_byte();
 
 	MCF_GPIO_PODR_FEC1L &= ~FPGA_CLOCK;		/* FPGA clock => low */
 
