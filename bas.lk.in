@@ -51,7 +51,10 @@ SECTIONS
 		 */
 		AT (ALIGN(ADDR(.text) + SIZEOF(.text), 4))
 	{
+		__BAS_DATA_START = .;
 		*(.data)
+		. = ALIGN(16);
+		__BAS_DATA_END = .;
 		*(.bss)	
 
 		/* The BaS copy routine assumes that tha BaS size
