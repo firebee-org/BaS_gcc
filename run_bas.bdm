@@ -6,11 +6,11 @@ open $1
 reset
 sleep 10
 
-# set VBR
-write-ctrl 0x0801 0x00000000
-
 # Turn on MBAR at 0xFF00_0000
 write-ctrl 0x0C0F 0xFF000000
+
+# set VBR
+write-ctrl 0x0801 0x00000000
 
 # Turn on RAMBAR0 at address FF10_0000 
 write-ctrl 0x0C04 0xFF100007
@@ -54,12 +54,18 @@ write 0xFF00010C 0x46770000 4	# SDCFG2
 write 0xFF000104 0xE10D0002 4	# SDCR + IPALL
 write 0xFF000100 0x40010000 4	# SDMR (write to LEMR)
 write 0xFF000100 0x048D0000 4	# SDMR (write to LMR)
-
+sleep 100
 write 0xFF000104 0xE10D0002 4	# SDCR + IPALL
 write 0xFF000104 0xE10D0004 4	# SDCR + IREF (first refresh)
 write 0xFF000104 0xE10D0004 4	# SDCR + IREF (first refresh)
 write 0xFF000100 0x008D0000 4	# SDMR (write to LMR)
 write 0xFF000104 0x710D0F00 4	# SDCR (lock SDMR and enable refresh)
+sleep 100
 
 load -v ram.elf
+write-ctrl 0x80e	0x2700
+write-ctrl 0x2	0xa50c8120
+dump-register SR
+dump-register CACR
+dump-register MBAR
 execute

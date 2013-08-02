@@ -139,7 +139,7 @@ void fault_handler(uint32_t format_status, uint32_t pc)
 	xprintf("sr=%4x\r\n", sr);
 }
 
-void handler(void)
+void __attribute__((interrupt)) handler(void)
 {
 	/*
 	 * for standard routines, we'd have to save registers here.
@@ -147,7 +147,7 @@ void handler(void)
 	 */
 	__asm__ __volatile__("move.l	(sp),-(sp)\n\t"		/* format, fault status and status register values */
 						 "move.l	8(sp),-(sp)\n\t"	/* the program counter where the fault originated */
-						 "bra		_fault_handler\n\t"
+						 "bsr		_fault_handler\n\t"
 						 "halt\n\t"
 							: : :);
 }
@@ -155,6 +155,8 @@ void handler(void)
 void setup_vectors(void)
 {
 	int i;
+
+	xprintf("\r\ninstall prelaminary exception vector table:");
 
 	for (i = 0; i < 256; i++)
 	{
@@ -165,6 +167,9 @@ void setup_vectors(void)
 	 * make sure VBR points to our table
 	 */
 	__asm__ __volatile__("clr.l		d0\n\t"
-						 "movec		d0,VBR\n\t"
+						 "movec.l	d0,VBR\n\t"
+						 "nop\n\t"
 						 "move.l	d0,_rt_vbr");
+
+	xprintf("finished.\r\n");
 }
