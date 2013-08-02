@@ -145,11 +145,11 @@ void __attribute__((interrupt)) handler(void)
 	 * for standard routines, we'd have to save registers here.
 	 * Since we do not intend to return anyway, we just ignore that
 	 */
-	__asm__ __volatile__("move.l	(sp),-(sp)\n\t"		/* format, fault status and status register values */
-						 "move.l	8(sp),-(sp)\n\t"	/* the program counter where the fault originated */
-						 "bsr		_fault_handler\n\t"
-						 "halt\n\t"
-							: : :);
+	__asm__ __volatile__("move.l	(sp),-(sp)\n\t"\
+						 "move.l	8(sp),-(sp)\n\t"\
+						 "bsr		_fault_handler\n\t"\
+						 "halt\n\t"\
+							: : : "memory");
 }
 
 void setup_vectors(void)
@@ -158,7 +158,7 @@ void setup_vectors(void)
 
 	xprintf("\r\ninstall prelaminary exception vector table:");
 
-	for (i = 0; i < 256; i++)
+	for (i = 8; i < 256; i++)
 	{
 		SDRAM_VECTOR_TABLE[i] = &handler;
 	}
@@ -166,10 +166,10 @@ void setup_vectors(void)
 	/*
 	 * make sure VBR points to our table
 	 */
-	__asm__ __volatile__("clr.l		d0\n\t"
-						 "movec.l	d0,VBR\n\t"
-						 "nop\n\t"
-						 "move.l	d0,_rt_vbr");
+	__asm__ __volatile__("clr.l		d0\n\t"\
+						 "movec.l	d0,VBR\n\t"\
+						 "nop\n\t"\
+						 "move.l	d0,_rt_vbr" ::: "d0", "memory");
 
 	xprintf("finished.\r\n");
 }
