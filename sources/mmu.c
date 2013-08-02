@@ -68,10 +68,10 @@ void mmu_init(void)
 	 * 0x00d00000 locked ID=6
 	 * video RAM: read write execute normal write true
 	 */
-	MCF_MMU_MMUTR = 0x00d00000 | MCF_MMU_MMUTR_ID(sca_page_ID) | STD_MMUTR;
+	MCF_MMU_MMUTR = 0x00d00000 | MCF_MMU_MMUTR_ID(SCA_PAGE_ID) | STD_MMUTR;
 	MCF_MMU_MMUDR = 0x60d00000 | WRITETHROUGH_MMUDR | MCF_MMU_MMUDR_LK;
 	MCF_MMU_MMUOR = MMUORD_D;
-	MCF_MMU_MMUOR = 0x00d00000 | std_mmutr;
+	MCF_MMU_MMUOR = 0x00d00000 | STD_MMUTR;
 
 	video_tlb = 0x2000;
 	video_sbt = 0;

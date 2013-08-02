@@ -11,6 +11,7 @@ SECTIONS
 	{
 		objs/startcf.o(.text) /* this one is the entry point so it must be the first */
 		objs/sysinit.o(.text)
+		objs/fault_vectors.o(.text)
 		objs/init_fpga.o(.text)
 		objs/wait.o(.text)
 		
@@ -70,7 +71,8 @@ SECTIONS
 	/* SDRAM Initialization @ 0000_0000 - 1FFF_FFFF 512Mbytes */
  	___SDRAM                = 0x00000000;
  	___SDRAM_SIZE           = 0x20000000;
-
+	_SDRAM_VECTOR_TABLE		= ___SDRAM;
+	
 	/* ST-RAM */
 	__STRAM                 = ___SDRAM;
 	__STRAM_END             = __TOS;

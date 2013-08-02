@@ -16,6 +16,14 @@
 #define COPYBACK_MMUDR			(MCF_MMU_MMUDR_SZ(00) | MCF_MMU_MMUDR_CM(01) | MCF_MMU_MMUDR_R | MCF_MMU_MMUDR_W | MCF_MMU_MMUDR_X)
 #define NOCACHE_PRECISE_MMUDR	(MCF_MMU_MMUDR_SZ(00) | MCF_MMU_MMUDR_CM(10) | MCF_MMU_MMUDR_R | MCF_MMU_MMUDR_W | MCF_MMU_MMUDR_X)
 
+#define SCA_PAGE_ID		6
+
+/*
+ * global variables from linker script
+ */
+extern long video_tlb;
+extern long video_sbt;
+
 extern void mmu_init(void);
 extern void mmutr_miss(void) __attribute__((interrupt));
 
