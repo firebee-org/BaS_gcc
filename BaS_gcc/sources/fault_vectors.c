@@ -160,7 +160,7 @@ void setup_vectors(void)
 
 	for (i = 0; i < 256; i++)
 	{
-		SDRAM_VECTOR_TABLE[i] = handler;
+		SDRAM_VECTOR_TABLE[i] = &handler;
 	}
 
 	/*
