@@ -183,19 +183,19 @@ _mmu_init:
 		rts
 
 /*
- * MMU table search
+ * MMU table add on miss
  */
 _mmutr_miss:
-		bsr		cpusha
-		and.l	#0xFFF00000,d0
-		or.l	#std_mmutr,d0	
-		move.l	d0,MCF_MMU_MMUTR
-		and.l	#0xFFF00000,d0
-		or.l	#copyback_mmudr,d0
-		move.l	d0,MCF_MMU_MMUDR
-		moveq.l	#mmuord_d,d0					// MMU update data
-		move.l	d0,MCF_MMU_MMUOR				// set
-		moveq.l	#mmuord_i,d0					// MMU update instruction
-		move.l	d0,MCF_MMU_MMUOR				// set
-		move.l	(sp)+,d0
+		bsr		cpusha				// clear caches
+		and.l	#0xFFF00000,d0		// d0 is the address not found (MMUAR at the time of the exception)
+		or.l	#std_mmutr,d0		// mark shared and valid
+		move.l	d0,MCF_MMU_MMUTR	// add to TLB
+		and.l	#0xFFF00000,d0		// mask out page
+		or.l	#copyback_mmudr,d0	// 1MB page size, cachable copyback, read, write, execute
+		move.l	d0,MCF_MMU_MMUDR	// add to TLB
+		moveq.l	#mmuord_d,d0		// MMU update data
+		move.l	d0,MCF_MMU_MMUOR	// set
+		moveq.l	#mmuord_i,d0		// MMU update instruction
+		move.l	d0,MCF_MMU_MMUOR	// set
+		move.l	(sp)+,d0			// restore register saved in acess
 		rte
