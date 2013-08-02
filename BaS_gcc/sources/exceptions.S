@@ -440,25 +440,25 @@ acess:
 		move.w	#0x2700,sr			// disable interrupt
 		move.l	d0,-(sp)			// ++ vr
 		move.w	4(sp),d0
-		andi.l	#0x0c03,d0
-		cmpi.l	#0x0401,d0
-		beq		access_mmu
-		cmpi.l	#0x0402,d0
-		beq		access_mmu
-		cmpi.l	#0x0802,d0
-		beq		access_mmu
-		cmpi.l	#0x0c02,d0
-		beq		access_mmu
-		bra		bus_error
+		andi.l	#0x0c03,d0			// mask out fault status bits
+		cmpi.l	#0x0401,d0			// TLB miss on opword of instruction fetch?
+		beq		access_mmu			// yes
+		cmpi.l	#0x0402,d0			// TLB miss on extension word of instruction fetch?
+		beq		access_mmu			// yes
+		cmpi.l	#0x0802,d0			// TLB miss on data write?
+		beq		access_mmu			// yes
+		cmpi.l	#0x0c02,d0			// TLB miss on data read, or read-modify-write?
+		beq		access_mmu			// yes
+		bra		bus_error			// everything else
 
 access_mmu:
-		move.l	MCF_MMU_MMUSR,d0
-		btst	#1,d0
-		bne		bus_error
+		move.l	MCF_MMU_MMUSR,d0	// did the last fault hit in TLB?
+		btst	#1,d0				// no
+		bne		bus_error			// bus error handler
 		move.l	MCF_MMU_MMUAR,d0
-		cmp.l	#__FASTRAM_END,d0	// max User RAM Bereich
+		cmp.l	#__FASTRAM_END,d0	// above max User RAM area?
 		bge		bus_error			// -> bus error
-		bra		_mmutr_miss
+		bra		_mmutr_miss			// else we have an MMU TLB miss
 
 bus_error:
 		move.l	(sp)+,d0			// restore register
