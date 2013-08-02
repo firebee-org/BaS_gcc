@@ -28,52 +28,52 @@ void fault_handler(uint32_t format_status, uint32_t pc)
 	sr           =  (format_status & 0b00000000000000001111111111111111);
 
 	xprintf("format: %x\r\n", format);
-	xprintf("fault_status: %x ", fault_status);
+	xprintf("fault_status: %x (", fault_status);
 	switch (fault_status)
 	{
 	case 0:
-		xprintf("(not an access or address error nor an interrupted debug service routine)");
+		xprintf("not an access or address error nor an interrupted debug service routine");
 		break;
 	case 1:
 	case 3:
 	case 11:
-		xprintf("(reserved)");
+		xprintf("reserved");
 		break;
 	case 2:
-		xprintf("(interrupt during a debug service routine for faults other than access errors)");
+		xprintf("interrupt during a debug service routine for faults other than access errors");
 		break;
 	case 4:
-		xprintf("(error (for example, protection fault) on instruction fetch)");
+		xprintf("error (for example, protection fault) on instruction fetch");
 		break;
 	case 5:
-		xprintf("(TLB miss on opword or instruction fetch)");
+		xprintf("TLB miss on opword or instruction fetch");
 		break;
 	case 6:
-		xprintf("(TLB miss on extension word of instruction fetch)");
+		xprintf("TLB miss on extension word of instruction fetch");
 		break;
 	case 7:
-		xprintf("(IFP access error while executing in emulator mode)");
+		xprintf("IFP access error while executing in emulator mode");
 		break;
 	case 8:
-		xprintf("(error on data write)");
+		xprintf("error on data write");
 		break;
 	case 9:
-		xprintf("(error on attempted wrote to write-protected space)");
+		xprintf("error on attempted wrote to write-protected space");
 		break;
 	case 10:
-		xprintf("(TLB miss on data write)");
+		xprintf("TLB miss on data write");
 		break;
 	case 12:
-		xprintf("(error on data read)");
+		xprintf("error on data read");
 		break;
 	case 13:
-		xprintf("(attempted read, read-modify-write of protected space)");
+		xprintf("attempted read, read-modify-write of protected space");
 		break;
 	case 14:
-		xprintf("(TLB miss on data read or read-modify-write");
+		xprintf("TLB miss on data read or read-modify-write");
 		break;
 	case 15:
-		xprintf("(OEP access error while executing in emulator mode)");
+		xprintf("OEP access error while executing in emulator mode");
 	}
 	xprintf("\r\n");
 
