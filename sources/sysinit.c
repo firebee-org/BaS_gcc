@@ -941,7 +941,7 @@ void initialize_hardware(void) {
 	setup_vectors();
 
 	/* make sure the handlers are called */
-	//* (uint32_t *) 0xC0000001 = 0x0L;
+	// __asm__ __volatile__("dc.w 0xafff");  /* should trigger a line-A exception */
 
 	init_slt();
 	init_fbcs();
