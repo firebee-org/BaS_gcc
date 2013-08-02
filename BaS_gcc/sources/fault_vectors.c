@@ -10,7 +10,7 @@
 typedef void (*exception_handler)(void);
 extern exception_handler SDRAM_VECTOR_TABLE[];
 
-void fault_handler(uint32_t format_status, uint32_t pc)
+void fault_handler(uint32_t pc, uint32_t format_status)
 {
 	int format;
 	int fault_status;
