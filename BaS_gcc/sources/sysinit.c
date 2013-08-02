@@ -934,6 +934,15 @@ void initialize_hardware(void) {
 	 */
 	xprintf(" (revision %d)\r\n",((MCF_SIU_JTAGID & MCF_SIU_JTAGID_REV) >> 28));
 
+	/*
+	 * install (prilaminary) exception vectors
+	 */
+	extern void setup_vectors(void);
+	setup_vectors();
+
+	/* make sure the handlers are called */
+	//* (uint32_t *) 0xC0000001 = 0x0L;
+
 	init_slt();
 	init_fbcs();
 	init_ddram();
