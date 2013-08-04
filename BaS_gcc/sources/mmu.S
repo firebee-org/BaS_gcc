@@ -186,7 +186,13 @@ _mmu_init:
  * MMU table add on miss
  */
 _mmutr_miss:
+
 		bsr		cpusha				// clear caches
+
+		pea		MISS_text
+		move.l	d0,-(sp)
+		bsr		_xprintf
+
 		and.l	#0xFFF00000,d0		// d0 is the address not found (MMUAR at the time of the exception)
 		or.l	#std_mmutr,d0		// mark shared and valid
 		move.l	d0,MCF_MMU_MMUTR	// add to TLB
@@ -197,5 +203,10 @@ _mmutr_miss:
 		move.l	d0,MCF_MMU_MMUOR	// set
 		moveq.l	#mmuord_i,d0		// MMU update instruction
 		move.l	d0,MCF_MMU_MMUOR	// set
+
 		move.l	(sp)+,d0			// restore register saved in acess
 		rte
+		.data
+MISS_text:
+		.asciz	"MMU TLB MISS at %p"
+		.byte	13, 10, 0
