@@ -10,6 +10,9 @@
 typedef void (*exception_handler)(void);
 extern exception_handler SDRAM_VECTOR_TABLE[];
 
+/*
+ * decipher Coldfire exception stack frame and print it out in cleartext
+ */
 void fault_handler(uint32_t pc, uint32_t format_status)
 {
 	int format;
