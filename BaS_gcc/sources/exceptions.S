@@ -367,7 +367,7 @@ std_exc_vec:
 
 		move.w	8(sp),d0			// fetch vector
 		and.l	#0x3fc,d0			// mask out vector number
-		add.l	_rt_vbr,d0			// + OS VBR
+		add.l	_rt_vbr,d0			// + VBR
 		move.l	d0,a5				
 		move.l	(a5),d0				// fetch exception routine address
 
