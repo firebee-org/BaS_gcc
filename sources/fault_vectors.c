@@ -145,8 +145,10 @@ void fault_handler(uint32_t pc, uint32_t format_status)
 void __attribute__((interrupt)) handler(void)
 {
 	/*
-	 * for standard routines, we'd have to save registers here.
-	 * Since we do not intend to return anyway, we just ignore that
+	 * Prepare exception stack contents so it can be handled by a C routine.
+	 *
+	 * For standard routines, we'd have to save registers here.
+	 * Since we do not intend to return anyway, we just ignore that requirement.
 	 */
 	__asm__ __volatile__("move.l	(sp),-(sp)\n\t"\
 						 "move.l	8(sp),-(sp)\n\t"\
@@ -159,7 +161,7 @@ void setup_vectors(void)
 {
 	int i;
 
-	xprintf("\r\ninstall prelaminary exception vector table:");
+	xprintf("\r\ninstall early exception vector table:");
 
 	for (i = 8; i < 256; i++)
 	{
