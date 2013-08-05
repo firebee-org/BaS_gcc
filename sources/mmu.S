@@ -157,8 +157,8 @@ _mmu_init:
 		move.l	d3,MCF_MMU_MMUOR						// mapped to ffffxxx, precise,
 
 // 1fe0'0000 locked
-		move.l	#0x1FE00000|std_mmutr,d0
-		move.l	#0x1FE00000|copyback_mmudr|MCF_MMU_MMUDR_LK,d1
+		move.l	#0x1E000000|std_mmutr,d0
+		move.l	#0x1E000000|copyback_mmudr|MCF_MMU_MMUDR_LK,d1
 		move.l	d0,MCF_MMU_MMUTR		
 		move.l	d1,MCF_MMU_MMUDR
 		move.l	d2,MCF_MMU_MMUOR						// setzen data
@@ -186,12 +186,18 @@ _mmu_init:
  * MMU table add on miss
  */
 _mmutr_miss:
+		lea		-8 * 4(sp),sp
+		movem.l	d0-d3/a0-a3,(sp)
+
+		move.l	d0,-(sp)
+		pea		MISS_text
+		jsr		_xprintf
+		addq.l	#8,sp
+
+		movem.l	(sp),d0-d3/a0-a3
+		lea		8 * 4(sp),sp
 
 		bsr		cpusha				// clear caches
-
-		pea		MISS_text
-		move.l	d0,-(sp)
-		bsr		_xprintf
 
 		and.l	#0xFFF00000,d0		// d0 is the address not found (MMUAR at the time of the exception)
 		or.l	#std_mmutr,d0		// mark shared and valid
@@ -206,7 +212,8 @@ _mmutr_miss:
 
 		move.l	(sp)+,d0			// restore register saved in acess
 		rte
+
 		.data
 MISS_text:
-		.asciz	"MMU TLB MISS at %p"
+		.ascii	"MMU TLB MISS at %p"
 		.byte	13, 10, 0
