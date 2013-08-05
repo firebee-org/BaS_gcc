@@ -27,10 +27,6 @@ SECTIONS
 		objs/bas_string.o(.text)
 		objs/printf_helper.o(.text)
 		objs/cache.o(.text)
-		objs/mmu.o(.text)
-		objs/supervisor.o(.text)
-		objs/illegal_instruction.o(.text)
-		objs/exceptions.o(.text)
 		objs/dma.o(.text)
 		mcdapi/MCD_dmaApi.o(.text)
 		mcdapi/MCD_tasks.o(.text)
@@ -52,9 +48,14 @@ SECTIONS
 		 */
 		AT (ALIGN(ADDR(.text) + SIZEOF(.text), 4))
 	{
+		. = ALIGN(16);
+		objs/exceptions.o(.text)
+		objs/illegal_instruction.o(.text)
+		objs/supervisor.o(.text)
+		objs/mmu.o(.text)		
+		. = ALIGN(16);
 		__BAS_DATA_START = .;
 		*(.data)
-		. = ALIGN(16);
 		__BAS_DATA_END = .;
 		*(.bss)	
 
