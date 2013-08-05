@@ -153,6 +153,33 @@ void nvram_init(void)
 	xprintf("finished\r\n");
 }
 
+#define KBD_ACIA_CONTROL		((uint8_t *) 0xfffffc00)
+#define MIDI_ACIA_CONTROL		((uint8_t *) 0xfffffc04)
+#define MFP_INTR_IN_SERVICE_A	((uint8_t *) 0xfffffa0f)
+#define MFP_INTR_IN_SERVICE_B	((uint8_t *) 0xfffffa11)
+
+void acia_init()
+{
+	xprintf("init ACIA: ");
+	/* init ACIA */
+	* KBD_ACIA_CONTROL = 3;		/* master reset */
+	NOP();
+
+	* MIDI_ACIA_CONTROL = 3;	/* master reset */
+	NOP();
+
+	* KBD_ACIA_CONTROL = 0x96;	/* clock div = 64, 8N1, RTS low, TX int disable, RX int enable */
+	NOP();
+
+	* MFP_INTR_IN_SERVICE_A = -1;
+	NOP();
+
+	* MFP_INTR_IN_SERVICE_B = -1;
+	NOP();
+
+	xprintf("finished\r\n");
+}
+
 /* ACP interrupt controller */
 #define FPGA_INTR_CONTRL	(volatile uint32_t *) 0xf0010000
 #define FPGA_INTR_ENABLE	(volatile uint8_t *)  0xf0010004
@@ -266,7 +293,7 @@ void BaS(void)
 	/* set Falcon bus control register */
 	/* sets bit 3 and 6. Both are undefined on an original Falcon? */
 
-	* (volatile uint8_t *) 0xffff8007 = 0x48;	/* FIXME: what's that ? */
+	* (volatile uint8_t *) 0xffff8007 = 0x48;
 
 	/* ST RAM */
 
@@ -281,24 +308,7 @@ void BaS(void)
 	* (uint32_t *) 0x5a4 = 0x1d000000;
 	* (uint32_t *) 0x5a8 = 0x1357bd13;	/* ramvalid TOS system variable */
 
-	xprintf("init ACIA: ");
-	/* init ACIA */
-	* (uint8_t *) 0xfffffc00 = 3;
-	NOP();
-
-	* (uint8_t *) 0xfffffc04 = 3;
-	NOP();
-
-	* (uint8_t *) 0xfffffc00 = 0x96;
-	NOP();
-
-	* (uint8_t *) 0xfffffa0f = -1;
-	NOP();
-
-	* (uint8_t *) 0xfffffa11 = -1;
-	NOP();
-
-	xprintf("finished\r\n");
+	acia_init();
 
 	/* Test for pseudo-supervisor mode: DIP switch #6 down */
 	if (DIP_SWITCH & (1 << 7)) {
@@ -319,7 +329,7 @@ void BaS(void)
 	xprintf("Call OS. BaS initialization finished...\r\n");
 	enable_coldfire_interrupts();
 
-	spidma_init();
+	dma_init();
 
 	ROM_HEADER* os_header = (ROM_HEADER*)TOS;
 	os_header->initial_pc();
