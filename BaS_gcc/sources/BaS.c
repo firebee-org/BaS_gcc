@@ -245,6 +245,8 @@ void BaS(void)
 	xprintf("enable MMU: ");
 	MCF_MMU_MMUCR = MCF_MMU_MMUCR_EN;	/* MMU on */
 	NOP();								/* force pipeline sync */
+	flush_and_invalidate_caches();
+
 	xprintf("finished\r\n");
 
 	xprintf("IDE reset: ");
@@ -278,7 +280,7 @@ void BaS(void)
 
 	xprintf("finished\r\n");
 
-	sd_card_init();
+	//sd_card_init();
 
 	/*
 	 * memory setup
@@ -317,7 +319,7 @@ void BaS(void)
 		__asm__ __volatile__("move.w #0x0700,sr	\n\t" : : : "memory");
 	}
 
-	srec_execute("BASFLASH.S19");
+	//srec_execute("BASFLASH.S19");
 
 	/* Jump into the OS */
 	typedef void void_func(void);
