@@ -812,6 +812,12 @@ extern uint8_t _BAS_SIZE[];
 extern uint8_t _FASTRAM_END[];
 #define FASTRAM_END ((uint32_t)_FASTRAM_END)
 
+extern uint8_t _BAS_RESIDENT_TEXT[];
+#define BAS_RESIDENT_TEXT ((uint32_t) _BAS_RESIDENT_TEXT)
+
+extern uint8_t _BAS_RESIDENT_TEXT_SIZE[];
+#define BAS_RESIDENT_TEXT_SIZE ((uint32_t) _BAS_RESIDENT_TEXT_SIZE)
+
 void clear_datasegment(void)
 {
 	uint16_t *p;
@@ -955,7 +961,7 @@ void initialize_hardware(void) {
 	//video_1280_1024();
 	init_ac97();
 
-	xprintf("copying BaS data (%p - %p) to RAM (%p - %p)\r\n", BAS_LMA, BAS_LMA + BAS_SIZE, BAS_IN_RAM, BAS_IN_RAM + BAS_SIZE);
+	xprintf("copying BaS (%p - %p) to RAM (%p - %p)\r\n", BAS_LMA, BAS_LMA + BAS_SIZE, BAS_IN_RAM, BAS_IN_RAM + BAS_SIZE);
 	memcpy((void *) BAS_IN_RAM, BAS_LMA, BAS_SIZE);
 	xprintf("finished.\r\n");
 
@@ -963,7 +969,6 @@ void initialize_hardware(void) {
 	flush_and_invalidate_caches();
 
 	/* jump into the BaS in RAM */
-
 	extern void BaS(void);
 	BaS();
 }
