@@ -14,9 +14,14 @@ SECTIONS
 		objs/fault_vectors.o(.text)
 		objs/init_fpga.o(.text)
 		objs/wait.o(.text)
+		objs/exceptions.o(.text)
+		objs/illegal_instruction.o(.text)
+		objs/supervisor.o(.text)
+		objs/mmu.o(.text)		
 		
 		objs/BaS.o(.text)
 		objs/wait.o(.text)
+
 		/* put other routines into the same segment (RAM) as BaS.o */ 
 		objs/unicode.o(.text)
 		objs/mmc.o(.text)
@@ -49,10 +54,6 @@ SECTIONS
 		AT (ALIGN(ADDR(.text) + SIZEOF(.text), 4))
 	{
 		. = ALIGN(16);
-		objs/exceptions.o(.text)
-		objs/illegal_instruction.o(.text)
-		objs/supervisor.o(.text)
-		objs/mmu.o(.text)		
 		. = ALIGN(16);
 		__BAS_DATA_START = .;
 		*(.data)
