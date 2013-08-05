@@ -16,6 +16,7 @@ extern char _SYS_SRAM[];
 void *dma_memcpy(void *dst, void *src, size_t n)
 {
 	int ret;
+	int speed;
 	int32_t start = MCF_SLT_SCNT(0);
 	int32_t end;
 
@@ -65,7 +66,9 @@ void *dma_memcpy(void *dst, void *src, size_t n)
 
 	end = MCF_SLT_SCNT(0);
 
-	xprintf("took %d ms (1 Mbyte)\r\n", (start - end) / 132 / 1000);
+	speed = n / (start - end) / 132 / 100;
+	xprintf("took %d ms (%d.%d Mbytes/second)\r\n",
+			(start - end) / 132 / 1000, speed / 10, speed % 10);
 #ifdef _NOT_USED_
 	__asm__ __volatile__("move.w	sr,d0\n\t"
 						 "stop		#0x270\n\t"
@@ -75,10 +78,11 @@ void *dma_memcpy(void *dst, void *src, size_t n)
 	return dst;
 }
 
-int spidma_init(void)
+int dma_init(void)
 {
 	int res;
 
+	xprintf("MCD DMA API initialization: ");
 	res = MCD_initDma((dmaRegs *) &MCF_DMA_TASKBAR, SYS_SRAM, MCD_RELOC_TASKS | MCD_COMM_PREFETCH_EN);
 	if (res != MCD_OK)
 	{
@@ -88,7 +92,8 @@ int spidma_init(void)
 	xprintf("DMA API initialized. Tasks are at %p\r\n", SYS_SRAM);
 
 	// test
-	dma_memcpy((void *) 0x1e000000, (void *) 0xe0700000, 0x100000);
+	dma_memcpy((void *) 0x1e000000, (void *) 0xe0700000, 0x100000);	/* copy one megabyte of flash to RAM */
+
 	xprintf("DMA finished\r\n");
 	return 1;
 }

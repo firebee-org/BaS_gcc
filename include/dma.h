@@ -10,7 +10,7 @@
 
 #include <MCF5475.h>
 
-extern int spidma_init(void);
+extern int dma_init(void);
 
 
 #endif /* _SPIDMA_H_ */
