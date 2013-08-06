@@ -164,7 +164,7 @@ _mmu_init:
 
 // 1fe0'0000 locked
 		move.l	#0x1FE00000|std_mmutr,d0				// last megabyte of RAM. Reserved for BaS in RAM and BaS in ROM/data+bss
-		move.l	#0x1E000000|copyback_mmudr|MCF_MMU_MMUDR_LK,d1
+		move.l	#0x1FE00000|copyback_mmudr|MCF_MMU_MMUDR_LK,d1
 		move.l	d0,MCF_MMU_MMUTR		
 		move.l	d1,MCF_MMU_MMUDR
 		move.l	d2,MCF_MMU_MMUOR						// setzen data
