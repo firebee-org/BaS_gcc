@@ -81,7 +81,8 @@
 //
 // to avoid chicken and egg situations, we need to make sure that MMU TLB miss exceptions do not end up in a memory
 // area that in turn cause a TLB miss exception themself after the MMU is enabled. At least the exception handler must live
-// in an area that's either covered by one of the ACR's or a locked MMU TLB entry.
+// in an area that's either covered by one of the ACR's or a locked MMU TLB entry. This is especially important when we link
+// BaS for RAM.
 //
 .text
 _mmu_init:
@@ -144,7 +145,7 @@ _mmu_init:
   		clr.l	_video_sbt								// clear time
 
 
-//-------------------------------------------------------------------------------------
+// create locked TLB entries which must be available as soon as the MMU gets enabled
 // Make the TOS (in SDRAM) read-only
  		move.l	#__TOS+std_mmutr,d0
 		move.l	#__TOS+copyback_mmudr+MCF_MMU_MMUDR_LK,d1
@@ -162,7 +163,7 @@ _mmu_init:
 		move.l	d3,MCF_MMU_MMUOR						// mapped to ffffxxx, precise,
 
 // 1fe0'0000 locked
-		move.l	#0x1E000000|std_mmutr,d0
+		move.l	#0x1FE00000|std_mmutr,d0				// last megabyte of RAM. Reserved for BaS in RAM and BaS in ROM/data+bss
 		move.l	#0x1E000000|copyback_mmudr|MCF_MMU_MMUDR_LK,d1
 		move.l	d0,MCF_MMU_MMUTR		
 		move.l	d1,MCF_MMU_MMUDR
