@@ -961,14 +961,22 @@ void initialize_hardware(void) {
 	//video_1280_1024();
 	init_ac97();
 
-	xprintf("copying BaS (%p - %p) to RAM (%p - %p)\r\n", BAS_LMA, BAS_LMA + BAS_SIZE, BAS_IN_RAM, BAS_IN_RAM + BAS_SIZE);
-	memcpy((void *) BAS_IN_RAM, BAS_LMA, BAS_SIZE);
-	xprintf("finished.\r\n");
+	if (BAS_LMA != BAS_IN_RAM)
+	{
+		xprintf("copying BaS (%p - %p) to RAM (%p - %p)\r\n", BAS_LMA, BAS_LMA + BAS_SIZE, BAS_IN_RAM, BAS_IN_RAM + BAS_SIZE);
+		memcpy((void *) BAS_IN_RAM, BAS_LMA, BAS_SIZE);
+		xprintf("finished.\r\n");
 
-	/* we have copied a code area, so flush the caches */
-	flush_and_invalidate_caches();
+		/* we have copied a code area, so flush the caches */
+		flush_and_invalidate_caches();
 
-	/* jump into the BaS in RAM */
+	}
+	else
+	{
+		xprintf("no BaS copy necessary - running from RAM already\r\n");
+	}
+
+	/* jump into the BaS */
 	extern void BaS(void);
 	BaS();
 }
