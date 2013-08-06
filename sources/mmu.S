@@ -78,13 +78,18 @@
 		.global _mmu_init
 		.global _mmutr_miss
 
+//
+// to avoid chicken and egg situations, we need to make sure that MMU TLB miss exceptions do not end up in a memory
+// area that in turn cause a TLB miss exception themself after the MMU is enabled. At least the exception handler must live
+// in an area that's either covered by one of the ACR's or a locked MMU TLB entry.
+//
 .text
 _mmu_init:
 		move.l	d3,-(sp)			// Backup registers
 		move.l	d2,-(sp)
 
  		clr.l	d0
-		movec	d0,ASID				// ASID allways 0
+		movec	d0,ASID				// ASID always 0
 		move.l	d0,_rt_asid			// save shadow register
 		
 		move.l	#0xC03FC040,d0		// data r/w precise  c000'0000-ffff'ffff
