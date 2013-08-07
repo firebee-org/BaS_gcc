@@ -33,40 +33,47 @@
 #define FPGA_DATA0		(1 << 3)
 #define FPGA_CONF_DONE	(1 << 5)
 
+extern uint8_t _FPGA_FLASH_DATA[];
+#define FPGA_FLASH_DATA	&_FPGA_FLASH_DATA[0]
+extern uint8_t _FPGA_FLASH_DATA_SIZE[];
+#define FPGA_FLASH_DATA_SIZE	((uint32_t) &_FPGA_FLASH_DATA_SIZE[0])
+
 
 void test_longword(void)
 {
 	uint32_t *fpga_data = (uint32_t *) FPGA_FLASH_DATA;
-
+	const uint32_t *fpga_flash_data_end = (uint32_t *) FPGA_FLASH_DATA + FPGA_FLASH_DATA_SIZE;
 	do
 	{
 		uint32_t value = *fpga_data++;
 		xprintf("LONGWORDS: addr=%p, value=%08x\r", fpga_data, value);
-	} while (fpga_data < (uint32_t *) FPGA_FLASH_DATA_END);
+	} while (fpga_data < fpga_flash_data_end);
 	xprintf("finished. \r\n");
 }
 
 void test_word(void)
 {
 	uint16_t *fpga_data = (uint16_t *) FPGA_FLASH_DATA;
+	const uint16_t *fpga_flash_data_end = (uint16_t *) FPGA_FLASH_DATA + FPGA_FLASH_DATA_SIZE;
 
 	do
 	{
 		uint16_t value = *fpga_data++;
 		xprintf("WORDS: addr=%p, value=%04x\r", fpga_data, value);
-	} while (fpga_data < (uint16_t *) FPGA_FLASH_DATA_END);
+	} while (fpga_data < fpga_flash_data_end);
 	xprintf("finished. \r\n");
 }
 
 void test_byte(void)
 {
 	uint8_t *fpga_data = (uint8_t *) FPGA_FLASH_DATA;
+	const uint8_t *fpga_flash_data_end = (uint8_t *) FPGA_FLASH_DATA + FPGA_FLASH_DATA_SIZE;
 
 	do
 	{
 		uint8_t value = *fpga_data++;
 		xprintf("LONGWORDS: addr=%p, value=%08x\r", fpga_data, value);
-	} while (fpga_data < (uint8_t *) FPGA_FLASH_DATA_END);
+	} while (fpga_data < fpga_flash_data_end);
 	xprintf("finished. \r\n");
 }
 
@@ -118,6 +125,9 @@ void init_fpga(void)
 	 * which is pulled high by a pull-up resistor. A low to high transition on CONF_DONE indicates
 	 * configuration is complete and initialization of the device can begin.
 	 */
+
+	const uint8_t *fpga_flash_data_end = FPGA_FLASH_DATA + FPGA_FLASH_DATA_SIZE;
+
 	fpga_data = (uint8_t *) FPGA_FLASH_DATA;
 	do
 	{
@@ -139,11 +149,11 @@ void init_fpga(void)
 			MCF_GPIO_PODR_FEC1L |= FPGA_CLOCK;
 			MCF_GPIO_PODR_FEC1L &= ~FPGA_CLOCK;
 		}
-	} while ((!(MCF_GPIO_PPDSDR_FEC1L & FPGA_CONF_DONE)) && (fpga_data < (uint8_t *) FPGA_FLASH_DATA_END));
+	} while ((!(MCF_GPIO_PPDSDR_FEC1L & FPGA_CONF_DONE)) && (fpga_data < fpga_flash_data_end));
 
-	if (fpga_data < (uint8_t *) FPGA_FLASH_DATA_END)
+	if (fpga_data < fpga_flash_data_end)
 	{
-		while (fpga_data++ < (uint8_t *) FPGA_FLASH_DATA_END)
+		while (fpga_data++ < fpga_flash_data_end)
 		{
 			/* toggle a little more since it's fun ;) */
 			MCF_GPIO_PODR_FEC1L |= FPGA_CLOCK;
