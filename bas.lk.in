@@ -4,7 +4,7 @@ MEMORY
    /*
 	* target to copy BaS data segment to. 16k should be enough for now
 	*/
-   bas_ram (WX) : ORIGIN = 0x1FFC000, LENGTH = 0x004000
+   bas_ram (WX) : ORIGIN = 0x1FFFC000, LENGTH = 0x004000
 }
 
 SECTIONS
@@ -111,7 +111,7 @@ SECTIONS
 #if TARGET_ADDRESS == 0xe0000000
 	__FASTRAM_END           = __BAS_IN_RAM;
 #else
-	__FASTRAM_END			= TARGET_ADDRESS;
+	__FASTRAM_END			= TARGET_ADDRESS - 1;
 #endif
 
 	/* Init CS0 (BootFLASH @ E000_0000 - E07F_FFFF 8Mbytes) */
