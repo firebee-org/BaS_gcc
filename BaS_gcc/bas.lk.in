@@ -75,7 +75,6 @@ SECTIONS
 		AT (ALIGN(ADDR(.text) + SIZEOF(.text), 4))
 		{
 			. = ALIGN(16);
-			. = ALIGN(16);
 			__BAS_DATA_START = .;
 			*(.data)
 			__BAS_DATA_END = .;
@@ -134,6 +133,10 @@ SECTIONS
 	__FIRETOS               = 0xe0400000;
 	__EMUTOS                = 0xe0600000;
 	__EMUTOS_SIZE           = 0x00100000;
+
+	/* where FPGA data lives in flash */
+	__FPGA_FLASH_DATA 		= 0xe0700000;
+	__FPGA_FLASH_DATA_SIZE 	= 0x100000;
 
 	/* VIDEO RAM BASIS */
 	__VRAM                  = 0x60000000;
