@@ -162,16 +162,8 @@ _mmu_init:
 		move.l	d2,MCF_MMU_MMUOR						// mapped to ffffxxx, precise,
 		move.l	d3,MCF_MMU_MMUOR						// mapped to ffffxxx, precise,
 
-// 1fe0'0000 locked
-		move.l	#0x1FE00000|std_mmutr,d0				// last two megabytes of RAM. Reserved for BaS in RAM and BaS in ROM/data+bss
-		move.l	#0x1FE00000|copyback_mmudr|MCF_MMU_MMUDR_LK,d1
-		move.l	d0,MCF_MMU_MMUTR
-		move.l	d1,MCF_MMU_MMUDR
-		move.l	d2,MCF_MMU_MMUOR						// setzen data
-		move.l	d3,MCF_MMU_MMUOR						// setzen instr
-
 // 1ff0'0000 locked
-		move.l	#0x1FF00000|std_mmutr,d0
+		move.l	#0x1FF00000|std_mmutr,d0				// last megabyte of RAM. Reserved for BaS
 		move.l	#0x1FF00000|copyback_mmudr|MCF_MMU_MMUDR_LK,d1
 		move.l	d0,MCF_MMU_MMUTR		
 		move.l	d1,MCF_MMU_MMUDR
