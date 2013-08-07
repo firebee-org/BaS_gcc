@@ -106,6 +106,7 @@ _mmu_init:
 		move.l	d0,_rt_acr2			// save shadow register
 
 		clr.l	d0					// acr3 off
+		//move.l	#0x1F07C400,d0		// instruction r wt e000'0000-e07f'ffff
 		movec	d0,ACR3
 		move.l	d0,_rt_acr3			// save shadow register
 
@@ -165,10 +166,10 @@ _mmu_init:
 // 1ff0'0000 locked
 		move.l	#0x1FF00000|std_mmutr,d0				// last megabyte of RAM. Reserved for BaS
 		move.l	#0x1FF00000|copyback_mmudr|MCF_MMU_MMUDR_LK,d1
-		move.l	d0,MCF_MMU_MMUTR		
+		move.l	d0,MCF_MMU_MMUTR
 		move.l	d1,MCF_MMU_MMUDR
 		move.l	d2,MCF_MMU_MMUOR						// setzen data
-		move.l	d3,MCF_MMU_MMUOR						// setzen instr 
+		move.l	d3,MCF_MMU_MMUOR						// setzen instr
 // instr 0xFFF0'0000 nach 0x1FF0'0000 umleiten -->> short sprung 
 /*		move.l	#0xFFF00000|std_mmutr,d0
 		move.l	#0x1FF00000|copyback_mmudr|MCF_MMU_MMUDR_LK,d1
