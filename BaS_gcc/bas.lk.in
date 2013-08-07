@@ -111,7 +111,7 @@ SECTIONS
 #if TARGET_ADDRESS == 0xe0000000
 	__FASTRAM_END           = __BAS_IN_RAM;
 #else
-	__FASTRAM_END			= TARGET_ADDRESS - 1;
+	__FASTRAM_END			= TARGET_ADDRESS;
 #endif
 
 	/* Init CS0 (BootFLASH @ E000_0000 - E07F_FFFF 8Mbytes) */
@@ -127,7 +127,7 @@ SECTIONS
 	/* BaS is already in RAM - no need to copy anything */
 	__BAS_IN_RAM			= __FASTRAM_END;
 	__BAS_SIZE				= 0;
-	__BAS_LMA				= 0;
+	__BAS_LMA				= __BAS_IN_RAM;
 #endif
 
 	/* Other flash components */
