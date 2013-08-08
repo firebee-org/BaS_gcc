@@ -22,8 +22,8 @@
 /* Copyright (C) 2012, mfro, all rights reserved. */
 
 
-#define	CS_LOW()	{ dspi_fifo_val &= ~MCF_DSPI_DTFR_CS5; }
-#define	CS_HIGH()	{ dspi_fifo_val |= MCF_DSPI_DTFR_CS5; }
+#define	CS_LOW()	{ dspi_fifo_val |= MCF_DSPI_DTFR_CS5; }
+#define	CS_HIGH()	{ dspi_fifo_val &= ~MCF_DSPI_DTFR_CS5; }
 
 /*
  * DCTAR_PBR (baud rate prescaler) and DCTAR_BR (baud rate scaler) together determine the SPI baud rate. The forumula is
@@ -93,7 +93,7 @@ static volatile DSTATUS Stat = 0 /* STA_NOINIT */;	/* Physical drive status */
 static uint8_t CardType;			/* Card type flags */
 
 
-static uint32_t dspi_fifo_val = MCF_DSPI_DTFR_CONT |	/* enable continous chip select */
+static uint32_t dspi_fifo_val = // MCF_DSPI_DTFR_CONT |	/* enable continous chip select */
 								/* CTAS use DCTAR0 for clock and attributes */
 								MCF_DSPI_DTFR_CTCNT;
 
@@ -110,9 +110,8 @@ static uint8_t xchg_spi(uint8_t byte, int last)
 	uint32_t fifo;
 	uint8_t res;
 
-	fifo =  byte & 0xff;							/* transfer bytes only */
-	fifo |= (last ? 0 : MCF_DSPI_DTFR_CONT);		/* leave chip selects asserted during multiple transfers */
-	fifo |= (last ? MCF_DSPI_DTFR_EOQ : 0);			/* mark last transfer */
+	fifo =  dspi_fifo_val | (byte & 0xff);							/* transfer bytes only */
+	//fifo |= (last ? MCF_DSPI_DTFR_EOQ : 0);			/* mark last transfer */
 	MCF_DSPI_DTFR = fifo;
 	while (! (MCF_DSPI_DSR & MCF_DSPI_DSR_TCF));	/* wait until DSPI transfer complete */
 	fifo = MCF_DSPI_DRFR;							/* read transferred word */
