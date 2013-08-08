@@ -62,6 +62,7 @@ CSRCS= \
 	$(SRCDIR)/sysinit.c \
 	$(SRCDIR)/init_fpga.c \
 	$(SRCDIR)/fault_vectors.c \
+	$(SRCDIR)/interrupts.c \
 	$(SRCDIR)/bas_printf.c \
 	$(SRCDIR)/bas_string.c \
 	$(SRCDIR)/BaS.c \
