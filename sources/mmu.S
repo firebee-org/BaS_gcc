@@ -106,7 +106,6 @@ _mmu_init:
 		move.l	d0,_rt_acr2			// save shadow register
 
 		clr.l	d0					// acr3 off
-		//move.l	#0x1F07C400,d0		// instruction r wt e000'0000-e07f'ffff
 		movec	d0,ACR3
 		move.l	d0,_rt_acr3			// save shadow register
 
