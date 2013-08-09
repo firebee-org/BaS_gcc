@@ -804,20 +804,21 @@ irq7:
 		lea			-12(sp),sp
 		movem.l		d0/a0,(sp)
 
-		move.l		__RAMBAR0+0x008,a0	// Real Access Error handler
-		move.l		a0,8(sp)			// This will be the return address for rts
+		move.l		__RAMBAR0+0x008,a0	// real access error handler
+		move.l		a0,8(sp)			// this will be the return address for rts
 
-		move.w		12(sp),d0			// Format/Vector word
-		andi.l		#0xf000,d0			// Keep only the Format
-		ori.l		#2*4,d0				// Simulate Vector #2, no Fault
+		move.w		12(sp),d0			// format/vector word
+		andi.l		#0xf000,d0			// keep only the format
+		ori.l		#2*4,d0				// simulate vector #2, no fault
 		move.w		d0,12(sp)
 
 		// TODO: Inside an interrupt handler, 16(sp) is the return address.
 		// For an Access Error, it should be the address of the fault instruction instead
 
 		lea			MCF_EPORT_EPFR,a0
-		move.b		#0x80,(a0)			// clear int7
-		move.l		(sp)+,d0
+		bset		#7,(a0)				// clear int 7
+
+		move.l		(sp)+,d0			// restore registers
 		move.l		(sp)+,a0
 		rts								// Forward to the Access Error handler
 
