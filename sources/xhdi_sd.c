@@ -190,20 +190,22 @@ uint32_t xhdi_get_capacity(uint16_t major, uint16_t minor, uint32_t *blocks, uin
 		{
 			if (disk_ioctl(0, GET_SECTOR_COUNT, blocks) != RES_OK)
 			{
-				xprintf("disk_ioctl(0, GET_SECTOR_COUNT, %p) failed in xhdi_get_capacity()\r\n");
+				xprintf("disk_ioctl(0, GET_SECTOR_COUNT, %p) failed at %s:%s\r\n", __FILE__, __LINE__);
 
 				return ERROR;
 			}
+			xprintf("%s:%s: determined sector count to %ld\r\n", __FILE__, __LINE__, *blocks);
 		}
 
 		if (bs != 0)
 		{
 			if (disk_ioctl(0, GET_SECTOR_SIZE, bs) != RES_OK)
 			{
-				xprintf("disk_ioctl(0, GET_SECTOR_SIZE, %p) failed in xhdi_get_capacity()\r\n");
+				xprintf("disk_ioctl(0, GET_SECTOR_SIZE, %p) failed at %s:%sr\n", __FILE__, __LINE__);
 
 				return ERROR;
 			}
+			xprintf("%s:%s: determined sector size to %ld\r\n", __FILE__, __LINE__, *bs);
 		}
 		return E_OK;
 	}
