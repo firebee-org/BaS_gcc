@@ -622,6 +622,8 @@ irq6_sca_pn1c:
 		mov3q	#1,-(sp)		// channel 1
 		jsr		_MCD_startDma
 		lea		10 * 4(sp),sp	// adjust stack
+
+		// intentionally no wait for the DMA to finish
 #else
 irq6_vcd0_loop:						
 		move.l	(a0)+,(a1)+			// page copy
@@ -644,6 +646,7 @@ irq6_sca_pn:
 
   		movem.l	(a7),d0-d4/a0-a1	// restore registers
   		lea		28(a7),a7
+
 irq6_non_sca:
 // test auf acsi dma -----------------------------------------------------------------
 		lea		0xfffffa0b,a5
