@@ -98,6 +98,8 @@
 		.equ	INT_SOURCE_GPT1,61			// GPT1 timer interrupt
 		.equ	INT_SOURCE_GPT0,62			// GPT0 timer interrupt
 
+// Atari register equates (provided by FPGA)
+		.equ	vbasehi, 0xffff8201
 
 //mmu ---------------------------------------------------
 /* Register read/write macros */
@@ -156,6 +158,13 @@
 #define	 writethrough_mmudr	(MCF_MMU_MMUDR_SZ(00)|MCF_MMU_MMUDR_CM(00)|MCF_MMU_MMUDR_R|MCF_MMU_MMUDR_W|MCF_MMU_MMUDR_X)
 #define	 copyback_mmudr	(MCF_MMU_MMUDR_SZ(00)|MCF_MMU_MMUDR_CM(01)|MCF_MMU_MMUDR_R|MCF_MMU_MMUDR_W|MCF_MMU_MMUDR_X)
 #define	 nocache_precise_mmudr	(MCF_MMU_MMUDR_SZ(00)|MCF_MMU_MMUDR_CM(10)|MCF_MMU_MMUDR_R|MCF_MMU_MMUDR_W|MCF_MMU_MMUDR_X)
+
+		// equates for (experimental) video page copying via Coldfire DMA
+		.equ	MCD_SINGLE_DMA, 0x100
+		.equ	MCD_TT_FLAGS_CW, 0x2
+		.equ	MCD_TT_FLAGS_RL, 0x1
+		.equ	MCD_TT_FLAGS_SP, 0x4
+		.equ	DMA_ALWAYS, 0
 //---------------------------------------------------
 /*********************************************************************
 *
@@ -534,12 +543,16 @@ irq4:				// vbl
 irq5:				// acp
 		irq		0x74,5,0x20
 
-irq6:				// mfp
+irq6:	// MFP interrupt from FPGA
 		move.w	#0x2700,sr			// disable interrupt
 		subq.l	#8,a7
 		movem.l	d0/a5,(a7)			// save registers
-		lea		MCF_EPORT_EPFR,a5
-		move.b	#0x40,(a5)			// clear int6
+
+		lea		MCF_EPORT_EPFR,a5	// clear int6 from edge port
+		bset	#6,(a5)
+
+		// there was a potential bug here befor: would also clear all other edge port interrupts that might have happened...
+		// move.b	#0x40,(a5)			// clear int6 from edge port
 
 // screen adr change timed out?
 		move.l	_video_sbt,d0
@@ -590,7 +603,26 @@ irq6_sca_pn1c:
 		move.l	d3,a0
 		add.l	#0x60000000,a0
 		move.l	d3,a1
-		move.l	#0x10000,d4			// die ganze page
+		move.l	#0x10000,d4			// one whole page (1 MB)
+
+#ifndef _DO_CPU_COPY
+
+		// experiment: do video page copy using Coldfire DMA
+
+		clr.l	-(sp)			// no special functions
+		move.l	MCD_SINGLE_DMA|MCD_TT_FLAGS_CW|MCD_TT_FLAGS_RL|MCD_TT_FLAGS_SP,-(sp)
+		mov3q	#7,-(sp)		// highest DMA priority
+		move.l	#DMA_ALWAYS,-(sp)	// do memory to memory DMA
+		move.l	#4,-(sp)		// copy 4 bytes at a time
+		move.l	#0x100000,-(sp)	// copy 1 Megabyte
+		move.w	#4,-(sp)		// destination increment
+		move.l	a1,-(sp)		// destination adress
+		move.w	#4,-(sp)		// source increment
+		move.l	a0,-(sp)		// source adress
+		mov3q	#1,-(sp)		// channel 1
+		jsr		_MCD_startDma
+		lea		10 * 4(sp),sp	// adjust stack
+#else
 irq6_vcd0_loop:						
 		move.l	(a0)+,(a1)+			// page copy
 		move.l	(a0)+,(a1)+
@@ -599,6 +631,8 @@ irq6_vcd0_loop:
 		subq.l	#1,d4
 		bne		irq6_vcd0_loop
 		nop
+#endif /* _DO_CPU_COPY */
+
 irq6_sca_pn:
 		add.l	#0x00100000,d3		// next
 		cmp.l	#0x00d00000,d3		// ende?
@@ -608,7 +642,7 @@ irq6_sca_pn:
 		move.l	d0,_video_tlb		// anfangszustand wieder herstellen
   		clr.l	_video_sbt			// zeit löschen
 
-  		movem.l	(a7),d0-d4/a0-a1	// register zurück
+  		movem.l	(a7),d0-d4/a0-a1	// restore registers
   		lea		28(a7),a7
 irq6_non_sca:
 // test auf acsi dma -----------------------------------------------------------------
@@ -827,24 +861,27 @@ psc3_fertig:
  * general purpose timer 0 (GPT0): video change, later also others
  */
 handler_gpt0:
-		move	#0x2700,sr
-//		halt
-		lea		-28(a7),a7
+		move	#0x2700,sr			// disable interrupts
+
+		lea		-28(a7),a7			// save registers
 		movem.l	d0-d4/a0-a1,(a7)
-		mvz.b	0xffff8201,d0		// l�schen und high byt
-		cmp.w	#2,d0
-		blt		video_chg_end
-		cmp.w	#0xd0,d0			// normale addresse
-		blt		sca_other			// nein->
+
+		mvz.b	vbasehi,d0			// screen base address high
+		cmp.w	#2,d0				// lower than 0x200000?
+		blt		video_chg_end		// yes
+		cmp.w	#0xd0,d0			// 0xd00000? - normal Falcon video area, map to 60d00000 (FPGA video memory)
+		blt		sca_other			//
+
 		lea		MCF_SLT0_SCNT,a0
-  		move.l	(a0),d4
-		move.l	d4,_video_sbt		// time sichern
+  		move.l	(a0),_video_sbt		// save time
+
 sca_other:
-		lsl.l	#8,d0				
+		lsl.l	#8,d0				// build screen start address from Atari register contents
 		move.b	0xffff8203,d0		// mid byt
 		lsl.l	#8,d0
 		move.b  0xffff820d,d0		// low byt
 		move.l	d0,d3
+
 video_chg_1page:
 // test ob page schon gesetzt
 		moveq	#20,d4
@@ -855,7 +892,7 @@ video_chg_1page:
 		bne		video_chg_2page		// schon gesetzt gewesen? ja->weg
 		move.l	d4,_video_tlb
 		bsr		cpusha				// cache leeren
-// daten copieren 
+
 video_copy_data:
 		move.l	d4,_video_tlb
 		and.l	#0x00f00000,d0
@@ -863,6 +900,27 @@ video_copy_data:
 		move.l	a0,a1
 		add.l	#0x60000000,a1
 		move.l	#0x10000,d4			// die ganze page
+
+#ifndef _DO_CPU_COPY
+
+		// experiment: do video page copy using Coldfire DMA
+
+		move.l	d0,-(sp)			// save d0
+		clr.l	-(sp)				// no special functions
+		move.l	MCD_SINGLE_DMA|MCD_TT_FLAGS_CW|MCD_TT_FLAGS_RL|MCD_TT_FLAGS_SP,-(sp)
+		mov3q	#7,-(sp)			// highest DMA priority
+		move.l	#DMA_ALWAYS,-(sp)	// do memory to memory DMA
+		move.l	#4,-(sp)			// copy 4 bytes at a time
+		move.l	#0x100000,-(sp)		// copy 1 Megabyte
+		move.w	#4,-(sp)			// destination increment
+		move.l	a1,-(sp)			// destination adress
+		move.w	#4,-(sp)			// source increment
+		move.l	a0,-(sp)			// source adress
+		mov3q	#1,-(sp)			// channel 1
+		jsr		_MCD_startDma
+		lea		10 * 4(sp),sp		// adjust stack
+		move.l	(sp)+,d0			// restore d0
+#else
 video_copy_data_loop:
 		move.l	(a0)+,(a1)+
 		move.l	(a0)+,(a1)+
@@ -870,6 +928,8 @@ video_copy_data_loop:
 		move.l	(a0)+,(a1)+
 		subq.l	#1,d4
 		bne		video_copy_data_loop
+#endif
+
 // eintrag suchen
 		move.l	d0,MCF_MMU_MMUAR	// addresse
  		move.l	#0x106,d4
@@ -905,14 +965,12 @@ video_chg_2page:
 		bset.l	d2,d4				// setzen als ge�ndert
 		beq		video_copy_data		// nein nochmal
 video_chg_end:
-// int pending l�schen
-		lea		MCF_GPT0_GMS,a0
+		lea		MCF_GPT0_GMS,a0		// clear interrupt
 		bclr.b	#0,3(a0)
 		nop
 		bset.b	#0,3(a0)
 
-		movem.l	(a7),d0-d4/a0-a1
+		movem.l	(a7),d0-d4/a0-a1	// restore saved registers
 		lea		28(a7),a7
-//--------------------------------------------------------------------------------------------------------
-		RTE
+		rte
 
