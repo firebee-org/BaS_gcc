@@ -770,7 +770,7 @@ acsi_dma_rl:
 		bra		acsi_dma_fertig	
 acsi_dma_wl:
  		tst.b	-4(a5) 				// dma req?
-  		bpl		acsi_dma_fertig		// nein->
+  		bpl		acsi_dma_finished	// nein->
 		move.l	(a1)+,(a5)			// write 4 byts
 		move.l	(a1)+,(a5)			// write 4 byts
 		move.l	(a1)+,(a5)			// write 4 byts
@@ -781,7 +781,7 @@ acsi_dma_wl:
 
 		sub.l	#16,d0				// byt counter -16
 		bpl		acsi_dma_wl
-acsi_dma_fertig:
+acsi_dma_finished:
 		move.l	a1,-12(a5)			// adresse zur�ck
 		move.l	d0,-8(a5)			// byt counter zur�ck
 acsi_dma_end:
