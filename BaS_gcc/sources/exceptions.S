@@ -756,7 +756,7 @@ acsi_dma_start:
 		bne		acsi_dma_wl			// ja->
 acsi_dma_rl:
  		tst.b	-4(a5) 				// dma req?
-  		bpl		acsi_dma_fertig		// nein->
+  		bpl		acsi_dma_finished		// nein->
 		move.l	(a5),(a1)+			// read 4 bytes	 
 		move.l	(a5),(a1)+			// read 4 bytes	 
 		move.l	(a5),(a1)+			// read 4 bytes	 
@@ -767,7 +767,7 @@ acsi_dma_rl:
 
 		sub.l	#16,d0				// byt counter -16
  		bpl		acsi_dma_rl
-		bra		acsi_dma_fertig	
+		bra		acsi_dma_finished	
 acsi_dma_wl:
  		tst.b	-4(a5) 				// dma req?
   		bpl		acsi_dma_finished	// nein->
