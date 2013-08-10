@@ -610,18 +610,18 @@ irq6_sca_pn1c:
 		// experiment: do video page copy using Coldfire DMA
 
 		clr.l	-(sp)			// no special functions
-		move.l	MCD_SINGLE_DMA|MCD_TT_FLAGS_CW|MCD_TT_FLAGS_RL|MCD_TT_FLAGS_SP,-(sp)
+		move.l	#MCD_SINGLE_DMA|MCD_TT_FLAGS_CW|MCD_TT_FLAGS_RL|MCD_TT_FLAGS_SP,-(sp)
 		mov3q	#7,-(sp)		// highest DMA priority
 		move.l	#DMA_ALWAYS,-(sp)	// do memory to memory DMA
 		move.l	#4,-(sp)		// copy 4 bytes at a time
 		move.l	#0x100000,-(sp)	// copy 1 Megabyte
-		move.w	#4,-(sp)		// destination increment
+		mov3q	#4,-(sp)		// destination increment
 		move.l	a1,-(sp)		// destination adress
-		move.w	#4,-(sp)		// source increment
+		mov3q	#4,-(sp)		// source increment
 		move.l	a0,-(sp)		// source adress
 		mov3q	#1,-(sp)		// channel 1
 		jsr		_MCD_startDma
-		lea		10 * 4(sp),sp	// adjust stack
+		lea		11 * 4(sp),sp	// adjust stack
 
 		// intentionally no wait for the DMA to finish
 #else
@@ -910,19 +910,21 @@ video_copy_data:
 		// experiment: do video page copy using Coldfire DMA
 
 		move.l	d0,-(sp)			// save d0
+
 		clr.l	-(sp)				// no special functions
 		move.l	MCD_SINGLE_DMA|MCD_TT_FLAGS_CW|MCD_TT_FLAGS_RL|MCD_TT_FLAGS_SP,-(sp)
 		mov3q	#7,-(sp)			// highest DMA priority
 		move.l	#DMA_ALWAYS,-(sp)	// do memory to memory DMA
 		move.l	#4,-(sp)			// copy 4 bytes at a time
 		move.l	#0x100000,-(sp)		// copy 1 Megabyte
-		move.w	#4,-(sp)			// destination increment
+		mov3q	#4,-(sp)			// destination increment
 		move.l	a1,-(sp)			// destination adress
-		move.w	#4,-(sp)			// source increment
+		mov3q	#4,-(sp)			// source increment
 		move.l	a0,-(sp)			// source adress
 		mov3q	#1,-(sp)			// channel 1
 		jsr		_MCD_startDma
-		lea		10 * 4(sp),sp		// adjust stack
+		lea		11 * 4(sp),sp		// adjust stack
+
 		move.l	(sp)+,d0			// restore d0
 #else
 video_copy_data_loop:
