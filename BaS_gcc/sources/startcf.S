@@ -54,6 +54,7 @@ _rom_entry:
 		 * Later, the MMU will fully activate the data cache for specific areas.
 		 * It is important to enable both caches now, otherwise cpushl would hang.
 		 */
+
 		move.l	#0xa50c8120,d0
 		movec	d0,cacr
 		andi.l	#0xfefbfeff,d0			// Clear invalidate bits
