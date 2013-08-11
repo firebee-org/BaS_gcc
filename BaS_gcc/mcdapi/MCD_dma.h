@@ -17,6 +17,7 @@
  */
 #define NCHANNELS 16
 
+#define MCD_INCLUDE_EU
 /*
  * Total number of variants
  */
