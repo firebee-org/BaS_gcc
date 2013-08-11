@@ -5,14 +5,16 @@
  *      Author: mfro
  */
 
+#include "bas_types.h"
+#include <stdint.h>
 #include "bas_string.h"
 
 void *memcpy(void *dst, const void *src, size_t n)
 {
-	char *to = dst;
+	uint8_t *to = dst;
 
-	while (to < (char *) dst + n)
-		*to++ = * (char *) src++;
+	while (to < (uint8_t *) dst + n)
+		*to++ = * (uint8_t *) src++;
 
 	return dst;
 }
