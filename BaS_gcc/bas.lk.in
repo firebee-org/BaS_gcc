@@ -2,9 +2,9 @@ MEMORY
 {
    bas_rom (RX) : ORIGIN = TARGET_ADDRESS, LENGTH = 0x00100000
    /*
-	* target to copy BaS data segment to. 16k should be enough for now
+	* target to copy BaS data segment to. 20k should be enough for now
 	*/
-   bas_ram (WX) : ORIGIN = 0x1FFFC000, LENGTH = 0x004000
+   bas_ram (WX) : ORIGIN = 0x1FFFC000, LENGTH = 0x005000
 }
 
 SECTIONS
@@ -153,11 +153,10 @@ SECTIONS
  	__MMUBAR                = 0xFF040000;
 
 	/*
-	 * 4KB on-chip Core SRAM0: -> exception table and exception stack
+	 * 4KB on-chip Core SRAM0: -> exception table 
 	 */
  	__RAMBAR0               = 0xFF100000;
  	__RAMBAR0_SIZE          = 0x00001000;
- 	__SUP_SP                = __RAMBAR0 + __RAMBAR0_SIZE - 4;
 
 	/* system variables */
 	
@@ -180,7 +179,8 @@ SECTIONS
 	_video_sbt = __RAMBAR0 + 0x83C;
 	_rt_mbar   = __RAMBAR0 + 0x844;   	/* (c)0f */
 
-	/* 4KB on-chip Core SRAM1: -> modified code */
+	/* 4KB on-chip Core SRAM1: -> supervisor stack */
  	__RAMBAR1               = 0xFF101000;
  	__RAMBAR1_SIZE          = 0x00001000;
+ 	__SUP_SP                = __RAMBAR1 + __RAMBAR1_SIZE - 4;
 }
