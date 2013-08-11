@@ -551,7 +551,7 @@ irq6:	// MFP interrupt from FPGA
 		lea		MCF_EPORT_EPFR,a5	// clear int6 from edge port
 		bset	#6,(a5)
 
-		// there was a potential bug here befor: would also clear all other edge port interrupts that might have happened...
+		// there was a potential bug here before: would also clear all other edge port interrupts that might have happened...
 		// move.b	#0x40,(a5)			// clear int6 from edge port
 
 // screen adr change timed out?
@@ -605,9 +605,12 @@ irq6_sca_pn1c:
 		move.l	d3,a1
 		move.l	#0x10000,d4			// one whole page (1 MB)
 
+#define _DO_CPU_COPY
 #ifndef _DO_CPU_COPY
 
 		// experiment: do video page copy using Coldfire DMA
+
+		lea 	-11 * 4(sp),sp
 
 		clr.l	-(sp)			// no special functions
 		move.l	#MCD_SINGLE_DMA|MCD_TT_FLAGS_CW|MCD_TT_FLAGS_RL|MCD_TT_FLAGS_SP,-(sp)
@@ -615,13 +618,21 @@ irq6_sca_pn1c:
 		move.l	#DMA_ALWAYS,-(sp)	// do memory to memory DMA
 		move.l	#4,-(sp)		// copy 4 bytes at a time
 		move.l	#0x100000,-(sp)	// copy 1 Megabyte
-		mov3q	#4,-(sp)		// destination increment
+		move.l	#4,-(sp)		// destination increment
 		move.l	a1,-(sp)		// destination adress
-		mov3q	#4,-(sp)		// source increment
+		move.l	#4,-(sp)		// source increment
 		move.l	a0,-(sp)		// source adress
-		mov3q	#1,-(sp)		// channel 1
+		move.l	#1,-(sp)		// channel 1
 		jsr		_MCD_startDma
 		lea		11 * 4(sp),sp	// adjust stack
+
+wait_dma_finished:
+		clr.l	-(sp)
+		jsr		_MCD_dmaStatus
+		addq.l	#4,sp
+		tst.l	d0
+		cmp.l	#6,d0
+		bne		wait_dma_finished
 
 		// intentionally no wait for the DMA to finish
 #else
@@ -632,7 +643,6 @@ irq6_vcd0_loop:
 		move.l	(a0)+,(a1)+
 		subq.l	#1,d4
 		bne		irq6_vcd0_loop
-		nop
 #endif /* _DO_CPU_COPY */
 
 irq6_sca_pn:
@@ -644,8 +654,8 @@ irq6_sca_pn:
 		move.l	d0,_video_tlb		// anfangszustand wieder herstellen
   		clr.l	_video_sbt			// zeit löschen
 
-  		movem.l	(a7),d0-d4/a0-a1	// restore registers
-  		lea		28(a7),a7
+  		movem.l	(sp),d0-d4/a0-a1	// restore registers
+  		lea		7 * 4(sp),sp
 
 irq6_non_sca:
 // test auf acsi dma -----------------------------------------------------------------
@@ -756,7 +766,7 @@ acsi_dma_start:
 		bne		acsi_dma_wl			// ja->
 acsi_dma_rl:
  		tst.b	-4(a5) 				// dma req?
-  		bpl		acsi_dma_finished		// nein->
+  		bpl		acsi_dma_finished	// nein->
 		move.l	(a5),(a1)+			// read 4 bytes	 
 		move.l	(a5),(a1)+			// read 4 bytes	 
 		move.l	(a5),(a1)+			// read 4 bytes	 
@@ -905,6 +915,7 @@ video_copy_data:
 		add.l	#0x60000000,a1
 		move.l	#0x10000,d4			// die ganze page
 
+#define _DO_CPU_COPY
 #ifndef _DO_CPU_COPY
 
 		// experiment: do video page copy using Coldfire DMA
@@ -912,20 +923,30 @@ video_copy_data:
 		move.l	d0,-(sp)			// save d0
 
 		clr.l	-(sp)				// no special functions
-		move.l	MCD_SINGLE_DMA|MCD_TT_FLAGS_CW|MCD_TT_FLAGS_RL|MCD_TT_FLAGS_SP,-(sp)
+		move.l	#MCD_SINGLE_DMA|MCD_TT_FLAGS_CW|MCD_TT_FLAGS_RL|MCD_TT_FLAGS_SP,-(sp)
 		mov3q	#7,-(sp)			// highest DMA priority
 		move.l	#DMA_ALWAYS,-(sp)	// do memory to memory DMA
 		move.l	#4,-(sp)			// copy 4 bytes at a time
 		move.l	#0x100000,-(sp)		// copy 1 Megabyte
-		mov3q	#4,-(sp)			// destination increment
+		move.l	#4,-(sp)			// destination increment
 		move.l	a1,-(sp)			// destination adress
-		mov3q	#4,-(sp)			// source increment
+		move.l	#4,-(sp)			// source increment
 		move.l	a0,-(sp)			// source adress
-		mov3q	#1,-(sp)			// channel 1
+		move.l	#1,-(sp)			// channel 1
 		jsr		_MCD_startDma
+
+.wait_dma_finished:
+		clr.l	-(sp)
+		jsr		_MCD_dmaStatus
+		addq.l	#4,sp
+		tst.l	d0
+		cmp.l	#6,d0
+		bne		.wait_dma_finished
+
 		lea		11 * 4(sp),sp		// adjust stack
 
 		move.l	(sp)+,d0			// restore d0
+
 #else
 video_copy_data_loop:
 		move.l	(a0)+,(a1)+
@@ -977,6 +998,6 @@ video_chg_end:
 		bset.b	#0,3(a0)
 
 		movem.l	(a7),d0-d4/a0-a1	// restore saved registers
-		lea		28(a7),a7
+		lea		7 * 4(sp),a7
 		rte
 
