@@ -9,20 +9,72 @@
 #include <MCD_dma.h>
 #include "mcd_initiators.h"
 #include "bas_printf.h"
+#include "bas_string.h"
+#include "cache.h"
 
 extern char _SYS_SRAM[];
 #define SYS_SRAM &_SYS_SRAM[0]
 
+void print_sp(void)
+{
+	register char *sp asm("sp");
+	xprintf("sp=%x\r\n", sp);
+}
+
+
 void *dma_memcpy(void *dst, void *src, size_t n)
 {
 	int ret;
-	int time;
-	int32_t start = MCF_SLT_SCNT(0);
-	int32_t end;
+	volatile int32_t time;
+	volatile int32_t start;
+	volatile int32_t end;
+	uint8_t *d;
+	uint8_t *s;
 
-	xprintf("doing memory to memory DMA from %p to %p (0x%x bytes)\r\n", src, dst, n);
+	xprintf("compare memcpy() to memory to memory DMA from %p to %p (0x%x bytes ending at 0x%x)\r\n",
+				src, dst, n, dst + n);
+	d = dst;
+	s = src;
 
-	ret = MCD_startDma(0, src, n, dst, n, n, 1, DMA_ALWAYS, 7, MCD_SINGLE_DMA|MCD_TT_FLAGS_CW|MCD_TT_FLAGS_RL|MCD_TT_FLAGS_SP, 0);
+//#ifdef _NOT_USED_
+	start = MCF_SLT0_SCNT;
+	/* first check if we can do a "traditional" memcpy() to the destination and measure speed */
+
+	// memcpy(d, s, n);
+
+	{
+		uint32_t *dl = (uint32_t *) dst;
+		uint32_t *sl = (uint32_t *) src;
+		do
+		{
+			*dl++ = *sl++;
+		} while (dl < (uint32_t *) (dst + n));
+	}
+	end = MCF_SLT0_SCNT;
+
+	time = (start - end) / 132;
+	xprintf("memcpy() took %d ms (%d.%d Mbytes/second)\r\n",
+			time, n / time / 1000, n / time % 1000);
+	flush_and_invalidate_caches();
+	//#endif
+
+	flush_and_invalidate_caches();
+
+	{
+		uint32_t *dl = (uint32_t *) dst;
+
+		xprintf("clear target area after memcpy():");
+		do
+		{
+			*dl++ = 0;
+		} while (dl < (uint32_t *) (dst + n));
+		xprintf(" finished, flush caches: ");
+		flush_and_invalidate_caches();
+		xprintf("finished\r\n");
+	}
+
+	start = MCF_SLT0_SCNT;
+	ret = MCD_startDma(0, src, 4, dst, 4, n, 4, DMA_ALWAYS, 7, MCD_SINGLE_DMA|MCD_TT_FLAGS_CW|MCD_TT_FLAGS_RL|MCD_TT_FLAGS_SP, 0);
 	if (ret == MCD_OK)
 	{
 		xprintf("DMA on channel 0 successfully started\r\n");
@@ -41,7 +93,7 @@ void *dma_memcpy(void *dst, void *src, size_t n)
 			xprintf("MCD_IDLE: DMA defined but not active (initiator not ready)\r\n");
 			break;
 		case MCD_RUNNING:
-			//xprintf("MCD_RUNNING: DMA active and working on this channel\r\n");
+			xprintf("MCD_RUNNING: DMA active and working on this channel\r\n");
 			break;
 		case MCD_PAUSED:
 			xprintf("MCD_PAUSED: DMA defined and enabled, but currently paused\r\n");
@@ -64,11 +116,43 @@ void *dma_memcpy(void *dst, void *src, size_t n)
 	} while (ret != MCD_DONE);
 	xprintf("\r\n");
 
-	end = MCF_SLT_SCNT(0);
+	end = MCF_SLT0_SCNT;
+	time = (start - end) / 132;
+	xprintf("start = %d, end = %d, time = %d\r\n", start, end, time);
+	xprintf("took %d ms (%d.%d Mbytes/second)\r\n",	time, n / time / 1000, n / time % 1000);
 
-	time = (start - end) / 132 / 1000;
-	xprintf("took %d ms (%d.%d Mbytes/second)\r\n",
-			time, n / time / 1000, n / time % 1000);
+	/*
+	 * verify if copy succeeded
+	 */
+	xprintf("verify if DMA copy succeeded:\r\n");
+
+	xprintf("flush caches first:");
+	flush_and_invalidate_caches();
+	xprintf(" done.\r\n");
+
+	s = src;
+	d = dst;
+
+	start = MCF_SLT0_SCNT;
+	do
+	{
+		if (*d != *s)
+		{
+			xprintf("copy verification failed: %d (%p) != %d (%p) !\r\n", *d, d, *s, s);
+			break;
+		}
+		d++; s++;
+	} while (d < (uint8_t *) dst + n);
+	if (d >= (uint8_t *) dst + n)
+	{
+		xprintf("DMA copy verification successful!\r\n");
+		end = MCF_SLT0_SCNT;
+
+		time = (start - end) / 132;
+		xprintf("took %d ms (%d.%d Mbytes/second)\r\n",	time, n / time / 1000, n / time % 1000);
+
+	}
+
 #ifdef _NOT_USED_
 	__asm__ __volatile__("move.w	sr,d0\n\t"
 						 "stop		#0x270\n\t"
@@ -81,6 +165,8 @@ void *dma_memcpy(void *dst, void *src, size_t n)
 int dma_init(void)
 {
 	int res;
+	int version;
+	char *long_version;
 
 	xprintf("MCD DMA API initialization: ");
 	res = MCD_initDma((dmaRegs *) &MCF_DMA_TASKBAR, SYS_SRAM, MCD_RELOC_TASKS | MCD_COMM_PREFETCH_EN);
@@ -89,12 +175,13 @@ int dma_init(void)
 		xprintf("DMA API initialization failed (0x%x)\r\n", res);
 		return 0;
 	}
-	xprintf("DMA API initialized. Tasks are at %p\r\n", SYS_SRAM);
+	version = MCD_getVersion(&long_version);
+	xprintf("DMA API version %d.%d initialized. Tasks are at %p\r\n", version / 0xff, version % 0xff, SYS_SRAM);
 
 	// test
-	dma_memcpy((void *) 0x01000000, (void *) 0x1FF00000, 0x100000);	/* copy one megabyte of flash to RAM */
+	dma_memcpy((void *) 0x01000000, (void *) 0xe0000000, 0x00100000);	/* copy one megabyte of flash to RAM */
 
 	xprintf("DMA finished\r\n");
-	return 1;
+	return 0;
 }
 
