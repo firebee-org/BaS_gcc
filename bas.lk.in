@@ -52,12 +52,9 @@ SECTIONS
 		*(.data)
 		__BAS_DATA_END = .;
 		*(.bss)	
-
-		/* The BaS copy routine assumes that tha BaS size
-		 * is a multiple of the following value.
-		 */
 		. = ALIGN(16);
 #endif /* TARGET_ADDRESS */
+
 #if (FORMAT == elf32-m68k)
 		*(.rodata)
 		*(.rodata.*)
