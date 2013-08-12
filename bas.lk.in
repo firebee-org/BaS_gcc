@@ -140,10 +140,9 @@ SECTIONS
 
 	/* Memory mapped registers */
  	__MBAR                  = 0xFF000000;
-	//__MBAR					  = 0x80000000;
 	
 	/* 32KB on-chip System SRAM */
- 	__SYS_SRAM              = 0xFF010000;
+ 	__SYS_SRAM              = __MBAR + 0x10000;
 	__SYS_SRAM_SIZE         = 0x00008000;
 
 	/* MMU memory mapped registers */
