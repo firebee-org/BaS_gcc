@@ -24,6 +24,24 @@
 
 #include "cache.h"
 
+void cacr_set(uint32_t value)
+{
+	extern uint32_t rt_cacr[];
+
+	rt_cacr[0] = value;
+	__asm__ __volatile__("movec	%0, cacr\n\t"
+						 : /* output */
+						 : "r" (rt_cacr[0])
+						 : /* clobbers */);
+}
+
+uint32_t cacr_get(void)
+{
+	extern uint32_t rt_cacr[];
+
+	return rt_cacr[0];
+}
+
 void flush_and_invalidate_caches(void)
 {
 	__asm__ (
