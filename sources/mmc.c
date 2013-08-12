@@ -211,8 +211,6 @@ static int select(void)	/* 1:OK, 0:Timeout */
  */
 static void power_on(void)	/* Enable SSP module */
 {
-	MCF_PAD_PAR_DSPI = 0x1fff;			/* configure all DSPI GPIO pins for DSPI usage */
-
 	/*
 	 * initialize DSPI module configuration register
 	 */
