@@ -64,3 +64,82 @@ void flush_and_invalidate_caches(void)
 	/* clobber */	: "d0", "d1", "a0"
 	);
 }
+
+/*
+ * flush and invalidate a specific memory region from the instruction cache
+ */
+void flush_icache_range(void *address, size_t size)
+{
+	uint32_t set;
+	uint32_t start_set;
+	uint32_t end_set;
+	void *endaddr = address + size;
+
+	start_set = (uint32_t) address & _ICACHE_SET_MASK;
+	end_set = (uint32_t) endaddr & _ICACHE_SET_MASK;
+
+	if (start_set > end_set) {
+		/* from the begining to the lowest address */
+		for (set = 0; set <= end_set; set += (0x10 - 3)) {
+			asm volatile("cpushl ic,(%0)\n\t"
+						"addq.l #1,%0\n\t"
+						"cpushl ic,(%0)\n\t"
+						"addq.l #1,%0\n\t"
+						"cpushl ic,(%0)\n\t"
+						"addq.l #1,%0\n\t"
+						"cpushl ic,(%0)" : "=a" (set) : "a" (set));
+		}
+		/* next loop will finish the cache ie pass the hole */
+		end_set = LAST_ICACHE_ADDR;
+	}
+	for (set = start_set; set <= end_set; set += (0x10 - 3)) {
+		asm volatile("cpushl ic,(%0)\n\t"
+					"addq.l #1,%0\n\t"
+					"cpushl ic,(%0)\n\t"
+					"addq%.l #1,%0\n\t"
+					"cpushl ic,(%0)\n\t"
+					"addq.l #1,%0\n\t"
+					"cpushl ic,(%0)" : "=a" (set) : "a" (set));
+	}
+}
+
+
+
+/*
+ * flush and invalidate a specific region from the data cache
+ */
+void flush_dcache_range(void *address, size_t size)
+{
+	unsigned long set;
+	unsigned long start_set;
+	unsigned long end_set;
+	void *endaddr;
+
+	endaddr = address + size;
+	start_set = (uint32_t) address & _DCACHE_SET_MASK;
+	end_set = (uint32_t) endaddr & _DCACHE_SET_MASK;
+
+	if (start_set > end_set) {
+		/* from the begining to the lowest address */
+		for (set = 0; set <= end_set; set += (0x10 - 3)) {
+			asm volatile("cpushl dc,(%0)\n\t"
+						"addq.l #1,%0\n\t"
+						"cpushl dc,(%0)\n\t"
+						"addq.l #1,%0\n\t"
+						"cpushl dc,(%0)\n\t"
+						"addq.l #1,%0\n\t"
+						"cpushl dc,(%0)" : "=a" (set) : "a" (set));
+		}
+		/* next loop will finish the cache ie pass the hole */
+		end_set = LAST_DCACHE_ADDR;
+	}
+	for (set = start_set; set <= end_set; set += (0x10 - 3)) {
+		asm volatile("cpushl dc,(%0)\n\t"
+					"addq.l #1,%0\n\t"
+					"cpushl dc,(%0)\n\t"
+					"addq%.l #1,%0\n\t"
+					"cpushl dc,(%0)\n\t"
+					"addq.l #1,%0\n\t"
+					"cpushl dc,(%0)" : "=a" (set) : "a" (set));
+	}
+}

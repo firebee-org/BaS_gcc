@@ -26,6 +26,7 @@
  */
 
 #include <stdint.h>
+#include <stddef.h>
 
 /*
  * CACR Cache Control Register
@@ -54,9 +55,35 @@
 #define CF_CACR_IDSP        (0x00000080) /* Ins default supervisor-protect   */
 #define CF_CACR_EUSP        (0x00000020) /* Switch stacks in user mode       */
 
+#define _DCACHE_SET_MASK ((DCACHE_SIZE/64-1)<<CACHE_WAYS)
+#define _ICACHE_SET_MASK ((ICACHE_SIZE/64-1)<<CACHE_WAYS)
+#define LAST_DCACHE_ADDR _DCACHE_SET_MASK
+#define LAST_ICACHE_ADDR _ICACHE_SET_MASK
+
+#define ICACHE_SIZE 0x8000              /* instruction - 32k */
+#define DCACHE_SIZE 0x8000              /* data - 32k */
+
+#define CACHE_LINE_SIZE 0x0010          /* 16 bytes */
+#define CACHE_SETS 0x0200               /* 512 sets */
+#define CACHE_WAYS 0x0004               /* 4 way */
+
+
+#define CACHE_DISABLE_MODE      (CF_CACR_DCINVA+        \
+									CF_CACR_BCINVA+        \
+									CF_CACR_ICINVA)
+
+#define CACHE_INITIAL_MODE      (CF_CACR_DEC+           \
+									CF_CACR_BEC+           \
+									CF_CACR_IEC+           \
+									CF_CACR_DESB+          \
+									CF_CACR_EUSP)
+
 extern void flush_and_invalidate_caches(void);
 extern uint32_t cacr_get(void);
 extern void cacr_set(uint32_t);
+extern void flush_icache_range(void *address, size_t size);
+extern void flush_dcache_range(void *address, size_t size);
+
 
 
 #endif /* _CACHE_H_ */
