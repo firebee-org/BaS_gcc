@@ -158,25 +158,38 @@ void init_gpio(void)
 			MCF_PAD_PAR_PSC0_PAR_RXD0 |
 			MCF_PAD_PAR_PSC0_PAR_TXD0;
 
-	MCF_PAD_PAR_DSPI = 0b0001111111111111;	/* DSPI NORMAL */
+	/*
+	 * Configure all DSPI pins on the GPIO module for there primary function
+	 */
+	MCF_PAD_PAR_DSPI = MCF_PAD_PAR_DSPI_PAR_SOUT(MCF_PAD_PAR_DSPI_PAR_SOUT_SOUT) |
+						MCF_PAD_PAR_DSPI_PAR_SIN(MCF_PAD_PAR_DSPI_PAR_SIN_SIN) |
+						MCF_PAD_PAR_DSPI_PAR_SCK(MCF_PAD_PAR_DSPI_PAR_SCK_SCK) |
+						MCF_PAD_PAR_DSPI_PAR_CS0(MCF_PAD_PAR_DSPI_PAR_CS0_DSPICS0) |
+						MCF_PAD_PAR_DSPI_PAR_CS2(MCF_PAD_PAR_DSPI_PAR_CS2_DSPICS2) |
+						MCF_PAD_PAR_DSPI_PAR_CS3(MCF_PAD_PAR_DSPI_PAR_CS3_DSPICS3) |
+						MCF_PAD_PAR_DSPI_PAR_CS5;
 
-	MCF_PAD_PAR_TIMER = 0b00101101;	/* TIN3..2=#IRQ3..2;TOUT3..2=NORMAL */
+	MCF_PAD_PAR_TIMER = MCF_PAD_PAR_TIMER_PAR_TIN3(MCF_PAD_PAR_TIMER_PAR_TIN3_IRQ3) |
+						MCF_PAD_PAR_TIMER_PAR_TOUT3 |
+						MCF_PAD_PAR_TIMER_PAR_TIN2(MCF_PAD_PAR_TIMER_PAR_TIN2_IRQ2) |
+						MCF_PAD_PAR_TIMER_PAR_TOUT2;
+
+	// MCF_PAD_PAR_TIMER = 0b00101101;	/* TIN3..2=#IRQ3..2;TOUT3..2=NORMAL */
 
 	// ALLE OUTPUTS NORMAL LOW
 
-
 	// ALLE DIR NORMAL INPUT = 0
-	MCF_GPIO_PDDR_FEC1L = 0b00011110;	/* OUT: 4=LED,3=PRG_DQ0,2=#FPGA_CONFIG,1=PRG_CLK(FPGA) */
-
-#define FPGA_STATUS		(1 << 0)
-#define FPGA_CLOCK		(1 << 1)
-#define FPGA_CONFIG		(1 << 2)
-#define FPGA_DATA0		(1 << 3)
-#define FPGA_CONF_DONE	(1 << 5)
-
-	/* pull FPGA config to low as early as possible */
-	MCF_GPIO_PODR_FEC1L &= ~FPGA_CLOCK;		/* FPGA clock => low */
-	MCF_GPIO_PODR_FEC1L &= ~FPGA_CONFIG;	/* FPGA config => low */
+	/*
+	 * Configure GPIO FEC1L port directions
+	 */
+	MCF_GPIO_PDDR_FEC1L = 0 |								/* bit 7 = input */
+						  0	|								/* bit 6 = input */
+						  0 | 								/* bit 5 = input */
+						  MCF_GPIO_PDDR_FEC1L_PDDR_FEC1L4 |	/* bit 4 = LED => output */
+						  MCF_GPIO_PDDR_FEC1L_PDDR_FEC1L3 |	/* bit 3 = PRG_DQ0 => output */
+						  MCF_GPIO_PDDR_FEC1L_PDDR_FEC1L2 |	/* bit 2 = FPGA_CONFIG => output */
+						  MCF_GPIO_PDDR_FEC1L_PDDR_FEC1L1 |	/* bit 1 = PRG_CLK (FPGA) => output */
+						  0;								/* bit 0 => input */
 }
 
 /*
