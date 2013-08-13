@@ -1001,3 +1001,29 @@ video_chg_end:
 		lea		7 * 4(sp),a7
 		rte
 
+
+asm_set_ipl:
+_asm_set_ipl:
+		link	a6,#-8				// some space for locals
+		movem.l	d6-d7,(sp)			// save register
+		move.w	sr,d7				// current sr
+
+		move.l	d7,d0				// prepare return value
+		andi.l	#0x0700,d0			// maks out ipl bits
+		lsr.l	#8,d0				// IPL
+
+		move.l	8(a6),d6			// get argument
+		andi.l	#0x07,d6			// least significant three bits
+		lsl.l	#8,d6				// shift to make mask
+
+		andi.l	#0x0000f8ff,d7		// zero out current ipl
+		or.l	d6,d7				// place new ipl in sr
+		move.w	d7,sr
+
+		movem.l	(sp),d6-d7			// restore registers
+		lea		8(sp),sp			// clear local variables
+		unlk	a6
+
+		rts
+
+
