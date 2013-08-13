@@ -338,9 +338,9 @@ void init_fbcs()
 
 	/* Flash */
 	MCF_FBCS0_CSAR = 0xE0000000;			/* flash base address */
-	MCF_FBCS0_CSCR = MCF_FBCS_CSCR_PS_16 |
-			MCF_FBCS_CSCR_WS(6)|
-			MCF_FBCS_CSCR_AA;
+	MCF_FBCS0_CSCR = MCF_FBCS_CSCR_PS_16 |	/* 16 bit word access */
+			MCF_FBCS_CSCR_WS(6)|			/* 6 Waitstates */
+			MCF_FBCS_CSCR_AA;				/* */
 	MCF_FBCS0_CSMR = MCF_FBCS_CSMR_BAM_8M |
 			MCF_FBCS_CSMR_V;				/* 8 MByte on */
 
@@ -370,6 +370,13 @@ void init_fbcs()
 	    | MCF_FBCS_CSCR_BSTW;				// BURST WRITE ENABLE
 	MCF_FBCS4_CSMR = MCF_FBCS_CSMR_BAM_1G	// 4000'0000-7FFF'FFFF
 			  | MCF_FBCS_CSMR_V;
+
+	MCF_FBCS5_CSAR = 0x0;
+	MCF_FBCS5_CSCR = MCF_FBCS_CSCR_PS_8
+		| MCF_FBCS_CSCR_BSTR
+		| MCF_FBCS_CSCR_BSTW;
+	MCF_FBCS5_CSMR = MCF_FBCS_CSMR_BAM_1G;
+			/* | MCF_FBCS_CSMR_V; */		/* not enabled */
 
 	xprintf("finished\r\n");
 }
@@ -954,13 +961,32 @@ void initialize_hardware(void) {
 	xprintf(" (revision %d)\r\n",((MCF_SIU_JTAGID & MCF_SIU_JTAGID_REV) >> 28));
 
 	/*
-	 * install (prilaminary) exception vectors
+	 * install (preliminary) exception vectors
 	 */
 	extern void setup_vectors(void);
 	setup_vectors();
-
 	/* make sure the handlers are called */
 	// __asm__ __volatile__("dc.w 0xafff");  /* should trigger a line-A exception */
+
+
+	/*
+	 * save the planet (and reduce case heat): disable clocks of unused SOC modules
+	 */
+	MCF_CLOCK_SPCR =	0xffff & ~(
+							0					  	|	/* leave memory clock enabled */
+							0				   	  	|	/* leave PCI clock enabled */
+							0					  	|	/* leave FlexBus clock enabled */
+							MCF_CLOCK_SPCR_CAN0EN 	|	/* disable CAN0 */
+							0					  	|	/* leave DMA clock enabled */
+							0					  	|	/* leave FEC0 clock enabled */
+							MCF_CLOCK_SPCR_FEC1EN 	|	/* disable FEC1 */
+							MCF_CLOCK_SPCR_USBEN 	|	/* disable USB slave */
+							0					  	|	/* leave PSC clock enabled */
+							MCF_CLOCK_SPCR_CAN1EN 	|	/* disable CAN1 */
+							MCF_CLOCK_SPCR_CRYENA 	|	/* disable crypto clock A */
+							MCF_CLOCK_SPCR_CRYENB	|	/* disable crypto clock B */
+							0							/* leave core clock enabled */
+						);
 
 	init_slt();
 	init_fbcs();
