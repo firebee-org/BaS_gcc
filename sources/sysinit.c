@@ -972,7 +972,7 @@ void initialize_hardware(void) {
 	/*
 	 * save the planet (and reduce case heat): disable clocks of unused SOC modules
 	 */
-	MCF_CLOCK_SPCR =	0xffff & ~(
+	MCF_CLOCK_SPCR =	0xffffffff & ~(
 							0					  	|	/* leave memory clock enabled */
 							0				   	  	|	/* leave PCI clock enabled */
 							0					  	|	/* leave FlexBus clock enabled */
