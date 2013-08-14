@@ -26,6 +26,7 @@ extern void xvsnprintf(char *str, size_t size, const char *fmt, va_list va);
 extern void xvprintf(const char *fmt, va_list va);
 extern void xprintf(const char *fmt, ...);
 extern void xsnprintf(char *str, size_t size, const char *fmt, ...);
+extern void xputchar(int c);
 
 extern void display_progress(void);
 

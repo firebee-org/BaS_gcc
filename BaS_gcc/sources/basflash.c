@@ -13,29 +13,162 @@
 #include "ff.h"
 #include "s19reader.h"
 
+#define AMD_FLASH_BUS_SHIFT     1
+#define AMD_FLASH_CELL          volatile uint16_t
+#define AMD_FLASH_CELL_BYTES    2
+#define AMD_FLASH_CELL_MASK     0x1
+#define AMD_FLASH_CMD_DATA(x)   ((uint16_t) x)
 
-
-static uint32_t mx29lv640d_flash_sectors[] =
+struct amd_flash_sector_info
 {
-	0xe0000000, 0xe0002000, 0xe0004000, 0xe0006000, 0xe0008000,	0xe000a000, 0xe000c000, 0xe000e000,
-	0xe0010000, 0xe0020000, 0xe0030000, 0xe0040000,	0xe0050000, 0xe0060000, 0xe0070000, 0xe0080000,
-	0xe0090000, 0xe00a0000, 0xe00b0000, 0xe00c0000, 0xe00d0000, 0xe00e0000, 0xe00f0000, 0xe0100000,
-	0xe0110000, 0xe0120000, 0xe0130000, 0xe0140000, 0xe0150000, 0xe0160000, 0xe0170000, 0xe0180000,
-	0xe0190000, 0xe01a0000, 0xe01b0000, 0xe01c0000, 0xe01d0000, 0xe01e0000, 0xe01f0000, 0xe0200000,
-	0xe0210000, 0xe0220000, 0xe0230000, 0xe0240000, 0xe0250000, 0xe0260000, 0xe0270000, 0xe0280000,
-	0xe0290000, 0xe02a0000, 0xe02b0000, 0xe02c0000, 0xe02d0000, 0xe02e0000, 0xe02f0000, 0xe0300000,
-	0xe0310000, 0xe0320000, 0xe0330000, 0xe0340000, 0xe0350000, 0xe0360000, 0xe0370000, 0xe0380000,
-	0xe0390000, 0xe03a0000, 0xe03b0000, 0xe03c0000, 0xe03d0000, 0xe03e0000, 0xe03f0000, 0xe0400000,
-	0xe0410000, 0xe0420000, 0xe0430000, 0xe0440000, 0xe0450000, 0xe0460000, 0xe0470000, 0xe0480000,
-	0xe0490000, 0xe04a0000, 0xe04b0000, 0xe04c0000, 0xe04d0000, 0xe04e0000, 0xe04f0000, 0xe0500000,
-	0xe0510000, 0xe0520000, 0xe0530000, 0xe0540000, 0xe0550000, 0xe0560000, 0xe0570000, 0xe0580000,
-	0xe0590000, 0xe05a0000, 0xe05b0000, 0xe05c0000, 0xe05d0000, 0xe05e0000, 0xe05f0000, 0xe0600000,
-	0xe0610000, 0xe0620000, 0xe0630000, 0xe0640000, 0xe0650000, 0xe0660000, 0xe0670000, 0xe0680000,
-	0xe0690000, 0xe06a0000, 0xe06b0000, 0xe06c0000, 0xe06d0000, 0xe06e0000, 0xe06f0000, 0xe0700000,
-	0xe0710000, 0xe0720000, 0xe0730000, 0xe0740000, 0xe0750000, 0xe0760000, 0xe0770000, 0xe0780000,
-	0xe0790000, 0xe07a0000, 0xe07b0000, 0xe07c0000, 0xe07d0000, 0xe07e0000, 0xe07f0000, 0xe0800000
+	uint32_t size; /* sector size in bytes */
+	uint32_t offset; /* offset from base of device */
 };
-static const int num_flash_sectors = sizeof(mx29lv640d_flash_sectors) / sizeof(uint32_t);
+
+/*
+ * AM29LV640D flash layout (bottom boot as used in the Firebee )
+ */
+static struct amd_flash_sector_info sector[] =
+{
+		{  8 * 1024, 0x00000000 }, /* SA0 */
+		{  8 * 1024, 0x00008000 }, /* SA1 */
+		{  8 * 1024, 0x00010000 }, /* SA2 */
+		{  8 * 1024, 0x00018000 }, /* SA3 */
+		{  8 * 1024, 0x00020000 }, /* SA4 */
+		{  8 * 1024, 0x00028000 }, /* SA5 */
+		{  8 * 1024, 0x00030000 }, /* SA6 */
+		{  8 * 1024, 0x00038000 }, /* SA7 */
+		{  8 * 1024, 0x00040000 }, /* SA8 */
+		{ 64 * 1024, 0x00048000 }, /* SA9 */
+		{ 64 * 1024, 0x00050000 }, /* SA10 */
+		{ 64 * 1024, 0x00058000 }, /* SA11 */
+		{ 64 * 1024, 0x00060000 }, /* SA12 */
+		{ 64 * 1024, 0x00068000 }, /* SA13 */
+		{ 64 * 1024, 0x00070000 }, /* SA14 */
+		{ 64 * 1024, 0x00078000 }, /* SA15 */
+		{ 64 * 1024, 0x00080000 }, /* SA16 */
+		{ 64 * 1024, 0x00088000 }, /* SA17 */
+		{ 64 * 1024, 0x00090000 }, /* SA18 */
+		{ 64 * 1024, 0x00098000 }, /* SA19 */
+		{ 64 * 1024, 0x000a0000 }, /* SA20 */
+		{ 64 * 1024, 0x000a8000 }, /* SA21 */
+		{ 64 * 1024, 0x000b0000 }, /* SA22 */
+		{ 64 * 1024, 0x000b8000 }, /* SA23 */
+		{ 64 * 1024, 0x000c0000 }, /* SA24 */
+		{ 64 * 1024, 0x000c8000 }, /* SA25 */
+		{ 64 * 1024, 0x000d0000 }, /* SA26 */
+		{ 64 * 1024, 0x000d8000 }, /* SA27 */
+		{ 64 * 1024, 0x000e0000 }, /* SA28 */
+		{ 64 * 1024, 0x000e8000 }, /* SA29 */
+		{ 64 * 1024, 0x000f0000 }, /* SA30 */
+		{ 64 * 1024, 0x000f8000 }, /* SA31 */
+		{ 64 * 1024, 0x00100000 }, /* SA32 */
+		{ 64 * 1024, 0x00108000 }, /* SA32 */
+		{ 64 * 1024, 0x00110000 }, /* SA34 */
+		{ 64 * 1024, 0x00118000 }, /* SA35 */
+		{ 64 * 1024, 0x00120000 }, /* SA36 */
+		{ 64 * 1024, 0x00128000 }, /* SA37 */
+		{ 64 * 1024, 0x00130000 }, /* SA38 */
+		{ 64 * 1024, 0x00138000 }, /* SA39 */
+		{ 64 * 1024, 0x00140000 }, /* SA40 */
+		{ 64 * 1024, 0x00148000 }, /* SA41 */
+		{ 64 * 1024, 0x00150000 }, /* SA42 */
+		{ 64 * 1024, 0x00158000 }, /* SA43 */
+		{ 64 * 1024, 0x00160000 }, /* SA44 */
+		{ 64 * 1024, 0x00168000 }, /* SA45 */
+		{ 64 * 1024, 0x00170000 }, /* SA46 */
+		{ 64 * 1024, 0x00178000 }, /* SA47 */
+		{ 64 * 1024, 0x00180000 }, /* SA48 */
+		{ 64 * 1024, 0x00188000 }, /* SA49 */
+		{ 64 * 1024, 0x00190000 }, /* SA50 */
+		{ 64 * 1024, 0x00198000 }, /* SA51 */
+		{ 64 * 1024, 0x001a0000 }, /* SA52 */
+		{ 64 * 1024, 0x001a8000 }, /* SA53 */
+		{ 64 * 1024, 0x001b0000 }, /* SA54 */
+		{ 64 * 1024, 0x001b8000 }, /* SA55 */
+		{ 64 * 1024, 0x001c0000 }, /* SA56 */
+		{ 64 * 1024, 0x001c8000 }, /* SA57 */
+		{ 64 * 1024, 0x001d0000 }, /* SA58 */
+		{ 64 * 1024, 0x001d8000 }, /* SA59 */
+		{ 64 * 1024, 0x001e0000 }, /* SA60 */
+		{ 64 * 1024, 0x001e8000 }, /* SA61 */
+		{ 64 * 1024, 0x001f0000 }, /* SA62 */
+		{ 64 * 1024, 0x001f8000 }, /* SA63 */
+		{ 64 * 1024, 0x00200000 }, /* SA64 */
+		{ 64 * 1024, 0x00208000 }, /* SA65 */
+		{ 64 * 1024, 0x00210000 }, /* SA66 */
+		{ 64 * 1024, 0x00218000 }, /* SA67 */
+		{ 64 * 1024, 0x00220000 }, /* SA68 */
+		{ 64 * 1024, 0x00228000 }, /* SA69 */
+		{ 64 * 1024, 0x00230000 }, /* SA70 */
+		{ 64 * 1024, 0x00238000 }, /* SA71 */
+		{ 64 * 1024, 0x00240000 }, /* SA72 */
+		{ 64 * 1024, 0x00248000 }, /* SA73 */
+		{ 64 * 1024, 0x00250000 }, /* SA74 */
+		{ 64 * 1024, 0x00258000 }, /* SA75 */
+		{ 64 * 1024, 0x00260000 }, /* SA76 */
+		{ 64 * 1024, 0x00268000 }, /* SA77 */
+		{ 64 * 1024, 0x00270000 }, /* SA78 */
+		{ 64 * 1024, 0x00278000 }, /* SA79 */
+		{ 64 * 1024, 0x00280000 }, /* SA80 */
+		{ 64 * 1024, 0x00288000 }, /* SA81 */
+		{ 64 * 1024, 0x00290000 }, /* SA82 */
+		{ 64 * 1024, 0x00298000 }, /* SA83 */
+		{ 64 * 1024, 0x002a0000 }, /* SA84 */
+		{ 64 * 1024, 0x002a8000 }, /* SA85 */
+		{ 64 * 1024, 0x002b0000 }, /* SA86 */
+		{ 64 * 1024, 0x002b8000 }, /* SA87 */
+		{ 64 * 1024, 0x002c0000 }, /* SA88 */
+		{ 64 * 1024, 0x002c8000 }, /* SA89 */
+		{ 64 * 1024, 0x002d0000 }, /* SA90 */
+		{ 64 * 1024, 0x002d8000 }, /* SA91 */
+		{ 64 * 1024, 0x002e0000 }, /* SA92 */
+		{ 64 * 1024, 0x002e8000 }, /* SA93 */
+		{ 64 * 1024, 0x002f0000 }, /* SA94 */
+		{ 64 * 1024, 0x002f8000 }, /* SA95 */
+		{ 64 * 1024, 0x00300000 }, /* SA96 */
+		{ 64 * 1024, 0x00308000 }, /* SA97 */
+		{ 64 * 1024, 0x00310000 }, /* SA98 */
+		{ 64 * 1024, 0x00318000 }, /* SA99 */
+		{ 64 * 1024, 0x00320000 }, /* SA100 */
+		{ 64 * 1024, 0x00328000 }, /* SA101 */
+		{ 64 * 1024, 0x00330000 }, /* SA102 */
+		{ 64 * 1024, 0x00338000 }, /* SA103 */
+		{ 64 * 1024, 0x00340000 }, /* SA104 */
+		{ 64 * 1024, 0x00348000 }, /* SA105 */
+		{ 64 * 1024, 0x00350000 }, /* SA106 */
+		{ 64 * 1024, 0x00358000 }, /* SA107 */
+		{ 64 * 1024, 0x00360000 }, /* SA108 */
+		{ 64 * 1024, 0x00368000 }, /* SA109 */
+		{ 64 * 1024, 0x00370000 }, /* SA110 */
+		{ 64 * 1024, 0x00378000 }, /* SA111 */
+		{ 64 * 1024, 0x00380000 }, /* SA112 */
+		{ 64 * 1024, 0x00388000 }, /* SA113 */
+		{ 64 * 1024, 0x00390000 }, /* SA114 */
+		{ 64 * 1024, 0x00398000 }, /* SA115 */
+		{ 64 * 1024, 0x003a0000 }, /* SA116 */
+		{ 64 * 1024, 0x003a8000 }, /* SA117 */
+		{ 64 * 1024, 0x003b0000 }, /* SA118 */
+		{ 64 * 1024, 0x003b8000 }, /* SA119 */
+		{ 64 * 1024, 0x003c0000 }, /* SA120 */
+		{ 64 * 1024, 0x003c8000 }, /* SA121 */
+		{ 64 * 1024, 0x003d0000 }, /* SA122 */
+		{ 64 * 1024, 0x003d8000 }, /* SA123 */
+		{ 64 * 1024, 0x003e0000 }, /* SA124 */
+		{ 64 * 1024, 0x003e8000 }, /* SA125 */
+		{ 64 * 1024, 0x003f0000 }, /* SA126 */
+		{ 64 * 1024, 0x003f8000 }, /* SA127 */
+};
+
+static const int AMD_FLASH_SECTORS = sizeof(sector)	/ sizeof(struct amd_flash_sector_info);
+
+#define SOFFSET(n)  (sector[n].offset)
+#define SADDR(n)    (SOFFSET(n) >> AMD_FLASH_BUS_SHIFT)
+#define SSIZE(n)	(sector[n].size)
+
+#define AMD_FLASH_DEVICES	1
+
+static AMD_FLASH_CELL *pFlash;
 
 typedef struct romram
 {
@@ -46,24 +179,208 @@ typedef struct romram
 
 static const struct romram flash_areas[] =
 {
-		{ 0xe0600000, 0x00e00000, "EmuTOS" },	/* EmuTOS */
-		{ 0xe0400000, 0x00e00000, "FireTOS" },	/* FireTOS */
-		{ 0xe0700000, 0x00e00000, "FPGA" },  /* FPGA config */
+		{ 0xe0600000, 0x00e00000, "EmuTOS" }, /* EmuTOS */
+		{ 0xe0400000, 0x00e00000, "FireTOS" }, /* FireTOS */
+		{ 0xe0700000, 0x00e00000, "FPGA" }, /* FPGA config */
 };
 static const int num_flash_areas = sizeof(flash_areas) / sizeof(struct romram);
 
 #define FLASH_ADDRESS 0xe0000000
-static volatile uint16_t *flash_unlock1 = (volatile uint16_t *) FLASH_ADDRESS + 0xaaa;
-static volatile uint16_t *flash_unlock2 = (volatile uint16_t *) FLASH_ADDRESS + 0x554;
-static const uint16_t cmd_unlock1 = 0xaa;
-static const uint16_t cmd_unlock2 = 0x55;
-static const uint16_t cmd_sector_erase1 = 0x80;
-static const uint16_t cmd_sector_erase2 = 0x30;
-static const uint16_t cmd_sector_erase_suspend = 0xb0;
-static const uint16_t cmd_sector_erase_resume = 0x30;
-static const uint16_t cmd_program = 0xa0;
-static const uint16_t cmd_autoselect = 0x90;
-static const uint16_t cmd_read = 0xf0;
+
+/*
+ * erase a flash sector
+ *
+ * sector_num is the index into the sector table above.
+ *
+ * FIXME: need to disable data cache to ensure proper operation
+ */
+void amd_flash_sector_erase(int n)
+{
+    volatile AMD_FLASH_CELL status;
+
+    pFlash[0x555] = AMD_FLASH_CMD_DATA(0xAA);
+    pFlash[0x2AA] = AMD_FLASH_CMD_DATA(0x55);
+    pFlash[0x555] = AMD_FLASH_CMD_DATA(0x80);
+    pFlash[0x555] = AMD_FLASH_CMD_DATA(0xAA);
+    pFlash[0x2AA] = AMD_FLASH_CMD_DATA(0x55);
+    pFlash[SADDR(n)] = AMD_FLASH_CMD_DATA(0x30);
+
+    do
+        status = pFlash[SADDR(n)];
+    while ((status & AMD_FLASH_CMD_DATA(0x80)) != AMD_FLASH_CMD_DATA(0x80));
+
+    /*
+     * Place device in read mode
+     */
+    pFlash[0] = AMD_FLASH_CMD_DATA(0xAA);
+    pFlash[0] = AMD_FLASH_CMD_DATA(0x55);
+    pFlash[0] = AMD_FLASH_CMD_DATA(0xF0);
+}
+
+int amd_flash_erase(void *start, int bytes, void (*putchar)(int))
+{
+    int i, ebytes = 0;
+
+    if (bytes == 0)
+        return 0;
+
+    for (i = 0; i < AMD_FLASH_SECTORS; i++)
+    {
+        if (start >= (void *)((void *) pFlash + SOFFSET(i)) &&
+            start <= (void *)((void *) pFlash + SOFFSET(i) + (SSIZE(i) - 1)))
+        {
+            break;
+        }
+    }
+
+    while (ebytes < bytes)
+    {
+        if (putchar != NULL)
+        {
+            putchar('.');
+        }
+        amd_flash_sector_erase(i);
+        ebytes += SSIZE(i);
+        i++;
+    }
+
+    if (putchar != NULL)
+    {
+        putchar(10);    /* LF */
+        putchar(13);    /* CR */
+    }
+
+    return ebytes;
+}
+
+void amd_flash_program_cell(AMD_FLASH_CELL *dst, AMD_FLASH_CELL data)
+{
+    volatile AMD_FLASH_CELL status;
+    int retry;
+
+    pFlash[0x555] = AMD_FLASH_CMD_DATA(0xAA);
+    pFlash[0x2AA] = AMD_FLASH_CMD_DATA(0x55);
+    pFlash[0x555] = AMD_FLASH_CMD_DATA(0xA0);
+    *dst = data;
+
+    /*
+     * Wait for program operation to finish
+     *  (Data# Polling Algorithm)
+     */
+    retry = 0;
+    while (1)
+    {
+        status = *dst;
+        if ((status & AMD_FLASH_CMD_DATA(0x80)) ==
+            (data & AMD_FLASH_CMD_DATA(0x80)))
+        {
+            break;
+        }
+        if (status & AMD_FLASH_CMD_DATA(0x20))
+        {
+            status = *dst;
+            if ((status & AMD_FLASH_CMD_DATA(0x80)) ==
+                (data & AMD_FLASH_CMD_DATA(0x80)))
+            {
+                break;
+            }
+            if (++retry > 1024)
+            {
+                break;
+            }
+        }
+    }
+}
+
+
+int amd_flash_program(void *dest, void *source, int bytes, int erase, void (*func)(void), void (*putchar)(int))
+{
+    AMD_FLASH_CELL *src, *dst;
+    int hashi=1,hashj=0;
+    char hash[5];
+
+    hash[0]=8;  /* Backspace */
+    hash[1]=124;/* "|" */
+    hash[2]=47; /* "/" */
+    hash[3]=45; /* "-" */
+    hash[4]=92; /* "\" */
+
+    src = (AMD_FLASH_CELL *)source;
+    dst = (AMD_FLASH_CELL *)dest;
+
+    /*
+     * Place device in read mode
+     */
+    pFlash[0] = AMD_FLASH_CMD_DATA(0xAA);
+    pFlash[0] = AMD_FLASH_CMD_DATA(0x55);
+    pFlash[0] = AMD_FLASH_CMD_DATA(0xF0);
+
+    /*
+     * Erase device if necessary
+     */
+    if (erase)
+    {
+        amd_flash_erase(dest, bytes, putchar);
+    }
+
+    /*
+     * Program device
+     */
+    while (bytes > 0)
+    {
+        amd_flash_program_cell(dst,*src);
+
+        /* Verify Write */
+        if (*dst == *src)
+        {
+            bytes -= AMD_FLASH_CELL_BYTES;
+            *dst++, *src++;
+
+            if ((putchar != NULL))
+            {
+                /* Hash marks to indicate progress */
+                if (hashj == 0x1000)
+                {
+                    hashj = -1;
+                    putchar(hash[0]);
+                    putchar(hash[hashi]);
+
+                    hashi++;
+                    if (hashi == 5)
+                    {
+                        hashi=1;
+                    }
+
+                }
+                hashj++;
+            }
+        }
+        else
+            break;
+    }
+
+    /*
+     * Place device in read mode
+     */
+    pFlash[0] = AMD_FLASH_CMD_DATA(0xAA);
+    pFlash[0] = AMD_FLASH_CMD_DATA(0x55);
+    pFlash[0] = AMD_FLASH_CMD_DATA(0xF0);
+
+    if (putchar != NULL)
+    {
+        putchar(hash[0]);
+    }
+
+    /*
+     * If a function was passed in, call it now
+     */
+    if ((func != NULL))
+    {
+        func();
+    }
+
+    return ((int)src - (int)source);
+}
 
 /*
  * this callback just does nothing besides returning OK. Meant to do a dry run over the file to check its integrity
@@ -75,16 +392,14 @@ static err_t simulate()
 	return ret;
 }
 
-#ifdef _NOT_USED_
 static err_t flash(uint8_t *dst, uint8_t *src, uint32_t length)
 {
 	err_t ret = OK;
 
 	/* TODO: do the actual flash */
-
+	amd_flash_program(dst, src, length, 1, NULL, xputchar);
 	return ret;
 }
-#endif /* _NOT_USED_ */
 
 /*
  * this callback verifies the data against the S-record file contents after a write to destination
@@ -100,94 +415,6 @@ static err_t verify(uint8_t *dst, uint8_t *src, size_t length)
 	} while (src < end);
 
 	return OK;
-}
-
-/*
- * unlock a flash sector
- */
-
-err_t unlock_flash_sector(int sector_num)
-{
-	volatile uint32_t rd;
-	uint32_t size = (sector_num < num_flash_sectors ?
-						mx29lv640d_flash_sectors[sector_num + 1] - mx29lv640d_flash_sectors[sector_num] :
-						0);
-
-	*flash_unlock1 = cmd_unlock1;
-	*flash_unlock2 = cmd_unlock2;
-	*flash_unlock1 = cmd_autoselect;
-	rd = * (volatile uint32_t *) FLASH_ADDRESS;
-	* (volatile uint32_t *) FLASH_ADDRESS = size;
-	(void) rd;	/* get rid of "unused variable" compiler warning */
-	return OK;
-}
-
-/*
- * erase a flash sector
- *
- * sector_num is the index into the sector table above.
- *
- * FIXME: need to disable data cache to ensure proper operation
- */
-err_t erase_flash_sector(int sector_num)
-{
-	volatile uint32_t rd;
-	uint32_t size = (sector_num < num_flash_sectors ?
-						mx29lv640d_flash_sectors[sector_num + 1] - mx29lv640d_flash_sectors[sector_num] :
-						0);
-
-	if (unlock_flash_sector(sector_num) == OK)
-	{
-		*flash_unlock1 = cmd_unlock1;
-		*flash_unlock2 = cmd_unlock2;
-		*flash_unlock1 = cmd_sector_erase1;
-		*flash_unlock1 = cmd_unlock1;
-		*flash_unlock2 = cmd_unlock2;
-		*flash_unlock1 = cmd_sector_erase1;
-		rd = * (volatile uint32_t *) FLASH_ADDRESS;
-		* (volatile uint32_t *) FLASH_ADDRESS = size;
-		(void) rd;	/* get rid of "unused variable" compiler warning */
-		return OK;
-	}
-	return ILLEGAL_SECTOR;
-}
-
-err_t erase_flash_region(void *start_address, size_t length)
-{
-	err_t err;
-	int sector = -1;
-	int i;
-
-	/*
-	 * determine first sector to erase
-	 *
-	 * FIXME: if the start address of the .s19 file does not fall on a sector boundary, we
-	 * will probably erase vital code in the previous flash sector. This should not happen on the Firebee
-	 * where we have fixed areas for the different flash codes, but we should probably take care anyway
-	 */
-	for (i = 0; i < num_flash_sectors; i++)
-	{
-		if (start_address >= (void *) mx29lv640d_flash_sectors[i] && start_address <= (void *) mx29lv640d_flash_sectors[i])
-			sector = i;
-	}
-
-	if (sector >= 0 && sector <= num_flash_sectors)
-	{
-		/*
-		 * erase sectors until free space equals length
-		 *
-		 * FIXME: same as above. Currently, there is no prevention against overlapping flash areas.
-		 */
-		do {
-			err = erase_flash_sector(sector);
-			sector++;
-		} while ((uint8_t *) mx29lv640d_flash_sectors[sector] < (uint8_t *) start_address + length && ! err);
-	}
-	else
-	{
-		err = ILLEGAL_SECTOR;
-	}
-	return err;
 }
 
 void srec_flash(char *flash_filename)
@@ -208,7 +435,8 @@ void srec_flash(char *flash_filename)
 		{
 			if ((fres = f_open(&file, flash_filename, FA_READ) != FR_OK))
 			{
-				xprintf("flasher file %s not present on disk\r\n", flash_filename);
+				xprintf("flasher file %s not present on disk\r\n",
+						flash_filename);
 			}
 			else
 			{
@@ -216,20 +444,23 @@ void srec_flash(char *flash_filename)
 
 				/* first pass: parse and check for inconsistencies */
 				xprintf("check file integrity: ");
-				err = read_srecords(flash_filename, &start_address, &length, simulate);
+				err = read_srecords(flash_filename, &start_address, &length,
+						simulate);
 				if (err == OK)
 				{
-					xprintf("OK.\r\nerase flash area (from %p, length 0x%lx): ", start_address, length);
-					err = erase_flash_region(start_address, length);
+					xprintf("OK.\r\nerase flash area (from %p, length 0x%lx): ",
+							start_address, length);
+					err = amd_flash_erase(start_address, length, xputchar);
 
 					/* next pass: copy data to destination */
 					xprintf("OK.\r\flash data: ");
-					err = read_srecords(flash_filename, &start_address, &length, memcpy);
+					err = read_srecords(flash_filename, &start_address, &length, flash);
 					if (err == OK)
 					{
 						/* next pass: verify data */
 						xprintf("OK.\r\nverify data: ");
-						err = read_srecords(flash_filename, &start_address, &length, verify);
+						err = read_srecords(flash_filename, &start_address,
+								&length, verify);
 						if (err == OK)
 						{
 							typedef void void_func(void);
@@ -237,7 +468,9 @@ void srec_flash(char *flash_filename)
 
 							xprintf("OK.\r\n");
 
-							xprintf("target successfully written and verified. Start address: %p\r\n", start_address);
+							xprintf(
+									"target successfully written and verified. Start address: %p\r\n",
+									start_address);
 
 							func = (void_func *) start_address;
 							(*func)();
@@ -305,7 +538,9 @@ err_t srec_load(char *flash_filename)
 					void_func *func;
 
 					xprintf("OK.\r\n");
-					xprintf("target successfully written and verified. Start address: %p\r\n", start_address);
+					xprintf(
+							"target successfully written and verified. Start address: %p\r\n",
+							start_address);
 
 					func = (void_func *) start_address;
 					(*func)();
@@ -367,10 +602,16 @@ void basflash(void)
 					const char *srec_ext = ".S19";
 					char path[30];
 
-					if (fileinfo.fname[0] != '\0')	/* found a file */
+					if (fileinfo.fname[0] != '\0') /* found a file */
 					{
-						xprintf("check file %s (%s == %s ?)\r\n", fileinfo.fname, &fileinfo.fname[strlen(fileinfo.fname) - 4], srec_ext);
-						if (strlen(fileinfo.fname) >= 4 && strncmp(&fileinfo.fname[strlen(fileinfo.fname) - 4], srec_ext, 4) == 0)	/* we have a .S19 file */
+						xprintf("check file %s (%s == %s ?)\r\n",
+								fileinfo.fname,
+								&fileinfo.fname[strlen(fileinfo.fname) - 4],
+								srec_ext);
+						if (strlen(fileinfo.fname) >= 4
+								&& strncmp(
+										&fileinfo.fname[strlen(fileinfo.fname)
+										                - 4], srec_ext, 4) == 0) /* we have a .S19 file */
 						{
 							/*
 							 * build path + filename
@@ -398,13 +639,14 @@ void basflash(void)
 			}
 			else
 			{
-				xprintf("f_opendir %s failed with error code %d\r\n", bastest_str, fres);
+				xprintf("f_opendir %s failed with error code %d\r\n",
+						bastest_str, fres);
 			}
 		}
 		else
 		{
 			// xprintf("could not mount FAT FS\r\n");
 		}
-		f_mount(0, 0L);		/* unmount SD card */
+		f_mount(0, 0L); /* unmount SD card */
 	}
 }
