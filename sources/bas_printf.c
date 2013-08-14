@@ -59,7 +59,7 @@
 
 static char snil[] = "(nil)";
 
-static void xputchar(int c)
+void xputchar(int c)
 {
 	__asm__ __volatile__
 	(
