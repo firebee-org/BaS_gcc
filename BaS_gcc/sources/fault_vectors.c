@@ -24,6 +24,9 @@ void fault_handler(uint32_t pc, uint32_t format_status)
 	xprintf("format_status: %lx\r\n", format_status);
 	xprintf("pc: %lx\r\n", pc);
 
+	/*
+	 * extract info from format-/status word
+	 */
 	format = 	    (format_status & 0b11110000000000000000000000000000) >> 28;
 	fault_status = ((format_status & 0b00001100000000000000000000000000) >> 26) |
 			       ((format_status & 0b00000000000000110000000000000000) >> 16);
