@@ -40,38 +40,22 @@ void *dma_memcpy(void *dst, void *src, size_t n)
 	start = MCF_SLT0_SCNT;
 	/* first check if we can do a "traditional" memcpy() to the destination and measure speed */
 
-	// memcpy(d, s, n);
+	memcpy(d, s, n);
 
-	{
-		uint32_t *dl = (uint32_t *) dst;
-		uint32_t *sl = (uint32_t *) src;
-		do
-		{
-			*dl++ = *sl++;
-		} while (dl < (uint32_t *) (dst + n));
-	}
 	end = MCF_SLT0_SCNT;
 
 	time = (start - end) / 132;
 	xprintf("memcpy() took %d ms (%d.%d Mbytes/second)\r\n",
 			time, n / time / 1000, n / time % 1000);
 	flush_and_invalidate_caches();
-	//#endif
+//#endif
 
+	xprintf("clear target area after memcpy():");
+	bzero(dst, n);
 	flush_and_invalidate_caches();
-
-	{
-		uint32_t *dl = (uint32_t *) dst;
-
-		xprintf("clear target area after memcpy():");
-		do
-		{
-			*dl++ = 0;
-		} while (dl < (uint32_t *) (dst + n));
-		xprintf(" finished, flush caches: ");
-		flush_and_invalidate_caches();
-		xprintf("finished\r\n");
-	}
+	xprintf(" finished, flush caches: ");
+	flush_and_invalidate_caches();
+	xprintf("finished\r\n");
 
 	start = MCF_SLT0_SCNT;
 	ret = MCD_startDma(0, src, 4, dst, 4, n, 4, DMA_ALWAYS, 7, MCD_SINGLE_DMA|MCD_TT_FLAGS_CW|MCD_TT_FLAGS_RL|MCD_TT_FLAGS_SP, 0);

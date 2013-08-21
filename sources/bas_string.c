@@ -19,6 +19,15 @@ void *memcpy(void *dst, const void *src, size_t n)
 	return dst;
 }
 
+void bzero(void *s, size_t n)
+{
+	size_t i;
+
+	for (i = 0; i < n; i++)
+		((unsigned char *) s)[i] = '\0';
+}
+
+
 int strncmp(const char *s1, const char *s2, int max)
 {
 	int i;
