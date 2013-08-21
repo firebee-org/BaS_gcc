@@ -51,8 +51,12 @@ void *dma_memcpy(void *dst, void *src, size_t n)
 //#endif
 
 	xprintf("clear target area after memcpy():");
+	start = MCF_SLT0_SCNT;
 	bzero(dst, n);
-	flush_and_invalidate_caches();
+	end = MCF_SLT0_SCNT;
+	time = (start - end) / 132;
+	xprintf("bzero() took %d ms (%d.%d Mbytes/second)\r\n", time, n / time / 1000, n / time % 1000);
+
 	xprintf(" finished, flush caches: ");
 	flush_and_invalidate_caches();
 	xprintf("finished\r\n");
