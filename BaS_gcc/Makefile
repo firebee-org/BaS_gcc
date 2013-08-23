@@ -76,7 +76,8 @@ CSRCS= \
 	$(SRCDIR)/flash.c \
 	$(SRCDIR)/dma.c \
 	$(SRCDIR)/xhdi_sd.c \
-	$(SRCDIR)/xhdi_interface.c
+	$(SRCDIR)/xhdi_interface.c \
+	$(SRCDIR)/pci.c
 
 ASRCS= \
 	$(SRCDIR)/startcf.S \
