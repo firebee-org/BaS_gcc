@@ -154,6 +154,8 @@ SECTIONS
  	__RAMBAR0               = 0xFF100000;
  	__RAMBAR0_SIZE          = 0x00001000;
 
+ 	__SUP_SP                = __RAMBAR0 + __RAMBAR0_SIZE - 4;
+
 	/* system variables */
 	
 	/* RAMBAR0 0 to 0x7FF -> exception vectors */
@@ -175,8 +177,7 @@ SECTIONS
 	_video_sbt = __RAMBAR0 + 0x83C;
 	_rt_mbar   = __RAMBAR0 + 0x844;   	/* (c)0f */
 
-	/* 4KB on-chip Core SRAM1: -> supervisor stack */
+	/* 4KB on-chip Core SRAM1 */
  	__RAMBAR1               = 0xFF101000;
  	__RAMBAR1_SIZE          = 0x00001000;
- 	__SUP_SP                = __RAMBAR1 + __RAMBAR1_SIZE - 4;
 }

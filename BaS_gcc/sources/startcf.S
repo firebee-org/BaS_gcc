@@ -44,7 +44,7 @@ _rom_entry:
 		move.l	#__RAMBAR1 + 0x1,d0
 		movec	d0,RAMBAR1
 
-		/* set stack pointer to end of SRAM1 */
+		/* set stack pointer to end of SRAM */
 		lea 	__SUP_SP,a7
 		move.l	#0,(sp)
 

@@ -11,13 +11,13 @@
  * Turn Execution Unit tasks ON (#define) or OFF (#undef)
  */
 #undef MCD_INCLUDE_EU
+//#define MCD_INCLUDE_EU
 
 /*
  * Number of DMA channels
  */
 #define NCHANNELS 16
 
-#define MCD_INCLUDE_EU
 /*
  * Total number of variants
  */
