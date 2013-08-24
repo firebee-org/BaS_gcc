@@ -42,9 +42,11 @@ void *dma_memcpy(void *dst, void *src, size_t n)
 
 	memcpy(d, s, n);
 
+//#endif /* _NOT_USED_ */
+
 	end = MCF_SLT0_SCNT;
 
-	time = (start - end) / 132;
+	time = (start - end) / 132 / 1000;
 	xprintf("memcpy() took %d ms (%d.%d Mbytes/second)\r\n",
 			time, n / time / 1000, n / time % 1000);
 	flush_and_invalidate_caches();
@@ -62,15 +64,15 @@ void *dma_memcpy(void *dst, void *src, size_t n)
 	xprintf("finished\r\n");
 
 	start = MCF_SLT0_SCNT;
-	ret = MCD_startDma(0, src, 4, dst, 4, n, 4, DMA_ALWAYS, 7, MCD_SINGLE_DMA|MCD_TT_FLAGS_CW|MCD_TT_FLAGS_RL|MCD_TT_FLAGS_SP, 0);
+	ret = MCD_startDma(1, src, 4, dst, 4, n, 4, DMA_ALWAYS, 0, MCD_SINGLE_DMA, 0);
 	if (ret == MCD_OK)
 	{
-		xprintf("DMA on channel 0 successfully started\r\n");
+		xprintf("DMA on channel 1 successfully started\r\n");
 	}
 
 	do
 	{
-		ret = MCD_dmaStatus(0);
+		ret = MCD_dmaStatus(1);
 		switch (ret)
 		{
 		case MCD_NO_DMA:
@@ -102,10 +104,9 @@ void *dma_memcpy(void *dst, void *src, size_t n)
 			break;
 		}
 	} while (ret != MCD_DONE);
-	xprintf("\r\n");
 
 	end = MCF_SLT0_SCNT;
-	time = (start - end) / 132;
+	time = (start - end) / 132 / 1000;
 	xprintf("start = %d, end = %d, time = %d\r\n", start, end, time);
 	xprintf("took %d ms (%d.%d Mbytes/second)\r\n",	time, n / time / 1000, n / time % 1000);
 
@@ -136,14 +137,14 @@ void *dma_memcpy(void *dst, void *src, size_t n)
 		xprintf("DMA copy verification successful!\r\n");
 		end = MCF_SLT0_SCNT;
 
-		time = (start - end) / 132;
+		time = (start - end) / 132 / 1000;
 		xprintf("took %d ms (%d.%d Mbytes/second)\r\n",	time, n / time / 1000, n / time % 1000);
 
 	}
 
 #ifdef _NOT_USED_
 	__asm__ __volatile__("move.w	sr,d0\n\t"
-						 "stop		#0x270\n\t"
+						 "stop		#0x2700\n\t"
 						 "move.w	d0,sr": : :);	/* halt CPU until DMA finished */
 #endif /* _NOT_USED_ */
 
@@ -157,7 +158,7 @@ int dma_init(void)
 	char *long_version;
 
 	xprintf("MCD DMA API initialization: ");
-	res = MCD_initDma((dmaRegs *) &MCF_DMA_TASKBAR, SYS_SRAM, MCD_RELOC_TASKS | MCD_COMM_PREFETCH_EN);
+	res = MCD_initDma((dmaRegs *) &_MBAR[0x8000], SYS_SRAM, MCD_RELOC_TASKS | MCD_COMM_PREFETCH_EN);
 	if (res != MCD_OK)
 	{
 		xprintf("DMA API initialization failed (0x%x)\r\n", res);
