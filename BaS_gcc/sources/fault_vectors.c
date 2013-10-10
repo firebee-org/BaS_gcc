@@ -64,7 +64,7 @@ void fault_handler(uint32_t pc, uint32_t format_status)
 		xprintf("error on data write");
 		break;
 	case 9:
-		xprintf("error on attempted wrote to write-protected space");
+		xprintf("error on attempted write to write-protected space");
 		break;
 	case 10:
 		xprintf("TLB miss on data write");
@@ -81,7 +81,7 @@ void fault_handler(uint32_t pc, uint32_t format_status)
 	case 15:
 		xprintf("OEP access error while executing in emulator mode");
 	}
-	xprintf("\r\n");
+	xprintf(")\r\n");
 
 	xprintf("vector = %02x (", vector);
 	switch (vector)
