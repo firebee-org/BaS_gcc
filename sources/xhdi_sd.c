@@ -30,7 +30,7 @@
 
 #define DRIVER_VERSION	0x130
 
-#define MY_MAJOR	65
+#define MY_MAJOR	7
 #define MY_MINOR 	0
 
 uint16_t xhdi_version(void)
@@ -133,6 +133,7 @@ uint32_t xhdi_read_write(uint16_t major, uint16_t minor, uint16_t rwflag,
 				ret = ((rwflag & 1) ? disk_write(0, buf, recno, num_sectors) : disk_read(0, buf, recno, num_sectors));
 				if (ret != RES_OK)
 				{
+					disk_reset(0);
 					retries++;
 					if (retries < max_retries) continue;
 

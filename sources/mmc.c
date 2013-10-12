@@ -45,15 +45,17 @@
 					  MCF_DSPI_DCTAR_DT(0b0010) |	/* 2 */ \
 					  MCF_DSPI_DCTAR_BR(0b0000); }	/* clock / 2 */
 
-#define SPICLK_SLOW() { MCF_DSPI_DCTAR0 = MCF_DSPI_DCTAR_TRSZ(0b111) |	/* transfer size = 8 bit */ \
-					  MCF_DSPI_DCTAR_PCSSCK(0b01) |	/* 3 clock DSPICS to DSPISCK delay prescaler */ \
-					  MCF_DSPI_DCTAR_PASC_3CLK |	/* 3 clock DSPISCK to DSPICS negation prescaler */ \
-					  MCF_DSPI_DCTAR_PDT_3CLK |		/* 3 clock delay between DSPICS assertions prescaler */ \
-					  MCF_DSPI_DCTAR_PBR_3CLK |		/* 1 clock baudrate prescaler */ \
-					  MCF_DSPI_DCTAR_CSSCK(8) |		/* delay scaler * 512 */\
-					  MCF_DSPI_DCTAR_ASC(8) |	/* 2 */ \
-					  MCF_DSPI_DCTAR_DT(9) |	/* 2 */ \
-					  MCF_DSPI_DCTAR_BR(7); }
+#define SPICLK_SLOW() { \
+						MCF_DSPI_DCTAR0 = MCF_DSPI_DCTAR_TRSZ(0b111) |	/* transfer size = 8 bit */ \
+						MCF_DSPI_DCTAR_PCSSCK(0b01) |	/* 3 clock DSPICS to DSPISCK delay prescaler */ \
+						MCF_DSPI_DCTAR_PASC_3CLK |	/* 3 clock DSPISCK to DSPICS negation prescaler */ \
+						MCF_DSPI_DCTAR_PDT_3CLK |		/* 3 clock delay between DSPICS assertions prescaler */ \
+						MCF_DSPI_DCTAR_PBR_3CLK |		/* 1 clock baudrate prescaler */ \
+						MCF_DSPI_DCTAR_CSSCK(8) |		/* delay scaler * 512 */\
+						MCF_DSPI_DCTAR_ASC(8) |	/* 2 */ \
+						MCF_DSPI_DCTAR_DT(9) |	/* 2 */ \
+						MCF_DSPI_DCTAR_BR(7); \
+					}
 
 
 
@@ -93,10 +95,7 @@ static volatile DSTATUS Stat = 0 /* STA_NOINIT */;	/* Physical drive status */
 static uint8_t CardType;			/* Card type flags */
 
 
-static uint32_t dspi_fifo_val = // MCF_DSPI_DTFR_CONT |	/* enable continous chip select */
-								/* CTAS use DCTAR0 for clock and attributes */
-								MCF_DSPI_DTFR_CTCNT;
-
+static uint32_t dspi_fifo_val = MCF_DSPI_DTFR_CTCNT;
 
 /*-----------------------------------------------------------------------*/
 /* Send/Receive data to the MMC  (Platform dependent)                    */
@@ -211,6 +210,8 @@ static int select(void)	/* 1:OK, 0:Timeout */
  */
 static void power_on(void)	/* Enable SSP module */
 {
+	MCF_PAD_PAR_DSPI = 0x1fff;			/* configure all DSPI GPIO pins for DSPI usage */
+	dspi_fifo_val = MCF_DSPI_DTFR_CTCNT;
 	/*
 	 * initialize DSPI module configuration register
 	 */
@@ -466,7 +467,13 @@ DSTATUS disk_status(uint8_t drv)
 	return Stat;	/* Return disk status */
 }
 
+DSTATUS disk_reset(uint8_t drv)
+{
+	if (drv) return STA_NOINIT;
 
+	deselect();
+	disk_initialize(0);
+}
 
 /*-----------------------------------------------------------------------*/
 /* Read sector(s)                                                        */
@@ -474,8 +481,23 @@ DSTATUS disk_status(uint8_t drv)
 
 DRESULT disk_read(uint8_t drv, uint8_t *buff, uint32_t sector, uint8_t count)
 {
-	if (drv || !count) return RES_PARERR;		/* Check parameter */
-	if (Stat & STA_NOINIT) return RES_NOTRDY;	/* Check if drive is ready */
+	if (drv)
+	{
+		xprintf("wrong drive in disk_read()\r\n");
+		return RES_PARERR;		/* Check parameter */
+	}
+
+	if (! count)
+	{
+		xprintf("wrong coung in disk_read()\r\n");
+		return RES_PARERR;
+	}
+
+	if (Stat & STA_NOINIT)
+	{
+		xprintf("drive not ready in disk_read()\r\n");
+		return RES_NOTRDY;	/* Check if drive is ready */
+	}
 
 	if (!(CardType & CT_BLOCK)) sector *= 512;	/* LBA or BA conversion (byte addressing cards) */
 
@@ -555,8 +577,10 @@ DRESULT disk_write(uint8_t drv,	const uint8_t *buff, uint32_t sector, uint8_t co
 	}
 	deselect();
 
-	if (count)
+	if (count)	/* we had an error, try a reinit */
+	{
 		xprintf("disk_write() failed (count=%d)\r\n", count);
+	}
 
 	return count ? RES_ERROR : RES_OK;	/* Return result */
 }
@@ -592,18 +616,18 @@ DRESULT disk_ioctl(uint8_t drv,	uint8_t ctrl, void *buff)
 		if ((send_cmd(CMD9, 0) == 0) && rcvr_datablock(csd, 16)) {
 			if ((csd[0] >> 6) == 1) {	/* SDC ver 2.00 */
 				csize = csd[9] + ((uint16_t)csd[8] << 8) + ((uint32_t)(csd[7] & 63) << 16) + 1;
-				*(uint32_t*)buff = csize << 10;
+				* (uint32_t*) buff = csize << 10;
 			} else {					/* SDC ver 1.XX or MMC ver 3 */
 				n = (csd[5] & 15) + ((csd[10] & 128) >> 7) + ((csd[9] & 3) << 1) + 2;
 				csize = (csd[8] >> 6) + ((uint16_t)csd[7] << 2) + ((uint16_t)(csd[6] & 3) << 10) + 1;
-				*(uint32_t*)buff = csize << (n - 9);
+				* (uint32_t*) buff = csize << (n - 9);
 			}
 			res = RES_OK;
 		}
 		break;
 
 	case GET_SECTOR_SIZE :	/* Get sector size in unit of byte (WORD) */
-		*(uint16_t*)buff = 512;
+		* (uint32_t*) buff = 512;
 		res = RES_OK;
 		break;
 
