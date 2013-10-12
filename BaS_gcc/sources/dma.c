@@ -108,7 +108,7 @@ void *dma_memcpy(void *dst, void *src, size_t n)
 	end = MCF_SLT0_SCNT;
 	time = (start - end) / 132 / 1000;
 	xprintf("start = %d, end = %d, time = %d\r\n", start, end, time);
-	xprintf("took %d ms (%d.%d Mbytes/second)\r\n",	time, n / time / 1000, n / time % 1000);
+	//xprintf("took %d ms (%d.%d Mbytes/second)\r\n",	time, n / time / 1000, n / time % 1000);
 
 	/*
 	 * verify if copy succeeded

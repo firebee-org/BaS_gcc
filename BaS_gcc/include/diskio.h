@@ -33,6 +33,7 @@ typedef enum {
 
 
 DSTATUS disk_initialize (uint8_t);
+DSTATUS disk_reset(uint8_t);
 DSTATUS disk_status (uint8_t);
 DRESULT disk_read (uint8_t, uint8_t*, uint32_t, uint8_t);
 #if	_READONLY == 0
