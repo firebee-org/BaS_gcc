@@ -28,7 +28,7 @@ struct spi_baud_rate
 	int bautrate;
 };
 
-static struct spi_baudrate baudrate[] =
+static struct spi_baud_rate baudrate[16] =
 {
 		{ 0b0000, 2 },
 		{ 0b0001, 4 },
