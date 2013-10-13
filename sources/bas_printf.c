@@ -364,3 +364,40 @@ void display_progress()
 	xputchar('\r');
 }
 
+void hexdump(uint8_t buffer[], int size)
+{
+   int i;
+   int line = 0;
+   uint8_t *bp = buffer;
+
+   while (bp < buffer + size) {
+      uint8_t *lbp = bp;
+
+      xprintf("%08x  ", line);
+
+      for (i = 0; i < 16; i++) {
+         if (bp + i > buffer + size) {
+            break;
+         }
+         xprintf("%02x ", (uint8_t) *lbp++);
+      }
+
+      lbp = bp;
+      for (i = 0; i < 16; i++) {
+         int8_t c = *lbp++;
+
+         if (bp + i > buffer + size) {
+            break;
+         }
+         if (c > ' ' && c < '~') {
+            xprintf("%c", c);
+         } else {
+            xprintf(".");
+         }
+      }
+      xprintf("\r\n");
+
+      bp += 16;
+      line += 16;
+   }
+}
