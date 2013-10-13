@@ -21,6 +21,33 @@
 
 /* Copyright (C) 2012, mfro, all rights reserved. */
 
+struct spi_baud_rate
+{
+	int prescaler;
+	int baudrate_scaler;
+	int bautrate;
+};
+
+static struct spi_baudrate baudrate[] =
+{
+		{ 0b0000, 2 },
+		{ 0b0001, 4 },
+		{ 0b0010, 6 },
+		{ 0b0011, 8 },
+		{ 0b0100, 16 },
+		{ 0b0101, 32 },
+		{ 0b0110, 64 },
+		{ 0b0111, 128 },
+		{ 0b1000, 256 },
+		{ 0b1001, 512 },
+		{ 0b1010, 1024 },
+		{ 0b1011, 2048 },
+		{ 0b1100, 4096 },
+		{ 0b1101, 8192 },
+		{ 0b1110, 16384 },
+		{ 0b1111, 32768 }
+};
+
 
 #define	CS_LOW()	{ dspi_fifo_val |= MCF_DSPI_DTFR_CS5; }
 #define	CS_HIGH()	{ dspi_fifo_val &= ~MCF_DSPI_DTFR_CS5; }
