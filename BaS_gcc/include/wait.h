@@ -57,7 +57,7 @@ extern __inline__ bool waitfor(uint32_t us, checker_func condition)
 	{
 		if ((res = (*condition)()))
 			return res;
-	} while (MCF_SLT_SCNT(0) > target);
+	} while (MCF_SLT_SCNT(0) - target > 0);
 	return false;
 }
 #endif /* _WAIT_H_ */

@@ -166,12 +166,12 @@ static bool card_ready(void)
 /*
  * Wait for card ready
  *
- * wt: timeout in ms
+ * wt: timeout in ns
  * returns 1: ready, 0: timeout
  */
 static int wait_ready(uint32_t wt)
 {
-	return waitfor(wt, card_ready);
+	return waitfor(wt * 1000, card_ready);
 }
 
 
@@ -182,7 +182,7 @@ static int wait_ready(uint32_t wt)
 static void deselect(void)
 {
 	CS_HIGH();
-	xchg_spi(0xFF, 1);	/* Dummy clock (force DO hi-z for multiple slave SPI) */
+	wait_ready(50);	/* Dummy clock (force DO hi-z for multiple slave SPI) */
 }
 
 
@@ -195,9 +195,7 @@ static int select(void)	/* 1:OK, 0:Timeout */
 {
 	CS_LOW();
 
-	xchg_spi(0xFF, 1);	/* Dummy clock (force DO enabled) */
-
-	if (wait_ready(5000000))
+	if (wait_ready(500))
 		return 1;	/* OK */
 	deselect();
 	return 0;	/* Timeout */
@@ -249,7 +247,7 @@ static void power_off (void)		/* Disable SPI function */
 static int rcvr_datablock(uint8_t *buff, uint32_t btr)
 {
 	uint8_t token;
-	int32_t target = MCF_SLT_SCNT(0) - (500L * 1000L * 132L);
+	int32_t target = MCF_SLT_SCNT(0) - (20000L * 100L * 132L);
 
 	do {								/* Wait for DataStart token in timeout of 200ms */
 		token = xchg_spi(0xFF, 0);
@@ -258,7 +256,7 @@ static int rcvr_datablock(uint8_t *buff, uint32_t btr)
 
 	if (token == 0xff)
 	{
-		xprintf("no data start token received after 500ms in rcvr_datablock\r\n");
+		xprintf("no data start token received after 2000ms in rcvr_datablock\r\n");
 		return 0;
 	}
 
@@ -288,7 +286,7 @@ static int xmit_datablock(const uint8_t *buff, uint8_t token)
 	uint8_t resp;
 
 
-	if (!wait_ready(500 * 1000))
+	if (!wait_ready(500))
 	{
 		xprintf("card did not respond ready after 500 ms in xmit_datablock()\r\n");
 		return 0;		/* Wait for card ready */
@@ -303,12 +301,12 @@ static int xmit_datablock(const uint8_t *buff, uint8_t token)
 		resp = xchg_spi(0xFF, 1);		/* Receive data resp */
 		if ((resp & 0x1F) != 0x05)		/* Function fails if the data packet was not accepted */
 		{
-			xprintf("card did not accept data packet in xmit_datablock()\r\n");
+			xprintf("card did not accept data packet in xmit_datablock() (resp = %x)\r\n", resp & 0x1F);
 			return 0;
 		}
 	}
 
-	wait_ready(30000);
+	wait_ready(30);
 
 	return 1;
 }
@@ -335,11 +333,14 @@ static uint8_t send_cmd(uint8_t cmd, uint32_t arg)
 	/* Select card */
 	deselect();
 	if (!select())
-		return 0xFF;
-
-	if (!wait_ready(500 * 1000))
 	{
-		xprintf("card did not respond ready after 500 ms in send_cmd()\r\n");
+		xprintf("card could not be selected in send_cmd()\r\n");
+		return 0xFF;
+	}
+
+	if (!wait_ready(5000))
+	{
+		xprintf("card did not respond ready after 5000 ms in send_cmd()\r\n");
 		return 0xff;		/* Wait for card ready */
 	}
 
@@ -359,13 +360,14 @@ static uint8_t send_cmd(uint8_t cmd, uint32_t arg)
 
 	/* Receive command resp */
 	if (cmd == CMD12)
+	{
 		xchg_spi(0xFF, 0);	/* Discard following one byte when CMD12 */
+	}
 
-	n = 10000;				/* Wait for response (1000 bytes max) */
+	n = 10000000;				/* Wait for response (1000 bytes max) */
 	do
 		res = xchg_spi(0xFF, 1);
 	while ((res & 0x80) && --n);
-
 	return res;							/* Return received response */
 }
 
@@ -386,7 +388,9 @@ static uint8_t send_cmd(uint8_t cmd, uint32_t arg)
 DSTATUS disk_initialize(uint8_t drv)
 {
 	uint8_t n, cmd, card_type, ocr[4];
-
+	uint8_t buff[16];
+	int res;
+	int i;
 
 	if (drv)
 		return STA_NOINIT;			/* Supports only drive 0 */
@@ -402,7 +406,9 @@ DSTATUS disk_initialize(uint8_t drv)
 		xchg_spi(0xFF, 1);	/* Send 80 dummy clocks */
 
 	card_type = 0;
-	if (send_cmd(CMD0, 0) == 1) {			/* Put the card SPI/Idle state */
+	if (send_cmd(CMD0, 0) == 1)
+	{
+		/* Put the card SPI/Idle state */
 		int32_t target;
 
 		if (send_cmd(CMD8, 0x1AA) == 1) {	/* SDv2? */
@@ -410,16 +416,29 @@ DSTATUS disk_initialize(uint8_t drv)
 				ocr[n] = xchg_spi(0xFF, 1);	/* Get 32 bit return value of R7 resp */
 			if (ocr[2] == 0x01 && ocr[3] == 0xAA)
 			{
+				int res;
+
 				/* Is the card supports vcc of 2.7-3.6V? */
 				target = MCF_SLT_SCNT(0) - (1000L * 1000L * 132);	/* 1 sec */
-				while (MCF_SLT_SCNT(0) > target && send_cmd(ACMD41, 1UL << 30)) ;	/* Wait for end of initialization with ACMD41(HCS) */
+				while (MCF_SLT_SCNT(0) > target)
+				{
+					res = send_cmd(ACMD41, 1UL << 30);	/* Wait for end of initialization with ACMD41(HCS) */
+					if (res != 0xff)
+						break;
+				}
+				xprintf("res = %d\r\n", res);
 
 				target = MCF_SLT_SCNT(0) - (1000L * 1000L * 132);	/* 1 sec */
-				if (MCF_SLT_SCNT(0) > target && send_cmd(CMD58, 0) == 0) {		/* Check CCS bit in the OCR */
-					for (n = 0; n < 4; n++)
-						ocr[n] = xchg_spi(0xFF, 1);
-					card_type = (ocr[0] & 0x40) ? CT_SD2 | CT_BLOCK : CT_SD2;	/* Card id SDv2 */
+				while (MCF_SLT_SCNT(0) > target)
+				{
+					res = send_cmd(CMD58, 0);		/* Check CCS bit in the OCR */
+					if (res != 0xff)
+						break;
 				}
+				xprintf("res = %d\r\n", res);
+				for (n = 0; n < 4; n++)
+					ocr[n] = xchg_spi(0xFF, 1);
+				card_type = (ocr[0] & 0x40) ? CT_SD2 | CT_BLOCK : CT_SD2;	/* Card id SDv2 */
 			}
 		}
 		else
@@ -440,12 +459,34 @@ DSTATUS disk_initialize(uint8_t drv)
 		}
 	}
 	CardType = card_type;	/* Card type */
+
+	res = disk_ioctl(0, MMC_GET_CSD, buff);
+	if (res == RES_OK)
+	{
+		xprintf("CSD of card:\r\n");
+		hexdump(buff, 16);
+	}
 	deselect();
 
-	if (card_type) {					/* OK */
+	if (card_type)
+	{
+		/* OK */
+
 		SPICLK_FAST();			/* Set fast clock */
 		Stat &= ~STA_NOINIT;	/* Clear STA_NOINIT flag */
-	} else {	/* Failed */
+		xprintf("card type: %d\r\n", card_type);
+		res = disk_ioctl(0, MMC_GET_CSD, buff);
+		if (res == RES_OK)
+		{
+			xprintf("CSD of card now:\r\n");
+			hexdump(buff, 16);
+		}
+		deselect();
+
+	}
+	else
+	{
+		/* Failed */
 		xprintf("no card type detected in disk_initialize()\r\n");
 		power_off();
 		Stat = STA_NOINIT;
@@ -489,7 +530,7 @@ DRESULT disk_read(uint8_t drv, uint8_t *buff, uint32_t sector, uint8_t count)
 
 	if (! count)
 	{
-		xprintf("wrong coung in disk_read()\r\n");
+		xprintf("wrong count in disk_read()\r\n");
 		return RES_PARERR;
 	}
 
@@ -502,14 +543,15 @@ DRESULT disk_read(uint8_t drv, uint8_t *buff, uint32_t sector, uint8_t count)
 	if (!(CardType & CT_BLOCK)) sector *= 512;	/* LBA or BA conversion (byte addressing cards) */
 
 	if (count == 1) {	/* Single sector read */
-		if ((send_cmd(CMD17, sector) == 0)	/* READ_SINGLE_BLOCK */
-			&& rcvr_datablock(buff, 512))
-			count = 0;
+		if ((send_cmd(CMD17, sector) == 0))		/* READ_SINGLE_BLOCK */
+			if (rcvr_datablock(buff, 512))
+				count = 0;
 	}
 	else {				/* Multiple sector read */
 		if (send_cmd(CMD18, sector) == 0) {	/* READ_MULTIPLE_BLOCK */
 			do {
-				if (!rcvr_datablock(buff, 512)) break;
+				if (!rcvr_datablock(buff, 512))
+					break;
 				buff += 512;
 			} while (--count);
 			send_cmd(CMD12, 0);				/* STOP_TRANSMISSION */
@@ -613,14 +655,22 @@ DRESULT disk_ioctl(uint8_t drv,	uint8_t ctrl, void *buff)
 		break;
 
 	case GET_SECTOR_COUNT :	/* Get drive capacity in unit of sector (DWORD) */
-		if ((send_cmd(CMD9, 0) == 0) && rcvr_datablock(csd, 16)) {
-			if ((csd[0] >> 6) == 1) {	/* SDC ver 2.00 */
-				csize = csd[9] + ((uint16_t)csd[8] << 8) + ((uint32_t)(csd[7] & 63) << 16) + 1;
-				* (uint32_t*) buff = csize << 10;
-			} else {					/* SDC ver 1.XX or MMC ver 3 */
-				n = (csd[5] & 15) + ((csd[10] & 128) >> 7) + ((csd[9] & 3) << 1) + 2;
-				csize = (csd[8] >> 6) + ((uint16_t)csd[7] << 2) + ((uint16_t)(csd[6] & 3) << 10) + 1;
-				* (uint32_t*) buff = csize << (n - 9);
+		if ((send_cmd(CMD9, 0) == 0))
+		{
+			if (rcvr_datablock(csd, 16))
+			{
+				if ((csd[0] >> 6) == 1)
+				{	/* SDC ver 2.00 */
+					csize = csd[9] + ((uint16_t)csd[8] << 8) + ((uint32_t)(csd[7] & 63) << 16) + 1;
+					* (uint32_t*) buff = csize << 10;
+				}
+				else
+				{
+					/* SDC ver 1.XX or MMC ver 3 */
+					n = (csd[5] & 15) + ((csd[10] & 128) >> 7) + ((csd[9] & 3) << 1) + 2;
+					csize = (csd[8] >> 6) + ((uint16_t)csd[7] << 2) + ((uint16_t)(csd[6] & 3) << 10) + 1;
+					* (uint32_t*) buff = csize << (n - 9);
+				}
 			}
 			res = RES_OK;
 		}
@@ -642,11 +692,20 @@ DRESULT disk_ioctl(uint8_t drv,	uint8_t ctrl, void *buff)
 				}
 			}
 		} else {					/* SDC ver 1.XX or MMC */
-			if ((send_cmd(CMD9, 0) == 0) && rcvr_datablock(csd, 16)) {	/* Read CSD */
-				if (CardType & CT_SD1) {	/* SDC ver 1.XX */
-					*(uint32_t*)buff = (((csd[10] & 63) << 1) + ((uint16_t)(csd[11] & 128) >> 7) + 1) << ((csd[13] >> 6) - 1);
-				} else {					/* MMC */
-					*(uint32_t*)buff = ((uint16_t)((csd[10] & 124) >> 2) + 1) * (((csd[11] & 3) << 3) + ((csd[11] & 224) >> 5) + 1);
+			if ((send_cmd(CMD9, 0) == 0))
+			{
+				if (rcvr_datablock(csd, 16))
+				{
+					/* Read CSD */
+					if (CardType & CT_SD1)
+					{	/* SDC ver 1.XX */
+						* (uint32_t*) buff = (((csd[10] & 63) << 1) + ((uint16_t)(csd[11] & 128) >> 7) + 1) << ((csd[13] >> 6) - 1);
+					}
+					else
+					{
+						/* MMC */
+						*(uint32_t*)buff = ((uint16_t)((csd[10] & 124) >> 2) + 1) * (((csd[11] & 3) << 3) + ((csd[11] & 224) >> 5) + 1);
+					}
 				}
 				res = RES_OK;
 			}
@@ -661,8 +720,14 @@ DRESULT disk_ioctl(uint8_t drv,	uint8_t ctrl, void *buff)
 		if (!(CardType & CT_BLOCK)) {
 			st *= 512; ed *= 512;
 		}
-		if (send_cmd(CMD32, st) == 0 && send_cmd(CMD33, ed) == 0 && send_cmd(CMD38, 0) == 0 && wait_ready(30000))	/* Erase sector block */
-			res = RES_OK;	/* FatFs does not check result of this command */
+		if (send_cmd(CMD32, st) == 0)
+		{
+			if (send_cmd(CMD33, ed) == 0)
+				if (send_cmd(CMD38, 0) == 0)
+					if (wait_ready(30))
+						; /* Erase sector block */
+		}
+		res = RES_OK;	/* FatFs does not check result of this command */
 		break;
 
 	/* Following command are not used by FatFs module */

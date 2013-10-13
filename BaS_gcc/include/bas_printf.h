@@ -29,5 +29,5 @@ extern void xsnprintf(char *str, size_t size, const char *fmt, ...);
 extern void xputchar(int c);
 
 extern void display_progress(void);
-
+extern void hexdump(uint8_t buffer[], int size);
 #endif /* _BAS_PRINTF_H_ */
