@@ -21,33 +21,6 @@
 
 /* Copyright (C) 2012, mfro, all rights reserved. */
 
-struct spi_baud_rate
-{
-	int prescaler;
-	int baudrate_scaler;
-	int bautrate;
-};
-
-static struct spi_baud_rate baudrate[16] =
-{
-		{ 0b0000, 2 },
-		{ 0b0001, 4 },
-		{ 0b0010, 6 },
-		{ 0b0011, 8 },
-		{ 0b0100, 16 },
-		{ 0b0101, 32 },
-		{ 0b0110, 64 },
-		{ 0b0111, 128 },
-		{ 0b1000, 256 },
-		{ 0b1001, 512 },
-		{ 0b1010, 1024 },
-		{ 0b1011, 2048 },
-		{ 0b1100, 4096 },
-		{ 0b1101, 8192 },
-		{ 0b1110, 16384 },
-		{ 0b1111, 32768 }
-};
-
 
 #define	CS_LOW()	{ dspi_fifo_val |= MCF_DSPI_DTFR_CS5; }
 #define	CS_HIGH()	{ dspi_fifo_val &= ~MCF_DSPI_DTFR_CS5; }
@@ -66,11 +39,11 @@ static struct spi_baud_rate baudrate[16] =
 					  MCF_DSPI_DCTAR_PCSSCK(0b01) |	/* 3 clock DSPICS to DSPISCK delay prescaler */ \
 					  MCF_DSPI_DCTAR_PASC_3CLK |	/* 3 clock DSPISCK to DSPICS negation prescaler */ \
 					  MCF_DSPI_DCTAR_PDT_3CLK |		/* 3 clock delay between DSPICS assertions prescaler */ \
-					  MCF_DSPI_DCTAR_PBR_3CLK |		/* 3 clock baudrate prescaler */ \
+					  MCF_DSPI_DCTAR_PBR_1CLK |		/* 3 clock baudrate prescaler */ \
 					  MCF_DSPI_DCTAR_CSSCK(1) |		/* delay scaler * 4 */\
 					  MCF_DSPI_DCTAR_ASC(0b0001) |	/* 2 */ \
 					  MCF_DSPI_DCTAR_DT(0b0010) |	/* 2 */ \
-					  MCF_DSPI_DCTAR_BR(0b0000); }	/* clock / 2 */
+					  MCF_DSPI_DCTAR_BR(0b0001); }	/* clock / 2 */
 
 #define SPICLK_SLOW() { \
 						MCF_DSPI_DCTAR0 = MCF_DSPI_DCTAR_TRSZ(0b111) |	/* transfer size = 8 bit */ \
@@ -278,8 +251,7 @@ static int rcvr_datablock(uint8_t *buff, uint32_t btr)
 
 	do {								/* Wait for DataStart token in timeout of 200ms */
 		token = xchg_spi(0xFF, 0);
-		/* This loop will take a time. Insert rot_rdq() here for multitask environment. */
-	} while ((token == 0xFF) && MCF_SLT_SCNT(0) > target);
+	} while ((token == 0xFF) && MCF_SLT_SCNT(0) - target > 0);
 
 	if (token == 0xff)
 	{
@@ -333,7 +305,7 @@ static int xmit_datablock(const uint8_t *buff, uint8_t token)
 		}
 	}
 
-	wait_ready(30);
+	wait_ready(3000);
 
 	return 1;
 }
@@ -447,7 +419,7 @@ DSTATUS disk_initialize(uint8_t drv)
 
 				/* Is the card supports vcc of 2.7-3.6V? */
 				target = MCF_SLT_SCNT(0) - (1000L * 1000L * 132);	/* 1 sec */
-				while (MCF_SLT_SCNT(0) > target)
+				while (MCF_SLT_SCNT(0) - target > 0)
 				{
 					res = send_cmd(ACMD41, 1UL << 30);	/* Wait for end of initialization with ACMD41(HCS) */
 					if (res != 0xff)
@@ -456,7 +428,7 @@ DSTATUS disk_initialize(uint8_t drv)
 				xprintf("res = %d\r\n", res);
 
 				target = MCF_SLT_SCNT(0) - (1000L * 1000L * 132);	/* 1 sec */
-				while (MCF_SLT_SCNT(0) > target)
+				while (MCF_SLT_SCNT(0) - target > 0)
 				{
 					res = send_cmd(CMD58, 0);		/* Check CCS bit in the OCR */
 					if (res != 0xff)
@@ -479,7 +451,7 @@ DSTATUS disk_initialize(uint8_t drv)
 				cmd = CMD1;	/* MMCv3 (CMD1(0)) */
 			}
 			target = MCF_SLT_SCNT(0) - (1000L * 1000L * 132);			/* 1 sec */
-			while (MCF_SLT_SCNT(0) > target && send_cmd(cmd, 0));		/* Wait for end of initialization */
+			while (MCF_SLT_SCNT(0) - target > 0 && send_cmd(cmd, 0));	/* Wait for end of initialization */
 
 			if (send_cmd(CMD16, 512) != 0)								/* Set block length: 512 */
 				card_type = 0;
@@ -541,6 +513,8 @@ DSTATUS disk_reset(uint8_t drv)
 
 	deselect();
 	disk_initialize(0);
+
+	return 0;
 }
 
 /*-----------------------------------------------------------------------*/
