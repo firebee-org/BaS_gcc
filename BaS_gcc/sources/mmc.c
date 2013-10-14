@@ -389,7 +389,6 @@ DSTATUS disk_initialize(uint8_t drv)
 	uint8_t n, cmd, card_type, ocr[4];
 	uint8_t buff[16];
 	int res;
-	int i;
 
 	if (drv)
 		return STA_NOINIT;			/* Supports only drive 0 */
