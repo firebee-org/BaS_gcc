@@ -41,7 +41,7 @@ extern __inline__ void wait(uint32_t us)
 {
 	int32_t target = MCF_SLT_SCNT(0) - (us * 132);
 
-	while (MCF_SLT_SCNT(0) > target);
+	while (MCF_SLT_SCNT(0) - target > 0);
 }
 
 /*
