@@ -11,6 +11,7 @@
 //
 
 		.text
+		dc.b	'B','A','S','_'
 _xhdi_vec:
 		lea     -12(sp),sp		// save all used registers according to XHDI spec
 		movem.l d1/a0-a1,(sp)
