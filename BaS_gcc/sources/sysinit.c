@@ -25,6 +25,7 @@
  *
  */
 
+#include <stdbool.h>
 #include "MCF5475.h"
 #include "startcf.h"
 #include "cache.h"
