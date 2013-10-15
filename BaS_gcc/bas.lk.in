@@ -1,0 +1,183 @@
+MEMORY
+{
+   bas_rom (RX) : ORIGIN = TARGET_ADDRESS, LENGTH = 0x00100000
+   /*
+	* target to copy BaS data segment to. 20k should be enough for now
+	*/
+   bas_ram (WX) : ORIGIN = 0x1FFFC000, LENGTH = 0x005000
+}
+
+SECTIONS
+{
+	/* BaS in ROM */
+	.text :
+	{
+		objs/startcf.o(.text) /* this one is the entry point so it must be the first */
+		objs/sysinit.o(.text)
+		objs/fault_vectors.o(.text)
+		objs/init_fpga.o(.text)
+		objs/wait.o(.text)
+		objs/exceptions.o(.text)
+		objs/illegal_instruction.o(.text)
+		objs/supervisor.o(.text)
+		objs/mmu.o(.text)		
+		
+		objs/BaS.o(.text)
+		objs/wait.o(.text)
+
+		/* put other routines into the same segment (RAM) as BaS.o */ 
+		objs/unicode.o(.text)
+		objs/mmc.o(.text)
+		objs/ff.o(.text)
+		objs/sd_card.o(.text)
+		objs/s19reader.o(.text)
+		objs/bas_printf.o(.text)
+		objs/bas_string.o(.text)
+		objs/printf_helper.o(.text)
+		objs/cache.o(.text)
+		objs/dma.o(.text)
+		mcdapi/MCD_dmaApi.o(.text)
+		mcdapi/MCD_tasks.o(.text)
+		mcdapi/MCD_tasksInit.o(.text)
+		objs/xhdi_sd.o(.text)
+		objs/xhdi_interface.o(.text)
+		objs/xhdi_vec.o(.text)
+		
+		/*
+		 * if we compile to RAM anyway, there is no need to copy anything
+		 */
+#if (TARGET_ADDRESS < 0x1FFFFFFF && TARGET_ADDRESS > 0)
+		. = ALIGN(16);
+		__BAS_DATA_START = .;
+		*(.data)
+		__BAS_DATA_END = .;
+		*(.bss)	
+		. = ALIGN(16);
+#endif /* TARGET_ADDRESS */
+
+#if (FORMAT == elf32-m68k)
+		*(.rodata)
+		*(.rodata.*)
+#endif
+	} > bas_rom
+
+#if (TARGET_ADDRESS == 0xe0000000)
+	/* BaS in RAM */
+	.bas :
+		/*
+		 * The BaS is stored in the flash, just after the init part.
+		 * Then it will be copied to its final location in the RAM.
+		 * This data must be aligned for optimal copy loop speed.
+		 */
+		AT (ALIGN(ADDR(.text) + SIZEOF(.text), 4))
+		{
+			. = ALIGN(16);
+			__BAS_DATA_START = .;
+			*(.data)
+			__BAS_DATA_END = .;
+			*(.bss)	
+
+			/* The BaS copy routine assumes that tha BaS size
+		 	 * is a multiple of the following value.
+		 	 */
+			. = ALIGN(16);
+		} > bas_ram
+#endif
+
+	/*
+	 * Global memory map
+	 */
+
+	/* SDRAM Initialization @ 0000_0000 - 1FFF_FFFF 512Mbytes */
+ 	___SDRAM                = 0x00000000;
+ 	___SDRAM_SIZE           = 0x20000000;
+	_SDRAM_VECTOR_TABLE		= ___SDRAM;
+	
+	/* ST-RAM */
+	__STRAM                 = ___SDRAM;
+	__STRAM_END             = __TOS;
+
+	/* TOS */
+	__TOS                   = 0x00e00000;
+
+	/* FastRAM */
+	__FASTRAM               = 0x10000000;
+	__TARGET_ADDRESS		= TARGET_ADDRESS;
+	
+#if TARGET_ADDRESS == 0xe0000000
+	__FASTRAM_END           = __BAS_IN_RAM;
+#else
+	__FASTRAM_END			= TARGET_ADDRESS;
+#endif
+
+	/* Init CS0 (BootFLASH @ E000_0000 - E07F_FFFF 8Mbytes) */
+	___BOOT_FLASH           = 0xe0000000;
+ 	___BOOT_FLASH_SIZE      = 0x00800000;
+
+#if TARGET_ADDRESS == 0xe0000000
+	/* BaS */
+	__BAS_LMA               = LOADADDR(.bas);
+	__BAS_IN_RAM            = ADDR(.bas);
+	__BAS_SIZE              = SIZEOF(.bas);
+#else
+	/* BaS is already in RAM - no need to copy anything */
+	__BAS_IN_RAM			= __FASTRAM_END;
+	__BAS_SIZE				= 0;
+	__BAS_LMA				= __BAS_IN_RAM;
+#endif
+
+	/* Other flash components */
+	__FIRETOS               = 0xe0400000;
+	__EMUTOS                = 0xe0600000;
+	__EMUTOS_SIZE           = 0x00100000;
+
+	/* where FPGA data lives in flash */
+	__FPGA_FLASH_DATA 		= 0xe0700000;
+	__FPGA_FLASH_DATA_SIZE 	= 0x100000;
+
+	/* VIDEO RAM BASIS */
+	__VRAM                  = 0x60000000;
+
+	/* Memory mapped registers */
+ 	__MBAR                  = 0xFF000000;
+	
+	/* 32KB on-chip System SRAM */
+ 	__SYS_SRAM              = __MBAR + 0x10000;
+	__SYS_SRAM_SIZE         = 0x00008000;
+
+	/* MMU memory mapped registers */
+ 	__MMUBAR                = 0xFF040000;
+
+	/*
+	 * 4KB on-chip Core SRAM0: -> exception table 
+	 */
+ 	__RAMBAR0               = 0xFF100000;
+ 	__RAMBAR0_SIZE          = 0x00001000;
+
+ 	__SUP_SP                = __RAMBAR0 + __RAMBAR0_SIZE - 4;
+
+	/* system variables */
+	
+	/* RAMBAR0 0 to 0x7FF -> exception vectors */
+	_rt_mod    = __RAMBAR0 + 0x800;
+	_rt_ssp    = __RAMBAR0 + 0x804;
+	_rt_usp    = __RAMBAR0 + 0x808;
+	_rt_vbr    = __RAMBAR0 + 0x80C;  	/* (8)01 */
+	_rt_cacr   = __RAMBAR0 + 0x810;   	/* 002 */
+	_rt_asid   = __RAMBAR0 + 0x814;   	/* 003 */
+	_rt_acr0   = __RAMBAR0 + 0x818;   	/* 004 */
+	_rt_acr1   = __RAMBAR0 + 0x81c;   	/* 005 */
+	_rt_acr2   = __RAMBAR0 + 0x820;   	/* 006 */
+	_rt_acr3   = __RAMBAR0 + 0x824;   	/* 007 */
+	_rt_mmubar = __RAMBAR0 + 0x828;		/* 008 */
+	_rt_sr     = __RAMBAR0 + 0x82c;
+	_d0_save   = __RAMBAR0 + 0x830;
+	_a7_save   = __RAMBAR0 + 0x834;
+	_video_tlb = __RAMBAR0 + 0x838;
+	_video_sbt = __RAMBAR0 + 0x83C;
+	_rt_mbar   = __RAMBAR0 + 0x844;   	/* (c)0f */
+
+	/* 4KB on-chip Core SRAM1 */
+ 	__RAMBAR1               = 0xFF101000;
+ 	__RAMBAR1_SIZE          = 0x00001000;
+}
