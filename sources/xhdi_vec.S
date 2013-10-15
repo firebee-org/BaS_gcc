@@ -24,7 +24,7 @@ _xhdi_vec:
 		lea     12(sp),sp
 		rts
 
-		.data
+		.bss
 _old_vector:
 		.ds.l	1
 
