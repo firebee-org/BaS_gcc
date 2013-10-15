@@ -840,17 +840,12 @@ extern uint8_t _BAS_RESIDENT_TEXT_SIZE[];
 
 void clear_datasegment(void)
 {
-	uint16_t *p;
-	extern uint16_t _BAS_DATA_START[];
-	uint16_t *BAS_DATA_START = &_BAS_DATA_START[0];
-	extern uint16_t _BAS_DATA_END[];
-	uint16_t *BAS_DATA_END = &_BAS_DATA_END[0];
+	extern uint8_t _BAS_DATA_START[];
+	uint8_t *BAS_DATA_START = &_BAS_DATA_START[0];
+	extern uint8_t _BAS_DATA_END[];
+	uint8_t *BAS_DATA_END = &_BAS_DATA_END[0];
 
-	p = BAS_DATA_START;
-	while (p < BAS_DATA_END)
-	{
-		*p++ = 0L;
-	}
+	bzero(BAS_DATA_START, BAS_DATA_END - BAS_DATA_START);
 }
 
 void initialize_hardware(void) {
@@ -882,7 +877,10 @@ void initialize_hardware(void) {
 		return;
 	}
 
-	clear_datasegment();
+	if (BAS_LMA != BAS_IN_RAM)
+	{
+		clear_datasegment();
+	}
 
 	init_gpio();
 	init_serial();
