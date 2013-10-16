@@ -28,11 +28,6 @@
 #ifndef __SYSINIT_H__
 #define __SYSINIT_H__
 
-extern void wait_10us(void);
-
-/* send a 16-bit word out on the serial port */
-#define uart_out_word(a)	MCF_PSC0_PSCTB_8BIT = (a)
-
 /* function(s) from init_fpga.c */
 extern void init_fpga(void);
 
