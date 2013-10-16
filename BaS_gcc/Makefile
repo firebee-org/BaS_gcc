@@ -77,7 +77,8 @@ CSRCS= \
 	$(SRCDIR)/dma.c \
 	$(SRCDIR)/xhdi_sd.c \
 	$(SRCDIR)/xhdi_interface.c \
-	$(SRCDIR)/pci.c
+	$(SRCDIR)/pci.c \
+	$(SRCDIR)/dspi.c
 
 ASRCS= \
 	$(SRCDIR)/startcf.S \
