@@ -247,7 +247,7 @@ static void power_off (void)		/* Disable SPI function */
 static int rcvr_datablock(uint8_t *buff, uint32_t btr)
 {
 	uint8_t token;
-	int32_t target = MCF_SLT_SCNT(0) - (20000L * 100L * 132L);
+	int32_t target = MCF_SLT_SCNT(0) - (200L * 1000L * 132L);
 
 	do {								/* Wait for DataStart token in timeout of 200ms */
 		token = xchg_spi(0xFF, 0);
@@ -305,7 +305,7 @@ static int xmit_datablock(const uint8_t *buff, uint8_t token)
 		}
 	}
 
-	wait_ready(3000);
+	wait_ready(30);
 
 	return 1;
 }
@@ -337,7 +337,7 @@ static uint8_t send_cmd(uint8_t cmd, uint32_t arg)
 		return 0xFF;
 	}
 
-	if (!wait_ready(5000))
+	if (!wait_ready(500))
 	{
 		xprintf("card did not respond ready after 5000 ms in send_cmd()\r\n");
 		return 0xff;		/* Wait for card ready */
