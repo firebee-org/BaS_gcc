@@ -121,7 +121,7 @@ uint32_t xhdi_read_write(uint16_t major, uint16_t minor, uint16_t rwflag,
 	uint16_t num_sectors;
 	int16_t s_count = count;
 	uint16_t retries;
-	const uint16_t max_retries = 5;
+	const uint16_t max_retries = 3;
 
 	if (major == MY_MAJOR)
 	{
