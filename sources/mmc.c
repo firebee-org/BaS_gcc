@@ -363,7 +363,7 @@ static uint8_t send_cmd(uint8_t cmd, uint32_t arg)
 		xchg_spi(0xFF, 0);	/* Discard following one byte when CMD12 */
 	}
 
-	n = 10000000;				/* Wait for response (1000 bytes max) */
+	n = 1000;				/* Wait for response (1000 bytes max) */
 	do
 		res = xchg_spi(0xFF, 1);
 	while ((res & 0x80) && --n);
