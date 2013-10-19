@@ -550,7 +550,7 @@ void test_upd720101(void)
 	}
 	else
 	{
-		MCF_PSC0_PSCTB_8BIT = 'NOT ';
+		xprintf("NOT ");
 
 		MCF_PCI_PCICAR = MCF_PCI_PCICAR_DEVNUM(17) +
 			MCF_PCI_PCICAR_FUNCNUM(0) +
