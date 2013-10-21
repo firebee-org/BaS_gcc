@@ -35,9 +35,7 @@
 #include "bas_string.h"
 #include "bas_types.h"
 #include "wait.h"
-
-#define MAJOR_VERSION	0
-#define MINOR_VERSION	8
+#include "version.h"
 
 #define UNUSED(x) (void)(x)               /* Unused variable         */
 
