@@ -74,7 +74,7 @@ void xputchar(int c)
 
 static void doprnt(void (*addchar)(int), const char *sfmt, va_list ap)
 {
-	char buf[128]; /* FIXME: this gets allocated in BSS which is not reachable in -mpcrel code */
+	char buf[128];
 	char *bp;
 	const char *f;
 	long l;
