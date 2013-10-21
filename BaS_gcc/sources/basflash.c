@@ -32,8 +32,6 @@
  * SUCH DAMAGE.
  */
 
- */
-
 #include <stdint.h>
 #include <stdbool.h>
 #include "bas_string.h"
