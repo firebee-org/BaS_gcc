@@ -526,7 +526,7 @@ err_t srec_load(char *flash_filename)
 		{
 			/* next pass: copy data to destination */
 			xprintf("OK.\r\ncopy/flash data: ");
-			err = read_srecords(flash_filename, &start_address, &length, memcpy);
+			err = read_srecords(flash_filename, &start_address, &length, flash);
 			if (err == OK)
 			{
 				/* next pass: verify data */
