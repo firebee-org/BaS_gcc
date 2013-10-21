@@ -4,7 +4,7 @@
  *  Created on: 21.10.2013
  *      Author: mfro
  *
- *       * This file is part of BaS_gcc.
+ * This file is part of BaS_gcc.
  *
  * BaS_gcc is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
