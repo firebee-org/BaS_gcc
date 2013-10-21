@@ -30,6 +30,7 @@
 #include "startcf.h"
 #include "cache.h"
 #include "sysinit.h"
+#include "pci.h"
 #include "bas_printf.h"
 #include "bas_string.h"
 #include "bas_types.h"
@@ -480,12 +481,6 @@ void init_video_ddr(void) {
 
 	xprintf("finished\r\n");
 }
-
-
-#define	 PCI_MEMORY_OFFSET	(0x80000000)
-#define	 PCI_MEMORY_SIZE	(0x40000000)
-#define	 PCI_IO_OFFSET		(0xD0000000)
-#define	 PCI_IO_SIZE		(0x10000000)
 
 /*
  * INIT PCI
@@ -990,7 +985,9 @@ void initialize_hardware(void) {
 	init_slt();
 	init_fbcs();
 	init_ddram();
-	init_PCI();
+	init_pci();
+	init_eport();
+	init_xlbus_arbiter();
 	init_fpga();
 	init_pll();
 	init_video_ddr();

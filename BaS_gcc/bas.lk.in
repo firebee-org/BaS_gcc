@@ -21,6 +21,7 @@ SECTIONS
 		objs/illegal_instruction.o(.text)
 		objs/supervisor.o(.text)
 		objs/mmu.o(.text)		
+		objs/pci.o(.text)
 		
 		objs/BaS.o(.text)
 		objs/wait.o(.text)
