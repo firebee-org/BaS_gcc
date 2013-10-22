@@ -2,7 +2,7 @@
  * version.h
  *
  *  Created on: 21.10.2013
- *      Author: mfro
+ *      Author: Markus Fröschle
  *
  * This file is part of BaS_gcc.
  *
