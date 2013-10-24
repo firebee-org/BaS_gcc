@@ -317,6 +317,7 @@ static err_t flash(uint8_t *dst, uint8_t *src, uint32_t length)
 	err_t ret = OK;
 
 	/* TODO: do the actual flash */
+	amd_flash_program(dst, src, length, false, NULL, xputchar);
 
 	return ret;
 }
