@@ -67,6 +67,8 @@ struct generic_interface
 
 struct driver_table
 {
+	uint32_t bas_version;
+	uint32_t bas_revision;
 	uint32_t (*remove_handler)();			/* calling this will disable the BaS' hook into trap #0 */
 	struct generic_interface *interfaces[];
 };
