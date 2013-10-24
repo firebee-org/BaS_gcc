@@ -25,25 +25,27 @@
 #ifndef _DRIVER_VEC_H_
 #define _DRIVER_VEC_H_
 
-typedef enum driver_type
+#include "xhdi_sd.h"
+
+enum driver_type
 {
 	blockdev,
 	chardev,
 	video,
 	xhdi
-} DRIVER_TYPE;
+};
 
-typedef struct generic_driver_interface
+struct generic_driver_interface
 {
 	int (*read)();
 	int (*write)();
 	int (*ioctl)();
-} GENERIC_DRIVER_INTERFACE;
+};
 
-typedef struct xhdi_driver_interface
+struct xhdi_driver_interface
 {
-	long xhdivec;
-} XHDI_DRIVER_INTERFACE;
+	xhdi_call_fun xhdivec;
+};
 
 typedef union driver_interface
 {
