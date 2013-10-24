@@ -41,7 +41,9 @@ static struct generic_interface interfaces[] =
 		.revision = 1,
 		.interface.xhdi = { xhdi_call }
 	},
+
 	/* insert new drivers here */
+
 	{
 		.type = END_OF_DRIVERS
 	}
