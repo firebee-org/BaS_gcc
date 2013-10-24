@@ -26,6 +26,7 @@
 #include <stdint.h>
 #include <stddef.h>
 #include "driver_vec.h"
+#include "version.h"
 #include "xhdi_sd.h"
 
 static struct generic_interface interfaces[] =
@@ -51,6 +52,8 @@ static struct generic_interface interfaces[] =
  */
 static struct driver_table drivers =
 {
+	.bas_version = MAJOR_VERSION,
+	.bas_revision = MINOR_VERSION,
 	.remove_handler = NULL,
 	.interfaces = { interfaces }
 };
