@@ -29,29 +29,41 @@
 
 enum driver_type
 {
-	blockdev,
-	chardev,
-	video,
-	xhdi
+	END_OF_DRIVERS,		/* marks end of driver list */
+	BLOCKDEV_DRIVER,
+	CHARDEV_DRIVER,
+	VIDEO_DRIVER,
+	XHDI_DRIVER,
 };
 
 struct generic_driver_interface
 {
-	int (*read)();
-	int (*write)();
-	int (*ioctl)();
+	uint32_t (*init)();
+	uint32_t (*read)();
+	uint32_t (*write)();
+	uint32_t (*ioctl)();
 };
 
 struct xhdi_driver_interface
 {
-	xhdi_call_fun xhdivec;
+	uint32_t (*xhdivec)();
 };
 
-typedef union driver_interface
+union driver_interface
 {
-	enum driver_type type;
 	struct generic_driver_interface gdi;
 	struct xhdi_driver_interface xhdi;
-} DRIVER_INTERFACE;
+};
+
+struct interface
+{
+	enum driver_type type;
+	char name[16];
+	char description[64];
+	int version;
+	int revision;
+	union driver_interface interface;
+};
+
 
 #endif /* _DRIVER_VEC_H_ */
