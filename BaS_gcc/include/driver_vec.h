@@ -38,10 +38,10 @@ enum driver_type
 
 struct generic_driver_interface
 {
-	uint32_t (*init)();
-	uint32_t (*read)();
-	uint32_t (*write)();
-	uint32_t (*ioctl)();
+	uint32_t (*init)(void);
+	uint32_t (*read)(void *buf, size_t count);
+	uint32_t (*write)(const void *buf, size_t count);
+	uint32_t (*ioctl)(uint32_t request, ...);
 };
 
 struct xhdi_driver_interface
@@ -49,20 +49,26 @@ struct xhdi_driver_interface
 	uint32_t (*xhdivec)();
 };
 
-union driver_interface
+union interface
 {
 	struct generic_driver_interface gdi;
 	struct xhdi_driver_interface xhdi;
 };
 
-struct interface
+struct generic_interface
 {
 	enum driver_type type;
 	char name[16];
 	char description[64];
 	int version;
 	int revision;
-	union driver_interface interface;
+	union interface interface;
+};
+
+struct driver_table
+{
+	uint32_t (*remove_handler)();			/* calling this will disable the BaS' hook into trap #0 */
+	struct generic_interface *interfaces[];
 };
 
 

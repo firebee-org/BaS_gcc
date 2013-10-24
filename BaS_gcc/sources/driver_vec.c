@@ -28,7 +28,7 @@
 #include "driver_vec.h"
 #include "xhdi_sd.h"
 
-static struct interface interfaces[] =
+static struct generic_interface interfaces[] =
 {
 	{
 		/* BaS SD-card driver interface */
@@ -36,13 +36,22 @@ static struct interface interfaces[] =
 		.type = XHDI_DRIVER,
 		.name = "SDCARD",
 		.description = "BaS SD Card driver",
-		.version = 1,
-		.revision = 0,
+		.version = 0,
+		.revision = 1,
 		.interface.xhdi = { xhdi_call }
 	},
-	/* extend list here if drivers need to be added */
+	/* insert new drivers here */
 	{
 		.type = END_OF_DRIVERS
 	}
+};
+
+/*
+ * this is the driver table we expose to the OS
+ */
+static struct driver_table drivers =
+{
+	.remove_handler = NULL,
+	.interfaces = { interfaces }
 };
 
