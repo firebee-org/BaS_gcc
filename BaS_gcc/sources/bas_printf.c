@@ -77,6 +77,7 @@ static void doprnt(void (*addchar)(int), const char *sfmt, va_list ap)
 	char buf[128];
 	char *bp;
 	const char *f;
+	float flt;
 	long l;
 	unsigned long u;
 	int i;
@@ -202,6 +203,44 @@ static void doprnt(void (*addchar)(int), const char *sfmt, va_list ap)
 					while (f_width-- > 0)
 						(*addchar)((int) (' ' | attributes));
 				break;
+
+         case 'f':
+            /* this is actually more than stupid, but does work for now */
+            flt = (float) (va_arg(ap, double)); /* beware: va_arg() extends float to double! */
+            if (flt < 0)
+            {
+               sign = 1;
+               flt = -flt;
+            }
+            {
+               int quotient, remainder;
+
+               quotient = (int) flt;
+               remainder = (flt - quotient) * 10E5;
+
+               for (i = 0; i < 6; i++)
+               {
+                  *bp++ = (char) (remainder % 10) + '0';
+                  remainder /= 10;
+               }
+               *bp++ = '.';
+               do
+               {
+                  *bp++ = (char) (quotient % 10) + '0';
+               } while ((quotient /= 10) > 0);
+               if (sign)
+                  *bp++ = '-';
+               f_width = f_width - (int) (bp - buf);
+               if (!flush_left)
+               while (f_width-- > 0)
+                  (*addchar)((int) (pad | attributes));
+               for (bp--; bp >= buf; bp--)
+                  (*addchar)((int) (((unsigned char) *bp) | attributes));
+               if (flush_left)
+                  while (f_width-- > 0)
+                     (*addchar)((int) (' ' | attributes));
+            }
+            break;
 
 			case 'p':
 				do_long = 1;
