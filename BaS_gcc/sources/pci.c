@@ -63,70 +63,35 @@ void init_pci(void)
 {
 	xprintf("initializing PCI bridge:");
 
-	/*
-	 * assert /PCIRESET (reset cards on bus). FIXME: According to documentation,
-	 * this should be done last during PCI initialization
-	 */
-	MCF_PCI_PCIGSCR = MCF_PCI_PCIGSCR_PR;
+   MCF_PCIARB_PACR = MCF_PCIARB_PACR_INTMPRI
+       + MCF_PCIARB_PACR_EXTMPRI(0x1F)
+       + MCF_PCIARB_PACR_INTMINTEN
+       + MCF_PCIARB_PACR_EXTMINTEN(0x1F);
 
-	/*
-	 * setup the PCI arbiter.
-	 */
+   // Setup burst parameters
+   MCF_PCI_PCICR1 = MCF_PCI_PCICR1_CACHELINESIZE(4) + MCF_PCI_PCICR1_LATTIMER(32);
+   MCF_PCI_PCICR2 = MCF_PCI_PCICR2_MINGNT(16) + MCF_PCI_PCICR2_MAXLAT(16);
 
-	/* PCI Arbiter Control Register (PACR) */
-	MCF_PCIARB_PACR = MCF_PCIARB_PACR_INTMPRI		/* internal master priority level high */
-					+ MCF_PCIARB_PACR_EXTMPRI(0x1f) /* external master priority levels all high */
-					+ MCF_PCIARB_PACR_INTMINTEN		/* generate interrupt if internal master timeout */
-					+ MCF_PCIARB_PACR_EXTMINTEN(0x1f);	/* generate interrupt if external master timeout */
-	/* configure all 5 PCI Bus Grant pins for PCI */
-	MCF_PAD_PAR_PCIBG = 0x3ff;
-	/* configure all 5 PCI Bus Request pins for PCI */
-	MCF_PAD_PAR_PCIBR = 0x3ff;
+   // Turn on error signaling
+   MCF_PCI_PCIICR = MCF_PCI_PCIICR_TAE + MCF_PCI_PCIICR_TAE + MCF_PCI_PCIICR_REE + 32;
+   MCF_PCI_PCIGSCR |= MCF_PCI_PCIGSCR_SEE;
 
-	/* PCI Status/Command Register PCISCR */
-	MCF_PCI_PCISCR = MCF_PCI_PCISCR_M	/* recognize memory accesses */
-				+ MCF_PCI_PCISCR_B			/* bus master enable for controller */
-				+ MCF_PCI_PCISCR_MW;		/* controller can generate memory write and invalidate command */
+   /* Configure Initiator Windows */
+   /* initiator window 0 base / translation adress register */
+   MCF_PCI_PCIIW0BTAR = (PCI_MEMORY_OFFSET + ((PCI_MEMORY_SIZE -1) >> 8)) & 0xffff0000;
 
-	/* Configuration 1 Register PCICR1, setup burst parameters */
-	MCF_PCI_PCICR1 = MCF_PCI_PCICR1_CACHELINESIZE(8)	/* cache line size in units of DWORDs */
-				+ MCF_PCI_PCICR1_LATTIMER(32);			/* 256 PCI clocks (?) latency */
-	/* Configuration 2 Register PCICR2 */
-	MCF_PCI_PCICR2 = MCF_PCI_PCICR2_MINGNT(1)	/* specifies how long the Coldfire processor retains bus ownership as master */
-			+ MCF_PCI_PCICR2_MAXLAT(1);			/* specifies (in units of 1/4 microseconds) how often the Coldfire */
-												/* processor needs access to the bus as PCI master */
-	/* Initiator Control Register: turn on error signaling */
-	MCF_PCI_PCIICR = MCF_PCI_PCIICR_TAE +				/* target abort enable: CPU generates an interrupt if target terminates a transaction */
-			MCF_PCI_PCIICR_IAE 							/* the same for the initiator */
-		/* + MCF_PCI_PCIICR_REE */ ;					/* the same for retry errors */
-	/* Global Status/Control Register */
-	MCF_PCI_PCIGSCR |= MCF_PCI_PCIGSCR_SEE;				/* generate interrupt if /PCISERR is asserted (PCI system error) */
+   /* initiator window 1 base / translation adress register */
+   MCF_PCI_PCIIW1BTAR = (PCI_IO_OFFSET + ((PCI_IO_SIZE - 1) >> 8)) & 0xffff0000;
 
-	/* configure initiator windows */
+   /* initiator window 2 base / translation address register */
+   MCF_PCI_PCIIW2BTAR = 0L;   /* not used */
 
+   /* initiator window configuration register */
+   MCF_PCI_PCIIWCR = MCF_PCI_PCIIWCR_WINCTRL0_MEMRDLINE + MCF_PCI_PCIIWCR_WINCTRL1_IO;
 
-	/* Initiator Window 0 Base / Translation Address Register */
-#ifdef SAME_CPU_PCI_MEM_ADDR
-	MCF_PCI_PCIIW0BTAR = (PCI_MEMORY_OFFSET + ((PCI_MEMORY_SIZE - 1) >> 8) & 0xFFFF0000) |
-							(PCI_MEMORY_OFFSET >> 16 & 0xFFFF)
-#else
-	MCF_PCI_PCIIW0BTAR = PCI_MEMORY_OFFSET + (((PCI_MEMORY_SIZE - 1) >> 8) & 0xFFFF0000);
-#endif /* SAME_CPU_PCI_MEM_ADDR */
+   /* reset PCI devices */
+   MCF_PCI_PCIGSCR &= ~MCF_PCI_PCIGSCR_PR;
 
-	/* Initiator Window 1 Base / Translation Address Register */
-	MCF_PCI_PCIIW1BTAR = (PCI_IO_OFFSET + ((PCI_IO_SIZE - 1) >> 8)) & 0xFFFF0000;
-
-	/* Initiator Window 2 Base / Translation Address Register */
-	MCF_PCI_PCIIW2BTAR = 0L;	/* not used */
-
-	MCF_PCI_PCIIWCR = MCF_PCI_PCIIWCR_WINCTRL0_MEMRDLINE
-			+ MCF_PCI_PCIIWCR_WINCTRL1_IO;
-
-	/* reset PCI devices */
-		MCF_PCI_PCIGSCR &= ~MCF_PCI_PCIGSCR_PR;
-
-		xprintf("finished\r\n");
-
-	/* target zones */
+   xprintf("finished\r\n");
 }
 
