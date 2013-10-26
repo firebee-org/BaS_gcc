@@ -480,44 +480,6 @@ void init_video_ddr(void) {
 	xprintf("finished\r\n");
 }
 
-/*
- * INIT PCI
- */
-void init_PCI(void) {
-	xprintf("PCI BUS controller initialization: ");
-
-	MCF_PCIARB_PACR = MCF_PCIARB_PACR_INTMPRI
-		 + MCF_PCIARB_PACR_EXTMPRI(0x1F)
-		 + MCF_PCIARB_PACR_INTMINTEN
-		 + MCF_PCIARB_PACR_EXTMINTEN(0x1F);
-
-	// Setup burst parameters
-	MCF_PCI_PCICR1 = MCF_PCI_PCICR1_CACHELINESIZE(4) + MCF_PCI_PCICR1_LATTIMER(32);
-	MCF_PCI_PCICR2 = MCF_PCI_PCICR2_MINGNT(16) + MCF_PCI_PCICR2_MAXLAT(16);
-
-	// Turn on error signaling
-	MCF_PCI_PCIICR = MCF_PCI_PCIICR_TAE + MCF_PCI_PCIICR_TAE + MCF_PCI_PCIICR_REE + 32;
-	MCF_PCI_PCIGSCR |= MCF_PCI_PCIGSCR_SEE;
-
-	/* Configure Initiator Windows */
-	/* initiator window 0 base / translation adress register */
-	MCF_PCI_PCIIW0BTAR = (PCI_MEMORY_OFFSET + ((PCI_MEMORY_SIZE -1) >> 8)) & 0xffff0000;
-
-	/* initiator window 1 base / translation adress register */
-	MCF_PCI_PCIIW1BTAR = (PCI_IO_OFFSET + ((PCI_IO_SIZE - 1) >> 8)) & 0xffff0000;
-
-	/* initiator window 2 base / translation address register */
-	MCF_PCI_PCIIW2BTAR = 0L;	/* not used */
-
-	/* initiator window configuration register */
-	MCF_PCI_PCIIWCR = MCF_PCI_PCIIWCR_WINCTRL0_MEMRDLINE + MCF_PCI_PCIIWCR_WINCTRL1_IO;
-
-	/* reset PCI devices */
-	MCF_PCI_PCIGSCR &= ~MCF_PCI_PCIGSCR_PR;
-
-	xprintf("finished\r\n");
-}
-	
 
 /*
  * probe for UPC720101 (USB)
@@ -983,9 +945,9 @@ void initialize_hardware(void) {
 	init_slt();
 	init_fbcs();
 	init_ddram();
-	init_PCI();
-	//init_eport();
-	//init_xlbus_arbiter();
+	init_pci();
+	init_eport();
+	init_xlbus_arbiter();
 	init_fpga();
 	init_pll();
 	init_video_ddr();
