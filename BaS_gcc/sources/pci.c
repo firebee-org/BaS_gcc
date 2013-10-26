@@ -29,6 +29,18 @@
 #include "stdint.h"
 #include "bas_printf.h"
 
+uint32_t pci_read_config_longword(uint16_t slot, uint16_t function, uint16_t offset)
+{
+	return 0;
+}
+
+
+uint16_t pci_read_config_word(uint16_t slot, uint16_t function, uint16_t offset)
+{
+	return 0;
+}
+
+/* start of PCI initialization code */
 void init_eport(void)
 {
 	/* concigure IRQ1-7 pins on EPORT falling edge triggered */
