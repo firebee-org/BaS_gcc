@@ -501,7 +501,7 @@ void test_upd720101(void)
 			MCF_PCI_PCICAR_FUNCNUM(0) +
 			MCF_PCI_PCICAR_DWORD(57);
 
-		//* (uint8_t *) PCI_IO_OFFSET = 0x20;	// commented out (hangs currently)
+		* (uint8_t *) PCI_IO_OFFSET = 0x20;
 	}
 	else
 	{
