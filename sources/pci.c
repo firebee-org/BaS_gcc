@@ -28,6 +28,7 @@
 #include "pci.h"
 #include "stdint.h"
 #include "bas_printf.h"
+#include "util.h"
 
 uint32_t pci_read_config_longword(uint16_t slot, uint16_t function, uint16_t offset)
 {
@@ -80,11 +81,11 @@ void init_pci(void)
        + MCF_PCIARB_PACR_INTMINTEN
        + MCF_PCIARB_PACR_EXTMINTEN(0x1F);
 
-   // Setup burst parameters
+   /* Setup burst parameters */
    MCF_PCI_PCICR1 = MCF_PCI_PCICR1_CACHELINESIZE(4) + MCF_PCI_PCICR1_LATTIMER(32);
    MCF_PCI_PCICR2 = MCF_PCI_PCICR2_MINGNT(16) + MCF_PCI_PCICR2_MAXLAT(16);
 
-   // Turn on error signaling
+   /* Turn on error signaling */
    MCF_PCI_PCIICR = MCF_PCI_PCIICR_TAE + MCF_PCI_PCIICR_TAE + MCF_PCI_PCIICR_REE + 32;
    MCF_PCI_PCIGSCR |= MCF_PCI_PCIGSCR_SEE;
 
