@@ -39,7 +39,7 @@
 					  MCF_DSPI_DCTAR_PCSSCK(0b01) |	/* 3 clock DSPICS to DSPISCK delay prescaler */ \
 					  MCF_DSPI_DCTAR_PASC_3CLK |	/* 3 clock DSPISCK to DSPICS negation prescaler */ \
 					  MCF_DSPI_DCTAR_PDT_3CLK |		/* 3 clock delay between DSPICS assertions prescaler */ \
-					  /*MCF_DSPI_DCTAR_PBR_1CLK | */		/* 3 clock baudrate prescaler */ \
+					  MCF_DSPI_DCTAR_PBR_1CLK | 		/* 3 clock baudrate prescaler */ \
 					  MCF_DSPI_DCTAR_CSSCK(1) |		/* delay scaler * 4 */\
 					  MCF_DSPI_DCTAR_ASC(0b0001) |	/* 2 */ \
 					  MCF_DSPI_DCTAR_DT(0b0010) |	/* 2 */ \
@@ -459,11 +459,13 @@ DSTATUS disk_initialize(uint8_t drv)
 	CardType = card_type;	/* Card type */
 
 	res = disk_ioctl(0, MMC_GET_CSD, buff);
+	/*
 	if (res == RES_OK)
 	{
 		xprintf("CSD of card:\r\n");
 		hexdump(buff, 16);
 	}
+	*/
 	deselect();
 
 	if (card_type)
@@ -474,11 +476,13 @@ DSTATUS disk_initialize(uint8_t drv)
 		Stat &= ~STA_NOINIT;	/* Clear STA_NOINIT flag */
 		xprintf("card type: %d\r\n", card_type);
 		res = disk_ioctl(0, MMC_GET_CSD, buff);
+		/*
 		if (res == RES_OK)
 		{
 			xprintf("CSD of card now:\r\n");
 			hexdump(buff, 16);
 		}
+		*/
 		deselect();
 
 	}

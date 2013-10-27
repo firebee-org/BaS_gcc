@@ -945,9 +945,9 @@ void initialize_hardware(void) {
 	init_slt();
 	init_fbcs();
 	init_ddram();
-	init_pci();
 	init_eport();
 	init_xlbus_arbiter();
+	init_pci();
 	init_fpga();
 	init_pll();
 	init_video_ddr();
