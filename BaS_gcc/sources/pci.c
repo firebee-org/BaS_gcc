@@ -31,6 +31,48 @@
 #include "util.h"
 #include "wait.h"
 
+static struct pci_class
+{
+	int classcode;
+	char *description;
+} pci_classes[] =
+{
+	{ 0x00, "device was built prior definition of the class code field" },
+	{ 0x01, "Mass Storage Controller" },
+	{ 0x02, "Network Controller" },
+	{ 0x03, "Display Controller" },
+	{ 0x04, "Multimedia Controller" },
+	{ 0x05, "Memory Controller" },
+	{ 0x06, "Bridge Device" },
+	{ 0x07, "Simple Communication Controller" },
+	{ 0x08, "Base System Peripherial" },
+	{ 0x09, "Input Device" },
+	{ 0x0a, "Docking Station" },
+	{ 0x0b, "Processor" },
+	{ 0x0c, "Serial Bus Controller" },
+	{ 0x0d, "Wireless Controller" },
+	{ 0x0e, "Intelligent I/O Controller" },
+	{ 0x0f, "Satellite Communication Controller" },
+	{ 0x10, "Encryption/Decryption Controller" },
+	{ 0x11, "Data Acquisition and Signal Processing Controller" },
+	{ 0xff, "Device does not fit any defined class" },
+};
+static int num_classes = sizeof(pci_classes) / sizeof(struct pci_class);
+
+static char *device_class(int classcode)
+{
+	int i;
+
+	for (i = 0; i < num_classes; i++)
+	{
+		if (pci_classes[i].classcode == classcode)
+		{
+			return pci_classes[i].description;
+		}
+	}
+	return "not found";
+}
+
 uint16_t pci_read_config_byte(uint16_t bus, uint16_t slot, uint16_t function, uint16_t offset)
 {
    uint8_t value;
@@ -164,7 +206,9 @@ void pci_scan(void)
 	uint16_t function;
 	uint16_t i;
 
-	xprintf("PCI bus scan\r\n");
+	xprintf("\r\nPCI bus scan...\r\n\r\n");
+	xprintf(" Bus|Slot|Func|\r\n");
+	xprintf("----+----+----|\r\n");
 	for (bus = 0; bus < 1; bus++)
 	{
 		for (slot = 0; slot < 32; slot++)
@@ -176,11 +220,12 @@ void pci_scan(void)
 				value = pci_read_config_longword(bus, slot, function, 0);
 				if (value != 0xffffffff)
 				{
-					xprintf("[%02x] [%02x] [%02x]: %08x\r\n", bus, slot, function, value);
+					xprintf("[%02x]|[%02x]|[%02x]| %s\r\n", bus, slot, function,
+								device_class(pci_read_config_longword(bus, slot, function, 0x08) >> 24 & 0xff));
 					for (i = 0; i < 0x40; i += 4)
 					{
 						value = pci_read_config_longword(bus, slot, function, i);
-						xprintf("register %02x value= %08x\r\n", i, value);
+						//xprintf("register %02x value= %08x\r\n", i, value);
 					}
 					/* test for multi-function device to avoid ghost device detects */
 					value = pci_read_config_longword(bus, slot, function, 0x0c);	
@@ -190,7 +235,7 @@ void pci_scan(void)
 			}
 		}
 	}
-	xprintf("finished\r\n");
+	xprintf("\r\n...finished\r\n");
 }
 
 /* start of PCI initialization code */
