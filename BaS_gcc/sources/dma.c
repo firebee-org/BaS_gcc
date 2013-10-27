@@ -52,28 +52,24 @@ void *dma_memcpy(void *dst, void *src, size_t n)
 	d = dst;
 	s = src;
 
-//#ifdef _NOT_USED_
 	start = MCF_SLT0_SCNT;
 	/* first check if we can do a "traditional" memcpy() to the destination and measure speed */
 
 	memcpy(d, s, n);
 
-//#endif /* _NOT_USED_ */
-
 	end = MCF_SLT0_SCNT;
 
 	time = (start - end) / 132 / 1000;
-	xprintf("memcpy() took %d ms (%d.%d Mbytes/second)\r\n",
-			time, n / time / 1000, n / time % 1000);
+	xprintf("memcpy() took %d ms (%f Mbytes/second)\r\n",
+			time, n / (float) time / 1000.0);
 	flush_and_invalidate_caches();
-//#endif
 
 	xprintf("clear target area after memcpy():");
 	start = MCF_SLT0_SCNT;
 	bzero(dst, n);
 	end = MCF_SLT0_SCNT;
 	time = (start - end) / 132;
-	xprintf("bzero() took %d ms (%d.%d Mbytes/second)\r\n", time, n / time / 1000, n / time % 1000);
+	xprintf("bzero() took %d ms (%f Mbytes/second)\r\n", time, n / (float) time / 1000.0);
 
 	xprintf(" finished, flush caches: ");
 	flush_and_invalidate_caches();
@@ -89,6 +85,7 @@ void *dma_memcpy(void *dst, void *src, size_t n)
 	do
 	{
 		ret = MCD_dmaStatus(1);
+#ifdef _NOT_USED_ /* suppress annoying printout for now */
 		switch (ret)
 		{
 		case MCD_NO_DMA:
@@ -119,12 +116,13 @@ void *dma_memcpy(void *dst, void *src, size_t n)
 			xprintf("unknown DMA status %d\r\n", ret);
 			break;
 		}
+#endif
 	} while (ret != MCD_DONE);
 
 	end = MCF_SLT0_SCNT;
 	time = (start - end) / 132 / 1000;
-	xprintf("start = %d, end = %d, time = %d\r\n", start, end, time);
-	//xprintf("took %d ms (%d.%d Mbytes/second)\r\n",	time, n / time / 1000, n / time % 1000);
+	//xprintf("start = %d, end = %d, time = %d\r\n", start, end, time);
+	xprintf("took %d ms (%f Mbytes/second)\r\n",	time, n / (float) time / 1000.0);
 
 	/*
 	 * verify if copy succeeded
@@ -154,7 +152,7 @@ void *dma_memcpy(void *dst, void *src, size_t n)
 		end = MCF_SLT0_SCNT;
 
 		time = (start - end) / 132 / 1000;
-		xprintf("took %d ms (%d.%d Mbytes/second)\r\n",	time, n / time / 1000, n / time % 1000);
+		xprintf("took %d ms (%f Mbytes/second)\r\n",	time, n / (float) time / 1000.0);
 
 	}
 

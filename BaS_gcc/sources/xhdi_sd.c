@@ -195,7 +195,7 @@ uint32_t xhdi_get_capacity(uint16_t major, uint16_t minor, uint32_t *blocks, uin
 
 				return ERROR;
 			}
-			xprintf("%s:%d: determined sector count to %ld\r\n", __FILE__, __LINE__, *blocks);
+			//xprintf("%s:%d: determined sector count to %ld\r\n", __FILE__, __LINE__, *blocks);
 		}
 
 		if (bs != 0)
@@ -206,7 +206,7 @@ uint32_t xhdi_get_capacity(uint16_t major, uint16_t minor, uint32_t *blocks, uin
 
 				return ERROR;
 			}
-			xprintf("%s:%d: determined sector size to %ld\r\n", __FILE__, __LINE__, *bs);
+			//xprintf("%s:%d: determined sector size to %ld\r\n", __FILE__, __LINE__, *bs);
 		}
 		return E_OK;
 	}
