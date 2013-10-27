@@ -143,7 +143,7 @@ uint32_t pci_read_config_longword(uint16_t bus, uint16_t slot, uint16_t function
 	wait(1000);
 	value =  * (volatile uint32_t *) PCI_IO_OFFSET;	/* access device */
 
-#ifdef _NOT_USED_ */
+#ifdef _NOT_USED_
 	/* finish config cycle */
 
 	MCF_PCI_PCICAR = MCF_PCI_PCICAR_DEVNUM(10) |
