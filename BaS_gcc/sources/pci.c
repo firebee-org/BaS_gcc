@@ -29,25 +29,44 @@
 #include "stdint.h"
 #include "bas_printf.h"
 #include "util.h"
+#include "wait.h"
 
-uint16_t pci_read_config_word(uint16_t slot, uint16_t function, uint16_t offset)
+uint16_t pci_read_config_word(uint16_t bus, uint16_t slot, uint16_t function, uint16_t offset)
 {
    uint16_t value;
+
+
+	/* clear PCI status/command register */
+	MCF_PCI_PCISCR = MCF_PCI_PCISCR_PE |		/* clear parity error bit */
+				MCF_PCI_PCISCR_SE |					/* clear system error */
+				MCF_PCI_PCISCR_MA |					/* clear master abort */
+				MCF_PCI_PCISCR_TR |					/* clear target abort */
+				MCF_PCI_PCISCR_TS |					/* clear target abort signalling (as target) */
+				MCF_PCI_PCISCR_DP;					/* clear parity error */
+	
+	//(void) MCF_PCI_PCISCR;
+	wait(1000);
 
    /* initiate PCI configuration access to device */
 
    MCF_PCI_PCICAR = MCF_PCI_PCICAR_E |			/* enable configuration access special cycle */
-         MCF_PCI_PCICAR_DEVNUM(slot + 10) |	/* device number, devices 0 - 9 are reserved */
+         MCF_PCI_PCICAR_DEVNUM(slot) |			/* device number, devices 0 - 9 are reserved */
          MCF_PCI_PCICAR_FUNCNUM(function) |	/* function number */
          MCF_PCI_PCICAR_DWORD(offset);
 
+	wait(1000);
+
    value =  * (volatile uint16_t *) PCI_IO_OFFSET; /* access device */
 
+#ifdef _NOT_USED_
    /* finish config cycle */
 
-   MCF_PCI_PCICAR = MCF_PCI_PCICAR_DEVNUM(slot + 10) |
+   MCF_PCI_PCICAR = MCF_PCI_PCICAR_E |
+			MCF_PCI_PCICAR_BUSNUM(bus) |
+			MCF_PCI_PCICAR_DEVNUM(slot) |
          MCF_PCI_PCICAR_FUNCNUM(function) |
          MCF_PCI_PCICAR_DWORD(0);
+#endif /* _NOT_USED_ */
 
    swpw(value);
 
@@ -59,22 +78,41 @@ uint32_t pci_read_config_longword(uint16_t bus, uint16_t slot, uint16_t function
 {
 	uint32_t value;
 
+	/* clear PCI status/command register */
+	MCF_PCI_PCISCR = MCF_PCI_PCISCR_PE |		/* clear parity error bit */
+				MCF_PCI_PCISCR_SE |					/* clear system error */
+				MCF_PCI_PCISCR_MA |					/* clear master abort */
+				MCF_PCI_PCISCR_TR |					/* clear target abort */
+				MCF_PCI_PCISCR_TS |					/* clear target abort signalling (as target) */
+				MCF_PCI_PCISCR_DP;					/* clear parity error */
+	
+	//(void) MCF_PCI_PCISCR;
+	wait(1000);
+
+	//xprintf("PCISCR before config cycle: %lx\r\n", MCF_PCI_PCISCR);
+
 	/* initiate PCI configuration access to device */
 
 	MCF_PCI_PCICAR = MCF_PCI_PCICAR_E |			/* enable configuration access special cycle */
-			MCF_PCI_PCICAR_DEVNUM(slot + 10) |	/* device number, devices 0 - 9 are reserved */
+			MCF_PCI_PCICAR_BUSNUM(bus) |
+			MCF_PCI_PCICAR_DEVNUM(slot) |			/* device number, devices 0 - 9 are reserved */
 			MCF_PCI_PCICAR_FUNCNUM(function) |	/* function number */
 			MCF_PCI_PCICAR_DWORD(offset);
 
+	wait(1000);
 	value =  * (volatile uint32_t *) PCI_IO_OFFSET;	/* access device */
 
+#ifdef _NOT_USED_ */
 	/* finish config cycle */
 
-	MCF_PCI_PCICAR = MCF_PCI_PCICAR_DEVNUM(slot + 10) |
+	MCF_PCI_PCICAR = MCF_PCI_PCICAR_DEVNUM(10) |
 			MCF_PCI_PCICAR_FUNCNUM(function) |
 			MCF_PCI_PCICAR_DWORD(0);
+#endif /* _NOT_USED_ */
 
 	swpl(value);
+
+	//xprintf("PCISCR after config cycle: %lx\r\n", MCF_PCI_PCISCR);
 	return value;
 }
 
@@ -83,6 +121,7 @@ void pci_scan(void)
 	uint16_t bus;
 	uint16_t slot;
 	uint16_t function;
+	uint16_t i;
 
 	xprintf("PCI bus scan\r\n");
 	for (bus = 0; bus < 1; bus++)
@@ -97,11 +136,16 @@ void pci_scan(void)
 				if (value != 0xffffffff)
 				{
 					xprintf("[%02x] [%02x] [%02x]: %08x\r\n", bus, slot, function, value);
+					for (i = 0; i < 0x40; i += 2)
+					{
+						value = pci_read_config_word(bus, slot, function, i);
+						xprintf("register %02x value= %04x\r\n", i, value);
+					}
+					/* test for multi-function device to avoid ghost device detects */
+					value = pci_read_config_longword(bus, slot, function, 0x0c);	
+					if (!(value & 0x8000000))	/* no multi function device */
+						function = 8;
 				}
-				/* test for multi-function device to avoid ghost device detects */
-				value = pci_read_config_longword(bus, slot, function, 0x0c);	
-				if (!(((value & 0xff00) >> 16) & 0x80))	/* no multi function device */
-					function = 8;
 			}
 		}
 	}
