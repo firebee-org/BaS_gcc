@@ -87,7 +87,7 @@ void pci_scan(void)
 	xprintf("PCI bus scan\r\n");
 	for (bus = 0; bus < 1; bus++)
 	{
-		for (slot = 0; slot < 16; slot++)
+		for (slot = 0; slot < 32; slot++)
 		{
 			for (function = 0; function < 8; function++)
 			{
