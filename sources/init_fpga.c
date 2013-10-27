@@ -85,9 +85,11 @@ void init_fpga(void)
 	uint8_t *fpga_data;
 	int i;
 
+	/*
 	xprintf("MCF_FBCS0_CSAR: %08x\r\n", MCF_FBCS0_CSAR);
 	xprintf("MCF_FBCS0_CSCR: %08x\r\n", MCF_FBCS0_CSCR);
 	xprintf("MCF_FBCS0_CSMR: %08x\r\n", MCF_FBCS0_CSMR);
+	*/
 
 	xprintf("FPGA load config... ");
 
