@@ -292,10 +292,6 @@ void init_ddram(void)
 				| MCF_SDRAMC_SDCFG2_BWT2RW(6)			/* Burst Write to Read/Write/Precharge delay */
 				| MCF_SDRAMC_SDCFG2_BRD2PRE(4);			/* Burst Read to Read/Precharge delay */
 
-#ifdef _NOT_USED_
-		MCF_SDRAMC_SDCFG1 = 0x73622830;	/* SDCFG1 */
-		MCF_SDRAMC_SDCFG2 = 0x46770000;	/* SDCFG2 */
-#endif /* _NOT_USED_ */
 
 		MCF_SDRAMC_SDCR = MCF_SDRAMC_SDCR_IPALL			/* initiate Precharge All command */
 				| MCF_SDRAMC_SDCR_RCNT(13)				/* Refresh Count (= (x + 1) * 64 */
@@ -311,11 +307,6 @@ void init_ddram(void)
 				| MCF_SDRAMC_SDMR_AD(0x123)
 				| MCF_SDRAMC_SDMR_BNKAD(0);				/* LMR */
 
-#ifdef _NOT_USED_
-		MCF_SDRAMC_SDCR = 0xE10D0002;	/* SDCR + IPALL */
-		MCF_SDRAMC_SDMR = 0x40010000;	/* SDMR (write to LEMR) */
-		MCF_SDRAMC_SDMR = 0x048D0000;	/* SDRM (write to LMR) */
-#endif /* _NOT_USED_ */
 		MCF_SDRAMC_SDCR = 0xE10D0002;	/* SDCR + IPALL */
 		MCF_SDRAMC_SDCR = 0xE10D0004;	/* SDCR + IREF (first refresh) */
 		MCF_SDRAMC_SDCR = 0xE10D0004;	/* SDCR + IREF (second refresh) */
