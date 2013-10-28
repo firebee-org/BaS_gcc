@@ -27,6 +27,7 @@
 
 #include <stdbool.h>
 #include "MCF5475.h"
+#include "firebee.h"
 #include "startcf.h"
 #include "cache.h"
 #include "sysinit.h"
@@ -337,11 +338,11 @@ void init_fbcs()
 	xprintf("FlexBus chip select registers initialization: ");
 
 	/* Flash */
-	MCF_FBCS0_CSAR = 0xE0000000;			/* flash base address */
+	MCF_FBCS0_CSAR = BOOTFLASH_BASE_ADDRESS;/* flash base address */
 	MCF_FBCS0_CSCR = MCF_FBCS_CSCR_PS_16 |	/* 16 bit word access */
 			MCF_FBCS_CSCR_WS(6)|			/* 6 Waitstates */
 			MCF_FBCS_CSCR_AA;				/* */
-	MCF_FBCS0_CSMR = MCF_FBCS_CSMR_BAM_8M |
+	MCF_FBCS0_CSMR = BOOTFLASH_BAM |
 			MCF_FBCS_CSMR_V;				/* 8 MByte on */
 
 

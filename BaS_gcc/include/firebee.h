@@ -1,0 +1,8 @@
+#ifndef _FIREBEE_H_
+#define _FIREBEE_H_
+
+#define BOOTFLASH_BASE_ADDRESS	0xE0000000
+#define BOOTFLASH_SIZE			0x800000
+#define BOOTFLASH_BAM			(BOOTFLASH_SIZE - 1)
+
+#endif /* _FIREBEE_H_ */
