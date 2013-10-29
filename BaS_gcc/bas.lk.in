@@ -1,10 +1,19 @@
+#ifdef MACHINE_FIREBEE
+#include "firebee.h"
+#endif /* MACHINE_FIREBEE */
+
+#ifdef MACHINE_M5484LITE
+#include "m5484l.h"
+#endif /* MACHINE_M5484LITE */
+
+
 MEMORY
 {
    bas_rom (RX) : ORIGIN = TARGET_ADDRESS, LENGTH = 0x00100000
    /*
 	* target to copy BaS data segment to. 20k should be enough for now
 	*/
-   bas_ram (WX) : ORIGIN = 0x1FFFC000, LENGTH = 0x005000
+   bas_ram (WX) : ORIGIN = 0x1FFFB000, LENGTH = 0x005000
 }
 
 SECTIONS
@@ -13,6 +22,7 @@ SECTIONS
 	.text :
 	{
 		objs/startcf.o(.text) /* this one is the entry point so it must be the first */
+
 		objs/sysinit.o(.text)
 		objs/fault_vectors.o(.text)
 		objs/init_fpga.o(.text)
@@ -90,8 +100,8 @@ SECTIONS
 	 */
 
 	/* SDRAM Initialization @ 0000_0000 - 1FFF_FFFF 512Mbytes */
- 	___SDRAM                = 0x00000000;
- 	___SDRAM_SIZE           = 0x20000000;
+ 	___SDRAM                = SDRAM_START;
+ 	___SDRAM_SIZE           = SDRAM_SIZE;
 	_SDRAM_VECTOR_TABLE		= ___SDRAM;
 	
 	/* ST-RAM */
