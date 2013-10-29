@@ -1,7 +1,7 @@
 /*
  * pci.c
  *
- * * Purpose:		PCI configuration for the Coldfire builtin PCI bridge.
+ * Purpose:		PCI configuration for the Coldfire builtin PCI bridge.
  *
  * Notes:
  *

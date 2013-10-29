@@ -116,10 +116,12 @@ lib: $(LIBBAS)
 			bas.lk bas.map ram.lk ram.map basflash.lk basflash.map depend 
 
 $(FLASH_EXEC): TARGET_ADDRESS=0xe0000000
+$(FLASH_EXEC): MACHINE=MACHINE_M5484LITE
 $(FLASH_EXEC): LDCFILE=bas.lk
 $(FLASH_EXEC): MAPFILE=bas.map
 
 $(RAM_EXEC): TARGET_ADDRESS=0x1ff00000
+$(RAM_EXEC): MACHINE=MACHINE_M5484LITE
 $(RAM_EXEC): LDCFILE=ram.lk
 $(RAM_EXEC): MAPFILE=ram.map
 
@@ -129,7 +131,7 @@ $(BASFLASH_EXEC): MAPFILE=basflash.map
 
 # the final link stage (BaS in RAM and BaS in flash)
 $(FLASH_EXEC) $(RAM_EXEC): $(LIBBAS) $(LDCSRC)
-	$(CPP) $(INCLUDE) -P -DTARGET_ADDRESS=$(TARGET_ADDRESS) -DFORMAT=$(FORMAT) -DMACHINE_M5484LITE $(LDCSRC) -o $(LDCFILE)
+	$(CPP) $(INCLUDE) -P -DTARGET_ADDRESS=$(TARGET_ADDRESS) -DFORMAT=$(FORMAT) -D$(MACHINE) $(LDCSRC) -o $(LDCFILE)
 	$(LD) --oformat $(FORMAT) -Map $(MAPFILE) --cref -T $(LDCFILE) -o $@
 ifeq ($(COMPILE_ELF),Y)
 	$(OBJCOPY) -O srec $@ $@.s19

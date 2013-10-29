@@ -25,7 +25,9 @@ SECTIONS
 
 		objs/sysinit.o(.text)
 		objs/fault_vectors.o(.text)
+#ifdef MACHINE_FIREBEE
 		objs/init_fpga.o(.text)
+#endif /* MACHINE_FIREBEE */
 		objs/wait.o(.text)
 		objs/exceptions.o(.text)
 		objs/illegal_instruction.o(.text)
@@ -72,7 +74,7 @@ SECTIONS
 #endif
 	} > bas_rom
 
-#if (TARGET_ADDRESS == 0xe0000000)
+#if (TARGET_ADDRESS == BOOTFLASH_BASE_ADDRESS)
 	/* BaS in RAM */
 	.bas :
 		/*
@@ -115,17 +117,17 @@ SECTIONS
 	__FASTRAM               = 0x10000000;
 	__TARGET_ADDRESS		= TARGET_ADDRESS;
 	
-#if TARGET_ADDRESS == 0xe0000000
+#if TARGET_ADDRESS == BOOTFLASH_BASE_ADDRESS
 	__FASTRAM_END           = __BAS_IN_RAM;
 #else
 	__FASTRAM_END			= TARGET_ADDRESS;
 #endif
 
 	/* Init CS0 (BootFLASH @ E000_0000 - E07F_FFFF 8Mbytes) */
-	___BOOT_FLASH           = 0xe0000000;
- 	___BOOT_FLASH_SIZE      = 0x00800000;
+	___BOOT_FLASH           = BOOTFLASH_BASE_ADDRESS;
+ 	___BOOT_FLASH_SIZE      = BOOTFLASH_SIZE;
 
-#if TARGET_ADDRESS == 0xe0000000
+#if TARGET_ADDRESS == BOOTFLASH_BASE_ADDRESS
 	/* BaS */
 	__BAS_LMA               = LOADADDR(.bas);
 	__BAS_IN_RAM            = ADDR(.bas);

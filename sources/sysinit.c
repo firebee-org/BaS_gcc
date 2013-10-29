@@ -805,7 +805,9 @@ void initialize_hardware(void) {
 		init_slt();
 		init_fbcs();
 		init_ddram();
+#ifdef MACHINE_FIREBEE
 		init_fpga();
+#endif /* MACHINE_FIREBEE */
 
 		/* Validate ST RAM */
 		* (volatile uint32_t *) 0x42e = STRAM_END;	/* phystop TOS system variable */
@@ -940,7 +942,9 @@ void initialize_hardware(void) {
 	init_eport();
 	init_xlbus_arbiter();
 	init_pci();
+#ifdef MACHINE_FIREBEE
 	init_fpga();
+#endif /* MACHINE_FIREBEE */
 	init_pll();
 	init_video_ddr();
 	dvi_on();
