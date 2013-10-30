@@ -225,8 +225,10 @@ void BaS(void)
 	uint8_t *dst = (uint8_t *)TOS;
 	uint32_t *adr;
 
+#ifdef MACHINE_FIREBEE	/* LITE board has no pic and (currently) no nvram */
 	pic_init();
 	nvram_init();
+#endif /* MACHINE_FIREBEE */
 
 	xprintf("copy EmuTOS: ");
 
@@ -243,12 +245,16 @@ void BaS(void)
 	vec_init();
 	xprintf("finished\r\n");
 
-	xprintf("flush caches and enable MMU: ");
+	xprintf("flush caches: ");
 	flush_and_invalidate_caches();
-	MCF_MMU_MMUCR = MCF_MMU_MMUCR_EN;	/* MMU on */
-	NOP();								/* force pipeline sync */
 	xprintf("finished\r\n");
 
+	xprintf("enable MMU: ");
+	MCF_MMU_MMUCR = MCF_MMU_MMUCR_EN;	/* MMU on */
+	NOP();										/* force pipeline sync */
+	xprintf("finished\r\n");
+
+#ifdef MACHINE_FIREBEE
 	xprintf("IDE reset: ");
 	/* IDE reset */
 	* (volatile uint8_t *) (0xffff8802 - 2) = 14;
@@ -279,6 +285,7 @@ void BaS(void)
 	* (volatile uint32_t *) (0xf0000410 - 0x20) = 0x01070002;
 
 	xprintf("finished\r\n");
+#endif /* MACHINE_FIREBEE */
 
 	sd_card_init();
 
