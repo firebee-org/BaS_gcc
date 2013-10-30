@@ -119,7 +119,7 @@ _mmu_init:
 		move.l	d0,MCF_MMU_MMUOR		
 		nop
 
-// 0000'0000 locked
+// 0000'0000 - 000F'FFFF (first megabyte of physical memory) locked virtual = physical
   		moveq.l	#0x00000000|std_mmutr,d0
   		moveq.l	#0x00000000|copyback_mmudr|MCF_MMU_MMUDR_LK,d1
 		moveq.l	#mmuord_d,d2				// MMU update data
@@ -129,24 +129,24 @@ _mmu_init:
  		move.l	d2,MCF_MMU_MMUOR			// MMU update data
  		move.l	d3,MCF_MMU_MMUOR			// MMU update instruction
 
-//---------------------------------------------------------------------------------------
-// 00d0'0000 locked ID=6
+// 00D0'0000 - 0x00DF'FFFF (last megabyte of ST RAM = Falcon video memory) locked ID=6
+// mapped to physical address 60D0'0000 (FPGA video memory)
 // video ram: read write execute normal write true
  		move.l	#0x00d00000|MCF_MMU_MMUTR_ID(sca_page_ID)|std_mmutr,d0
 		move.l	#0x60d00000|writethrough_mmudr|MCF_MMU_MMUDR_LK,d1
 		move.l	d0,MCF_MMU_MMUTR		
 		move.l	d1,MCF_MMU_MMUDR
-		move.l	d2,MCF_MMU_MMUOR						// MMU update data
+		move.l	d2,MCF_MMU_MMUOR			// MMU update data
  		move.l	#0x00d00000|std_mmutr,d0
-		move.l	d3,MCF_MMU_MMUOR						// MMU update instruction  
+		move.l	d3,MCF_MMU_MMUOR			// MMU update instruction  
 		
 		move.l	#0x2000,d0
-		move.l	d0,_video_tlb							// set page as video page
-  		clr.l	_video_sbt								// clear time
+		move.l	d0,_video_tlb				// set page as video page
+  		clr.l	_video_sbt					// clear time
 
 
-// create locked TLB entries which must be available as soon as the MMU gets enabled
 // Make the TOS (in SDRAM) read-only
+// this maps virtual 0x00E0'0000-0x00EF'FFFF to the same physical address
  		move.l	#__TOS+std_mmutr,d0
 		move.l	#__TOS+copyback_mmudr+MCF_MMU_MMUDR_LK,d1
 		move.l	d0,MCF_MMU_MMUTR		
@@ -155,6 +155,8 @@ _mmu_init:
 		move.l	d3,MCF_MMU_MMUOR						// setzen
 
 // 00f0'0000 locked		
+// this maps virtual 0x00F0'0000 - 0x00FF'FFFF to physical 0xFFF0'0000 - 0xFFFF'FFFF effectively making I/O area
+// accesses ST-compatible (just the same what Atari made for TT and Falcon)
 		move.l	#0x00f00000|std_mmutr,d0
 		move.l	#0xfff00000|nocache_precise_mmudr|MCF_MMU_MMUDR_LK,d1
 		move.l	d0,MCF_MMU_MMUTR		
@@ -163,25 +165,20 @@ _mmu_init:
 		move.l	d3,MCF_MMU_MMUOR						// mapped to ffffxxx, precise,
 
 // 1ff0'0000 locked
-		move.l	#0x1FF00000|std_mmutr,d0				// last megabyte of RAM. Reserved for BaS
+// maps virtual 0x1FF0'0000 - 0x1FFF'FFFF to the same physical address
+		move.l	#0x1FF00000|std_mmutr,d0				// last megabyte of physical RAM. Reserved for BaS
 		move.l	#0x1FF00000|copyback_mmudr|MCF_MMU_MMUDR_LK,d1
 		move.l	d0,MCF_MMU_MMUTR
 		move.l	d1,MCF_MMU_MMUDR
 		move.l	d2,MCF_MMU_MMUOR						// setzen data
 		move.l	d3,MCF_MMU_MMUOR						// setzen instr
-// instr 0xFFF0'0000 nach 0x1FF0'0000 umleiten -->> short sprung 
-/*		move.l	#0xFFF00000|std_mmutr,d0
-		move.l	#0x1FF00000|copyback_mmudr|MCF_MMU_MMUDR_LK,d1
-		move.l	d0,MCF_MMU_MMUTR		
-		move.l	d1,MCF_MMU_MMUDR
-		move.l	d3,MCF_MMU_MMUOR						// setzen instr
-*/
+
 		move.l	(sp)+,d2			// Restore registers
 		move.l	(sp)+,d3
 		rts
 
 /*
- * MMU table add on miss
+ * Everything else gets a 1:1 mapping on miss
  */
 _mmutr_miss:
 		lea		-8 * 4(sp),sp
@@ -202,7 +199,7 @@ _mmutr_miss:
 		move.l	d0,MCF_MMU_MMUTR	// add to TLB
 		and.l	#0xFFF00000,d0		// mask out page
 		or.l	#copyback_mmudr,d0	// 1MB page size, cachable copyback, read, write, execute
-		move.l	d0,MCF_MMU_MMUDR	// add to TLB
+		move.l	d0,MCF_MMU_MMUDR	// add physical address to TLB
 		moveq.l	#mmuord_d,d0		// MMU update data
 		move.l	d0,MCF_MMU_MMUOR	// set
 		moveq.l	#mmuord_i,d0		// MMU update instruction
