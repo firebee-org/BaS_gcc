@@ -33,7 +33,6 @@ INCLUDE=-Iinclude -Imcdapi
 CFLAGS=-mcpu=5474\
 	   -Wall\
 	   -g\
-	   -Wno-multichar\
 	   -Winline\
 	   -O \
 	   -fomit-frame-pointer\
@@ -117,6 +116,7 @@ lib: $(LIBBAS)
 
 $(FLASH_EXEC): TARGET_ADDRESS=0xe0000000
 $(FLASH_EXEC): MACHINE=MACHINE_M5484LITE
+$(FLASH_EXEC): CFLAGS += -D$(MACHINE)
 $(FLASH_EXEC): LDCFILE=bas.lk
 $(FLASH_EXEC): MAPFILE=bas.map
 
@@ -127,6 +127,8 @@ $(RAM_EXEC): LDCFILE=ram.lk
 $(RAM_EXEC): MAPFILE=ram.map
 
 $(BASFLASH_EXEC): TARGET_ADDRESS=0x00100000
+$(BASFLASH_EXEC): MACHINE=MACHINE_M5484LITE
+$(BASFLASH_EXEC): CFLAGS += -D$(MACHINE)
 $(BASFLASH_EXEC): LDCFILE=basflash.lk
 $(BASFLASH_EXEC): MAPFILE=basflash.map
 
