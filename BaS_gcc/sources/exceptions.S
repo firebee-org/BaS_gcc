@@ -608,7 +608,7 @@ irq6:	// MFP interrupt from FPGA
 		add.l	#std_mmutr,d0
 		move.l	d3,d1				// page 0?
 		beq		irq6_sca_pn0		// ja ->
-		add.l	#copyback_mmudr,d1		// sonst page cb
+		add.l	#copyback_mmudr,d1	// sonst page cb
 		bra		irq6_sca_pn1c
 irq6_sca_pn0:
 		add.l	#writethrough_mmudr|MCF_MMU_MMUDR_LK,d1	// page wt and locked
@@ -891,7 +891,9 @@ psc3_fertig:
 		RTE
 
 /*
- * general purpose timer 0 (GPT0): video change, later also others
+ * general purpose timer 0 (GPT0): video change, later also others. GPT0 is used as
+ * input trigger. It is connected to the TIN0 signal of the FPGA and triggers everytime
+ * vbasehi is written to, i.e. when the video base address gets changed
  */
 handler_gpt0:
 		move	#0x2700,sr			// disable interrupts
@@ -900,31 +902,34 @@ handler_gpt0:
 		movem.l	d0-d4/a0-a1,(a7)
 
 		mvz.b	vbasehi,d0			// screen base address high
-		cmp.w	#2,d0				// lower than 0x200000?
-		blt		video_chg_end		// yes
-		cmp.w	#0xd0,d0			// 0xd00000? - normal Falcon video area, map to 60d00000 (FPGA video memory)
+		cmp.w	#2,d0				// screen base lower than 0x20000?
+		blt		video_chg_end		// yes, do nothing
+		cmp.w	#0xd0,d0			// lower than 0xd00000? - normal Falcon video area, mapped
+									// to 60d00000 (FPGA video memory)
 		blt		sca_other			//
 
 		lea		MCF_SLT0_SCNT,a0
   		move.l	(a0),_video_sbt		// save time
 
+		// FIXME: don't we need to get out here?
+
 sca_other:
-		lsl.l	#8,d0				// build screen start address from Atari register contents
+		lsl.l	#8,d0				// build new screen start address from Atari register contents
 		move.b	0xffff8203,d0		// mid byt
 		lsl.l	#8,d0
 		move.b  0xffff820d,d0		// low byt
 		move.l	d0,d3
 
 video_chg_1page:
-// test ob page schon gesetzt
+// check if page is already marked as video page
 		moveq	#20,d4
 		move.l	d0,d2
-		lsr.l	d4,d2				// neue page
+		lsr.l	d4,d2				// new page
 		move.l	_video_tlb,d4
-		bset.l	d2,d4				// setzen als ge�ndert
-		bne		video_chg_2page		// schon gesetzt gewesen? ja->weg
+		bset.l	d2,d4				// set as changed
+		bne		video_chg_2page		// was it set already?
 		move.l	d4,_video_tlb
-		bsr		cpusha				// cache leeren
+		bsr		cpusha				// clear cache
 
 video_copy_data:
 		move.l	d4,_video_tlb
@@ -932,7 +937,7 @@ video_copy_data:
 		move.l	d0,a0
 		move.l	a0,a1
 		add.l	#0x60000000,a1
-		move.l	#0x10000,d4			// die ganze page
+		move.l	#0x10000,d4			// whole page
 
 #define _DO_CPU_COPY
 #ifndef _DO_CPU_COPY
@@ -968,7 +973,7 @@ video_copy_data:
 
 #else
 video_copy_data_loop:
-		move.l	(a0)+,(a1)+
+		move.l	(a0)+,(a1)+			// copy video page contents to real screen
 		move.l	(a0)+,(a1)+
 		move.l	(a0)+,(a1)+
 		move.l	(a0)+,(a1)+
@@ -977,9 +982,9 @@ video_copy_data_loop:
 #endif
 
 // eintrag suchen
-		move.l	d0,MCF_MMU_MMUAR	// addresse
+		move.l	d0,MCF_MMU_MMUAR	// adress
  		move.l	#0x106,d4
- 		move.l	d4,MCF_MMU_MMUOR	// suchen -> schl�gt neuen vor wenn keiner
+ 		move.l	d4,MCF_MMU_MMUOR	// search -> new one will be offered if not found
  		nop
  		move.l	MCF_MMU_MMUOR,d4
  		clr.w	d4
@@ -994,7 +999,7 @@ video_copy_data_loop:
 		move.l	d2,MCF_MMU_MMUOR					// setzen vidoe maped to 60xxx only data  
 		nop
 video_chg_2page:
-// test ob evt. anschliessende page gesetzt werden muss
+// test of adjacent page is needed also
 		move.l	d3,d0
 		mvz.w	0xffff8210,d4		// byts pro zeile
 		mvz.w	0xffff82aa,d2		// zeilen ende
