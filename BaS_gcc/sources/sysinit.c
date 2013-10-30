@@ -27,7 +27,6 @@
 
 #include <stdbool.h>
 #include "MCF5475.h"
-#include "firebee.h"
 #include "startcf.h"
 #include "cache.h"
 #include "sysinit.h"
@@ -37,6 +36,13 @@
 #include "bas_types.h"
 #include "wait.h"
 #include "version.h"
+#ifdef MACHINE_FIREBEE
+#include "firebee.h"
+#endif /* MACHINE_FIREBEE */
+
+#ifdef MACHINE_M5484LITE
+#include "m5484l.h"
+#endif /* MACHINE_M5484LITE */
 
 #define UNUSED(x) (void)(x)               /* Unused variable         */
 
@@ -202,7 +208,12 @@ void init_serial(void)
 	MCF_PSC0_PSCSICR = 0;		/* PSC control register: select UART mode */
 	MCF_PSC0_PSCCSR = 0xDD;		/* use TX and RX baud rate from PSC timer */
 	MCF_PSC0_PSCCTUR = 0x00;	/* =\ */
+#ifdef MACHINE_FIREBEE
 	MCF_PSC0_PSCCTLR = 36;		/* divide sys_clk by 36 => BAUD RATE = 115200 bps */
+#endif
+#ifdef MACHINE_M5484LITE
+	MCF_PSC0_PSCCTLR = 27;		/* LITE board has 100 MHz sys_clk only */
+#endif
 	MCF_PSC0_PSCCR = 0x20;		/* reset receiver and RxFIFO */
 	MCF_PSC0_PSCCR = 0x30;		/* reset transmitter and TxFIFO */
 	MCF_PSC0_PSCCR = 0x40;		/* reset all error status */
@@ -221,6 +232,7 @@ void init_serial(void)
 	MCF_PSC0_PSCOPSET = 0x01;
 	MCF_PSC0_PSCCR = 0x05;
 
+#ifdef MACHINE_FIREBEE	/* PSC3 is not connected to anything on the LITE board */
 	/* PSC3: PIC */
 	MCF_PSC3_PSCSICR = 0;	// UART
 	MCF_PSC3_PSCCSR = 0xDD;
@@ -241,6 +253,8 @@ void init_serial(void)
 	MCF_PSC3_PSCTFAR = 0x00F0;
 	MCF_PSC3_PSCOPSET = 0x01;
 	MCF_PSC3_PSCCR = 0x05;
+#endif /* MACHINE_FIREBEE */
+
 	MCF_INTC_ICR32 = 0x3F;	//MAXIMALE PRIORITY/**********/
 
 	xprintf("\r\nserial interfaces initialization: finished\r\n");
@@ -944,13 +958,15 @@ void initialize_hardware(void) {
 	init_pci();
 #ifdef MACHINE_FIREBEE
 	init_fpga();
-#endif /* MACHINE_FIREBEE */
 	init_pll();
 	init_video_ddr();
 	dvi_on();
+#endif /* MACHINE_FIREBEE */
 	test_upd720101();
 	//video_1280_1024();
+#ifdef MACHINE_FIREBEE
 	init_ac97();
+#endif /* MACHINE_FIREBEE */
 
 	if (BAS_LMA != BAS_IN_RAM)
 	{
