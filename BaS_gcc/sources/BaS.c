@@ -191,6 +191,10 @@ void enable_coldfire_interrupts()
 	*FPGA_INTR_CONTRL = 0L;				/* disable all interrupts */
 	MCF_EPORT_EPPAR = 0xaaa8;			/* all interrupts on falling edge */
 
+	/*
+	 * TIN0 on the Coldfire is connected to the FPGA. TIN0 triggers every write
+	 * access to 0xff8201 (vbasehi), i.e. everytime the video base address is written
+	 */
 	MCF_GPT0_GMS = MCF_GPT_GMS_ICT(1) |	/* timer 0 on, video change capture on rising edge */
 			MCF_GPT_GMS_IEN |
 			MCF_GPT_GMS_TMS(1);
