@@ -26,6 +26,41 @@
 #define	 PCI_IO_OFFSET		(0xD0000000)
 #define	 PCI_IO_SIZE		(0x10000000)
 
+/* PCI configuration space macros */
+
+/* register 0x00 macros */
+#define PCI_VENDOR_ID(i)	((i) & 0xffff)
+#define PCI_DEVICE_ID(i)	(((i) & 0xffff0000) >> 16)
+
+/* register 0x04 macros */
+#define PCI_STATUS(i)		(((i) >> 16) & 0xffff)
+#define PCI_COMMAND(i)		((i) & 0xffff)
+
+/* register 0x08 macros */
+#define PCI_CLASS_CODE(i)	(((i) & 0xff000000) >> 24)
+#define PCI_SUBCLASS(i)		(((i) & 0xff0000) >> 16)
+#define PCI_PROF_IF(i)		(((i) & 0xff00) >> 8)
+#define PCI_REVISION_ID(i)	(((i) & 0xff))
+
+/* register 0x0c macros */
+#define PCI_BIST(i)			(((i) & 0xff000000) >> 24)
+#define PCI_HEADER_TYPE(i)	(((i) & 0xff0000) >> 16)
+#define PCI_LAT_TIMER(i)	(((i) & 0xff00) >> 8)
+#define PCI_CACHELINE_SIZE(i)	(((i) & 0xff))
+
+/* register 0x2c macros */
+#define PCI_SUBSYS_ID(i)	(((i) & 0xffff0000) >> 16)
+#define PCI_SUBSYS_VID(i)	(((i) & 0xffff))
+
+/* register 0x34 macros */
+#define PCI_CAPABILITIES(i)	((i) & 0xff)
+
+/* register 0x3c macros */
+#define PCI_MAX_LATENCY(i)	(((i) & 0xff000000) >> 24)
+#define PCI_MIN_GRANT(i)	(((i) & 0xff0000) >> 16)
+#define PCI_INTERRUPT_PIN(i)	(((i) & 0xff00) >> 8)
+#define PCI_INTERRUPT_LINE(i)	(((i)) & 0xff)
+
 extern void init_eport(void);
 extern void init_xlbus_arbiter(void);
 extern void init_pci(void);
