@@ -190,19 +190,19 @@ _mmu_init:
 		rts
 
 /*
- * Everything else gets a 1:1 mapping on miss
+ * Everything else gets 1:1 mapped on miss
  */
 _mmutr_miss:
-		lea		-8 * 4(sp),sp
-		movem.l	d0-d3/a0-a3,(sp)
+		lea		-4 * 4(sp),sp
+		movem.l	d0-d1/a0-a1,(sp)	// save gcc scratch registers
 
 		move.l	d0,-(sp)
 		pea		MISS_text
 		jsr		_xprintf
 		addq.l	#8,sp
 
-		movem.l	(sp),d0-d3/a0-a3
-		lea		8 * 4(sp),sp
+		movem.l	(sp),d0-d1/a0-a1	// restore registers
+		lea		4 * 4(sp),sp
 
 		bsr		cpusha				// clear caches
 

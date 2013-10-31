@@ -629,21 +629,22 @@ irq6_sca_pn1c:
 
 		// experiment: do video page copy using Coldfire DMA
 
-		lea 	-11 * 4(sp),sp
-
-		clr.l	-(sp)			// no special functions
+		lea 	-15 * 4(sp),sp
+		movem.l	d0-d1/a0-a1,sp		// save gcc scratch registers
+		clr.l	-(sp)				// no special functions
 		move.l	#MCD_SINGLE_DMA|MCD_TT_FLAGS_CW|MCD_TT_FLAGS_RL|MCD_TT_FLAGS_SP,-(sp)
-		mov3q	#7,-(sp)		// highest DMA priority
+		mov3q	#7,-(sp)			// highest DMA priority
 		move.l	#DMA_ALWAYS,-(sp)	// do memory to memory DMA
-		move.l	#4,-(sp)		// copy 4 bytes at a time
-		move.l	#0x100000,-(sp)	// copy 1 Megabyte
-		move.l	#4,-(sp)		// destination increment
-		move.l	a1,-(sp)		// destination adress
-		move.l	#4,-(sp)		// source increment
-		move.l	a0,-(sp)		// source adress
-		move.l	#1,-(sp)		// channel 1
+		move.l	#4,-(sp)			// copy 4 bytes at a time
+		move.l	#0x100000,-(sp)		// copy 1 Megabyte
+		move.l	#4,-(sp)			// destination increment
+		move.l	a1,-(sp)			// destination adress
+		move.l	#4,-(sp)			// source increment
+		move.l	a0,-(sp)			// source adress
+		move.l	#1,-(sp)			// channel 1
 		jsr		_MCD_startDma
-		lea		11 * 4(sp),sp	// adjust stack
+		movem.l	(sp),d0-d1/a0-a1	// restore gcc scratch registers
+		lea		15 * 4(sp),sp		// adjust stack
 
 wait_dma_finished:
 		clr.l	-(sp)
@@ -652,8 +653,6 @@ wait_dma_finished:
 		tst.l	d0
 		cmp.l	#6,d0
 		bne		wait_dma_finished
-
-		// intentionally no wait for the DMA to finish
 #else
 irq6_vcd0_loop:						
 		move.l	(a0)+,(a1)+			// page copy
