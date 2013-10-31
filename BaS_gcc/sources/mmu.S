@@ -164,7 +164,8 @@ _mmu_init:
 
 // 00f0'0000 locked		
 // this maps virtual 0x00F0'0000 - 0x00FF'FFFF to physical 0xFFF0'0000 - 0xFFFF'FFFF effectively making I/O area
-// accesses ST-compatible (just the same what Atari made for TT and Falcon)
+// accesses ST-compatible (just the same what Atari made for TT and Falcon). This does not get mapped for the
+// m5484LITE boards which enables us to later act on I/O access attempts during a page miss exception
 #ifdef MACHINE_FIREBEE
 		move.l	#0x00f00000|std_mmutr,d0
 		move.l	#0xfff00000|nocache_precise_mmudr|MCF_MMU_MMUDR_LK,d1
@@ -174,16 +175,16 @@ _mmu_init:
 		move.l	d3,MCF_MMU_MMUOR						// mapped to ffffxxx, precise,
 #endif /* MACHINE_FIREBEE */
 
-#ifdef MACHINE_FIREBEE
 // 1ff0'0000 locked
 // maps virtual 0x1FF0'0000 - 0x1FFF'FFFF to the same physical address
-		move.l	#0x1FF00000|std_mmutr,d0				// last megabyte of physical RAM. Reserved for BaS
-		move.l	#0x1FF00000|copyback_mmudr|MCF_MMU_MMUDR_LK,d1
+		move.l	#(SDRAM_START + SDRAM_SIZE - 0x100000) | std_mmutr, d0	// last MB of physical RAM reserved for BaS
+		// move.l	#0x1FF00000|std_mmutr,d0				// last megabyte of physical RAM. Reserved for BaS
+		move.l	#(SDRAM_START + SDRAM_SIZE - 0x100000) | copyback_mmudr | MCF_MMU_MMUDR_LK,d1
+		// move.l	#0x1FF00000|copyback_mmudr|MCF_MMU_MMUDR_LK,d1
 		move.l	d0,MCF_MMU_MMUTR
 		move.l	d1,MCF_MMU_MMUDR
 		move.l	d2,MCF_MMU_MMUOR						// setzen data
 		move.l	d3,MCF_MMU_MMUOR						// setzen instr
-#endif /* MACHINE_FIREBEE */
 
 		move.l	(sp)+,d2			// Restore registers
 		move.l	(sp)+,d3
