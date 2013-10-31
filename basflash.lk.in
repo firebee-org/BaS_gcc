@@ -1,3 +1,11 @@
+#ifdef MACHINE_FIREBEE
+#include "firebee.h"
+#endif /* MACHINE_FIREBEE */
+
+#ifdef MACHINE_M5484LITE
+#include "m5484l.h"
+#endif /* MACHINE_M5484LITE */
+
 MEMORY
 {
    flasher (WX) : ORIGIN = TARGET_ADDRESS, LENGTH = 0x00100000		/* target to load basflash */

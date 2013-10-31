@@ -8,4 +8,10 @@
 #define SDRAM_START             0x00000000  /* start at address 0 */
 #define SDRAM_SIZE              0x4000000  	/* 64 MB on the LITEKIT */
 
+#ifdef COMPILE_RAM
+#define TARGET_ADDRESS	(SDRAM_START + SDRAM_SIZE - 0x100000)
+#else
+#define TARGET_ADDRESS	BOOTFLASH_BASE_ADDRESS
+#endif /* COMPILE_RAM */
+
 #endif /* _M5484L_H_ */
