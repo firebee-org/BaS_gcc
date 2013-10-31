@@ -53,9 +53,9 @@ LDCBFS=bashflash.lk
 
 # this Makefile can create the BaS to flash or an arbitrary ram address (for BDM debugging). See
 # below for the definition of TARGET_ADDRESS
-FLASH_EXEC=bas.$(EXE)
-RAM_EXEC=ram.$(EXE)
-BASFLASH_EXEC=basflash.$(EXE)
+FLASH_EXEC=bas.m5484lite.$(EXE) bas.firebee.$(EXE)
+RAM_EXEC=ram.m5484lite.$(EXE) ram.firebee.$(EXE)
+BASFLASH_EXEC=basflash.m5484lite.$(EXE) basflash.firebee.$(EXE)
 
 CSRCS= \
 	$(SRCDIR)/sysinit.c \
@@ -107,6 +107,7 @@ ram: $(RAM_EXEC)
 bfl: $(BASFLASH_EXEC)
 lib: $(LIBBAS)
 
+
 .PHONY clean:
 	@ rm -f $(FLASH_EXEC) $(FLASH_EXEC).elf $(FLASH_EXEC).s19 \
 			$(RAM_EXEC) $(RAM_EXEC).elf $(RAM_EXEC).s19 \
@@ -114,27 +115,25 @@ lib: $(LIBBAS)
 			$(OBJS) $(LIBBAS) \
 			bas.lk bas.map ram.lk ram.map basflash.lk basflash.map depend 
 
-$(FLASH_EXEC): TARGET_ADDRESS=0xe0000000
 $(FLASH_EXEC): MACHINE=MACHINE_M5484LITE
 $(FLASH_EXEC): CFLAGS += -D$(MACHINE)
 $(FLASH_EXEC): LDCFILE=bas.lk
 $(FLASH_EXEC): MAPFILE=bas.map
 
-$(RAM_EXEC): TARGET_ADDRESS=0x00100000
 $(RAM_EXEC): MACHINE=MACHINE_M5484LITE
 $(RAM_EXEC): CFLAGS += -D$(MACHINE)
 $(RAM_EXEC): LDCFILE=ram.lk
 $(RAM_EXEC): MAPFILE=ram.map
 
-$(BASFLASH_EXEC): TARGET_ADDRESS=0x00100000
 $(BASFLASH_EXEC): MACHINE=MACHINE_M5484LITE
 $(BASFLASH_EXEC): CFLAGS += -D$(MACHINE)
 $(BASFLASH_EXEC): LDCFILE=basflash.lk
 $(BASFLASH_EXEC): MAPFILE=basflash.map
 
+
 # the final link stage (BaS in RAM and BaS in flash)
 $(FLASH_EXEC) $(RAM_EXEC): $(LIBBAS) $(LDCSRC)
-	$(CPP) $(INCLUDE) -P -DTARGET_ADDRESS=$(TARGET_ADDRESS) -DFORMAT=$(FORMAT) -D$(MACHINE) $(LDCSRC) -o $(LDCFILE)
+	$(CPP) $(INCLUDE) -P -DFORMAT=$(FORMAT) -D$(MACHINE) $(LDCSRC) -o $(LDCFILE)
 	$(LD) --oformat $(FORMAT) -Map $(MAPFILE) --cref -T $(LDCFILE) -o $@
 ifeq ($(COMPILE_ELF),Y)
 	$(OBJCOPY) -O srec $@ $@.s19
@@ -144,7 +143,7 @@ endif
 
 # the basflash (SD-card executable called from BaS) final link stage
 $(BASFLASH_EXEC): $(OBJDIR)/basflash.o $(OBJDIR)/basflash_start.o $(LIBBAS) $(LDCBFL)
-	$(CPP) -P -DTARGET_ADDRESS=$(TARGET_ADDRESS) -DFORMAT=$(FORMAT) $(LDCBSRC) -o $(LDCFILE)
+	$(CPP) -P -DFORMAT=$(FORMAT) $(LDCBSRC) -o $(LDCFILE)
 	$(LD) --oformat $(FORMAT) -Map $(MAPFILE) --cref -T $(LDCFILE) -L. -lbas -o $@
 ifeq ($(COMPILE_ELF),Y)
 	$(OBJCOPY) -O srec $@ $@.s19
@@ -178,3 +177,13 @@ depend: $(ASRCS) $(CSRCS)
 ifneq (clean,$(MAKECMDGOALS))
 -include depend
 endif
+
+.PHONY: printvars
+printvars:
+	@$(foreach V,$(.VARIABLES), $(if $(filter-out environment% default automatic, $(origin $V)),$(warning $V=$($V))))
+ifeq (MACHINE_M5484LITE,$$(MACHINE))
+	MNAME=m5484lite
+else ifeq (MACHINE_FIREBEE,$(MACHINE))
+   	MNAME=firebee
+endif
+

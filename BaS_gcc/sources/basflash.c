@@ -29,6 +29,14 @@
 #include "ff.h"
 #include "s19reader.h"
 
+#ifdef MACHINE_FIREBEE
+#include "firebee.h"
+#endif /* MACHINE_FIREBEE */
+
+#ifdef MACHINE_M5484LITE
+#include "m5484l.h"
+#endif /* MACHINE_M5484LITE */
+
 #define AMD_FLASH_BUS_SHIFT     1
 #define AMD_FLASH_CELL          volatile uint16_t
 #define AMD_FLASH_CELL_BYTES    2
