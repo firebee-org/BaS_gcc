@@ -28,6 +28,13 @@
 #define _WAIT_H_
 
 #include <bas_types.h>
+#if MACHINE_FIREBEE
+#include "firebee.h"
+#elif MACHINE_M5484LITE
+#include "m5484l.h"
+#else
+//#error unknown machine
+#endif /* MACHINE_FIREBEE */
 
 typedef bool (*checker_func)(void);
 
@@ -39,7 +46,7 @@ extern __inline__ bool waitfor(uint32_t us, checker_func condition) __attribute_
  */
 extern __inline__ void wait(uint32_t us)
 {
-	int32_t target = MCF_SLT_SCNT(0) - (us * 132);
+	int32_t target = MCF_SLT_SCNT(0) - (us * (SYSCLK / 1000));
 
 	while (MCF_SLT_SCNT(0) - target > 0);
 }
@@ -50,7 +57,7 @@ extern __inline__ void wait(uint32_t us)
  */
 extern __inline__ bool waitfor(uint32_t us, checker_func condition)
 {
-	int32_t target = MCF_SLT_SCNT(0) - (us * 132);
+	int32_t target = MCF_SLT_SCNT(0) - (us * (SYSCLK / 1000));
 	uint32_t res;
 
 	do
