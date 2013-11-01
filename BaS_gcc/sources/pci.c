@@ -197,7 +197,7 @@ void pci_scan(void)
 					}
 					/* test for multi-function device to avoid ghost device detects */
 					value = pci_read_config_longword(bus, slot, function, 0x0c);	
-					if (function == 0 && !(value & 0x800000))	/* no multi function device */
+					if (function == 0 && !(PCI_HEADER_TYPE(value) & 0x80))	/* no multi function device */
 						function = 8;
 				}
 			}
