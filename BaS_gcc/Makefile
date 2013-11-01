@@ -171,8 +171,8 @@ endif
 # pattern rule for RAM
 $(1)_MAPFILE_RAM=$(1)/$$(basename $$(RAM_EXEC)).map
 $(1)/$$(RAM_EXEC): $(1)/$(LIBBAS) $(LDCSRC)
-	$(CPP) $(INCLUDE) -DCOMPILE_RAM -DOBJDIR=$(1)/objs -P -DFORMAT=$$(FORMAT) -D$$(MACHINE) $(LDCSRC) -o $(1)/$$(LDCFILE)
-	$(LD) --oformat $$(FORMAT) -Map $$($(1)_MAPFILE_RAM) --cref -T $(1)/$$(LDCFILE) -o $$@
+	$(CPP) $(INCLUDE) -DCOMPILE_RAM -DOBJDIR=$(1)/objs -P -DFORMAT=$$(FORMAT) -D$$(MACHINE) $(LDCSRC) -o $(1)/$$(LDRFILE)
+	$(LD) --oformat $$(FORMAT) -Map $$($(1)_MAPFILE_RAM) --cref -T $(1)/$$(LDRFILE) -o $$@
 ifeq ($(COMPILE_ELF),Y)
 	$(OBJCOPY) -O srec $$@ $$(basename $$@).s19
 else
@@ -182,7 +182,7 @@ endif
 # pattern rule for basflash
 $(1)_MAPFILE_BFL=$(1)/$$(basename $$(BASFLASH_EXEC)).map
 $(1)/$$(BASFLASH_EXEC): $(1)/objs/basflash.o $(1)/objs/basflash_start.o $(1)/$(LIBBAS) $(LDCBFL)
-	$(CPP) $(INCLUDE) -P -DOBJDIR=$(1)/objs -DFORMAT=$$(FORMAT) -D$$(MACHINE) $(LDCBSRC) -o $(1)/$$(LDCFILE)
+	$(CPP) $(INCLUDE) -P -DOBJDIR=$(1)/objs -DFORMAT=$$(FORMAT) -D$$(MACHINE) $(LDCBSRC) -o $(1)/$$(LDCBFS)
 	$(LD) --oformat $$(FORMAT) -Map $$($(1)_MAPFILE_BFL) --cref -T $(1)/$$(LDCFILE) -L$(1) -lbas -o $$@
 ifeq ($(COMPILE_ELF),Y)
 	$(OBJCOPY) -O srec $$@ $$(basename $$@).s19
