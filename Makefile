@@ -29,7 +29,7 @@ OBJCOPY=$(TCPREFIX)objcopy
 AR=$(TCPREFIX)ar
 RANLIB=$(TCPREFIX)ranlib
 
-INCLUDE=-Iinclude -Imcdapi
+INCLUDE=-Iinclude
 CFLAGS=-mcpu=5474\
 	   -Wall\
 	   -g\
@@ -41,8 +41,8 @@ CFLAGS=-mcpu=5474\
 	   -Wa,--register-prefix-optional
 
 SRCDIR=sources
-MCDSRC=mcdapi
-OBJDIR=objs
+TRGTDIRS= ./firebee ./m5484lite
+OBJDIRS=$(patsubst %, %/objs,$(TRGTDIRS))
 
 # Linker control file. The final $(LDCFILE) is intermediate only (preprocessed  version of $(LDCSRC)
 LDCFILE=bas.lk
@@ -53,9 +53,9 @@ LDCBFS=bashflash.lk
 
 # this Makefile can create the BaS to flash or an arbitrary ram address (for BDM debugging). See
 # below for the definition of TARGET_ADDRESS
-FLASH_EXEC=bas.m5484lite.$(EXE) bas.firebee.$(EXE)
-RAM_EXEC=ram.m5484lite.$(EXE) ram.firebee.$(EXE)
-BASFLASH_EXEC=basflash.m5484lite.$(EXE) basflash.firebee.$(EXE)
+FLASH_EXEC=bas.$(EXE)
+RAM_EXEC=ram.$(EXE)
+BASFLASH_EXEC=basflash.$(EXE)
 
 CSRCS= \
 	$(SRCDIR)/sysinit.c \
@@ -78,7 +78,13 @@ CSRCS= \
 	$(SRCDIR)/xhdi_interface.c \
 	$(SRCDIR)/pci.c \
 	$(SRCDIR)/dspi.c \
-	$(SRCDIR)/driver_vec.c
+	$(SRCDIR)/driver_vec.c \
+	$(SRCDIR)/MCD_dmaApi.c \
+	$(SRCDIR)/MCD_tasks.c \
+	$(SRCDIR)/MCD_tasksInit.c \
+	\
+	$(SRCDIR)/basflash.c \
+	$(SRCDIR)/basflash_start.c 
 
 ASRCS= \
 	$(SRCDIR)/startcf.S \
@@ -89,86 +95,99 @@ ASRCS= \
 	$(SRCDIR)/illegal_instruction.S \
 	$(SRCDIR)/xhdi_vec.S
 	
-MCDSRCS=\
-	$(MCDSRC)/MCD_dmaApi.c \
-	$(MCDSRC)/MCD_tasks.c \
-	$(MCDSRC)/MCD_tasksInit.c
+COBJS=$(patsubst $(SRCDIR)/%.o,%.o,$(patsubst %.c,%.o,$(CSRCS)))
+AOBJS=$(patsubst $(SRCDIR)/%.o,%.o,$(patsubst %.S,%.o,$(ASRCS)))
 
-COBJS=$(patsubst $(SRCDIR)/%.o,$(OBJDIR)/%.o,$(patsubst %.c,%.o,$(CSRCS)))
-AOBJS=$(patsubst $(SRCDIR)/%.o,$(OBJDIR)/%.o,$(patsubst %.S,%.o,$(ASRCS)))
-MCDOBJS=$(patsubst $(MCDSRCS)/%.o,$(OBJDIR)/%.o,$(patsubst %.c,%.o,$(MCDSRCS)))
-
-OBJS=$(COBJS) $(AOBJS) $(MCDOBJS)
+OBJS=$(COBJS) $(AOBJS)
 LIBBAS=libbas.a
 
+LIBS=$(patsubst %,%/$(LIBBAS),$(TRGTDIRS))
+
 all: fls ram bfl lib
-fls: $(FLASH_EXEC)
-ram: $(RAM_EXEC)
-bfl: $(BASFLASH_EXEC)
-lib: $(LIBBAS)
+fls: $(patsubst %,%/$(FLASH_EXEC),$(TRGTDIRS))
+ram: $(patsubst %,%/$(RAM_EXEC),$(TRGTDIRS))
+bfl: $(patsubst %,%/$(BASFLASH_EXEC),$(TRGTDIRS))
+lib: $(LIBS)
 
 
 .PHONY clean:
-	@ rm -f $(FLASH_EXEC) $(patsubst %.elf, %.s19, $(FLASH_EXEC)) \
-			$(RAM_EXEC) $(patsubst %.elf, %.s19, $(RAM_EXEC)) \
-			$(BASFLASH_EXEC) $(patsubst %.elf, %.s19, $(BASFLASH_EXEC)) $(OBJDIR)/basflash.o $(OBJDIR)/basflash_start.o \
-			$(OBJS) $(LIBBAS) \
-			bas.lk bas.map ram.lk ram.map basflash.lk basflash.map depend 
-
-bas.m5484l.$(EXE): MACHINE=MACHINE_M5484LITE
-bas.firebee.$(EXE): MACHINE=MACHINE_FIREBEE
-$(FLASH_EXEC): CFLAGS += -D$(MACHINE)
-$(FLASH_EXEC): LDCFILE=bas.lk
-$(FLASH_EXEC): MAPFILE=bas.map
+	for d in $(TRGTDIRS);\
+		do rm -f $$d/$(FLASH_EXEC) $(patsubst %.elf, %.s19, $$d/$(FLASH_EXEC)) \
+			$$d/$(RAM_EXEC) $(patsubst %.elf, %.s19, $$d/$(RAM_EXEC)) \
+			$d$/$(BASFLASH_EXEC) $(patsubst %.elf, %.s19, $$d/$(BASFLASH_EXEC)) $$d/$(OBJDIR)/basflash.o $$d/$(OBJDIR)/basflash_start.o \
+			$$d/objs/* $$d/$(LIBBAS) \
+			$$d/bas.lk $$d/bas.map $$d/ram.lk $$d/ram.map $$d/basflash.lk $$d/basflash.map depend; \
+		done
 
 
-ram.m5484l.$(EXE): MACHINE=MACHINE_M5484LITE
-ram.firebee.$(EXE): MACHINE=MACHINE_FIREBEE
-$(RAM_EXEC): CFLAGS += -D$(MACHINE)
-$(RAM_EXEC): LDCFILE=ram.lk
-$(RAM_EXEC): MAPFILE=ram.map
+# flags for targets
+m5484lite/bas.$(EXE): MACHINE=MACHINE_M5484LITE
+firebee/bas.$(EXE): MACHINE=MACHINE_FIREBEE
+m5484lite/ram.$(EXE): MACHINE=MACHINE_M5484LITE
+firebee/ram.$(EXE): MACHINE=MACHINE_FIREBEE
+m5484lite/basflash.$(EXE): MACHINE=MACHINE_M5484LITE
+firebee/basflash.$(EXE): MACHINE=MACHINE_FIREBEE
 
-
-basflash.m5484l.$(EXE): MACHINE=MACHINE_M5484LITE
-basflash.firebee.$(EXE): MACHINE=MACHINE_FIREBEE
-$(BASFLASH_EXEC): CFLAGS += -D$(MACHINE)
-$(BASFLASH_EXEC): LDCFILE=basflash.lk
-$(BASFLASH_EXEC): MAPFILE=basflash.map
-
-
-# the final link stage (BaS in RAM and BaS in flash)
-$(FLASH_EXEC) $(RAM_EXEC): $(LIBBAS) $(LDCSRC)
-	$(CPP) $(INCLUDE) -P -DFORMAT=$(FORMAT) -D$(MACHINE) $(LDCSRC) -o $(LDCFILE)
-	$(LD) --oformat $(FORMAT) -Map $(MAPFILE) --cref -T $(LDCFILE) -o $@
-ifeq ($(COMPILE_ELF),Y)
-	$(OBJCOPY) -O srec $@ $(basename $@).s19
+#
+# generate pattern rules for different object files
+#
+define CC_TEMPLATE
+ifeq (firebee,$(1))
+	MACHINE=MACHINE_FIREBEE
 else
-	objcopy -I srec -O elf32-big --alt-machine-code 4 $@ $(basename $@).elf
+	MACHINE=MACHINE_M5484LITE
+endif
+$(1)/objs/%.o:$(SRCDIR)/%.c
+	$(CC) $$(CFLAGS) -D$$(MACHINE) $(INCLUDE) -c $$< -o $$@
+
+$(1)/objs/%.o:$(SRCDIR)/%.S
+	$(CC) $$(CFLAGS) -Wa,--bitwise-or -D$$(MACHINE) $(INCLUDE) -c $$< -o $$@
+endef
+$(foreach DIR,$(TRGTDIRS),$(eval $(call CC_TEMPLATE,$(DIR))))
+
+#
+# generate pattern rules for libraries
+#
+define AR_TEMPLATE
+$(1)_OBJS=$(patsubst %,$(1)/objs/%,$(OBJS))
+$(1)/$(LIBBAS): $$($(1)_OBJS)
+	$(AR) rv $$@ $$?
+	$(RANLIB) $$@
+endef
+$(foreach DIR,$(TRGTDIRS),$(eval $(call AR_TEMPLATE,$(DIR))))
+
+#
+# define pattern rules for binaries
+#
+define EX_TEMPLATE
+$(1)_MAPFILE=$(1)/$$(basename $$FLASH_EXEC).map
+$(1)/$$(FLASH_EXEC) $(1)/$$(RAM_EXEC): $(1)/$(LIBBAS) $(LDCSRC)
+	$(CPP) $(INCLUDE) -DOBJDIR=$(1)/objs -P -DFORMAT=$$(FORMAT) -D$$(MACHINE) $(LDCSRC) -o $(1)/$$(LDCFILE)
+	$(LD) --oformat $$(FORMAT) -Map $(1)_MAPFILE --cref -T $(1)/$$(LDCFILE) -o $$@
+ifeq ($(COMPILE_ELF),Y)
+	$(OBJCOPY) -O srec $$@ $(basename $$@).s19
+else
+	objcopy -I srec -O elf32big --alt-machine-code 4 $$@ $(basename $$@).elf
 endif
 
-# the basflash (SD-card executable called from BaS) final link stage
-$(BASFLASH_EXEC): $(OBJDIR)/basflash.o $(OBJDIR)/basflash_start.o $(LIBBAS) $(LDCBFL)
-	$(CPP) $(INCLUDE) -P -DFORMAT=$(FORMAT) -D$(MACHINE) $(LDCBSRC) -o $(LDCFILE)
-	$(LD) --oformat $(FORMAT) -Map $(MAPFILE) --cref -T $(LDCFILE) -L. -lbas -o $@
+$(1)_MAPFILE_BFL=$(1)/$$(basename $$(BASFLASH_EXEC)).map
+$(1)/$$(BASFLASH_EXEC): $(1)/objs/basflash.o $(1)/objs/basflash_start.o $(1)/$(LIBBAS) $(LDCBFL)
+	$(CPP) $(INCLUDE) -P -DOBJDIR=$(1)/objs -DFORMAT=$$(FORMAT) -D$$(MACHINE) $(LDCBSRC) -o $(1)/$$(LDCFILE)
+	$(LD) --oformat $$(FORMAT) -Map $(1)_MAPFILE_BFL --cref -T $(1)/$$(LDCFILE) -L$(1) -lbas -o $$@
 ifeq ($(COMPILE_ELF),Y)
-	$(OBJCOPY) -O srec $@ $(basename $@).s19
+	$(OBJCOPY) -O srec $$@ $(basename $$@).s19
 else
-	objcopy -I srec -O elf32-big --alt-machine-code 4 $@ $(basename $@).elf
-endif	
+	objcopy -I srec -O elf32big --alt-machine-code 4 $$@ $(basename $$@).elf
+endif
+endef
+$(foreach DIR,$(TRGTDIRS),$(eval $(call EX_TEMPLATE,$(DIR))))
 
-# (re)create library. Currently suboptimal because it rewrites the whole lib even if only a single object changed
-$(LIBBAS): $(OBJS)
-	$(AR) rv $@ $(OBJS)
-	$(RANLIB) $@
-
-$(OBJDIR)/%.o:$(SRCDIR)/%.c
-	$(CC) -c $(CFLAGS) $(INCLUDE) $< -o $@
-
-$(OBJDIR)/%.o:$(SRCDIR)/%.S
-	$(CC) -c $(CFLAGS) -Wa,--bitwise-or $(INCLUDE) $< -o $@
 
 depend: $(ASRCS) $(CSRCS)
-		$(CC) $(CFLAGS) $(INCLUDE) -M $(ASRCS) $(CSRCS) | sed -e 's/^\(.*\).o:/$(OBJDIR)\/\1.o:/' > depend
+	- rm -f depend
+	for d in $(TRGTDIRS);\
+		do $(CC) $(CFLAGS) $(INCLUDE) -M $(ASRCS) $(CSRCS) | sed -e "s#^\(.*\).o:#$$d/objs/\1.o:#" >> depend; \
+	done
 
 	
 ifneq (clean,$(MAKECMDGOALS))

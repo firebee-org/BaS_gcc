@@ -15,8 +15,8 @@ SECTIONS
 {
 	.text :
 	{
-		objs/basflash_start.o(.text)
-		objs/basflash.o(.text)
+		OBJDIR/basflash_start.o(.text)
+		OBJDIR/basflash.o(.text)
 
 		*(.data)
 		*(.bss)	

@@ -21,40 +21,40 @@ SECTIONS
 	/* BaS in ROM */
 	.text :
 	{
-		objs/startcf.o(.text) /* this one is the entry point so it must be the first */
+		OBJDIR/startcf.o(.text) /* this one is the entry point so it must be the first */
 
-		objs/sysinit.o(.text)
-		objs/fault_vectors.o(.text)
+		OBJDIR/sysinit.o(.text)
+		OBJDIR/fault_vectors.o(.text)
 #ifdef MACHINE_FIREBEE
-		objs/init_fpga.o(.text)
+		OBJDIR/init_fpga.o(.text)
 #endif /* MACHINE_FIREBEE */
-		objs/wait.o(.text)
-		objs/exceptions.o(.text)
-		objs/illegal_instruction.o(.text)
-		objs/supervisor.o(.text)
-		objs/mmu.o(.text)		
-		objs/pci.o(.text)
+		OBJDIR/wait.o(.text)
+		OBJDIR/exceptions.o(.text)
+		OBJDIR/illegal_instruction.o(.text)
+		OBJDIR/supervisor.o(.text)
+		OBJDIR/mmu.o(.text)		
+		OBJDIR/pci.o(.text)
 		
-		objs/BaS.o(.text)
-		objs/wait.o(.text)
+		OBJDIR/BaS.o(.text)
+		OBJDIR/wait.o(.text)
 
 		/* put other routines into the same segment (RAM) as BaS.o */ 
-		objs/unicode.o(.text)
-		objs/mmc.o(.text)
-		objs/ff.o(.text)
-		objs/sd_card.o(.text)
-		objs/s19reader.o(.text)
-		objs/bas_printf.o(.text)
-		objs/bas_string.o(.text)
-		objs/printf_helper.o(.text)
-		objs/cache.o(.text)
-		objs/dma.o(.text)
-		mcdapi/MCD_dmaApi.o(.text)
-		mcdapi/MCD_tasks.o(.text)
-		mcdapi/MCD_tasksInit.o(.text)
-		objs/xhdi_sd.o(.text)
-		objs/xhdi_interface.o(.text)
-		objs/xhdi_vec.o(.text)
+		OBJDIR/unicode.o(.text)
+		OBJDIR/mmc.o(.text)
+		OBJDIR/ff.o(.text)
+		OBJDIR/sd_card.o(.text)
+		OBJDIR/s19reader.o(.text)
+		OBJDIR/bas_printf.o(.text)
+		OBJDIR/bas_string.o(.text)
+		OBJDIR/printf_helper.o(.text)
+		OBJDIR/cache.o(.text)
+		OBJDIR/dma.o(.text)
+		OBJDIR/MCD_dmaApi.o(.text)
+		OBJDIR/MCD_tasks.o(.text)
+		OBJDIR/MCD_tasksInit.o(.text)
+		OBJDIR/xhdi_sd.o(.text)
+		OBJDIR/xhdi_interface.o(.text)
+		OBJDIR/xhdi_vec.o(.text)
 		
 		/*
 		 * if we compile to RAM anyway, there is no need to copy anything
