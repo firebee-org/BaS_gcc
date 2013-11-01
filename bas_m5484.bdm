@@ -48,7 +48,7 @@ write 0xFF000100 0x018D0000 4	# SDMR (write to LMR)
 write 0xFF000104 0x710D0F00 4	# SDCR (lock SDMR and enable refresh)
 sleep 100
 
-load -v ram.m5484lite.elf
+load -v m5484lite/ram.elf
 write-ctrl 0x80e	0x2700
 write-ctrl 0x2	0xa50c8120
 dump-register SR
