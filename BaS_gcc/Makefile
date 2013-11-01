@@ -109,23 +109,28 @@ lib: $(LIBBAS)
 
 
 .PHONY clean:
-	@ rm -f $(FLASH_EXEC) $(FLASH_EXEC).elf $(FLASH_EXEC).s19 \
-			$(RAM_EXEC) $(RAM_EXEC).elf $(RAM_EXEC).s19 \
-			$(BASFLASH_EXEC) $(BASFLASH_EXEC).elf $(BASFLASH_EXEC).s19 $(OBJDIR)/basflash.o $(OBJDIR)/basflash_start.o \
+	@ rm -f $(FLASH_EXEC) $(patsubst %.elf, %.s19, $(FLASH_EXEC)) \
+			$(RAM_EXEC) $(patsubst %.elf, %.s19, $(RAM_EXEC)) \
+			$(BASFLASH_EXEC) $(patsubst %.elf, %.s19, $(BASFLASH_EXEC)) $(OBJDIR)/basflash.o $(OBJDIR)/basflash_start.o \
 			$(OBJS) $(LIBBAS) \
 			bas.lk bas.map ram.lk ram.map basflash.lk basflash.map depend 
 
-$(FLASH_EXEC): MACHINE=MACHINE_M5484LITE
+bas.m5484l.$(EXE): MACHINE=MACHINE_M5484LITE
+bas.firebee.$(EXE): MACHINE=MACHINE_FIREBEE
 $(FLASH_EXEC): CFLAGS += -D$(MACHINE)
 $(FLASH_EXEC): LDCFILE=bas.lk
 $(FLASH_EXEC): MAPFILE=bas.map
 
-$(RAM_EXEC): MACHINE=MACHINE_M5484LITE
+
+ram.m5484l.$(EXE): MACHINE=MACHINE_M5484LITE
+ram.firebee.$(EXE): MACHINE=MACHINE_FIREBEE
 $(RAM_EXEC): CFLAGS += -D$(MACHINE)
 $(RAM_EXEC): LDCFILE=ram.lk
 $(RAM_EXEC): MAPFILE=ram.map
 
-$(BASFLASH_EXEC): MACHINE=MACHINE_M5484LITE
+
+basflash.m5484l.$(EXE): MACHINE=MACHINE_M5484LITE
+basflash.firebee.$(EXE): MACHINE=MACHINE_FIREBEE
 $(BASFLASH_EXEC): CFLAGS += -D$(MACHINE)
 $(BASFLASH_EXEC): LDCFILE=basflash.lk
 $(BASFLASH_EXEC): MAPFILE=basflash.map
@@ -136,33 +141,25 @@ $(FLASH_EXEC) $(RAM_EXEC): $(LIBBAS) $(LDCSRC)
 	$(CPP) $(INCLUDE) -P -DFORMAT=$(FORMAT) -D$(MACHINE) $(LDCSRC) -o $(LDCFILE)
 	$(LD) --oformat $(FORMAT) -Map $(MAPFILE) --cref -T $(LDCFILE) -o $@
 ifeq ($(COMPILE_ELF),Y)
-	$(OBJCOPY) -O srec $@ $@.s19
+	$(OBJCOPY) -O srec $@ $(basename $@).s19
 else
-	objcopy -I srec -O elf32-big --alt-machine-code 4 $@ $@.elf
+	objcopy -I srec -O elf32-big --alt-machine-code 4 $@ $(basename $@).elf
 endif
 
 # the basflash (SD-card executable called from BaS) final link stage
 $(BASFLASH_EXEC): $(OBJDIR)/basflash.o $(OBJDIR)/basflash_start.o $(LIBBAS) $(LDCBFL)
-	$(CPP) -P -DFORMAT=$(FORMAT) $(LDCBSRC) -o $(LDCFILE)
+	$(CPP) $(INCLUDE) -P -DFORMAT=$(FORMAT) -D$(MACHINE) $(LDCBSRC) -o $(LDCFILE)
 	$(LD) --oformat $(FORMAT) -Map $(MAPFILE) --cref -T $(LDCFILE) -L. -lbas -o $@
 ifeq ($(COMPILE_ELF),Y)
-	$(OBJCOPY) -O srec $@ $@.s19
+	$(OBJCOPY) -O srec $@ $(basename $@).s19
 else
-	objcopy -I srec -O elf32-big --alt-machine-code 4 $@ $@.elf
+	objcopy -I srec -O elf32-big --alt-machine-code 4 $@ $(basename $@).elf
 endif	
 
 # (re)create library. Currently suboptimal because it rewrites the whole lib even if only a single object changed
 $(LIBBAS): $(OBJS)
 	$(AR) rv $@ $(OBJS)
 	$(RANLIB) $@
-	
-# compile init_fpga with -mbitfield for testing purposes
-#$(OBJDIR)/init_fpga.o:	CFLAGS += -mbitfield
-
-# compile printf pc-relative so it can be used as well before and after copy of BaS
-#$(OBJDIR)/bas_printf.o:	CFLAGS += -mpcrel
-# the same for flush_and_invalidate_cache()
-#$(OBJDIR)/cache.o: CFLAGS += -mpcrel
 
 $(OBJDIR)/%.o:$(SRCDIR)/%.c
 	$(CC) -c $(CFLAGS) $(INCLUDE) $< -o $@
