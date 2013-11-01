@@ -351,6 +351,7 @@ void init_fbcs()
 			MCF_FBCS_CSMR_V;				/* 8 MByte on */
 
 
+#ifdef MACHINE_FIREBEE /* FBC setup for FireBee */
 	MCF_FBCS1_CSAR = 0xFFF00000;			/* ATARI I/O ADRESS */
 	MCF_FBCS1_CSCR = MCF_FBCS_CSCR_PS_16	/* 16BIT PORT */
 	    | MCF_FBCS_CSCR_WS(8)				/* DEFAULT 8WS */
@@ -376,6 +377,8 @@ void init_fbcs()
 	    | MCF_FBCS_CSCR_BSTW;				// BURST WRITE ENABLE
 	MCF_FBCS4_CSMR = MCF_FBCS_CSMR_BAM_1G	// 4000'0000-7FFF'FFFF
 			  | MCF_FBCS_CSMR_V;
+#endif /* MACHINE_FIREBEE */
+
 
 	MCF_FBCS5_CSAR = 0x0;
 	MCF_FBCS5_CSCR = MCF_FBCS_CSCR_PS_8
@@ -810,8 +813,10 @@ void clear_datasegment(void)
 	bzero(BAS_DATA_START, BAS_DATA_END - BAS_DATA_START);
 }
 
-void initialize_hardware(void) {
+void initialize_hardware(void)
+{
 	/* Test for FireTOS switch: DIP switch #5 up */
+#ifdef MACHINE_FIREBEE
 	if (!(DIP_SWITCH & (1 << 6))) {
 		/* Minimal hardware initialization */
 		init_gpio();
@@ -819,9 +824,7 @@ void initialize_hardware(void) {
 		init_slt();
 		init_fbcs();
 		init_ddram();
-#ifdef MACHINE_FIREBEE
 		init_fpga();
-#endif /* MACHINE_FIREBEE */
 
 		/* Validate ST RAM */
 		* (volatile uint32_t *) 0x42e = STRAM_END;	/* phystop TOS system variable */
@@ -840,6 +843,7 @@ void initialize_hardware(void) {
 		FireTOS(); 	// Should never return
 		return;
 	}
+#endif /* MACHINE_FIREBEE */
 
 	if (BAS_LMA != BAS_IN_RAM)
 	{
@@ -850,7 +854,17 @@ void initialize_hardware(void) {
 	init_serial();
 
 	xprintf("\n\n");
-	xprintf("Firebee BASIS system (BaS) v %d.%d (%s, %s)\r\n\r\n", MAJOR_VERSION, MINOR_VERSION, __DATE__, __TIME__);
+//#ifdef _NOT_USED_
+	xprintf("%s BASIS system (BaS) v %d.%d (%s, %s)\r\n\r\n", 
+#if MACHINE_FIREBEE
+	"Firebee"
+#elif MACHINE_M5484LITE
+	"m5484 LITEKIT"
+#else
+	"unknown platform"
+#endif
+	, MAJOR_VERSION, MINOR_VERSION, __DATE__, __TIME__);
+//#endif /* _NOT_USED_ */
 
 	/*
 	 * Determine cause(s) of Reset

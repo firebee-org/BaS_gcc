@@ -27,6 +27,8 @@
  *      Author: Markus Fröschle
  */
 
+#define SYSCLK		132000
+
 #define BOOTFLASH_BASE_ADDRESS	0xE0000000
 #define BOOTFLASH_SIZE			0x800000
 #define BOOTFLASH_BAM			(BOOTFLASH_SIZE - 1)

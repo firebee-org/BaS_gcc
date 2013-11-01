@@ -28,6 +28,12 @@
 #include "bas_string.h"
 #include "cache.h"
 
+#if MACHINE_FIREBEE
+#include "firebee.h"
+#elif MACHINE_M5484LITE
+#include "m5484l.h"
+#endif /* MACHINE_FIREBEE */
+
 extern char _SYS_SRAM[];
 #define SYS_SRAM &_SYS_SRAM[0]
 
@@ -59,7 +65,7 @@ void *dma_memcpy(void *dst, void *src, size_t n)
 
 	end = MCF_SLT0_SCNT;
 
-	time = (start - end) / 132 / 1000;
+	time = (start - end) / (SYSCLK / 1000) / 1000;
 	xprintf("memcpy() took %d ms (%f Mbytes/second)\r\n",
 			time, n / (float) time / 1000.0);
 	flush_and_invalidate_caches();
@@ -68,7 +74,7 @@ void *dma_memcpy(void *dst, void *src, size_t n)
 	start = MCF_SLT0_SCNT;
 	bzero(dst, n);
 	end = MCF_SLT0_SCNT;
-	time = (start - end) / 132;
+	time = (start - end) / (SYSCLK / 1000);
 	xprintf("bzero() took %d ms (%f Mbytes/second)\r\n", time, n / (float) time / 1000.0);
 
 	xprintf(" finished, flush caches: ");
@@ -120,7 +126,7 @@ void *dma_memcpy(void *dst, void *src, size_t n)
 	} while (ret != MCD_DONE);
 
 	end = MCF_SLT0_SCNT;
-	time = (start - end) / 132 / 1000;
+	time = (start - end) / (SYSCLK / 1000) / 1000;
 	//xprintf("start = %d, end = %d, time = %d\r\n", start, end, time);
 	xprintf("took %d ms (%f Mbytes/second)\r\n",	time, n / (float) time / 1000.0);
 
@@ -151,7 +157,7 @@ void *dma_memcpy(void *dst, void *src, size_t n)
 		xprintf("DMA copy verification successful!\r\n");
 		end = MCF_SLT0_SCNT;
 
-		time = (start - end) / 132 / 1000;
+		time = (start - end) / (SYSCLK / 1000) / 1000;
 		xprintf("took %d ms (%f Mbytes/second)\r\n",	time, n / (float) time / 1000.0);
 
 	}
