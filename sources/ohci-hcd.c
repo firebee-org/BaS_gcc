@@ -46,7 +46,7 @@
 #include "usb.h"
 #include "ohci.h"
 
-extern xQueueHandle queue_poll_hub;
+//extern xQueueHandle queue_poll_hub;
 
 
 #undef DEBUG_PCIE
