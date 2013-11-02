@@ -30,7 +30,7 @@
 #include <string.h>
 #include "pci.h"
 #include "mod_devicetable.h"
-//#include "pci_ids.h"
+#include "pci_ids.h"
 #include "part.h"
 
 
