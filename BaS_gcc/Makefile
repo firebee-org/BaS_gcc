@@ -83,6 +83,9 @@ CSRCS= \
 	$(SRCDIR)/MCD_tasks.c \
 	$(SRCDIR)/MCD_tasksInit.c \
 	\
+	$(SRCDIR)/ohci-hcd.c \
+	$(SRCDIR)/ehci-hcd.c \
+	\
 	$(SRCDIR)/basflash.c \
 	$(SRCDIR)/basflash_start.c 
 
@@ -195,7 +198,7 @@ $(foreach DIR,$(TRGTDIRS),$(eval $(call EX_TEMPLATE,$(DIR))))
 
 depend: $(ASRCS) $(CSRCS)
 	- rm -f depend
-	for d in $(TRGTDIRS);\
+	for d in $(TRGTDIRS)\
 		do $(CC) $(CFLAGS) $(INCLUDE) -M $(ASRCS) $(CSRCS) | sed -e "s#^\(.*\).o:#$$d/objs/\1.o:#" >> depend; \
 	done
 
