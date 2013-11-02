@@ -176,7 +176,7 @@ void pci_scan(void)
 
 	xprintf("\r\nPCI bus scan...\r\n\r\n");
 	xprintf(" Bus|Slot|Func|Vndr|Dev |\r\n");
-	xprintf("----+----+----|----+++++|\r\n");
+	xprintf("----+----+----|----+----|\r\n");
 	for (bus = 0; bus < 1; bus++)
 	{
 		for (slot = 0; slot < 32; slot++)
@@ -188,7 +188,7 @@ void pci_scan(void)
 				value = pci_read_config_longword(bus, slot, function, 0);
 				if (value != 0xffffffff)
 				{
-					xprintf("[%02x]|[%02x]|[%02x]|%04x|%04x| %s\r\n", bus, slot, function,
+					xprintf(" %02x | %02x | %02x |%04x|%04x| %s\r\n", bus, slot, function,
 							PCI_VENDOR_ID(value), PCI_DEVICE_ID(value),
 							device_class(pci_read_config_longword(bus, slot, function, 0x08) >> 24 & 0xff));
 					for (i = 0; i < 0x40; i += 4)
