@@ -22,9 +22,9 @@
  */
 
 #define	 PCI_MEMORY_OFFSET	(0x80000000)
-#define	 PCI_MEMORY_SIZE	(0x40000000)
+#define	 PCI_MEMORY_SIZE	(0x40000000)	/* 1 GByte PCI memory window */
 #define	 PCI_IO_OFFSET		(0xD0000000)
-#define	 PCI_IO_SIZE		(0x10000000)
+#define	 PCI_IO_SIZE		(0x10000000)	/* 128 MByte PCI I/O window */
 
 /* PCI configuration space macros */
 
@@ -61,6 +61,11 @@
 #define PCI_INTERRUPT_PIN(i)	(((i) & 0xff00) >> 8)
 #define PCI_INTERRUPT_LINE(i)	(((i)) & 0xff)
 
+#define IS_PCI_MEM_BAR(I)	((i) & 1) == 0
+#define IS_PCI_IO_BAR(i)	((i) & 1) == 1
+#define PCI_MEMBAR_TYPE(i)	(((i) & 0x6) >> 1)
+#define PCI_IOBAR_ADR(i)	(((i) & 0xfffffffc))
+#define PCI_MEMBAR_ADR(i)	(((i) & 0xfffffff0))
 extern void init_eport(void);
 extern void init_xlbus_arbiter(void);
 extern void init_pci(void);

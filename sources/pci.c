@@ -167,6 +167,52 @@ void pci_write_config_longword(uint16_t bus, uint16_t slot, uint16_t function, u
 #endif /* _NOT_USED_ */
 }
 
+static uint32_t mem_address = PCI_MEMORY_OFFSET;
+static uint32_t io_address = PCI_IO_OFFSET;
+
+void pci_device_config(uint16_t bus, uint16_t slot, uint16_t function)
+{
+	uint32_t address;
+	int i;
+
+	for (i = 0; i < 6; i++)		/* for all bars */
+	{
+		uint32_t value;
+
+		value = pci_read_config_longword(bus, slot, function, 0x10 + i);			/* read BAR value */
+		pci_write_config_longword(bus, slot, function, 0x10 + i, 0xffffffff);	/* write all bits */
+		address = pci_read_config_longword(bus, slot, function, 0x10 + i);		/* read back value */
+
+		if (address)	/* is bar in use? */
+		{
+			xprintf("%s region found with base address %08x, size = %x\r\n",
+				(IS_PCI_MEM_BAR(value) ? "Memory" : "I/O"),
+				(IS_PCI_MEM_BAR(value) ? PCI_MEMBAR_ADR(value) : PCI_IOBAR_ADR(value)),
+				(IS_PCI_MEM_BAR(value) ? ~(address & 0xfffffff0) + 1 : ~(address & 0xfffffffc) + 1));
+
+			/* adjust base address to alignment requirements */
+			if (IS_PCI_MEM_BAR(value))
+			{
+				int size = ~(address & 0xfffffff0) + 1;
+
+				mem_address = (mem_address + size - 1) & ~(size - 1);
+				pci_write_config_longword(bus, slot, function, 0x10 + i, mem_address);
+				xprintf("BAR[%d] configured to %08x, size %x\r\n", i, mem_address, size);
+				mem_address += size;
+			}
+			else if (IS_PCI_IO_BAR(value))
+			{
+				int size = ~(address & 0xfffffffc) + 1;
+
+				io_address = (io_address + size - 1) & ~(size - 1);
+				pci_write_config_longword(bus, slot, function, 0x10 + i, io_address);
+				xprintf("BAR[%d] mapped to %08x, size %x\r\n", i, io_address, size);
+				io_address += size;
+			}
+		}
+	}
+}
+
 void pci_scan(void)
 {
 	uint16_t bus;
@@ -189,8 +235,15 @@ void pci_scan(void)
 				if (value != 0xffffffff)
 				{
 					xprintf(" %02x | %02x | %02x |%04x|%04x| %s\r\n", bus, slot, function,
-							PCI_VENDOR_ID(value), PCI_DEVICE_ID(value),
+							PCI_VENDOR_ID(value),
+							PCI_DEVICE_ID(value),
 							device_class(pci_read_config_longword(bus, slot, function, 0x08) >> 24 & 0xff));
+
+					if (PCI_VENDOR_ID(value) != 0x1057 && PCI_DEVICE_ID(value) != 0x5806) /* do not configure bridge */
+					{
+						pci_device_config(bus, slot, function);
+					}
+
 					for (i = 0; i < 0x40; i += 4)
 					{
 						value = pci_read_config_longword(bus, slot, function, i);
