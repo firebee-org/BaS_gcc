@@ -495,7 +495,7 @@ int usb_parse_config(struct usb_device *dev, unsigned char *buffer, int cfgno)
 				/* found an endpoint */
 				dev->config.if_desc[ifno].no_of_ep++;
 				memcpy(&dev->config.if_desc[ifno].ep_desc[epno], &buffer[index], buffer[index]);
-				swpw(&(dev->config.if_desc[ifno].ep_desc[epno].wMaxPacketSize));
+				dev->config.if_desc[devno].ep_desc.wMaxPacketSize = swpw(&(dev->config.if_desc[ifno].ep_desc[epno].wMaxPacketSize));
 				USB_PRINTF("if %d, ep %d\r\n", ifno, epno);
 				break;
 			default:
@@ -1025,10 +1025,10 @@ int usb_new_device(struct usb_device *dev)
 		return 1;
 	}
 	/* correct le values */
-	swpw(&dev->descriptor.bcdUSB);
-	swpw(&dev->descriptor.idVendor);
-	swpw(&dev->descriptor.idProduct);
-	swpw(&dev->descriptor.bcdDevice);
+	dev->descriptor.bcdUSB = swpw(dev->descriptor.bcdUSB);
+	dev->descriptor.idVendor = swpw(dev->descriptor.idVendor);
+	dev->descriptor.idProduct = swpw(dev->descriptor.idProduct);
+	dev->descriptor.bcdDevice = swpw(dev->descriptor.bcdDevice);
 	/* only support for one config for now */
 	usb_get_configuration_no(dev, &tmpbuf[0], 0);
 	usb_parse_config(dev, &tmpbuf[0], 0);
