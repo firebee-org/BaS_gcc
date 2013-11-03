@@ -64,6 +64,7 @@
 #define MCF_PSC3_PSCTB_8BIT                 __MBAR+0x890C
 
 		.global	_vec_init
+		.global	_asm_set_ipl
 
 		// interrupt sources
 		.equ	INT_SOURCE_EPORT_EPF1,1		// edge port flag 1

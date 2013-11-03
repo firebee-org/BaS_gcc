@@ -10,7 +10,7 @@
 
 # can be either "Y" or "N" (without quotes). "Y" for using the m68k-elf-, "N" for using the m68k-atari-mint
 # toolchain
-COMPILE_ELF=N
+COMPILE_ELF=Y
 
 ifeq (Y,$(COMPILE_ELF))
 TCPREFIX=m68k-elf-
@@ -84,6 +84,7 @@ CSRCS= \
 	$(SRCDIR)/MCD_tasksInit.c \
 	\
 	$(SRCDIR)/usb.c \
+	$(SRCDIR)/usb_mem.c \
 	$(SRCDIR)/ohci-hcd.c \
 	$(SRCDIR)/ehci-hcd.c \
 	\

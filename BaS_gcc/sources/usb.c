@@ -150,25 +150,23 @@ int usb_init(long handle, const struct pci_device_id *ent)
 		return res;
 	}
 	usb_hub_reset(bus_index);
+
 	/* init low_level USB */
 	xprintf("USB: ");
 	switch(ent->class)
 	{
-#ifdef CONFIG_USB_UHCI
 		case PCI_CLASS_SERIAL_USB_UHCI:
-			res = uhci_usb_lowlevel_init(handle, ent, &priv);
+			//res = uhci_usb_lowlevel_init(handle, ent, &priv);
+			xprintf("sorry, no uhci driver available\r\n");
 			break;
-#endif
-#ifdef CONFIG_USB_OHCI
 		case PCI_CLASS_SERIAL_USB_OHCI:
+			xprintf("initialize ohci interface, ");
 			res = ohci_usb_lowlevel_init(handle, ent, &priv);
 			break;
-#endif
-#ifdef CONFIG_USB_EHCI
 		case PCI_CLASS_SERIAL_USB_EHCI:
+			xprintf("initialize ehci interface, ");
 			res = ehci_usb_lowlevel_init(handle, ent, &priv);
 			break;
-#endif
 		default: res = -1; break;
 	}
 	if(!res)
@@ -1087,6 +1085,7 @@ void usb_scan_devices(void *priv)
 	}
 	{
 		/* insert "driver" if possible */
+#ifdef _NOT_USED_
 		if (drv_usb_kbd_init() < 0)
 			xprintf("No USB keyboard found\r\n");	
 		else
@@ -1095,6 +1094,7 @@ void usb_scan_devices(void *priv)
 			xprintf("No USB mouse found\r\n");	
 		else
 			xprintf("USB HID mouse driver installed\r\n");
+#endif /* _NOT_USED */
 	}
 	xprintf("Scan end\r\n");
 }
