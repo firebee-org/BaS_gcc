@@ -54,7 +54,7 @@
 #include "usb.h"
 
 extern int usb_stor_curr_dev;
-extern unsigned long usb_1st_disk_drive;
+extern uint32_t usb_1st_disk_drive;
 
 #undef USB_DEBUG
 
@@ -266,7 +266,7 @@ void usb_disable_asynch(int disable)
 /*
  * submits an Interrupt Message
  */
-int usb_submit_int_msg(struct usb_device *dev, unsigned long pipe, void *buffer, int transfer_len, int interval)
+int usb_submit_int_msg(struct usb_device *dev, uint32_t pipe, void *buffer, int transfer_len, int interval)
 {
 	struct hci *priv = (struct hci *)dev->priv_hcd;
 	switch(priv->ent->class)
@@ -359,7 +359,7 @@ int usb_bulk_msg(struct usb_device *dev, unsigned int pipe, void *data, int len,
 	}
 	while(timeout--)
 	{
-		if(!((volatile unsigned long)dev->status & USB_ST_NOT_PROC))
+		if(!((volatile uint32_t)dev->status & USB_ST_NOT_PROC))
 			break;
 		wait(1 * 1000);
 	}
@@ -379,7 +379,7 @@ int usb_bulk_msg(struct usb_device *dev, unsigned int pipe, void *data, int len,
  * returns the max packet size, depending on the pipe direction and
  * the configurations values
  */
-int usb_maxpacket(struct usb_device *dev, unsigned long pipe)
+int usb_maxpacket(struct usb_device *dev, uint32_t pipe)
 {
 	/* direction is out -> use emaxpacket out */
 	if((pipe & USB_DIR_IN) == 0)
@@ -495,7 +495,7 @@ int usb_parse_config(struct usb_device *dev, unsigned char *buffer, int cfgno)
 				/* found an endpoint */
 				dev->config.if_desc[ifno].no_of_ep++;
 				memcpy(&dev->config.if_desc[ifno].ep_desc[epno], &buffer[index], buffer[index]);
-				dev->config.if_desc[devno].ep_desc.wMaxPacketSize = swpw(&(dev->config.if_desc[ifno].ep_desc[epno].wMaxPacketSize));
+				dev->config.if_desc[ifno].ep_desc[epno].wMaxPacketSize = swpw(dev->config.if_desc[ifno].ep_desc[epno].wMaxPacketSize);
 				USB_PRINTF("if %d, ep %d\r\n", ifno, epno);
 				break;
 			default:

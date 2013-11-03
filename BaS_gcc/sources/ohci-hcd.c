@@ -112,7 +112,7 @@ static inline uint32_t roothub_portstatus(ohci_t *ohci, int i) { return readl(&o
 /* forward declaration */
 static void flush_data_cache(ohci_t *ohci);
 static int hc_interrupt(ohci_t *ohci);
-static void td_submit_job(ohci_t *ohci, struct usb_device *dev, unsigned long pipe,
+static void td_submit_job(ohci_t *ohci, struct usb_device *dev, uint32_t pipe,
  void *buffer, int transfer_len, struct devrequest *setup, urb_priv_t *urb, int interval);
  
 /*-------------------------------------------------------------------------*
@@ -150,7 +150,7 @@ static int sohci_get_current_frame_number(ohci_t *ohci, struct usb_device *dev);
  * small: 0) header + data packets 1) just header */
 
 static void pkt_print(ohci_t *ohci, urb_priv_t *purb, struct usb_device *dev,
-		      unsigned long pipe, void *buffer, int transfer_len,
+		      uint32_t pipe, void *buffer, int transfer_len,
 		      struct devrequest *setup, char *str, int small)
 {
 	dbg("%s URB:[%4x] dev:%2lu,ep:%2lu-%c,type:%s,len:%d/%d stat:%#lx",
@@ -202,7 +202,7 @@ static void ep_print_int_eds(ohci_t *ohci, char *str)
 		board_printf(__FILE__ ": %s branch int %2d(%2x):", str, i, i);
 		while(*ed_p != 0 && j--)
 		{
-			ed_t *ed = (ed_t *)swpl((unsigned long)ed_p);
+			ed_t *ed = (ed_t *)swpl((uint32_t)ed_p);
 			board_printf(" ed: %4x;", ed->hwINFO);
 			ed_p = &ed->hwNextED;
 		}
@@ -373,7 +373,7 @@ static int sohci_submit_job(ohci_t *ohci, urb_priv_t *urb, struct devrequest *se
 	urb_priv_t *purb_priv = urb;
 	int i, size = 0;
 	struct usb_device *dev = urb->dev;
-	unsigned long pipe = urb->pipe;
+	uint32_t pipe = urb->pipe;
 	void *buffer = urb->transfer_buffer;
 	int transfer_len = urb->transfer_buffer_length;
 	int interval = urb->interval;
@@ -562,7 +562,7 @@ static int ep_link(ohci_t *ohci, ed_t *edi)
 			if(ohci->ed_controltail == NULL)
 				writel(ed - ohci->dma_offset, &ohci->regs->ed_controlhead);
 			else
-				ohci->ed_controltail->hwNextED = swpl((unsigned long)ed - ohci->dma_offset); 	
+				ohci->ed_controltail->hwNextED = swpl((uint32_t)ed - ohci->dma_offset); 	
 
 			ed->ed_prev = ohci->ed_controltail;
 			if(!ohci->ed_controltail && !ohci->ed_rm_list[0] && !ohci->ed_rm_list[1] && !ohci->sleeping)
@@ -577,7 +577,7 @@ static int ep_link(ohci_t *ohci, ed_t *edi)
 			if(ohci->ed_bulktail == NULL)
 				writel(ed - ohci->dma_offset, &ohci->regs->ed_bulkhead);
 			else
-				ohci->ed_bulktail->hwNextED = swpl((unsigned long)ed - ohci->dma_offset);	
+				ohci->ed_bulktail->hwNextED = swpl((uint32_t)ed - ohci->dma_offset);	
 			ed->ed_prev = ohci->ed_bulktail;
 			if(!ohci->ed_bulktail && !ohci->ed_rm_list[0] && !ohci->ed_rm_list[1] && !ohci->sleeping)
 			{
@@ -600,7 +600,7 @@ static int ep_link(ohci_t *ohci, ed_t *edi)
 				 ed_p = &(((ed_t *)ed_p)->hwNextED))
 					inter = ep_rev(6, ((ed_t *)ed_p)->int_interval);
 				ed->hwNextED = *ed_p;
-				*ed_p = swpl((unsigned long)ed - ohci->dma_offset);
+				*ed_p = swpl((uint32_t)ed - ohci->dma_offset);
 			}
 			break;
 	}
@@ -618,7 +618,7 @@ static void periodic_unlink(struct ohci *ohci, volatile struct ed *ed, unsigned 
 		/* ED might have been unlinked through another path */
 		while(*ed_p != 0)
 		{
-			if((unsigned long)*ed_p == swpl((unsigned long)ed - ohci->dma_offset)) /* changed */
+			if((uint32_t)*ed_p == swpl((uint32_t)ed - ohci->dma_offset)) /* changed */
 			{
 				*ed_p = ed->hwNextED;
 				break;
@@ -694,7 +694,7 @@ static int ep_unlink(ohci_t *ohci, ed_t *edi)
  * info fields are setted anyway even though most of them should not
  * change
  */
-static ed_t *ep_add_ed(ohci_t *ohci, struct usb_device *usb_dev, unsigned long pipe, int interval, int load)
+static ed_t *ep_add_ed(ohci_t *ohci, struct usb_device *usb_dev, uint32_t pipe, int interval, int load)
 {
 	td_t *td;
 	ed_t *ed_ret;
@@ -711,7 +711,7 @@ static ed_t *ep_add_ed(ohci_t *ohci, struct usb_device *usb_dev, unsigned long p
 	{
 		/* dummy td; end of td list for ed */
 		td = td_alloc(usb_dev);
-		ed->hwTailP = swpl((unsigned long)td - ohci->dma_offset);
+		ed->hwTailP = swpl((uint32_t)td - ohci->dma_offset);
 		ed->hwHeadP = ed->hwTailP;
 		ed->state = ED_UNLINK;
 		ed->type = usb_pipetype(pipe);
@@ -771,15 +771,15 @@ static void td_fill(ohci_t *ohci, unsigned int info, void *data, int len,
 	td->hwINFO = swpl(info);
 	if(data != NULL)
 	{
-		td->hwCBP = swpl((unsigned long)data - ohci->dma_offset);
-		td->hwBE = swpl((unsigned long)(data + len - 1 - ohci->dma_offset));
+		td->hwCBP = swpl((uint32_t)data - ohci->dma_offset);
+		td->hwBE = swpl((uint32_t)(data + len - 1 - ohci->dma_offset));
 	}
 	else
 	{
 		td->hwCBP = 0;
 		td->hwBE = 0;
 	}
-	td->hwNextTD = swpl((unsigned long)td_pt - ohci->dma_offset);
+	td->hwNextTD = swpl((uint32_t)td_pt - ohci->dma_offset);
 	/* append to queue */
 	td->ed->hwTailP = td->hwNextTD;
 #if 0
@@ -802,7 +802,7 @@ static void td_fill(ohci_t *ohci, unsigned int info, void *data, int len,
 
 /* prepare all TDs of a transfer */
 
-static void td_submit_job(ohci_t *ohci, struct usb_device *dev, unsigned long pipe,
+static void td_submit_job(ohci_t *ohci, struct usb_device *dev, uint32_t pipe,
  void *buffer, int transfer_len, struct devrequest *setup, urb_priv_t *urb, int interval)
 {
 	int data_len = transfer_len;
@@ -1163,7 +1163,7 @@ int rh_check_port_status(ohci_t *controller)
 	return res;
 }
 
-static int ohci_submit_rh_msg(ohci_t *ohci, struct usb_device *dev, unsigned long pipe,
+static int ohci_submit_rh_msg(ohci_t *ohci, struct usb_device *dev, uint32_t pipe,
  void *buffer, int transfer_len, struct devrequest *cmd)
 {
 	void *data = buffer;
@@ -1353,7 +1353,7 @@ static int ohci_submit_rh_msg(ohci_t *ohci, struct usb_device *dev, unsigned lon
 
 /* common code for handling submit messages - used for all but root hub accesses. */
 
-static int submit_common_msg(ohci_t *ohci, struct usb_device *dev, unsigned long pipe, void *buffer,
+static int submit_common_msg(ohci_t *ohci, struct usb_device *dev, uint32_t pipe, void *buffer,
  int transfer_len, struct devrequest *setup, int interval)
 {
 	int stat = 0;
@@ -1464,13 +1464,13 @@ static int submit_common_msg(ohci_t *ohci, struct usb_device *dev, unsigned long
 }
 
 /* submit routines called from usb.c */
-int ohci_submit_bulk_msg(struct usb_device *dev, unsigned long pipe, void *buffer, int transfer_len)
+int ohci_submit_bulk_msg(struct usb_device *dev, uint32_t pipe, void *buffer, int transfer_len)
 {
 	info("submit_bulk_msg dev 0x%p ohci 0x%p buffer 0x%p len %d", dev, dev->priv_hcd, buffer, transfer_len);
 	return submit_common_msg((ohci_t *)dev->priv_hcd, dev, pipe, buffer, transfer_len, NULL, 0);
 }
 
-int ohci_submit_control_msg(struct usb_device *dev, unsigned long pipe, void *buffer, int transfer_len, struct devrequest *setup)
+int ohci_submit_control_msg(struct usb_device *dev, uint32_t pipe, void *buffer, int transfer_len, struct devrequest *setup)
 {
 	ohci_t *ohci = (ohci_t *)dev->priv_hcd;
 	int maxsize = usb_maxpacket(dev, pipe);
@@ -1495,7 +1495,7 @@ int ohci_submit_control_msg(struct usb_device *dev, unsigned long pipe, void *bu
 	return submit_common_msg(ohci, dev, pipe, buffer, transfer_len, setup, 0);
 }
 
-int ohci_submit_int_msg(struct usb_device *dev, unsigned long pipe, void *buffer, int transfer_len, int interval)
+int ohci_submit_int_msg(struct usb_device *dev, uint32_t pipe, void *buffer, int transfer_len, int interval)
 {
 	info("submit_int_msg dev 0x%p ohci 0x%p buffer 0x%p len %d", dev, dev->priv_hcd, buffer, transfer_len);
 	return submit_common_msg((ohci_t *)dev->priv_hcd, dev, pipe, buffer, transfer_len, NULL, interval);
@@ -1526,12 +1526,12 @@ static int hc_reset(ohci_t *ohci)
 			handle = pci_find_device(0x0, 0xffff, index++);
 			if (handle >= 0)
 			{
-				unsigned long id = 0;
+				uint32_t id = 0;
 				id = pci_read_config_longword(handle, PCIIDR);
 				if ((PCI_VENDOR_ID_PHILIPS == (id & 0xFFFF)) && (PCI_DEVICE_ID_PHILIPS_ISP1561_2 == (id >> 16)))
 				 {
 					int timeout = 1000;
-					unsigned long usb_base_addr = 0xFFFFFFFF;
+					uint32_t usb_base_addr = 0xFFFFFFFF;
 					PCI_RSC_DESC *pci_rsc_desc;
 					pci_rsc_desc = (PCI_RSC_DESC *) pci_get_resource(handle); /* USB OHCI */
 					if ((long)pci_rsc_desc >= 0)
@@ -1543,7 +1543,7 @@ static int hc_reset(ohci_t *ohci)
 							{
 								if(usb_base_addr == 0xFFFFFFFF)
 								{
-									unsigned long base = pci_rsc_desc->offset + pci_rsc_desc->start;
+									uint32_t base = pci_rsc_desc->offset + pci_rsc_desc->start;
 									usb_base_addr = pci_rsc_desc->start;
 									writel(readl(base + EHCI_USBCMD_OFF) | EHCI_USBCMD_HCRESET, base + EHCI_USBCMD_OFF);
 									while(readl(base + EHCI_USBCMD_OFF) & EHCI_USBCMD_HCRESET)
@@ -1558,7 +1558,7 @@ static int hc_reset(ohci_t *ohci)
 								}
 							}
 							flags = pci_rsc_desc->flags;
-							pci_rsc_desc = (PCI_RSC_DESC *)((unsigned long)pci_rsc_desc->next + (unsigned long)pci_rsc_desc);
+							pci_rsc_desc = (PCI_RSC_DESC *)((uint32_t)pci_rsc_desc->next + (uint32_t)pci_rsc_desc);
 						}
 						while(!(flags & FLG_LAST));
 					}
@@ -1868,7 +1868,7 @@ static void hc_free_buffers(ohci_t *ohci)
  */
 int ohci_usb_lowlevel_init(long handle, const struct pci_device_id *ent, void **priv)
 {
-	unsigned long usb_base_addr = 0xFFFFFFFF;
+	uint32_t usb_base_addr = 0xFFFFFFFF;
 	ohci_t *ohci = &gohci[(handle >> 16) & 1]; // function & 1
 	PCI_RSC_DESC *pci_rsc_desc = (PCI_RSC_DESC *) pci_get_resource(handle); /* USB OHCI */
 	if (handle && (ent != NULL))
@@ -1889,7 +1889,7 @@ int ohci_usb_lowlevel_init(long handle, const struct pci_device_id *ent, void **
 		return(-1);
 	}
 	/* align the storage */
-	ohci->hcca = (struct ohci_hcca *)(((unsigned long)ohci->hcca_unaligned + 255) & ~255);
+	ohci->hcca = (struct ohci_hcca *)(((uint32_t)ohci->hcca_unaligned + 255) & ~255);
 	memset(ohci->hcca, 0, sizeof(struct ohci_hcca));
 	info("aligned ghcca 0x%p", ohci->hcca);
 	ohci->ohci_dev_unaligned = (struct ohci_device *)usb_malloc(sizeof(struct ohci_device) + 8);
@@ -1899,7 +1899,7 @@ int ohci_usb_lowlevel_init(long handle, const struct pci_device_id *ent, void **
 		hc_free_buffers(ohci);
 		return(-1);
 	}
-	ohci->ohci_dev = (struct ohci_device *)(((unsigned long)ohci->ohci_dev_unaligned + 7) & ~7);
+	ohci->ohci_dev = (struct ohci_device *)(((uint32_t)ohci->ohci_dev_unaligned + 7) & ~7);
 	memset(ohci->ohci_dev, 0, sizeof(struct ohci_device));
 	info("aligned EDs 0x%p", ohci->ohci_dev);
 	ohci->td_unaligned = (td_t *)usb_malloc(sizeof(td_t) * (NUM_TD + 1));
@@ -1909,7 +1909,7 @@ int ohci_usb_lowlevel_init(long handle, const struct pci_device_id *ent, void **
 		hc_free_buffers(ohci);
 		return(-1);
 	}
-	ptd = (td_t *)(((unsigned long)ohci->td_unaligned + 7) & ~7);
+	ptd = (td_t *)(((uint32_t)ohci->td_unaligned + 7) & ~7);
 	memset(ptd, 0, sizeof(td_t) * NUM_TD);
 	info("aligned TDs 0x%p", ptd);
 	ohci->disabled = 1;
@@ -1938,7 +1938,7 @@ int ohci_usb_lowlevel_init(long handle, const struct pci_device_id *ent, void **
 				}
 			}
 			flags = pci_rsc_desc->flags;
-			pci_rsc_desc = (PCI_RSC_DESC *)((unsigned long)pci_rsc_desc->next + (unsigned long)pci_rsc_desc);
+			pci_rsc_desc = (PCI_RSC_DESC *)((uint32_t)pci_rsc_desc->next + (uint32_t)pci_rsc_desc);
 		}
 		while(!(flags & FLG_LAST));
 	}
