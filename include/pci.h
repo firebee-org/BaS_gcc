@@ -106,7 +106,7 @@ typedef struct                       /* structure of resource descriptor    */
     unsigned long length;              /* length of resource                  */
     unsigned long offset;              /* offset PCI to phys. CPU Address     */
     unsigned long dmaoffset;           /* offset for DMA-transfers            */
-} PCI_RSC_DESC;
+} __attribute__ ((packed)) PCI_RSC_DESC;
 
 typedef struct                       /* structure of address conversion     */
 {
