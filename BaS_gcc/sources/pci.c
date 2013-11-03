@@ -164,7 +164,7 @@ struct resource_descriptor *pci_get_resource(uint16_t handle)
 	return (struct resource_descriptor *) 0L;
 }
 
-int pci_find_device(uint16_t device_id, uint16_t vendor_id, int index)
+uint16_t pci_find_device(uint16_t device_id, uint16_t vendor_id, int index)
 {
 	uint16_t bus;
 	uint16_t slot;
@@ -199,6 +199,19 @@ int pci_find_device(uint16_t device_id, uint16_t vendor_id, int index)
 		}
 	}
 	return PCI_DEVICE_NOT_FOUND;
+}
+
+int16_t pci_hook_interrupt(uint16_t handle, void *handler, void *parameter)
+{
+	/* FIXME: implement */
+	return PCI_SUCCESSFUL;
+}
+
+int16_t pci_unhook_interrupt(uint16_t handle)
+{
+	/* FIXME: implement */
+
+	return PCI_SUCCESSFUL;
 }
 
 
