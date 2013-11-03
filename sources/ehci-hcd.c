@@ -1,4 +1,4 @@
-/*-
+/*
  * Copyright (c) 2007-2008, Juniper Networks, Inc.
  * Copyright (c) 2008, Excito Elektronik i Skåne AB
  * Copyright (c) 2008, Michael Trimarchi <trimarchimichael@yahoo.it>
@@ -21,18 +21,12 @@
  * MA 02111-1307 USA
  */
 
-#include "config.h"
 
-#ifdef CONFIG_USB_EHCI
-
+#include "util.h"		/* for endian conversions */
 #include "usb.h"
 #include "ehci.h"
 
-#if (defined(COLDFIRE) && defined(LWIP)) || defined (FREERTOS)
-#include "../freertos/FreeRTOS.h"
-#include "../freertos/queue.h"
-extern xQueueHandle queue_poll_hub;
-#endif
+//extern xQueueHandle queue_poll_hub;
 
 #undef DEBUG
 #undef SHOW_INFO
@@ -114,11 +108,36 @@ static struct descriptor rom_descriptor = {
 #define ehci_is_TDI()	(0)
 #endif
 
-struct pci_device_id ehci_usb_pci_table[] = {
-	{ PCI_VENDOR_ID_NEC, PCI_DEVICE_ID_NEC_USB_2, PCI_ANY_ID, PCI_ANY_ID, PCI_CLASS_SERIAL_USB_EHCI, 0, 0 }, /* NEC PCI OHCI module ids */
-	{ PCI_VENDOR_ID_PHILIPS, PCI_DEVICE_ID_PHILIPS_ISP1561_2, PCI_ANY_ID, PCI_ANY_ID, PCI_CLASS_SERIAL_USB_EHCI, 0, 0 }, /* Philips 1561 PCI OHCI module ids */
+struct pci_device_id ehci_usb_pci_table[] = 
+{
+	{
+		PCI_VENDOR_ID_NEC,
+		PCI_DEVICE_ID_NEC_USB_2,
+		PCI_ANY_ID,
+		PCI_ANY_ID,
+		PCI_CLASS_SERIAL_USB_EHCI,
+		0,
+		0
+	}, /* NEC PCI OHCI module ids */
+	{
+		PCI_VENDOR_ID_PHILIPS,
+		PCI_DEVICE_ID_PHILIPS_ISP1561_2,
+		PCI_ANY_ID,
+		PCI_ANY_ID,
+		PCI_CLASS_SERIAL_USB_EHCI,
+		0,
+		0
+	}, /* Philips 1561 PCI OHCI module ids */
 	/* Please add supported PCI OHCI controller ids here */
-	{ 0, 0, 0, 0, 0, 0, 0 }
+	{
+		0,
+		0,
+		0,
+		0,
+		0,
+		0,
+		0
+	}
 };
 
 static struct ehci {
@@ -140,10 +159,6 @@ static struct ehci {
 	int irq;
 	unsigned long dma_offset;
 	const char *slot_name;
-#ifndef COLDFIRE
-	/* CTPCI anti-freeze */
-	long (*ctpci_dma_lock)(long mode);    
-#endif
 } gehci;
 
 #ifdef DEBUG
@@ -158,72 +173,23 @@ static struct ehci {
 #define info(format, arg...) do {} while (0)
 #endif
 
-#ifdef COLDFIRE
-
-static inline void flush_dcache_range(void *begin, void *end)
-{
-#ifndef CONFIG_USB_MEM_NO_CACHE
-#ifdef LWIP
-	extern unsigned long pxCurrentTCB, tid_TOS;
-	extern void flush_dc(void);
-	if(begin);
-	if(end);
-	if(pxCurrentTCB != tid_TOS)
-		flush_dc();
-	else
-#endif /* LWIP */
-#if (__GNUC__ > 3)
-		asm volatile (" .chip 68060\n\t cpusha DC\n\t .chip 5485\n\t"); /* from CF68KLIB */
-#else
-		asm volatile (" .chip 68060\n\t cpusha DC\n\t .chip 5200\n\t"); /* from CF68KLIB */
-#endif
-#endif /* CONFIG_USB_MEM_NO_CACHE */
-}
-#define invalidate_dcache_range flush_dcache_range
-
-#else /* !COLDFIRE */
-
-extern void	cpush_dc(void *base, long size);
-#define flush_dcache_range(begin, end) cpush_dc((void *)begin, (long)(end-begin))
-#define invalidate_dcache_range flush_dcache_range
-#endif /* COLDFIRE */
-
-extern void udelay(long usec);
-extern void ltoa(char *buf, long n, unsigned long base);
-
-#if defined(CONFIG_EHCI_DCACHE)
-/*
- * Routines to handle (flush/invalidate) the dcache for the QH and qTD
- * structures and data buffers. This is needed on platforms using this
- * EHCI support with dcache enabled.
- */
-static void flush_invalidate(u32 addr, int size, int flush)
-{
-#ifndef COLDFIRE
-	if(addr >= *ramtop) /* memory above ramtop is uncached memory */ 
-		return;
-#endif
-	if(flush)
-		flush_dcache_range(addr, addr + size);
-	else
-		invalidate_dcache_range(addr, addr + size);
-}
 
 static void cache_qtd(struct qTD *qtd, int flush)
 {
-	u32 *ptr = (u32 *)hc32_to_cpu(qtd->qt_buffer[0]);
+	uint32_t *ptr = (uint32_t *) swpl(qtd->qt_buffer[0]);
 	int len = (qtd->qt_token & 0x7fff0000) >> 16;
-	flush_invalidate((u32)qtd, sizeof(struct qTD), flush);
+
+	flush_invalidate((uint32_t)qtd, sizeof(struct qTD), flush);
 	if((ptr != NULL) && len)
 	{
 		ptr += gehci.dma_offset;
-		flush_invalidate((u32)ptr, len, flush);
+		flush_invalidate((uint32_t)ptr, len, flush);
 	}
 }
 
 static inline struct QH *qh_addr(struct QH *qh)
 {
-	return (struct QH *)((u32)qh & 0xffffffe0);
+	return (struct QH *)((uint32_t)qh & 0xffffffe0);
 }
 
 static void cache_qh(struct QH *qh, int flush)
@@ -234,8 +200,8 @@ static void cache_qh(struct QH *qh, int flush)
 	/* Walk the QH list and flush/invalidate all entries */
 	while(1)
 	{
-		flush_invalidate((u32)qh_addr(qh), sizeof(struct QH), flush);
-		if((u32)qh & QH_LINK_TYPE_QH)
+		flush_invalidate((uint32_t)qh_addr(qh), sizeof(struct QH), flush);
+		if((uint32_t)qh & QH_LINK_TYPE_QH)
 			break;
 		qh = qh_addr(qh);
 		qh = (struct QH *)(hc32_to_cpu(qh->qh_link) + gehci.dma_offset);
@@ -244,9 +210,9 @@ static void cache_qh(struct QH *qh, int flush)
 	/* Save first qTD pointer, needed for invalidating pass on this QH */
 	if(flush)
 	{
-		qtd = (struct qTD *)(hc32_to_cpu(*(u32 *)&qh->qh_overlay) & 0xffffffe0);
+		qtd = (struct qTD *)(hc32_to_cpu(*(uint32_t *)&qh->qh_overlay) & 0xffffffe0);
 		if(qtd != NULL)
-			qtd = (struct qTD *)(gehci.dma_offset + (u32)qtd);
+			qtd = (struct qTD *)(gehci.dma_offset + (uint32_t)qtd);
 		first_qtd = qtd;
 	}
 	else
@@ -257,9 +223,9 @@ static void cache_qh(struct QH *qh, int flush)
 		if(qtd == NULL)
 			break;
 		cache_qtd(qtd, flush);
-		next = (struct qTD *)((u32)hc32_to_cpu(qtd->qt_next) & 0xffffffe0);
+		next = (struct qTD *)((uint32_t)hc32_to_cpu(qtd->qt_next) & 0xffffffe0);
 		if(next != NULL)
-			next = (struct qTD *)(gehci.dma_offset + (u32)next);
+			next = (struct qTD *)(gehci.dma_offset + (uint32_t)next);
 		if(next == qtd)
 			break;
 		qtd = next;
@@ -276,84 +242,20 @@ static inline void ehci_invalidate_dcache(struct QH *qh)
 	cache_qh(qh, 0);
 }
 
-#else /* !CONFIG_EHCI_DCACHE */
-
-static inline void ehci_flush_dcache(struct QH *qh)
-{
-	/* not need to flush cache with STRAM in writethough */
-}
-
-static inline void ehci_invalidate_dcache(struct QH *qh)
-{
-#ifdef COLDFIRE /* no bus snooping on Coldfire */
-#ifdef LWIP
-	extern unsigned long pxCurrentTCB, tid_TOS;
-	extern void flush_dc(void);
-	if(pxCurrentTCB != tid_TOS)
-		flush_dc();
-	else
-#endif /* LWIP */
-#if (__GNUC__ > 3)
-		asm volatile (" .chip 68060\n\t cpusha DC\n\t .chip 5485\n\t"); /* from CF68KLIB */
-#else
-		asm volatile (" .chip 68060\n\t cpusha DC\n\t .chip 5200\n\t"); /* from CF68KLIB */
-#endif
-#endif /* COLDFIRE */
-}
-
-#endif /* CONFIG_EHCI_DCACHE */
-
 static int handshake(uint32_t *ptr, uint32_t mask, uint32_t done, int usec)
 {
 	uint32_t result;
-#ifndef COLDFIRE
-	extern void mdelay(long msec);
-	if(gehci.ctpci_dma_lock == NULL)
-	{
-		mdelay(10);
-		usec -= 10000; /* try to fix CTPCI freezes */
-	}
-#endif
+
 	do
 	{
-#ifndef COLDFIRE
-		if(gehci.ctpci_dma_lock != NULL)
-		{
-			int i = 0;
-			while((i <= 10000) && gehci.ctpci_dma_lock(1))
-			{
-				udelay(1); /* try to fix CTPCI freezes */
-				i++;
-			}
-			if(i > 10000)
-				err("EHCI fail to lock DMA");		
-		}
-#endif
 		result = ehci_readl(ptr);
-#ifndef COLDFIRE
-		if(gehci.ctpci_dma_lock != NULL)
-			gehci.ctpci_dma_lock(0);
-#endif
 		if(result == ~(uint32_t)0)
 			return -1;
 		result &= mask;
 		if(result == done)
 			return 0;
-#ifdef COLDFIRE
 		udelay(1);
 		usec--;
-#else /* !COLDFIRE */
-		if(gehci.ctpci_dma_lock != NULL)
-		{
-			udelay(10);
-			usec -= 10;		
-		}
-		else
-		{
-			mdelay(10);
-			usec -= 10000; /* try to fix CTPCI freezes */
-		}
-#endif /* COLDFIRE */
 	}
 	while(usec > 0);
 	return -1;
@@ -679,14 +581,14 @@ static int ehci_submit_async(struct usb_device *dev, unsigned long pipe, void *b
 fail:
 	td = (void *)hc32_to_cpu(qh->qh_overlay.qt_next);
 	if(td != (void *)QT_NEXT_TERMINATE)
-		td = (struct qTD *)(gehci.dma_offset + (u32)td);
+		td = (struct qTD *)(gehci.dma_offset + (uint32_t)td);
 	while(td != (void *)QT_NEXT_TERMINATE)
 	{
 		qh->qh_overlay.qt_next = td->qt_next;
 		ehci_free(td, sizeof(*td));
 		td = (void *)hc32_to_cpu(qh->qh_overlay.qt_next);
 		if(td != (void *)QT_NEXT_TERMINATE)
-			td = (struct qTD *)(gehci.dma_offset + (u32)td);
+			td = (struct qTD *)(gehci.dma_offset + (uint32_t)td);
 	}
 	ehci_free(qh, sizeof(*qh));
 	if(ehci_readl(&gehci.hcor->or_usbsts) & STS_HSE) /* Host System Error */
@@ -1146,11 +1048,7 @@ int ehci_usb_lowlevel_init(long handle, const struct pci_device_id *ent, void **
 	}
 	gehci.hcor = (struct ehci_hcor *)((uint32_t)gehci.hccr + HC_LENGTH(ehci_readl(&gehci.hccr->cr_capbase)));
 	kprint("EHCI usb-%s, regs address 0x%08X, PCI handle 0x%X\r\n", gehci.slot_name, gehci.hccr, handle);
-#ifndef COLDFIRE
-  tmp = dma_lock(-1); /* CTPCI */
-  if((tmp == 0) || (tmp == 1))
-    gehci.ctpci_dma_lock = (void *)dma_lock(-2); /* function exist */
-#endif
+
 	/* EHCI spec section 4.1 */
 	if(ehci_reset() != 0)
 	{
@@ -1269,4 +1167,3 @@ int ehci_submit_int_msg(struct usb_device *dev, unsigned long pipe, void *buffer
 	return -1;
 }
 
-#endif /* CONFIG_USB_EHCI */

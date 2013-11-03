@@ -73,9 +73,12 @@ static char *device_class(int classcode)
 	return "not found";
 }
 
-uint32_t pci_read_config_longword(uint16_t bus, uint16_t slot, uint16_t function, uint16_t offset)
+uint32_t pci_read_config_longword(uint16_t handle, uint16_t offset)
 {
 	uint32_t value;
+	uint16_t bus = PCI_BUS_FROM_HANDLE(handle);
+	uint16_t slot = PCI_SLOT_FROM_HANDLE(handle);
+	uint16_t function = PCI_FUNCTION_FROM_HANDLE(handle);
 
 	/* clear PCI status/command register */
 	MCF_PCI_PCISCR = MCF_PCI_PCISCR_PE |		/* clear parity error bit */
@@ -100,31 +103,33 @@ uint32_t pci_read_config_longword(uint16_t bus, uint16_t slot, uint16_t function
 
 	wait(1000);
 	value =  * (volatile uint32_t *) PCI_IO_OFFSET;	/* access device */
+	//xprintf("pci_read_config_longword(%d (bus=%d, slot=%d, function=%d), %d) = %d\r\n", handle, bus, slot, function, offset, swpl(value));
 
-	swpl(value);
-
-	//xprintf("PCISCR after config cycle: %lx\r\n", MCF_PCI_PCISCR);
-	return value;
+	return swpl(value);
 }
 
-uint16_t pci_read_config_word(uint16_t bus, uint16_t slot, uint16_t function, uint16_t offset)
+uint16_t pci_read_config_word(uint16_t handle, uint16_t offset)
 {
    uint32_t value;
 
-   value = pci_read_config_longword(bus, slot, function, offset / 2);
+   value = pci_read_config_longword(handle, offset / 2);
    return((value >> (1 - offset % 2) * 8) & 0xffff);
 }
 
-uint8_t pci_read_config_byte(uint16_t bus, uint16_t slot, uint16_t function, uint16_t offset)
+uint8_t pci_read_config_byte(uint16_t handle, uint16_t offset)
 {
 	uint32_t value;
 	
-	value = pci_read_config_longword(bus, slot, function, offset / 4);
+	value = pci_read_config_longword(handle, offset / 4);
 	return ((value >> (3 - offset % 4) * 8) & 0xff);
 }
 
-void pci_write_config_longword(uint16_t bus, uint16_t slot, uint16_t function, uint16_t offset, uint32_t value)
+void pci_write_config_longword(uint16_t handle, uint16_t offset, uint32_t value)
 {
+	uint16_t bus = PCI_BUS_FROM_HANDLE(handle);
+	uint16_t slot = PCI_SLOT_FROM_HANDLE(handle);
+	uint16_t function = PCI_FUNCTION_FROM_HANDLE(handle);
+
 	/* clear PCI status/command register */
 	MCF_PCI_PCISCR = MCF_PCI_PCISCR_PE |		/* clear parity error bit */
 				MCF_PCI_PCISCR_SE |					/* clear system error */
@@ -147,8 +152,7 @@ void pci_write_config_longword(uint16_t bus, uint16_t slot, uint16_t function, u
 			MCF_PCI_PCICAR_DWORD(offset / 4);
 
 	wait(1000);
-	swpl(value);
-	* (volatile uint32_t *) PCI_IO_OFFSET = value;	/* access device */
+	* (volatile uint32_t *) PCI_IO_OFFSET = swpl(value);	/* access device */
 }
 
 int pci_find_device(uint16_t device_id, uint16_t vendor_id, int index)
@@ -167,8 +171,8 @@ int pci_find_device(uint16_t device_id, uint16_t vendor_id, int index)
 			{
 				uint32_t value;
 
-				value = pci_read_config_longword(bus, slot, function, 0);
-				handle = bus << 16 | slot << 8 | function;
+				handle = PCI_HANDLE(bus, slot, function);
+				value = pci_read_config_longword(handle, 0);
 				if (value != 0xffffffff)	/* we have a device at this position */
 				{
 					if (vendor_id == 0xffff)	/* ignore vendor id */
@@ -195,15 +199,17 @@ static uint32_t io_address = PCI_IO_OFFSET;
 void pci_device_config(uint16_t bus, uint16_t slot, uint16_t function)
 {
 	uint32_t address;
+	uint16_t handle;
 	int i;
 
 	for (i = 0; i < 6; i++)		/* for all bars */
 	{
 		uint32_t value;
 
-		value = pci_read_config_longword(bus, slot, function, 0x10 + i);			/* read BAR value */
-		pci_write_config_longword(bus, slot, function, 0x10 + i, 0xffffffff);	/* write all bits */
-		address = pci_read_config_longword(bus, slot, function, 0x10 + i);		/* read back value */
+		handle = bus << 8 | slot << 5 | function;
+		value = pci_read_config_longword(handle, 0x10 + i);			/* read BAR value */
+		pci_write_config_longword(handle, 0x10 + i, 0xffffffff);	/* write all bits */
+		address = pci_read_config_longword(handle, 0x10 + i);		/* read back value */
 
 		if (address)	/* is bar in use? */
 		{
@@ -218,9 +224,9 @@ void pci_device_config(uint16_t bus, uint16_t slot, uint16_t function)
 				int size = ~(address & 0xfffffff0) + 1;
 
 				mem_address = (mem_address + size - 1) & ~(size - 1);
-				pci_write_config_longword(bus, slot, function, 0x10 + i, mem_address);
-				value = pci_read_config_longword(bus, slot, function, 0x10 + i);
-				xprintf("BAR[%d] configured to %08x, size %x\r\n", i, value, size);
+				pci_write_config_longword(handle, 0x10 + i, mem_address);
+				value = pci_read_config_longword(handle, 0x10 + i);
+				//xprintf("BAR[%d] configured to %08x, size %x\r\n", i, value, size);
 				mem_address += size;
 			}
 			else if (IS_PCI_IO_BAR(value))
@@ -228,9 +234,9 @@ void pci_device_config(uint16_t bus, uint16_t slot, uint16_t function)
 				int size = ~(address & 0xfffffffc) + 1;
 
 				io_address = (io_address + size - 1) & ~(size - 1);
-				pci_write_config_longword(bus, slot, function, 0x10 + i, io_address);
-				value = pci_read_config_longword(bus, slot, function, 0x10 + i);
-				xprintf("BAR[%d] mapped to %08x, size %x\r\n", i, value, size);
+				pci_write_config_longword(handle, 0x10 + i, io_address);
+				value = pci_read_config_longword(handle, 0x10 + i);
+				//xprintf("BAR[%d] mapped to %08x, size %x\r\n", i, value, size);
 				io_address += size;
 			}
 		}
@@ -254,14 +260,15 @@ void pci_scan(void)
 			for (function = 0; function < 8; function++)
 			{
 				uint32_t value;
+				uint16_t handle = 0 | bus << 8 | slot << 5 | function;
 
-				value = pci_read_config_longword(bus, slot, function, 0);
+				value = pci_read_config_longword(handle, 0);
 				if (value != 0xffffffff)
 				{
 					xprintf(" %02x | %02x | %02x |%04x|%04x| %s\r\n", bus, slot, function,
 							PCI_VENDOR_ID(value),
 							PCI_DEVICE_ID(value),
-							device_class(pci_read_config_longword(bus, slot, function, 0x08) >> 24 & 0xff));
+							device_class(pci_read_config_longword(handle, 0x08) >> 24 & 0xff));
 
 					if (PCI_VENDOR_ID(value) != 0x1057 && PCI_DEVICE_ID(value) != 0x5806) /* do not configure bridge */
 					{
@@ -270,11 +277,11 @@ void pci_scan(void)
 
 					for (i = 0; i < 0x40; i += 4)
 					{
-						value = pci_read_config_longword(bus, slot, function, i);
+						value = pci_read_config_longword(handle, i);
 						//xprintf("register %02x value= %08x\r\n", i, value);
 					}
 					/* test for multi-function device to avoid ghost device detects */
-					value = pci_read_config_longword(bus, slot, function, 0x0c);	
+					value = pci_read_config_longword(handle, 0x0c);	
 					if (function == 0 && !(PCI_HEADER_TYPE(value) & 0x80))	/* no multi function device */
 						function = 8;
 				}

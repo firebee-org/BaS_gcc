@@ -25,48 +25,54 @@
 #ifndef UTIL_H_
 #define UTIL_H_
 
+#include <stdint.h>
+
 /*
- * WORD swpw(WORD val);
+ * uint16_t swpw(uint16_t val);
  *   swap endianess of val, 16 bits only.
  */
-
-#define swpw(a)                           \
-  __extension__                           \
-  ({long _tmp;                            \
-    __asm__ __volatile__                  \
-    ("move.w  %0,%1\n\t"                  \
-     "lsl.l   #8,%0\n\t"                  \
-     "lsr.l   #8,%1\n\t"                  \
-     "move.b  %1,%0"                      \
-    : "=d"(a), "=d"(_tmp) /* outputs */   \
-    : "0"(a)     /* inputs  */            \
-    : "cc"       /* clobbered */          \
-    );                                    \
-  })
-
+inline uint16_t swpw(uint16_t w)
+{
+	register uint32_t result asm("d0");
+	__asm__ __volatile__
+	(
+		"lea		%[input],a0\n\t"				\
+		"mvz.b	3(a0),%[output]\n\t"			\
+		"lsl.l	#8,%[output]\n\t"				\
+		"move.b	2(a0),%[output]\n\t"			\
+		:	[output] "=d" (result)	/* output */
+		:	[input] "o" (w)			/* input */
+		: "cc", "a0", "memory"	/* clobbered */
+	);
+	return result;
+}
 
 /*
- * WORD swpl(LONG val);
+ * uint32_t swpl(uint32_t val);
  *   swap endianess of val, 32 bits only.
  *   e.g. ABCD => DCBA
  */
+inline uint32_t swpl(uint32_t l)
+{
+	register uint32_t result asm("d0");
 
-#define swpl(a)                           \
-  __extension__                           \
-  ({long _tmp;                            \
-    __asm__ __volatile__                  \
-    ("move.b  (%1),%0\n\t"                \
-     "move.b  3(%1),(%1)\n\t"             \
-     "move.b  %0,3(%1)\n\t"               \
-     "move.b  1(%1),%0\n\t"               \
-     "move.b  2(%1),1(%1)\n\t"            \
-     "move.b  %0,2(%1)"                   \
-    : "=d"(_tmp)      /* outputs */       \
-    : "a"(&a)        /* inputs  */        \
-    : "cc", "memory" /* clobbered */      \
-    );                                    \
-  })
-
+	__asm__ __volatile__
+	(						
+		"lea		%[input],a0\n\t"				\
+		"mvz.b	3(a0),%[output]\n\t"			\
+		"lsl.l	#8,%[output]\n\t"				\
+		"move.b	2(a0),%[output]\n\t"			\
+		"lsl.l	#8,%[output]\n\t"				\
+		"move.b	1(a0),%[output]\n\t"			\
+		"lsl.l	#8,%[output]\n\t"				\
+		"move.b	(a0),%[output]\n\t"			\
+		:	[output] "=d" (result)	/* output */
+		:	[input] "o" (l)			/* input */
+		: "cc", "a0", "memory"	/* clobbered */
+	);
+	return result;
+}
+	
 
 /*
  * WORD swpw2(ULONG val);
