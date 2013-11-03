@@ -200,6 +200,25 @@ extern void init_xlbus_arbiter(void);
 extern void init_pci(void);
 
 extern int pci_find_device(uint16_t device_id, uint16_t vendor_id, int index);
+/* FIXME: parameters missing */
 
+extern uint32_t pci_read_config_longword(uint16_t handle, uint16_t offset);
+extern uint16_t pci_read_config_word(uint16_t handle, uint16_t offset);
+extern uint8_t pci_read_config_byte(uint16_t handle, uint16_t offset);
+
+extern void pci_write_config_longword(uint16_t handle, uint16_t offset, uint32_t value);
+extern void pci_write_config_word(uint16_t handle, uint16_t offset, uint16_t value);
+extern void pci_write_config_byte(uint16_t handle, uint16_t offset, uint8_t value);
+
+extern void *pci_get_resource();
+extern void pci_hook_interrupt();
+extern void pci_unhook_interrupt();
+
+
+
+#define PCI_HANDLE(bus, slot, function)	(0 | ((bus & 0xff) << 8 | (slot & 0x1f) << 3 | (function & 7)))
+#define PCI_BUS_FROM_HANDLE(h)				(((h) & 0xff00) >> 8)
+#define PCI_SLOT_FROM_HANDLE(h)				(((h) & 0xf8) >> 3)
+#define PCI_FUNCTION_FROM_HANDLE(h)			(((h) & 0x7))
 
 #endif /* _PCI_H_ */

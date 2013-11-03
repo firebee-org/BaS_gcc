@@ -233,28 +233,16 @@ int ohci_usb_lowlevel_stop(void *priv);
 int ohci_submit_bulk_msg(struct usb_device *dev, unsigned long pipe, void *buffer, int transfer_len);
 int ohci_submit_control_msg(struct usb_device *dev, unsigned long pipe, void *buffer, int transfer_len, struct devrequest *setup);
 int ohci_submit_int_msg(struct usb_device *dev, unsigned long pipe, void *buffer, int transfer_len, int interval);
-#ifdef CONFIG_USB_INTERRUPT_POLLING
-void ohci_usb_event_poll(int interrupt);
-#else
 void ohci_usb_enable_interrupt(int enable);
-#endif /* CONFIG_USB_INTERRUPT_POLLING */
 
 int ehci_usb_lowlevel_init(long handle, const struct pci_device_id *ent, void **priv);
 int ehci_usb_lowlevel_stop(void *priv);
 int ehci_submit_bulk_msg(struct usb_device *dev, unsigned long pipe, void *buffer, int transfer_len);
 int ehci_submit_control_msg(struct usb_device *dev, unsigned long pipe, void *buffer, int transfer_len, struct devrequest *setup);
 int ehci_submit_int_msg(struct usb_device *dev, unsigned long pipe, void *buffer, int transfer_len, int interval);
-#ifdef CONFIG_USB_INTERRUPT_POLLING
-void ehci_usb_event_poll(int interrupt);
-#else
 void ehci_usb_enable_interrupt(int enable);
-#endif /* CONFIG_USB_INTERRUPT_POLLING */
 
-#ifdef CONFIG_USB_INTERRUPT_POLLING
-void usb_event_poll(int interrupt);
-#else
 void usb_enable_interrupt(int enable);
-#endif /* CONFIG_USB_INTERRUPT_POLLING */
 
 #define USB_MAX_STOR_DEV 5
 block_dev_desc_t *usb_stor_get_dev(int index);
@@ -301,55 +289,6 @@ int usb_get_class_descriptor(struct usb_device *dev, int ifnum, unsigned char ty
 int usb_clear_halt(struct usb_device *dev, int pipe);
 int usb_string(struct usb_device *dev, int index, char *buf, size_t size);
 int usb_set_interface(struct usb_device *dev, int interface, int alternate);
-
-extern unsigned short swap_short(unsigned short val);
-extern unsigned long swap_long(unsigned long val);
-
-#if 1
-	#define __swap_16(x) swap_short(x)
-  #define __swap_32(x) swap_long(x)
-#else
-/* big endian -> little endian conversion */
-/* some CPUs are already little endian e.g. the ARM920T */
-#define __swap_16(x) \
-	({ unsigned short x_ = (unsigned short)x; \
-	 (unsigned short)( \
-		((x_ & 0x00FFU) << 8) | ((x_ & 0xFF00U) >> 8)); \
-	})
-#define __swap_32(x) \
-	({ unsigned long x_ = (unsigned long)x; \
-	 (unsigned long)( \
-		((x_ & 0x000000FFUL) << 24) | \
-		((x_ & 0x0000FF00UL) <<	 8) | \
-		((x_ & 0x00FF0000UL) >>	 8) | \
-		((x_ & 0xFF000000UL) >> 24)); \
-	})
-#endif
-
-#define swap_16(x) __swap_16(x)
-#define swap_32(x) __swap_32(x)
-
-#define le16_to_cpu cpu_to_le16
-#define le32_to_cpu cpu_to_le32
-#define cpu_to_be32(a) a 
-
-static inline unsigned short cpu_to_le16(unsigned short val)
-{
-	return(swap_short(val));
-}
-static inline unsigned long cpu_to_le32(unsigned long val)
-{
-	return(swap_long(val));
-}
-
-static inline void le16_to_cpus(unsigned short *val)
-{
-	*val = le16_to_cpu(*val);
-}
-static inline void le32_to_cpus(unsigned long *val)
-{
-	*val = le32_to_cpu(*val);
-}
 
 /*
  * Calling this entity a "pipe" is glorifying it. A USB pipe

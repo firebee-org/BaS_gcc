@@ -72,24 +72,24 @@ static const char *cc_to_string[16] = {
 
 /* usb_ohci_ed */
 struct ed {
-	__u32 hwINFO;
-	__u32 hwTailP;
-	__u32 hwHeadP;
-	__u32 hwNextED;
+	uint32_t hwINFO;
+	uint32_t hwTailP;
+	uint32_t hwHeadP;
+	uint32_t hwNextED;
 
 	struct ed *ed_prev;
-	__u8 int_period;
-	__u8 int_branch;
-	__u8 int_load;
-	__u8 int_interval;
-	__u8 state;
-	__u8 type;
-	__u16 last_iso;
+	uint8_t int_period;
+	uint8_t int_branch;
+	uint8_t int_load;
+	uint8_t int_interval;
+	uint8_t state;
+	uint8_t type;
+	uint16_t last_iso;
 	struct ed *ed_rm_list;
 
 	struct usb_device *usb_dev;
 	void *purb;
-	__u32 unused[2];
+	uint32_t unused[2];
 } __attribute__((aligned(16)));
 typedef struct ed ed_t;
 
@@ -133,21 +133,21 @@ typedef struct ed ed_t;
 #define MAXPSW 1
 
 struct td {
-	__u32 hwINFO;
-	__u32 hwCBP;		/* Current Buffer Pointer */
-	__u32 hwNextTD;		/* Next TD Pointer */
-	__u32 hwBE;		/* Memory Buffer End Pointer */
+	uint32_t hwINFO;
+	uint32_t hwCBP;		/* Current Buffer Pointer */
+	uint32_t hwNextTD;		/* Next TD Pointer */
+	uint32_t hwBE;		/* Memory Buffer End Pointer */
 
-	__u16 hwPSW[MAXPSW];
-	__u8 unused;
-	__u8 index;
+	uint16_t hwPSW[MAXPSW];
+	uint8_t unused;
+	uint8_t index;
 	struct ed *ed;
 	struct td *next_dl_td;
 	struct usb_device *usb_dev;
 	int transfer_len;
-	__u32 data;
+	uint32_t data;
 
-	__u32 unused2[2];
+	uint32_t unused2[2];
 } __attribute__((aligned(32)));
 typedef struct td td_t;
 
@@ -161,15 +161,15 @@ typedef struct td td_t;
 
 #define NUM_INTS 32	/* part of the OHCI standard */
 struct ohci_hcca {
-	__u32	int_table[NUM_INTS];	/* Interrupt ED table */
+	uint32_t	int_table[NUM_INTS];	/* Interrupt ED table */
 #if defined(CONFIG_MPC5200)
-	__u16	pad1;			/* set to 0 on each frame_no change */
-	__u16	frame_no;		/* current frame number */
+	uint16_t	pad1;			/* set to 0 on each frame_no change */
+	uint16_t	frame_no;		/* current frame number */
 #else
-	__u16	frame_no;		/* current frame number */
-	__u16	pad1;			/* set to 0 on each frame_no change */
+	uint16_t	frame_no;		/* current frame number */
+	uint16_t	pad1;			/* set to 0 on each frame_no change */
 #endif
-	__u32	done_head;		/* info returned for an interrupt */
+	uint32_t	done_head;		/* info returned for an interrupt */
 	u8		reserved_for_hc[116];
 } __attribute__((aligned(256)));
 
@@ -180,32 +180,32 @@ struct ohci_hcca {
  */
 struct ohci_regs {
 	/* control and status registers */
-	__u32	revision;
-	__u32	control;
-	__u32	cmdstatus;
-	__u32	intrstatus;
-	__u32	intrenable;
-	__u32	intrdisable;
+	uint32_t	revision;
+	uint32_t	control;
+	uint32_t	cmdstatus;
+	uint32_t	intrstatus;
+	uint32_t	intrenable;
+	uint32_t	intrdisable;
 	/* memory pointers */
-	__u32	hcca;
-	__u32	ed_periodcurrent;
-	__u32	ed_controlhead;
-	__u32	ed_controlcurrent;
-	__u32	ed_bulkhead;
-	__u32	ed_bulkcurrent;
-	__u32	donehead;
+	uint32_t	hcca;
+	uint32_t	ed_periodcurrent;
+	uint32_t	ed_controlhead;
+	uint32_t	ed_controlcurrent;
+	uint32_t	ed_bulkhead;
+	uint32_t	ed_bulkcurrent;
+	uint32_t	donehead;
 	/* frame counters */
-	__u32	fminterval;
-	__u32	fmremaining;
-	__u32	fmnumber;
-	__u32	periodicstart;
-	__u32	lsthresh;
+	uint32_t	fminterval;
+	uint32_t	fmremaining;
+	uint32_t	fmnumber;
+	uint32_t	periodicstart;
+	uint32_t	lsthresh;
 	/* Root hub ports */
 	struct	ohci_roothub_regs {
-		__u32	a;
-		__u32	b;
-		__u32	status;
-		__u32	portstatus[USB_OHCI_MAX_ROOT_PORTS];
+		uint32_t	a;
+		uint32_t	b;
+		uint32_t	status;
+		uint32_t	portstatus[USB_OHCI_MAX_ROOT_PORTS];
 	} roothub;
 } __attribute__((aligned(32)));
 
@@ -365,8 +365,8 @@ struct virt_root_hub {
 typedef struct
 {
 	ed_t *ed;
-	__u16 length;	/* number of tds associated with this request */
-	__u16 td_cnt;	/* number of tds already serviced */
+	uint16_t length;	/* number of tds associated with this request */
+	uint16_t td_cnt;	/* number of tds already serviced */
 	struct usb_device *dev;
 	int   state;
 	unsigned long pipe;
@@ -425,8 +425,8 @@ typedef struct ohci {
 	ed_t *ed_bulktail;	 /* last endpoint of bulk list */
 	ed_t *ed_controltail;	 /* last endpoint of control list */
 	int intrstatus;
-	__u32 hc_control;		/* copy of the hc control reg */
-	__u32 ndp;          /* copy NDP from roothub_a */
+	uint32_t hc_control;		/* copy of the hc control reg */
+	uint32_t ndp;          /* copy NDP from roothub_a */
 	struct virt_root_hub rh;
 
 	const char *slot_name;

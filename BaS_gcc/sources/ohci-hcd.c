@@ -45,6 +45,7 @@
 
 #include "usb.h"
 #include "ohci.h"
+#include "util.h"		/* for endian conversions */
 
 //extern xQueueHandle queue_poll_hub;
 
@@ -65,11 +66,11 @@
  * e.g. PCI controllers need this
  */
 #ifdef CONFIG_SYS_OHCI_SWAP_REG_ACCESS
-# define readl(a) __swap_32(*((volatile u32 *)(a)))
-# define writel(a, b) (*((volatile u32 *)(b)) = __swap_32((volatile u32)a))
+# define readl(a) swpl(*((volatile uint32_t *)(a)))
+# define writel(a, b) (*((volatile uint32_t *)(b)) = swpl((volatile uint32_t)a))
 #else
-# define readl(a) (*((volatile u32 *)(a)))
-# define writel(a, b) (*((volatile u32 *)(b)) = ((volatile u32)a))
+# define readl(a) (*((volatile uint32_t *)(a)))
+# define writel(a, b) (*((volatile uint32_t *)(b)) = ((volatile uint32_t)a))
 #endif /* CONFIG_SYS_OHCI_SWAP_REG_ACCESS */
 
 #define min_t(type, x, y) ({ type __x = (x); type __y = (y); __x < __y ? __x: __y; })
@@ -103,10 +104,10 @@ extern void udelay(long usec);
 static ohci_t gohci[2];
 char ohci_inited;
 
-static inline u32 roothub_a(ohci_t *ohci)	{ return readl(&ohci->regs->roothub.a); }
-static inline u32 roothub_b(ohci_t *ohci)	{ return readl(&ohci->regs->roothub.b); }
-static inline u32 roothub_status(ohci_t *ohci) { return readl(&ohci->regs->roothub.status); }
-static inline u32 roothub_portstatus(ohci_t *ohci, int i) { return readl(&ohci->regs->roothub.portstatus[i]); }
+static inline uint32_t roothub_a(ohci_t *ohci)	{ return readl(&ohci->regs->roothub.a); }
+static inline uint32_t roothub_b(ohci_t *ohci)	{ return readl(&ohci->regs->roothub.b); }
+static inline uint32_t roothub_status(ohci_t *ohci) { return readl(&ohci->regs->roothub.status); }
+static inline uint32_t roothub_portstatus(ohci_t *ohci, int i) { return readl(&ohci->regs->roothub.portstatus[i]); }
 
 /* forward declaration */
 static void flush_data_cache(ohci_t *ohci);
@@ -171,7 +172,7 @@ static void pkt_print(ohci_t *ohci, urb_priv_t *purb, struct usb_device *dev,
 		{
 			board_printf(__FILE__ ": cmd(8):");
 			for(i = 0; i < 8 ; i++)
-				board_printf(" %02x", ((__u8 *)setup)[i]);
+				board_printf(" %02x", ((uint8_t *)setup)[i]);
 			board_printf("\r\n");
 		}
 		if(transfer_len > 0 && buffer)
@@ -179,7 +180,7 @@ static void pkt_print(ohci_t *ohci, urb_priv_t *purb, struct usb_device *dev,
 			board_printf(__FILE__ ": data(%d/%d):", (purb ? purb->actual_length : 0), transfer_len);
 			len = usb_pipeout(pipe)? transfer_len : (purb ? purb->actual_length : 0);
 			for(i = 0; i < 16 && i < len; i++)
-				board_printf(" %02x", ((__u8 *)buffer)[i]);
+				board_printf(" %02x", ((uint8_t *)buffer)[i]);
 			board_printf("%s\r\n", i < len? "...": "");
 		}
 	}
@@ -191,7 +192,7 @@ static void pkt_print(ohci_t *ohci, urb_priv_t *purb, struct usb_device *dev,
 static void ep_print_int_eds(ohci_t *ohci, char *str)
 {
 	int i, j;
-	__u32 *ed_p;
+	uint32_t *ed_p;
 	for(i = 0; i < 32; i++)
 	{
 		j = 5;
@@ -209,7 +210,7 @@ static void ep_print_int_eds(ohci_t *ohci, char *str)
 	}
 }
 
-static void ohci_dump_intr_mask(char *label, __u32 mask)
+static void ohci_dump_intr_mask(char *label, uint32_t mask)
 {
 	dbg("%s: 0x%08x%s%s%s%s%s%s%s%s%s",
 		label,
@@ -226,7 +227,7 @@ static void ohci_dump_intr_mask(char *label, __u32 mask)
 		);
 }
 
-static void maybe_print_eds(ohci_t *controller, char *label, __u32 value)
+static void maybe_print_eds(ohci_t *controller, char *label, uint32_t value)
 {
 	ed_t *edp; 
 	value += controller->dma_offset;
@@ -257,7 +258,7 @@ static char *hcfs2string(int state)
 static void ohci_dump_status(ohci_t *controller)
 {
 	struct ohci_regs	*regs = controller->regs;
-	__u32	temp = readl(&regs->revision) & 0xff;
+	uint32_t	temp = readl(&regs->revision) & 0xff;
 	if(temp != 0x10)
 		dbg("spec %d.%d", (temp >> 4), (temp & 0x0f));
 	temp = readl(&regs->control);
@@ -292,7 +293,7 @@ static void ohci_dump_status(ohci_t *controller)
 
 static void ohci_dump_roothub(ohci_t *controller, int verbose)
 {
-	__u32	temp, ndp, i;
+	uint32_t	temp, ndp, i;
 	temp = roothub_a(controller);
 //	ndp = (temp & RH_A_NDP);
 	ndp = controller->ndp;
@@ -551,7 +552,7 @@ static int ep_link(ohci_t *ohci, ed_t *edi)
 	int inter;
 	int interval;
 	int load;
-	__u32 *ed_p;
+	uint32_t *ed_p;
 	ed->state = ED_OPER;
 	ed->int_interval = 0;
 	switch(ed->type)
@@ -561,7 +562,8 @@ static int ep_link(ohci_t *ohci, ed_t *edi)
 			if(ohci->ed_controltail == NULL)
 				writel(ed - ohci->dma_offset, &ohci->regs->ed_controlhead);
 			else
-				ohci->ed_controltail->hwNextED = m32_swap((unsigned long)ed - ohci->dma_offset); 	
+				ohci->ed_controltail->hwNextED = swpl((unsigned long)ed - ohci->dma_offset); 	
+
 			ed->ed_prev = ohci->ed_controltail;
 			if(!ohci->ed_controltail && !ohci->ed_rm_list[0] && !ohci->ed_rm_list[1] && !ohci->sleeping)
 			{
@@ -575,7 +577,7 @@ static int ep_link(ohci_t *ohci, ed_t *edi)
 			if(ohci->ed_bulktail == NULL)
 				writel(ed - ohci->dma_offset, &ohci->regs->ed_bulkhead);
 			else
-				ohci->ed_bulktail->hwNextED = m32_swap((unsigned long)ed - ohci->dma_offset);	
+				ohci->ed_bulktail->hwNextED = swpl((unsigned long)ed - ohci->dma_offset);	
 			ed->ed_prev = ohci->ed_bulktail;
 			if(!ohci->ed_bulktail && !ohci->ed_rm_list[0] && !ohci->ed_rm_list[1] && !ohci->sleeping)
 			{
@@ -598,7 +600,7 @@ static int ep_link(ohci_t *ohci, ed_t *edi)
 				 ed_p = &(((ed_t *)ed_p)->hwNextED))
 					inter = ep_rev(6, ((ed_t *)ed_p)->int_interval);
 				ed->hwNextED = *ed_p;
-				*ed_p = m32_swap((unsigned long)ed - ohci->dma_offset);
+				*ed_p = swpl((unsigned long)ed - ohci->dma_offset);
 			}
 			break;
 	}
@@ -612,11 +614,11 @@ static void periodic_unlink(struct ohci *ohci, volatile struct ed *ed, unsigned 
 {
 	for( ;index < NUM_INTS; index += period)
 	{
-		__u32	*ed_p = &ohci->hcca->int_table[index];
+		uint32_t	*ed_p = &ohci->hcca->int_table[index];
 		/* ED might have been unlinked through another path */
 		while(*ed_p != 0)
 		{
-			if((unsigned long)*ed_p == m32_swap((unsigned long)ed - ohci->dma_offset)) /* changed */
+			if((unsigned long)*ed_p == swpl((unsigned long)ed - ohci->dma_offset)) /* changed */
 			{
 				*ed_p = ed->hwNextED;
 				break;
@@ -635,7 +637,7 @@ static int ep_unlink(ohci_t *ohci, ed_t *edi)
 {
 	volatile ed_t *ed = edi;
 	int i;
-	ed->hwINFO |= m32_swap(OHCI_ED_SKIP);
+	ed->hwINFO |= swpl(OHCI_ED_SKIP);
 	switch(ed->type)
 	{
 		case PIPE_CONTROL:
@@ -646,14 +648,14 @@ static int ep_unlink(ohci_t *ohci, ed_t *edi)
 					ohci->hc_control &= ~OHCI_CTRL_CLE;
 					writel(ohci->hc_control, &ohci->regs->control);
 				}
-				writel(m32_swap(*((__u32 *)&ed->hwNextED)), &ohci->regs->ed_controlhead);
+				writel(m32_swap(*((uint32_t *)&ed->hwNextED)), &ohci->regs->ed_controlhead);
 			}
 			else
 				ed->ed_prev->hwNextED = ed->hwNextED;
 			if(ohci->ed_controltail == ed)
 				ohci->ed_controltail = ed->ed_prev;
 			else
-				((ed_t *)(m32_swap(*((__u32 *)&ed->hwNextED)) + ohci->dma_offset))->ed_prev = ed->ed_prev;
+				((ed_t *)(m32_swap(*((uint32_t *)&ed->hwNextED)) + ohci->dma_offset))->ed_prev = ed->ed_prev;
 			break;
 		case PIPE_BULK:
 			if(ed->ed_prev == NULL)
@@ -663,14 +665,14 @@ static int ep_unlink(ohci_t *ohci, ed_t *edi)
 					ohci->hc_control &= ~OHCI_CTRL_BLE;
 					writel(ohci->hc_control, &ohci->regs->control);
 				}
-				writel(m32_swap(*((__u32 *)&ed->hwNextED)), &ohci->regs->ed_bulkhead);
+				writel(m32_swap(*((uint32_t *)&ed->hwNextED)), &ohci->regs->ed_bulkhead);
 			}
 			else
 				ed->ed_prev->hwNextED = ed->hwNextED;
 			if(ohci->ed_bulktail == ed)
 				ohci->ed_bulktail = ed->ed_prev;
 			else
-				((ed_t *)(m32_swap(*((__u32 *)&ed->hwNextED)) + ohci->dma_offset))->ed_prev = ed->ed_prev;
+				((ed_t *)(m32_swap(*((uint32_t *)&ed->hwNextED)) + ohci->dma_offset))->ed_prev = ed->ed_prev;
 			break;
 		case PIPE_INTERRUPT:
 			periodic_unlink(ohci, ed, 0, 1);
@@ -755,7 +757,7 @@ static void td_fill(ohci_t *ohci, unsigned int info, void *data, int len,
 	td->ed = urb_priv->ed;
 	td->next_dl_td = NULL;
 	td->index = index;
-	td->data = (__u32)data;
+	td->data = (uint32_t)data;
 #ifdef OHCI_FILL_TRACE
 	if(usb_pipebulk(urb_priv->pipe) && usb_pipeout(urb_priv->pipe))
 	{
@@ -806,7 +808,7 @@ static void td_submit_job(ohci_t *ohci, struct usb_device *dev, unsigned long pi
 	int data_len = transfer_len;
 	void *data;
 	int cnt = 0;
-	__u32 info = 0;
+	uint32_t info = 0;
 	unsigned int toggle = 0;
 	/* OHCI handles the DATA-toggles itself, we just use the USB-toggle
 	 * bits for reseting */
@@ -871,7 +873,7 @@ static void td_submit_job(ohci_t *ohci, struct usb_device *dev, unsigned long pi
 
 static void dl_transfer_length(ohci_t *ohci, td_t *td)
 {
-	__u32 tdINFO, tdBE, tdCBP;
+	uint32_t tdINFO, tdBE, tdCBP;
 	urb_priv_t *lurb_priv = td->ed->purb;
 	tdINFO = m32_swap(td->hwINFO);
 	tdBE   = m32_swap(td->hwBE);
@@ -897,7 +899,7 @@ static void check_status(ohci_t *ohci, td_t *td_list)
 {
 	urb_priv_t *lurb_priv = td_list->ed->purb;
 	int urb_len = lurb_priv->length;
-	__u32 *phwHeadP = &td_list->ed->hwHeadP;
+	uint32_t *phwHeadP = &td_list->ed->hwHeadP;
 	int cc = TD_CC_GET(m32_swap(td_list->hwINFO));
 	if(cc)
 	{
@@ -922,7 +924,7 @@ static void check_status(ohci_t *ohci, td_t *td_list)
  * we reverse the reversed done-list */
 static td_t *dl_reverse_done_list(ohci_t *ohci)
 {
-	__u32 td_list_hc;
+	uint32_t td_list_hc;
 	td_t *td_rev = NULL;
 	td_t *td_list = NULL;
 	td_list_hc = m32_swap(ohci->hcca->done_head) & ~0xf;
@@ -966,7 +968,7 @@ static int takeback_td(ohci_t *ohci, td_t *td_list)
 	int stat = 0;
 	/* urb_t *urb; */
 	urb_priv_t *lurb_priv;
-	__u32 tdINFO, edHeadP, edTailP;
+	uint32_t tdINFO, edHeadP, edTailP;
 	tdINFO = m32_swap(td_list->hwINFO);
 	ed = td_list->ed;
 	if(ed == NULL)
@@ -1021,101 +1023,101 @@ static int dl_done_list(ohci_t *ohci)
  *-------------------------------------------------------------------------*/
 
 /* Device descriptor */
-static __u8 root_hub_dev_des[] =
+static uint8_t root_hub_dev_des[] =
 {
-	0x12,	    /*	__u8  bLength; */
-	0x01,	    /*	__u8  bDescriptorType; Device */
-	0x10,	    /*	__u16 bcdUSB; v1.1 */
+	0x12,	    /*	uint8_t  bLength; */
+	0x01,	    /*	uint8_t  bDescriptorType; Device */
+	0x10,	    /*	uint16_t bcdUSB; v1.1 */
 	0x01,
-	0x09,	    /*	__u8  bDeviceClass; HUB_CLASSCODE */
-	0x00,	    /*	__u8  bDeviceSubClass; */
-	0x00,	    /*	__u8  bDeviceProtocol; */
-	0x08,	    /*	__u8  bMaxPacketSize0; 8 Bytes */
-	0x00,	    /*	__u16 idVendor; */
+	0x09,	    /*	uint8_t  bDeviceClass; HUB_CLASSCODE */
+	0x00,	    /*	uint8_t  bDeviceSubClass; */
+	0x00,	    /*	uint8_t  bDeviceProtocol; */
+	0x08,	    /*	uint8_t  bMaxPacketSize0; 8 Bytes */
+	0x00,	    /*	uint16_t idVendor; */
 	0x00,
-	0x00,	    /*	__u16 idProduct; */
+	0x00,	    /*	uint16_t idProduct; */
 	0x00,
-	0x00,	    /*	__u16 bcdDevice; */
+	0x00,	    /*	uint16_t bcdDevice; */
 	0x00,
-	0x00,	    /*	__u8  iManufacturer; */
-	0x01,	    /*	__u8  iProduct; */
-	0x00,	    /*	__u8  iSerialNumber; */
-	0x01	    /*	__u8  bNumConfigurations; */
+	0x00,	    /*	uint8_t  iManufacturer; */
+	0x01,	    /*	uint8_t  iProduct; */
+	0x00,	    /*	uint8_t  iSerialNumber; */
+	0x01	    /*	uint8_t  bNumConfigurations; */
 };
 
 /* Configuration descriptor */
-static __u8 root_hub_config_des[] =
+static uint8_t root_hub_config_des[] =
 {
-	0x09,	    /*	__u8  bLength; */
-	0x02,	    /*	__u8  bDescriptorType; Configuration */
-	0x19,	    /*	__u16 wTotalLength; */
+	0x09,	    /*	uint8_t  bLength; */
+	0x02,	    /*	uint8_t  bDescriptorType; Configuration */
+	0x19,	    /*	uint16_t wTotalLength; */
 	0x00,
-	0x01,	    /*	__u8  bNumInterfaces; */
-	0x01,	    /*	__u8  bConfigurationValue; */
-	0x00,	    /*	__u8  iConfiguration; */
-	0x40,	    /*	__u8  bmAttributes;
+	0x01,	    /*	uint8_t  bNumInterfaces; */
+	0x01,	    /*	uint8_t  bConfigurationValue; */
+	0x00,	    /*	uint8_t  iConfiguration; */
+	0x40,	    /*	uint8_t  bmAttributes;
 	 Bit 7: Bus-powered, 6: Self-powered, 5 Remote-wakwup, 4..0: resvd */
-	0x00,	    /*	__u8  MaxPower; */
+	0x00,	    /*	uint8_t  MaxPower; */
 
 	/* interface */
-	0x09,	    /*	__u8  if_bLength; */
-	0x04,	    /*	__u8  if_bDescriptorType; Interface */
-	0x00,	    /*	__u8  if_bInterfaceNumber; */
-	0x00,	    /*	__u8  if_bAlternateSetting; */
-	0x01,	    /*	__u8  if_bNumEndpoints; */
-	0x09,	    /*	__u8  if_bInterfaceClass; HUB_CLASSCODE */
-	0x00,	    /*	__u8  if_bInterfaceSubClass; */
-	0x00,	    /*	__u8  if_bInterfaceProtocol; */
-	0x00,	    /*	__u8  if_iInterface; */
+	0x09,	    /*	uint8_t  if_bLength; */
+	0x04,	    /*	uint8_t  if_bDescriptorType; Interface */
+	0x00,	    /*	uint8_t  if_bInterfaceNumber; */
+	0x00,	    /*	uint8_t  if_bAlternateSetting; */
+	0x01,	    /*	uint8_t  if_bNumEndpoints; */
+	0x09,	    /*	uint8_t  if_bInterfaceClass; HUB_CLASSCODE */
+	0x00,	    /*	uint8_t  if_bInterfaceSubClass; */
+	0x00,	    /*	uint8_t  if_bInterfaceProtocol; */
+	0x00,	    /*	uint8_t  if_iInterface; */
 
 	/* endpoint */
-	0x07,	    /*	__u8  ep_bLength; */
-	0x05,	    /*	__u8  ep_bDescriptorType; Endpoint */
-	0x81,	    /*	__u8  ep_bEndpointAddress; IN Endpoint 1 */
-	0x03,	    /*	__u8  ep_bmAttributes; Interrupt */
-	0x02,	    /*	__u16 ep_wMaxPacketSize; ((MAX_ROOT_PORTS + 1) / 8 */
+	0x07,	    /*	uint8_t  ep_bLength; */
+	0x05,	    /*	uint8_t  ep_bDescriptorType; Endpoint */
+	0x81,	    /*	uint8_t  ep_bEndpointAddress; IN Endpoint 1 */
+	0x03,	    /*	uint8_t  ep_bmAttributes; Interrupt */
+	0x02,	    /*	uint16_t ep_wMaxPacketSize; ((MAX_ROOT_PORTS + 1) / 8 */
 	0x00,
-	0xff	    /*	__u8  ep_bInterval; 255 ms */
+	0xff	    /*	uint8_t  ep_bInterval; 255 ms */
 };
 
 static unsigned char root_hub_str_index0[] =
 {
-	0x04,			/*  __u8  bLength; */
-	0x03,			/*  __u8  bDescriptorType; String-descriptor */
-	0x09,			/*  __u8  lang ID */
-	0x04,			/*  __u8  lang ID */
+	0x04,			/*  uint8_t  bLength; */
+	0x03,			/*  uint8_t  bDescriptorType; String-descriptor */
+	0x09,			/*  uint8_t  lang ID */
+	0x04,			/*  uint8_t  lang ID */
 };
 
 static unsigned char root_hub_str_index1[] =
 {
-	28,			/*  __u8  bLength; */
-	0x03,			/*  __u8  bDescriptorType; String-descriptor */
-	'O',			/*  __u8  Unicode */
-	0,				/*  __u8  Unicode */
-	'H',			/*  __u8  Unicode */
-	0,				/*  __u8  Unicode */
-	'C',			/*  __u8  Unicode */
-	0,				/*  __u8  Unicode */
-	'I',			/*  __u8  Unicode */
-	0,				/*  __u8  Unicode */
-	' ',			/*  __u8  Unicode */
-	0,				/*  __u8  Unicode */
-	'R',			/*  __u8  Unicode */
-	0,				/*  __u8  Unicode */
-	'o',			/*  __u8  Unicode */
-	0,				/*  __u8  Unicode */
-	'o',			/*  __u8  Unicode */
-	0,				/*  __u8  Unicode */
-	't',			/*  __u8  Unicode */
-	0,				/*  __u8  Unicode */
-	' ',			/*  __u8  Unicode */
-	0,				/*  __u8  Unicode */
-	'H',			/*  __u8  Unicode */
-	0,				/*  __u8  Unicode */
-	'u',			/*  __u8  Unicode */
-	0,				/*  __u8  Unicode */
-	'b',			/*  __u8  Unicode */
-	0,				/*  __u8  Unicode */
+	28,			/*  uint8_t  bLength; */
+	0x03,			/*  uint8_t  bDescriptorType; String-descriptor */
+	'O',			/*  uint8_t  Unicode */
+	0,				/*  uint8_t  Unicode */
+	'H',			/*  uint8_t  Unicode */
+	0,				/*  uint8_t  Unicode */
+	'C',			/*  uint8_t  Unicode */
+	0,				/*  uint8_t  Unicode */
+	'I',			/*  uint8_t  Unicode */
+	0,				/*  uint8_t  Unicode */
+	' ',			/*  uint8_t  Unicode */
+	0,				/*  uint8_t  Unicode */
+	'R',			/*  uint8_t  Unicode */
+	0,				/*  uint8_t  Unicode */
+	'o',			/*  uint8_t  Unicode */
+	0,				/*  uint8_t  Unicode */
+	'o',			/*  uint8_t  Unicode */
+	0,				/*  uint8_t  Unicode */
+	't',			/*  uint8_t  Unicode */
+	0,				/*  uint8_t  Unicode */
+	' ',			/*  uint8_t  Unicode */
+	0,				/*  uint8_t  Unicode */
+	'H',			/*  uint8_t  Unicode */
+	0,				/*  uint8_t  Unicode */
+	'u',			/*  uint8_t  Unicode */
+	0,				/*  uint8_t  Unicode */
+	'b',			/*  uint8_t  Unicode */
+	0,				/*  uint8_t  Unicode */
 };
 
 /* Hub class-specific descriptor is constructed dynamically */
@@ -1137,7 +1139,7 @@ static unsigned char root_hub_str_index1[] =
 
 int rh_check_port_status(ohci_t *controller)
 {
-	__u32 temp, ndp, i;
+	uint32_t temp, ndp, i;
 	int res = -1;
 	temp = roothub_a(controller);
 //	ndp = (temp & RH_A_NDP);
@@ -1168,12 +1170,12 @@ static int ohci_submit_rh_msg(ohci_t *ohci, struct usb_device *dev, unsigned lon
 	int leni = transfer_len;
 	int len = 0;
 	int stat = 0;
-	__u32 datab[4];
-	__u8 *data_buf = (__u8 *)datab;
-	__u16 bmRType_bReq;
-	__u16 wValue;
-	__u16 wIndex;
-	__u16 wLength;
+	uint32_t datab[4];
+	uint8_t *data_buf = (uint8_t *)datab;
+	uint16_t bmRType_bReq;
+	uint16_t wValue;
+	uint16_t wIndex;
+	uint16_t wLength;
 #ifdef DEBUG
 	pkt_print(ohci, NULL, dev, pipe, buffer, transfer_len, cmd, "SUB(rh)", usb_pipein(pipe));
 #else
@@ -1186,9 +1188,9 @@ static int ohci_submit_rh_msg(ohci_t *ohci, struct usb_device *dev, unsigned lon
 		return 0;
 	}
 	bmRType_bReq  = cmd->requesttype | (cmd->request << 8);
-	wValue	      = le16_to_cpu(cmd->value);
-	wIndex	      = le16_to_cpu(cmd->index);
-	wLength	      = le16_to_cpu(cmd->length);
+	wValue	      = swpw(cmd->value);
+	wIndex	      = swpw(cmd->index);
+	wLength	      = swpw(cmd->length);
 	info("Root-Hub: adr: %2x cmd(%1x): %08x %04x %04x %04x", dev->devnum, 8, bmRType_bReq, wValue, wIndex, wLength);
 	switch(bmRType_bReq)
 	{
@@ -1200,19 +1202,19 @@ static int ohci_submit_rh_msg(ohci_t *ohci, struct usb_device *dev, unsigned lon
 		   RH_OTHER | RH_CLASS	almost ever means HUB_PORT here
 		*/
 		case RH_GET_STATUS:
-			*(__u16 *)data_buf = cpu_to_le16(1);
+			*(uint16_t *)data_buf = swpw(1);
 			OK(2);
 		case RH_GET_STATUS | RH_INTERFACE:
-			*(__u16 *)data_buf = cpu_to_le16(0);
+			*(uint16_t *)data_buf = swpw(0);
 			OK(2);
 		case RH_GET_STATUS | RH_ENDPOINT:
-			*(__u16 *)data_buf = cpu_to_le16(0);
+			*(uint16_t *)data_buf = swpw(0);
 			OK(2);
 		case RH_GET_STATUS | RH_CLASS:
-			*(__u32 *)data_buf = cpu_to_le32(RD_RH_STAT & ~(RH_HS_CRWE | RH_HS_DRWE));
+			*(uint32_t *)data_buf = swpl(RD_RH_STAT & ~(RH_HS_CRWE | RH_HS_DRWE));
 			OK(4);
 		case RH_GET_STATUS | RH_OTHER | RH_CLASS:
-			*(__u32 *)data_buf = cpu_to_le32(RD_RH_PORTSTAT);
+			*(uint32_t *)data_buf = swpl(RD_RH_PORTSTAT);
 			OK(4);
 		case RH_CLEAR_FEATURE | RH_ENDPOINT:
 			switch(wValue)
@@ -1293,11 +1295,11 @@ static int ohci_submit_rh_msg(ohci_t *ohci, struct usb_device *dev, unsigned lon
 			break;
 		case RH_GET_DESCRIPTOR | RH_CLASS:
 		{
-			__u32 temp = roothub_a(ohci);
+			uint32_t temp = roothub_a(ohci);
 			data_buf[0] = 9;		/* min length; */
 			data_buf[1] = 0x29;
 //			data_buf[2] = temp & RH_A_NDP;
-			data_buf[2] = (__u8)ohci->ndp;
+			data_buf[2] = (uint8_t)ohci->ndp;
 			data_buf[3] = 0;
 			if(temp & RH_A_PSM)	/* per-port power switching? */
 				data_buf[3] |= 0x1;
@@ -1321,7 +1323,7 @@ static int ohci_submit_rh_msg(ohci_t *ohci, struct usb_device *dev, unsigned lon
 			len = min_t(unsigned int, leni, min_t(unsigned int, data_buf [0], wLength));
 			OK(len);
 		}
-		case RH_GET_CONFIGURATION: *(__u8 *) data_buf = 0x01;	OK(1);
+		case RH_GET_CONFIGURATION: *(uint8_t *) data_buf = 0x01;	OK(1);
 		case RH_SET_CONFIGURATION: WR_RH_STAT(0x10000);	OK(0);
 		default:
 			dbg("unsupported root hub command");
@@ -1510,9 +1512,8 @@ static int hc_reset(ohci_t *ohci)
 	int timeout = 30;
 	int smm_timeout = 50; /* 0,5 sec */
 	dbg("%s\r\n", __FUNCTION__);
-#ifndef CONFIG_USB_EHCI
 	if((ohci->ent->vendor == PCI_VENDOR_ID_PHILIPS)
-	 && (ohci->ent->device ==  PCI_DEVICE_ID_PHILIPS_ISP1561))
+			&& (ohci->ent->device ==  PCI_DEVICE_ID_PHILIPS_ISP1561))
 	{
 #define EHCI_USBCMD_OFF     0x20
 #define EHCI_USBCMD_HCRESET	(1 << 1)
@@ -1522,27 +1523,18 @@ static int hc_reset(ohci_t *ohci)
 		long handle;
 		do
 		{
-			handle = pci_find_device(0x0, 0xffff, index++)
+			handle = pci_find_device(0x0, 0xffff, index++);
 			if (handle >= 0)
 			{
 				unsigned long id = 0;
-#ifdef PCI_XBIOS
-				long error = read_config_longword(handle, PCIIDR, &id);
-#else
-				long error = Read_config_longword(handle, PCIIDR, &id);
-#endif
-				if((error >= 0) && (PCI_VENDOR_ID_PHILIPS == (id & 0xFFFF))
-				 && (PCI_DEVICE_ID_PHILIPS_ISP1561_2 == (id >> 16)))
+				id = pci_read_config_longword(handle, PCIIDR);
+				if ((PCI_VENDOR_ID_PHILIPS == (id & 0xFFFF)) && (PCI_DEVICE_ID_PHILIPS_ISP1561_2 == (id >> 16)))
 				 {
 					int timeout = 1000;
 					unsigned long usb_base_addr = 0xFFFFFFFF;
 					PCI_RSC_DESC *pci_rsc_desc;
-#ifdef PCI_XBIOS
-					pci_rsc_desc = (PCI_RSC_DESC *)get_resource(handle); /* USB OHCI */
-#else
-					pci_rsc_desc = (PCI_RSC_DESC *)Get_resource(handle); /* USB OHCI */
-#endif
-					if((long)pci_rsc_desc >= 0)
+					pci_rsc_desc = (PCI_RSC_DESC *) pci_get_resource(handle); /* USB OHCI */
+					if ((long)pci_rsc_desc >= 0)
 					{
 						unsigned short flags;
 						do
@@ -1586,26 +1578,11 @@ static int hc_reset(ohci_t *ohci)
 		}
 		else
 		{
-		 	pci_write_config_longword(ohci->handle, 0xE4, fast_read_config_longword(ohci->handle, 0xE4) | 0x01); // disable ehci
+		 	pci_write_config_longword(ohci->handle, 0xE4, pci_read_config_longword(ohci->handle, 0xE4) | 0x01); // disable ehci
 			wait_ms(10);
 		}
 	}
-#else /* CONFIG_USB_EHCI */
-#ifdef MCF547X
-	if((ohci->controller == 0) && (ohci->ent->vendor == PCI_VENDOR_ID_NEC)
-	 && (ohci->ent->device == PCI_DEVICE_ID_NEC_USB)
-	 && (ohci->handle == 1)) /* NEC on motherboard has FPGA clock */
-	{
-		dbg("USB OHCI set 48MHz clock\r\n");
-#ifdef PCI_XBIOS
-	 	write_config_longword(ohci->handle, 0xE4, 0x20); // oscillator
-#else
-	 	Write_config_longword(ohci->handle, 0xE4, 0x20); // oscillator
-#endif
-		wait_ms(10);
-	}
-#endif /* MCF547X */
-#endif /* CONFIG_USB_EHCI */
+
 	if(readl(&ohci->regs->control) & OHCI_CTRL_IR)
 	{
 		/* SMM owns the HC */
@@ -1650,14 +1627,14 @@ static int hc_reset(ohci_t *ohci)
 
 static int hc_start(ohci_t *ohci)
 {
-	__u32 mask;
+	uint32_t mask;
 	unsigned int fminterval;
 	ohci->disabled = 1;
 	/* Tell the controller where the control and bulk lists are
 	 * The lists are empty now. */
 	writel(0, &ohci->regs->ed_controlhead);
 	writel(0, &ohci->regs->ed_bulkhead);
-	writel((__u32)ohci->hcca - ohci->dma_offset, &ohci->regs->hcca); /* a reset clears this */
+	writel((uint32_t)ohci->hcca - ohci->dma_offset, &ohci->regs->hcca); /* a reset clears this */
 	fminterval = 0x2edf;
 	writel((fminterval * 9) / 10, &ohci->regs->periodicstart);
 	fminterval |= ((((fminterval - 210) * 6) / 7) << 16);
@@ -1736,7 +1713,7 @@ static int hc_interrupt(ohci_t *ohci)
 	else
 	{
 		ints = readl(&regs->intrstatus);
-		if(ints == ~(u32)0)
+		if(ints == ~(uint32_t)0)
 		{
 			ohci->disabled++;
 			err("OHCI usb-%s-%c device removed!", ohci->slot_name, (char)ohci->controller + '0');
@@ -1770,13 +1747,10 @@ static int hc_interrupt(ohci_t *ohci)
 #endif /* USB_POLL_HUB */
 		stat = 0xff;
 	}
-	if(ints & OHCI_INTR_UE) /* e.g. due to PCI Master/Target Abort */
+	if (ints & OHCI_INTR_UE) /* e.g. due to PCI Master/Target Abort */
 	{
-#ifdef PCI_XBIOS
-		unsigned short status = fast_read_config_word(ohci->handle, PCISR);
-#else
-		unsigned short status = Fast_read_config_word(ohci->handle, PCISR);
-#endif
+		unsigned short status = pci_read_config_word(ohci->handle, PCISR);
+
 		err("OHCI Unrecoverable Error, controller usb-%s-%c disabled\r\n(SR:0x%04X%s%s%s%s%s%s)", ohci->slot_name, (char)ohci->controller + '0', status & 0xFFFF,
 		 status & 0x8000 ? ", Parity error" : "", status & 0x4000 ? ", Signaled system error" : "", status & 0x2000 ? ", Received master abort" : "",
 		 status & 0x1000 ? ", Received target abort" : "", status & 0x800 ? ", Signaled target abort" : "", status & 0x100 ? ", Data parity error" : "");
@@ -1896,18 +1870,8 @@ int ohci_usb_lowlevel_init(long handle, const struct pci_device_id *ent, void **
 {
 	unsigned long usb_base_addr = 0xFFFFFFFF;
 	ohci_t *ohci = &gohci[(handle >> 16) & 1]; // function & 1
-#ifdef PCI_XBIOS
-	PCI_RSC_DESC *pci_rsc_desc = (PCI_RSC_DESC *)get_resource(handle); /* USB OHCI */
-#else
-	PCI_RSC_DESC *pci_rsc_desc;
-	USB_COOKIE *p = usb_get_cookie('_PCI'); 
-	PCI_COOKIE *bios_cookie = (PCI_COOKIE *)p->v.l;
-	if(bios_cookie == NULL)   /* faster than XBIOS calls */
-		return(-1);	
-	tab_funcs_pci = &bios_cookie->routine[0];
-	pci_rsc_desc = (PCI_RSC_DESC *)Get_resource(handle); /* USB OHCI */
-#endif
-	if(handle && (ent != NULL))
+	PCI_RSC_DESC *pci_rsc_desc = (PCI_RSC_DESC *) pci_get_resource(handle); /* USB OHCI */
+	if (handle && (ent != NULL))
 	{
 		memset(ohci, 0, sizeof(ohci_t));
 		ohci->handle = handle;
@@ -2018,13 +1982,7 @@ int ohci_usb_lowlevel_init(long handle, const struct pci_device_id *ent, void **
 #ifdef DEBUG
 	ohci_dump(ohci, 1);
 #endif
-#ifndef CONFIG_USB_INTERRUPT_POLLING
-#ifdef PCI_XBIOS
-	hook_interrupt(handle, handle_usb_interrupt, ohci);
-#else
-	Hook_interrupt(handle, (void *)handle_usb_interrupt, (unsigned long *)ohci);
-#endif /* PCI_BIOS */
-#endif /* CONFIG_USB_INTERRUPT_POLLING */
+	pci_hook_interrupt(handle, handle_usb_interrupt, ohci);
 	if(priv != NULL)
 		*priv = (void *)ohci;
 	ohci_inited = 1;
@@ -2040,13 +1998,8 @@ int ohci_usb_lowlevel_stop(void *priv)
 		return(0);
 	if(ohci == NULL)
 		ohci = &gohci[0];
-#ifndef CONFIG_USB_INTERRUPT_POLLING
-#ifdef PCI_XBIOS
-	unhook_interrupt(ohci->handle);
-#else              
-	Unhook_interrupt(ohci->handle);
-#endif /* PCI_BIOS */
-#endif /* CONFIG_USB_INTERRUPT_POLLING */
+	pci_unhook_interrupt(ohci->handle);
+
 	hc_reset(ohci);
 	hc_free_buffers(ohci);
 	/* This driver is no longer initialised. It needs a new low-level
@@ -2054,6 +2007,4 @@ int ohci_usb_lowlevel_stop(void *priv)
 	ohci_inited = 0;
 	return(0);
 }
-
-#endif /* CONFIG_USB_OHCI */
 
