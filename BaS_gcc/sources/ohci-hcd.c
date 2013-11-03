@@ -68,12 +68,14 @@
 /*
  * e.g. PCI controllers need this
  */
+#define CONFIG_SYS_OHCI_SWAP_REG_ACCES
+
 #ifdef CONFIG_SYS_OHCI_SWAP_REG_ACCESS
-# define readl(a) swpl(*((volatile uint32_t *)(a)))
-# define writel(a, b) (*((volatile uint32_t *)(b)) = swpl((volatile uint32_t)a))
+#define readl(a) swpl(*((volatile uint32_t *)(a)))
+#define writel(a, b) (*((volatile uint32_t *)(b)) = swpl((volatile uint32_t)a))
 #else
-# define readl(a) (*((volatile uint32_t *)(a)))
-# define writel(a, b) (*((volatile uint32_t *)(b)) = ((volatile uint32_t)a))
+#define readl(a) (*((volatile uint32_t *)(a)))
+#define writel(a, b) (*((volatile uint32_t *)(b)) = ((volatile uint32_t)a))
 #endif /* CONFIG_SYS_OHCI_SWAP_REG_ACCESS */
 
 #define min_t(type, x, y) ({ type __x = (x); type __y = (y); __x < __y ? __x: __y; })
@@ -108,7 +110,15 @@ struct pci_device_id ohci_usb_pci_table[] =
 		0
 	}, /* Philips 1561 PCI OHCI module ids */
 	/* Please add supported PCI OHCI controller ids here */
-	{ 0, 0, 0, 0, 0, 0, 0 }
+	{
+		0,
+		0,
+		0,
+		0,
+		0,
+		0,
+		0
+	}
 };
 
 #ifdef DEBUG
@@ -134,7 +144,8 @@ static inline uint32_t roothub_portstatus(ohci_t *ohci, int i) { return readl(&o
 static void flush_data_cache(ohci_t *ohci);
 static int hc_interrupt(ohci_t *ohci);
 static void td_submit_job(ohci_t *ohci, struct usb_device *dev, uint32_t pipe,
- void *buffer, int transfer_len, struct devrequest *setup, urb_priv_t *urb, int interval);
+							void *buffer, int transfer_len, struct devrequest *setup,
+							urb_priv_t *urb, int interval);
  
 /*-------------------------------------------------------------------------*
  * URB support functions
@@ -149,7 +160,7 @@ static void urb_free_priv(urb_priv_t *urb)
 	int last = urb->length - 1;
 	if (last >= 0)
 	{
-		for(i = 0; i <= last; i++)
+		for (i = 0; i <= last; i++)
 		{
 			td = urb->td[i];
 			if (td)
@@ -192,7 +203,7 @@ static void pkt_print(ohci_t *ohci, urb_priv_t *purb, struct usb_device *dev,
 		if (usb_pipecontrol(pipe))
 		{
 			board_printf(__FILE__ ": cmd(8):");
-			for(i = 0; i < 8 ; i++)
+			for (i = 0; i < 8 ; i++)
 				board_printf(" %02x", ((uint8_t *)setup)[i]);
 			board_printf("\r\n");
 		}
@@ -200,7 +211,7 @@ static void pkt_print(ohci_t *ohci, urb_priv_t *purb, struct usb_device *dev,
 		{
 			board_printf(__FILE__ ": data(%d/%d):", (purb ? purb->actual_length : 0), transfer_len);
 			len = usb_pipeout(pipe)? transfer_len : (purb ? purb->actual_length : 0);
-			for(i = 0; i < 16 && i < len; i++)
+			for (i = 0; i < 16 && i < len; i++)
 				board_printf(" %02x", ((uint8_t *)buffer)[i]);
 			board_printf("%s\r\n", i < len? "...": "");
 		}
@@ -214,7 +225,7 @@ static void ep_print_int_eds(ohci_t *ohci, char *str)
 {
 	int i, j;
 	uint32_t *ed_p;
-	for(i = 0; i < 32; i++)
+	for (i = 0; i < 32; i++)
 	{
 		j = 5;
 		ed_p = &(ohci->hcca->int_table[i]);
@@ -346,7 +357,7 @@ static void ohci_dump_roothub(ohci_t *controller, int verbose)
 			(temp & RH_HS_LPS) ? " LPS" : ""
 			);
 	}
-	for(i = 0; i < ndp; i++)
+	for (i = 0; i < ndp; i++)
 	{
 		temp = roothub_portstatus(controller, i);
 		dbg("roothub.portstatus [%d] = 0x%08x%s%s%s%s%s%s%s%s%s%s%s%s",
@@ -444,7 +455,7 @@ static int sohci_submit_job(ohci_t *ohci, urb_priv_t *urb, struct devrequest *se
 	purb_priv->actual_length = 0;
 	/* allocate the TDs */
 	/* note that td[0] was allocated in ep_add_ed */
-	for(i = 0; i < size; i++)
+	for (i = 0; i < size; i++)
 	{
 		purb_priv->td[i] = td_alloc(dev);
 		if (!purb_priv->td[i])
@@ -524,13 +535,13 @@ static int ep_int_ballance(ohci_t *ohci, int interval, int load)
 	/* search for the least loaded interrupt endpoint
 	 * branch of all 32 branches
 	 */
-	for(i = 0; i < 32; i++)
+	for (i = 0; i < 32; i++)
 	{
 		if (ohci->ohci_int_load[branch] > ohci->ohci_int_load[i])
 			branch = i;
 	}
 	branch = branch % interval;
-	for(i = branch; i < 32; i += interval)
+	for (i = branch; i < 32; i += interval)
 		ohci->ohci_int_load[i] += load;
 	return branch;
 }
@@ -542,7 +553,7 @@ static int ep_int_ballance(ohci_t *ohci, int interval, int load)
 static int ep_2_n_interval(int inter)
 {
 	int i;
-	for(i = 0; ((inter >> i) > 1) && (i < 5); i++);
+	for (i = 0; ((inter >> i) > 1) && (i < 5); i++);
 	return 1 << i;
 }
 
@@ -554,7 +565,7 @@ static int ep_2_n_interval(int inter)
 static int ep_rev(int num_bits, int word)
 {
 	int i, wout = 0;
-	for(i = 0; i < num_bits; i++)
+	for (i = 0; i < num_bits; i++)
 		wout |= (((word >> i) & 1) << (num_bits - i - 1));
 	return wout;
 }
@@ -613,10 +624,10 @@ static int ep_link(ohci_t *ohci, ed_t *edi)
 			ed->int_interval = interval;
 			int_branch = ep_int_ballance(ohci, interval, load);
 			ed->int_branch = int_branch;
-			for(i = 0; i < ep_rev(6, interval); i += inter)
+			for (i = 0; i < ep_rev(6, interval); i += inter)
 			{
 				inter = 1;
-				for(ed_p = &(ohci->hcca->int_table[ep_rev(5, i) + int_branch]);
+				for (ed_p = &(ohci->hcca->int_table[ep_rev(5, i) + int_branch]);
 				 (*ed_p != 0) && (((ed_t *)ed_p)->int_interval >= interval);
 				 ed_p = &(((ed_t *)ed_p)->hwNextED))
 					inter = ep_rev(6, ((ed_t *)ed_p)->int_interval);
@@ -633,7 +644,7 @@ static int ep_link(ohci_t *ohci, ed_t *edi)
 /* scan the periodic table to find and unlink this ED */
 static void periodic_unlink(struct ohci *ohci, volatile struct ed *ed, unsigned index, unsigned period)
 {
-	for( ;index < NUM_INTS; index += period)
+	for ( ;index < NUM_INTS; index += period)
 	{
 		uint32_t	*ed_p = &ohci->hcca->int_table[index];
 		/* ED might have been unlinked through another path */
@@ -697,7 +708,7 @@ static int ep_unlink(ohci_t *ohci, ed_t *edi)
 			break;
 		case PIPE_INTERRUPT:
 			periodic_unlink(ohci, ed, 0, 1);
-			for(i = ed->int_branch; i < 32; i += ed->int_interval)
+			for (i = ed->int_branch; i < 32; i += ed->int_interval)
 				ohci->ohci_int_load[i] -= ed->int_load;
 			break;
 	}
@@ -782,7 +793,7 @@ static void td_fill(ohci_t *ohci, unsigned int info, void *data, int len,
 #ifdef OHCI_FILL_TRACE
 	if (usb_pipebulk(urb_priv->pipe) && usb_pipeout(urb_priv->pipe))
 	{
-		for(i = 0; i < len; i++)
+		for (i = 0; i < len; i++)
 			board_printf("td->data[%d] %#2x ", i, ((unsigned char *)td->data)[i]);
 		board_printf("\r\n");
 	}
@@ -809,7 +820,7 @@ static void td_fill(ohci_t *ohci, unsigned int info, void *data, int len,
 		int i;
 		board_printf("td_fill: %08x %08x %08X %08X at 0x%08X\r\n", 
 		 swpl(td->hwINFO), swpl(td->hwCBP), swpl(td->hwNextTD), swpl(td->hwBE), td);
-		for(i = 0; i < len; i++)
+		for (i = 0; i < len; i++)
 			board_printf("%02X ", *(unsigned char *)(data + i) & 0xff);
 		board_printf("\r\n");
 	}
@@ -1165,7 +1176,7 @@ int rh_check_port_status(ohci_t *controller)
 	temp = roothub_a(controller);
 //	ndp = (temp & RH_A_NDP);
 	ndp = controller->ndp;
-	for(i = 0; i < ndp; i++)
+	for (i = 0; i < ndp; i++)
 	{
 		temp = roothub_portstatus(controller, i);
 		/* check for a device disconnect */
@@ -1704,7 +1715,7 @@ void ohci_usb_event_poll(int interrupt)
 	if (ohci_inited)
 	{
 		int i;
-		for(i = 0; i < (sizeof(gohci) / sizeof(ohci_t)); i++)
+		for (i = 0; i < (sizeof(gohci) / sizeof(ohci_t)); i++)
 		{
 			ohci_t *ohci = &gohci[i];
 			if (!ohci->handle || ohci->disabled)
@@ -1835,7 +1846,7 @@ void ohci_usb_enable_interrupt(int enable)
 {
 	int i;
 	dbg("usb_enable_interrupt(%d)", enable);
-	for(i = 0; i < (sizeof(gohci) / sizeof(ohci_t)); i++)
+	for (i = 0; i < (sizeof(gohci) / sizeof(ohci_t)); i++)
 	{
 		ohci_t *ohci = &gohci[i];
 		if (!ohci->handle)
