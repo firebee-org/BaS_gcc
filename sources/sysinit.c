@@ -511,13 +511,11 @@ void init_usb(void)
 	do
 	{
 		handle = pci_find_device(0x0000, 0xffffL, index++);
-		xprintf("checking %d\r\n", handle);
 		if (handle > 0)
 		{
 			uint32_t id = 0;
 			uint32_t class = 0;
 
-			xprintf("ckecking board #%d, handle %d\r\n", index, handle);
 			id = pci_read_config_longword(handle, PCIIDR);
 			class = pci_read_config_longword(handle, PCIREV);
 
@@ -529,10 +527,8 @@ void init_usb(void)
 					board = ehci_usb_pci_table;
 					while (board->vendor)
 					{
-						xprintf("ckecking %x against %x\r\n", board->vendor, id & 0xffff); 
 						if ((board->vendor == (id & 0xffff)) && board->device == (id >> 16))
 						{
-							xprintf("board match at handle %x\r\n", handle);
 							if (usb_init(handle, board) >= 0)
 							{
 								usb_found++;
@@ -546,10 +542,8 @@ void init_usb(void)
 					board = ohci_usb_pci_table;
 					while (board->vendor)
 					{
-						xprintf("ckecking %x against %x\r\n", board->vendor, id & 0xffff); 
 						if ((board->vendor == (id & 0xffff)) && board->device == (id >> 16))
 						{
-							xprintf("board match at handle %x\r\n", handle);
 							if (usb_init(handle, board) >= 0)
 								usb_found++;
 						}
