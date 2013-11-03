@@ -1902,7 +1902,7 @@ int ohci_usb_lowlevel_init(long handle, const struct pci_device_id *ent, void **
 	else if(!ohci->handle) /* for restart USB cmd */
 		return(-1);	
 
-	info("ohci 0x%p", ohci);
+	info("ohci %p", ohci);
 	ohci->controller = (ohci->handle >> 16) & 3; /* PCI function */
 	/* this must be aligned to a 256 byte boundary */
 	ohci->hcca_unaligned = (struct ohci_hcca *)usb_malloc(sizeof(struct ohci_hcca) + 256);
@@ -1914,7 +1914,7 @@ int ohci_usb_lowlevel_init(long handle, const struct pci_device_id *ent, void **
 	/* align the storage */
 	ohci->hcca = (struct ohci_hcca *)(((uint32_t)ohci->hcca_unaligned + 255) & ~255);
 	memset(ohci->hcca, 0, sizeof(struct ohci_hcca));
-	info("aligned ghcca 0x%p", ohci->hcca);
+	info("aligned ghcca %p", ohci->hcca);
 	ohci->ohci_dev_unaligned = (struct ohci_device *)usb_malloc(sizeof(struct ohci_device) + 8);
 	if(ohci->ohci_dev_unaligned == NULL)
 	{
@@ -1924,7 +1924,7 @@ int ohci_usb_lowlevel_init(long handle, const struct pci_device_id *ent, void **
 	}
 	ohci->ohci_dev = (struct ohci_device *)(((uint32_t)ohci->ohci_dev_unaligned + 7) & ~7);
 	memset(ohci->ohci_dev, 0, sizeof(struct ohci_device));
-	info("aligned EDs 0x%p", ohci->ohci_dev);
+	info("aligned EDs %p", ohci->ohci_dev);
 	ohci->td_unaligned = (td_t *)usb_malloc(sizeof(td_t) * (NUM_TD + 1));
 	if(ohci->td_unaligned == NULL)
 	{
@@ -1933,8 +1933,9 @@ int ohci_usb_lowlevel_init(long handle, const struct pci_device_id *ent, void **
 		return(-1);
 	}
 	ptd = (td_t *)(((uint32_t)ohci->td_unaligned + 7) & ~7);
+	xprintf("memset from %p to %p\r\n", ptd, ptd + sizeof(td_t) * NUM_TD);
 	memset(ptd, 0, sizeof(td_t) * NUM_TD);
-	info("aligned TDs 0x%p", ptd);
+	info("aligned TDs %p", ptd);
 	ohci->disabled = 1;
 	ohci->sleeping = 0;
 	ohci->irq = -1;

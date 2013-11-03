@@ -28,7 +28,7 @@
 #define TRUE 1
 #endif
 
-#undef USB_MEM_DEBUG
+#define USB_MEM_DEBUG
 
 #ifdef	USB_MEM_DEBUG
 #define	USB_MEM_PRINTF(fmt,args...)	xprintf(fmt ,##args)
