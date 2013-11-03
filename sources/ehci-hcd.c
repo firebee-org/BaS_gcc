@@ -163,8 +163,11 @@ static struct ehci {
 	const char *slot_name;
 } gehci;
 
+#define DEBUG
+#define SHOW_INFO
+
 #ifdef DEBUG
-#define debug(format, arg...) board_printf("DEBUG: " format, ## arg)
+#define debug(format, arg...) xprintf("DEBUG: " format, ## arg)
 #else
 #define debug(format, arg...) do {} while (0)
 #endif /* DEBUG */
@@ -195,17 +198,17 @@ static void cache_qh(struct QH *qh, int flush)
 	while(1)
 	{
 		flush_and_invalidate_caches();
-		if((uint32_t)qh & QH_LINK_TYPE_QH)
+		if ((uint32_t)qh & QH_LINK_TYPE_QH)
 			break;
 		qh = qh_addr(qh);
 		qh = (struct QH *)(swpl(qh->qh_link) + gehci.dma_offset);
 	}
 	qh = qh_addr(qh);
 	/* Save first qTD pointer, needed for invalidating pass on this QH */
-	if(flush)
+	if (flush)
 	{
 		qtd = (struct qTD *)(swpl(*(uint32_t *)&qh->qh_overlay) & 0xffffffe0);
-		if(qtd != NULL)
+		if (qtd != NULL)
 			qtd = (struct qTD *)(gehci.dma_offset + (uint32_t)qtd);
 		first_qtd = qtd;
 	}
@@ -214,13 +217,13 @@ static void cache_qh(struct QH *qh, int flush)
 	/* Walk the qTD list and flush/invalidate all entries */
 	while(1)
 	{
-		if(qtd == NULL)
+		if (qtd == NULL)
 			break;
 		cache_qtd(qtd, flush);
 		next = (struct qTD *)((uint32_t)swpl(qtd->qt_next) & 0xffffffe0);
-		if(next != NULL)
+		if (next != NULL)
 			next = (struct qTD *)(gehci.dma_offset + (uint32_t)next);
-		if(next == qtd)
+		if (next == qtd)
 			break;
 		qtd = next;
 	}
@@ -243,10 +246,10 @@ static int handshake(uint32_t *ptr, uint32_t mask, uint32_t done, int usec)
 	do
 	{
 		result = ehci_readl(ptr);
-		if(result == ~(uint32_t)0)
+		if (result == ~(uint32_t)0)
 			return -1;
 		result &= mask;
-		if(result == done)
+		if (result == done)
 			return 0;
 		wait(1);
 		usec--;
@@ -266,7 +269,7 @@ static int ehci_reset(void)
 	uint32_t *reg_ptr;
 	int ret = 0;
 #ifdef MCF547X
-	if((gehci.ent->vendor == PCI_VENDOR_ID_NEC)
+	if ((gehci.ent->vendor == PCI_VENDOR_ID_NEC)
 	 && (gehci.ent->device == PCI_DEVICE_ID_NEC_USB_2))
 	{
 		debug("ehci_reset set 48MHz clock\r\n");
@@ -290,7 +293,7 @@ static int ehci_reset(void)
 #else
 			handle = Find_pci_device(0x0000FFFFL, index++);
 #endif
-			if((handle >= 0) && ((gehci.handle & 0xFFFF) == (handle & 0xFFFF)))
+			if ((handle >= 0) && ((gehci.handle & 0xFFFF) == (handle & 0xFFFF)))
 			{
 				uint32_t class;
 #ifdef PCI_XBIOS
@@ -298,19 +301,19 @@ static int ehci_reset(void)
 #else
 				long error = Read_config_longword(handle, PCIREV, &class);
 #endif
-				if((error >= 0) && ((class >> 16) == PCI_CLASS_SERIAL_USB) && ((class >> 8) == PCI_CLASS_SERIAL_USB_OHCI))
+				if ((error >= 0) && ((class >> 16) == PCI_CLASS_SERIAL_USB) && ((class >> 8) == PCI_CLASS_SERIAL_USB_OHCI))
 				 {
 					uint32_t usb_base_addr = 0xFFFFFFFF;
 					PCI_RSC_DESC *pci_rsc_desc;
 					pci_rsc_desc = (PCI_RSC_DESC *)pci_get_resource(handle); /* USB OHCI */
-					if((long)pci_rsc_desc >= 0)
+					if ((long)pci_rsc_desc >= 0)
 					{
 						unsigned short flags;
 						do
 						{
-							if(!(pci_rsc_desc->flags & FLG_IO))
+							if (!(pci_rsc_desc->flags & FLG_IO))
 							{
-								if(usb_base_addr == 0xFFFFFFFF)
+								if (usb_base_addr == 0xFFFFFFFF)
 								{
 									uint32_t base = pci_rsc_desc->offset + pci_rsc_desc->start;
 									usb_base_addr = pci_rsc_desc->start;
@@ -332,12 +335,12 @@ static int ehci_reset(void)
 	cmd |= CMD_RESET;
 	ehci_writel(&gehci.hcor->or_usbcmd, cmd);
 	ret = handshake((uint32_t *)&gehci.hcor->or_usbcmd, CMD_RESET, 0, 250 * 1000);
-	if(ret < 0)
+	if (ret < 0)
 	{
 		err("EHCI fail to reset");
 		goto out;
 	}
-	if(ehci_is_TDI())
+	if (ehci_is_TDI())
 	{
 		reg_ptr = (uint32_t *)((u8 *)gehci.hcor + USBMODE);
 		tmp = ehci_readl(reg_ptr);
@@ -362,7 +365,7 @@ static void *ehci_alloc(size_t sz, size_t align)
 			ntds = 0;
 			break;
 		case sizeof(struct qTD):
-			if(ntds == 3)
+			if (ntds == 3)
 			{
 				debug("out of TDs\r\n");
 				return NULL;
@@ -389,13 +392,13 @@ static int ehci_td_buffer(struct qTD *td, void *buf, size_t sz)
 		td->qt_buffer[idx] = swpl(addr - gehci.dma_offset);
 		next = (addr + 4096) & ~4095;
 		delta = next - addr;
-		if(delta >= sz)
+		if (delta >= sz)
 			break;
 		sz -= delta;
 		addr = next;
 		idx++;
 	}
-	if(idx == 5)
+	if (idx == 5)
 	{
 		debug("out of buffer pointers (%u bytes left)\r\n", sz);
 		return -1;
@@ -415,11 +418,11 @@ static int ehci_submit_async(struct usb_device *dev, uint32_t pipe, void *buffer
 	uint32_t cmd;
 	int ret = 0;
 	debug("dev=%p, pipe=%lx, buffer=%p, length=%d, req=%p\r\n", dev, pipe, buffer, length, req);
-	if(req != NULL)
+	if (req != NULL)
 		debug("ehci_submit_async req=%u (%#x), type=%u (%#x), value=%u (%#x), index=%u\r\n",
 		 req->request, req->request, req->requesttype, req->requesttype, swpw(req->value), swpw(req->value), swpw(req->index));
 	qh = ehci_alloc(sizeof(struct QH), 32);
-	if(qh == NULL)
+	if (qh == NULL)
 	{
 		debug("unable to allocate QH\r\n");
 		return -1;
@@ -435,10 +438,10 @@ static int ehci_submit_async(struct usb_device *dev, uint32_t pipe, void *buffer
 	td = NULL;
 	tdp = &qh->qh_overlay.qt_next;
 	toggle = usb_gettoggle(dev, usb_pipeendpoint(pipe), usb_pipeout(pipe));
-	if(req != NULL)
+	if (req != NULL)
 	{
 		td = ehci_alloc(sizeof(struct qTD), 32);
-		if(td == NULL)
+		if (td == NULL)
 		{
 			debug("unable to allocate SETUP td\r\n");
 			goto fail;
@@ -447,7 +450,7 @@ static int ehci_submit_async(struct usb_device *dev, uint32_t pipe, void *buffer
 		td->qt_altnext = swpl(QT_NEXT_TERMINATE);
 		token = (0 << 31) | (sizeof(*req) << 16) | (0 << 15) | (0 << 12) | (3 << 10) | (2 << 8) | (0x80 << 0);
 		td->qt_token = swpl(token);
-		if(ehci_td_buffer(td, req, sizeof(*req)) != 0)
+		if (ehci_td_buffer(td, req, sizeof(*req)) != 0)
 		{
 			debug("unable construct SETUP td\r\n");
 			ehci_free(td, sizeof(*td));
@@ -457,10 +460,10 @@ static int ehci_submit_async(struct usb_device *dev, uint32_t pipe, void *buffer
 		tdp = &td->qt_next;
 		toggle = 1;
 	}
-	if(length > 0 || req == NULL)
+	if (length > 0 || req == NULL)
 	{
 		td = ehci_alloc(sizeof(struct qTD), 32);
-		if(td == NULL)
+		if (td == NULL)
 		{
 			debug("unable to allocate DATA td\r\n");
 			goto fail;
@@ -469,7 +472,7 @@ static int ehci_submit_async(struct usb_device *dev, uint32_t pipe, void *buffer
 		td->qt_altnext = swpl(QT_NEXT_TERMINATE);
 		token = (toggle << 31) | (length << 16) | ((req == NULL ? 1 : 0) << 15) | (0 << 12) | (3 << 10) | ((usb_pipein(pipe) ? 1 : 0) << 8) | (0x80 << 0);
 		td->qt_token = swpl(token);
-		if(ehci_td_buffer(td, buffer, length) != 0)
+		if (ehci_td_buffer(td, buffer, length) != 0)
 		{
 			debug("unable construct DATA td\r\n");
 			ehci_free(td, sizeof(*td));
@@ -478,10 +481,10 @@ static int ehci_submit_async(struct usb_device *dev, uint32_t pipe, void *buffer
 		*tdp = swpl((uint32_t)td - gehci.dma_offset);
 		tdp = &td->qt_next;
 	}
-	if(req != NULL)
+	if (req != NULL)
 	{
 		td = ehci_alloc(sizeof(struct qTD), 32);
-		if(td == NULL)
+		if (td == NULL)
 		{
 			debug("unable to allocate ACK td\r\n");
 			goto fail;
@@ -503,7 +506,7 @@ static int ehci_submit_async(struct usb_device *dev, uint32_t pipe, void *buffer
 	cmd |= CMD_ASE;
 	ehci_writel(&gehci.hcor->or_usbcmd, cmd);
 	ret = handshake((uint32_t *)&gehci.hcor->or_usbsts, STD_ASS, STD_ASS, 100 * 1000);
-	if(ret < 0)
+	if (ret < 0)
 	{
 		err("EHCI fail timeout STD_ASS set (usbsts=%#x)", ehci_readl(&gehci.hcor->or_usbsts));
 		goto fail;
@@ -516,7 +519,7 @@ static int ehci_submit_async(struct usb_device *dev, uint32_t pipe, void *buffer
 		/* Invalidate dcache */
 		ehci_invalidate_dcache(gehci.qh_list);
 		token = swpl(vtd->qt_token);
-		if(!(token & 0x80))
+		if (!(token & 0x80))
 			break;
 		wait(1 * 1000);
 		ts++;
@@ -527,14 +530,14 @@ static int ehci_submit_async(struct usb_device *dev, uint32_t pipe, void *buffer
 	cmd &= ~CMD_ASE;
 	ehci_writel(&gehci.hcor->or_usbcmd, cmd);
 	ret = handshake((uint32_t *)&gehci.hcor->or_usbsts, STD_ASS, 0, 100 * 1000);
-	if(ret < 0)
+	if (ret < 0)
 	{
 		err("EHCI fail timeout STD_ASS reset (usbsts=%#x)", ehci_readl(&gehci.hcor->or_usbsts));
 		goto fail;
 	}
 	gehci.qh_list->qh_link = swpl(((uint32_t)gehci.qh_list - gehci.dma_offset) | QH_LINK_TYPE_QH);
 	token = swpl(qh->qh_overlay.qt_token);
-	if(!(token & 0x80))
+	if (!(token & 0x80))
 	{
 		debug("TOKEN=%#x\r\n", token);
 		switch(token & 0xfc)
@@ -570,18 +573,18 @@ static int ehci_submit_async(struct usb_device *dev, uint32_t pipe, void *buffer
 	return (dev->status != USB_ST_NOT_PROC) ? 0 : -1;
 fail:
 	td = (void *)swpl(qh->qh_overlay.qt_next);
-	if(td != (void *)QT_NEXT_TERMINATE)
+	if (td != (void *)QT_NEXT_TERMINATE)
 		td = (struct qTD *)(gehci.dma_offset + (uint32_t)td);
 	while(td != (void *)QT_NEXT_TERMINATE)
 	{
 		qh->qh_overlay.qt_next = td->qt_next;
 		ehci_free(td, sizeof(*td));
 		td = (void *)swpl(qh->qh_overlay.qt_next);
-		if(td != (void *)QT_NEXT_TERMINATE)
+		if (td != (void *)QT_NEXT_TERMINATE)
 			td = (struct qTD *)(gehci.dma_offset + (uint32_t)td);
 	}
 	ehci_free(qh, sizeof(*qh));
-	if(ehci_readl(&gehci.hcor->or_usbsts) & STS_HSE) /* Host System Error */
+	if (ehci_readl(&gehci.hcor->or_usbsts) & STS_HSE) /* Host System Error */
 	{
 		unsigned short status = pci_read_config_word(gehci.handle, PCISR);
 		err("EHCI Host System Error, controller usb-%s disabled\r\n(SR:0x%04X%s%s%s%s%s%s)", gehci.slot_name, status & 0xFFFF,
@@ -593,9 +596,9 @@ fail:
 
 static inline int min3(int a, int b, int c)
 {
-	if(b < a)
+	if (b < a)
 		a = b;
-	if(c < a)
+	if (c < a)
 		a = c;
 	return a;
 }
@@ -608,7 +611,7 @@ static int ehci_submit_root(struct usb_device *dev, uint32_t pipe, void *buffer,
 	int len, srclen;
 	uint32_t reg;
 	uint32_t *status_reg;
-	if(swpw(req->index) > CONFIG_SYS_USB_EHCI_MAX_ROOT_PORTS)
+	if (swpw(req->index) > CONFIG_SYS_USB_EHCI_MAX_ROOT_PORTS)
 	{
 		err("The request port(%d) is not configured", swpw(req->index) - 1);
 		return -1;
@@ -690,14 +693,14 @@ static int ehci_submit_root(struct usb_device *dev, uint32_t pipe, void *buffer,
 		case USB_REQ_GET_STATUS | ((USB_RT_PORT | USB_DIR_IN) << 8):
 			memset(tmpbuf, 0, 4);
 			reg = ehci_readl(status_reg);	
-			if((reg & EHCI_PS_PR) && (portreset & (1 << swpw(req->index))))
+			if ((reg & EHCI_PS_PR) && (portreset & (1 << swpw(req->index))))
 			{
 				int ret;
 				/* force reset to complete */
 				reg = reg & ~(EHCI_PS_PR | EHCI_PS_CLEAR);
 				ehci_writel(status_reg, reg);
 				ret = handshake(status_reg, EHCI_PS_PR, 0, 2 * 1000);
-				if(!ret)
+				if (!ret)
 				{
 					tmpbuf[0] |= USB_PORT_STAT_RESET;
           reg = ehci_readl(status_reg);
@@ -705,17 +708,17 @@ static int ehci_submit_root(struct usb_device *dev, uint32_t pipe, void *buffer,
 				else
 					err("port(%d) reset error", swpw(req->index) - 1);
 			}
-			if(reg & EHCI_PS_CS)
+			if (reg & EHCI_PS_CS)
 				tmpbuf[0] |= USB_PORT_STAT_CONNECTION;
-			if(reg & EHCI_PS_PE)
+			if (reg & EHCI_PS_PE)
 				tmpbuf[0] |= USB_PORT_STAT_ENABLE;
-			if(reg & EHCI_PS_SUSP)
+			if (reg & EHCI_PS_SUSP)
 				tmpbuf[0] |= USB_PORT_STAT_SUSPEND;
-			if(reg & EHCI_PS_OCA)
+			if (reg & EHCI_PS_OCA)
 				tmpbuf[0] |= USB_PORT_STAT_OVERCURRENT;
-			if(reg & EHCI_PS_PP)
+			if (reg & EHCI_PS_PP)
 				tmpbuf[1] |= USB_PORT_STAT_POWER >> 8;
-			if(ehci_is_TDI())
+			if (ehci_is_TDI())
 			{
 				switch((reg >> 26) & 3)
 				{
@@ -727,13 +730,13 @@ static int ehci_submit_root(struct usb_device *dev, uint32_t pipe, void *buffer,
 			}
 			else
 				tmpbuf[1] |= USB_PORT_STAT_HIGH_SPEED >> 8;    	
-			if(reg & EHCI_PS_CSC)
+			if (reg & EHCI_PS_CSC)
 				tmpbuf[2] |= USB_PORT_STAT_C_CONNECTION;
-			if(reg & EHCI_PS_PEC)
+			if (reg & EHCI_PS_PEC)
 				tmpbuf[2] |= USB_PORT_STAT_C_ENABLE;
-			if(reg & EHCI_PS_OCC)
+			if (reg & EHCI_PS_OCC)
 				tmpbuf[2] |= USB_PORT_STAT_C_OVERCURRENT;
-			if(portreset & (1 << swpw(req->index)))
+			if (portreset & (1 << swpw(req->index)))
 				tmpbuf[2] |= USB_PORT_STAT_C_RESET;
 			srcptr = tmpbuf;
 			srclen = 4;
@@ -748,14 +751,14 @@ static int ehci_submit_root(struct usb_device *dev, uint32_t pipe, void *buffer,
 					ehci_writel(status_reg, reg);
 					break;
 				case USB_PORT_FEAT_POWER:
-					if(HCS_PPC(ehci_readl(&gehci.hccr->cr_hcsparams)))
+					if (HCS_PPC(ehci_readl(&gehci.hccr->cr_hcsparams)))
 					{
 						reg |= EHCI_PS_PP;
 						ehci_writel(status_reg, reg);
 					}
 					break;
 				case USB_PORT_FEAT_RESET:
-					if((reg & (EHCI_PS_PE | EHCI_PS_CS)) == EHCI_PS_CS && !ehci_is_TDI() && EHCI_PS_IS_LOWSPEED(reg))
+					if ((reg & (EHCI_PS_PE | EHCI_PS_CS)) == EHCI_PS_CS && !ehci_is_TDI() && EHCI_PS_IS_LOWSPEED(reg))
 					{
 						/* Low speed device, give up ownership. */
 						debug("port %d low speed --> companion\r\n", swpw(req->index));
@@ -795,7 +798,7 @@ static int ehci_submit_root(struct usb_device *dev, uint32_t pipe, void *buffer,
 					reg = (reg & ~EHCI_PS_CLEAR) | EHCI_PS_PE;
 					break;
 				case USB_PORT_FEAT_POWER:
-					if(HCS_PPC(ehci_readl(&gehci.hccr->cr_hcsparams)))
+					if (HCS_PPC(ehci_readl(&gehci.hccr->cr_hcsparams)))
 						reg = reg & ~(EHCI_PS_CLEAR | EHCI_PS_PP);
 				case USB_PORT_FEAT_C_CONNECTION:
 					reg = (reg & ~EHCI_PS_CLEAR) | EHCI_PS_CSC;
@@ -820,7 +823,7 @@ static int ehci_submit_root(struct usb_device *dev, uint32_t pipe, void *buffer,
 	}
 	wait(1 * 1000);
 	len = min3(srclen, swpw(req->length), length);
-	if(srcptr != NULL && len > 0)
+	if (srcptr != NULL && len > 0)
 		memcpy(buffer, srcptr, len);
 	else
 		debug("Len is 0\r\n");
@@ -839,26 +842,26 @@ unknown:
 static int hc_interrupt(struct ehci *ehci)
 {
 	uint32_t status = ehci_readl(&ehci->hcor->or_usbsts);
-	if(status & STS_PCD) /* port change detect */
+	if (status & STS_PCD) /* port change detect */
 	{
 		uint32_t reg = ehci_readl(&ehci->hccr->cr_hcsparams);
 		uint32_t i = HCS_N_PORTS(reg);
 		while(i)
 		{
 			uint32_t pstatus = ehci_readl(&ehci->hcor->or_portsc[i-1]);
-			if(pstatus & EHCI_PS_PO)
+			if (pstatus & EHCI_PS_PO)
 			{
 				i--;
 				continue;
 			}
-			if(companion & (1 << i))
+			if (companion & (1 << i))
 			{
 				/* Low speed device, give up ownership. */
 				pstatus |= EHCI_PS_PO;
 				ehci_writel(&ehci->hcor->or_portsc[i-1], pstatus);
 			}
 #ifdef USB_POLL_HUB
-			else if((queue_poll_hub != NULL) && (pstatus & EHCI_PS_CSC))
+			else if ((queue_poll_hub != NULL) && (pstatus & EHCI_PS_CSC))
 			{
 				portBASE_TYPE xNeedSwitch = pdFALSE;
 				xNeedSwitch = xQueueSendFromISR(queue_poll_hub, &ehci->usbnum, xNeedSwitch);
@@ -875,8 +878,8 @@ static int hc_interrupt(struct ehci *ehci)
 
 void ehci_usb_event_poll(int interrupt)
 {
-	if(interrupt);
-	if(ehci_inited && gehci.handle)
+	if (interrupt);
+	if (ehci_inited && gehci.handle)
 		hc_interrupt(&gehci);
 }
 
@@ -884,7 +887,7 @@ void ehci_usb_event_poll(int interrupt)
 
 void ehci_usb_enable_interrupt(int enable)
 {
-	if(enable);
+	if (enable);
 }
 
 static int handle_usb_interrupt(struct ehci *ehci)
@@ -897,25 +900,25 @@ static int handle_usb_interrupt(struct ehci *ehci)
 static void hc_free_buffers(struct ehci *ehci)
 {
 	int i;
-	if(ehci->descriptor != NULL)
+	if (ehci->descriptor != NULL)
 	{
 		usb_free(ehci->descriptor);
 		ehci->descriptor = NULL;
 	}
-	for(i = 0; i < 3; i++)
+	for (i = 0; i < 3; i++)
 	{
-		if(ehci->td_unaligned[i] != NULL)
+		if (ehci->td_unaligned[i] != NULL)
 		{
 			usb_free(ehci->td_unaligned[i]);
 			ehci->td_unaligned[i] = NULL;
 		}
 	}
-	if(ehci->qh_unaligned != NULL)
+	if (ehci->qh_unaligned != NULL)
 	{
 		usb_free(ehci->qh_unaligned);
 		ehci->qh_unaligned = NULL;
 	}
-	if(ehci->qh_list_unaligned != NULL)
+	if (ehci->qh_list_unaligned != NULL)
 	{
 		usb_free(ehci->qh_list_unaligned);
 		ehci->qh_list_unaligned = NULL;
@@ -933,16 +936,16 @@ int ehci_usb_lowlevel_init(long handle, const struct pci_device_id *ent, void **
 	uint32_t usb_base_addr = 0xFFFFFFFF;
 	PCI_RSC_DESC *pci_rsc_desc;
 	pci_rsc_desc = (PCI_RSC_DESC *)pci_get_resource(handle); /* USB EHCI */
-	if(handle && (ent != NULL))
+	if (handle && (ent != NULL))
 	{
 		memset(&gehci, 0, sizeof(struct ehci));
 		gehci.handle = handle;
 		gehci.ent = ent;
 	}
-	else if(!gehci.handle) /* for restart USB cmd */
+	else if (!gehci.handle) /* for restart USB cmd */
 		return(-1);	
 	gehci.qh_list_unaligned = (struct QH *)usb_malloc(sizeof(struct QH) + 32);
-	if(gehci.qh_list_unaligned == NULL)
+	if (gehci.qh_list_unaligned == NULL)
 	{
 		debug("QHs malloc failed");
 		hc_free_buffers(&gehci);
@@ -951,7 +954,7 @@ int ehci_usb_lowlevel_init(long handle, const struct pci_device_id *ent, void **
 	gehci.qh_list = (struct QH *)(((uint32_t)gehci.qh_list_unaligned + 31) & ~31);
 	memset(gehci.qh_list, 0, sizeof(struct QH));
 	gehci.qh_unaligned = (struct QH *)usb_malloc(sizeof(struct QH) + 32);
-	if(gehci.qh_unaligned == NULL)
+	if (gehci.qh_unaligned == NULL)
 	{
 		debug("QHs malloc failed");
 		hc_free_buffers(&gehci);
@@ -959,10 +962,10 @@ int ehci_usb_lowlevel_init(long handle, const struct pci_device_id *ent, void **
 	}
 	gehci.qh = (struct QH *)(((uint32_t)gehci.qh_unaligned + 31) & ~31);
 	memset(gehci.qh, 0, sizeof(struct QH));
-	for(i = 0; i < 3; i++)
+	for (i = 0; i < 3; i++)
 	{
 		gehci.td_unaligned[i] = (struct qTD *)usb_malloc(sizeof(struct qTD) + 32);
-		if(gehci.td_unaligned[i] == NULL)
+		if (gehci.td_unaligned[i] == NULL)
 		{
 			debug("TDs malloc failed");
 			hc_free_buffers(&gehci);
@@ -972,28 +975,28 @@ int ehci_usb_lowlevel_init(long handle, const struct pci_device_id *ent, void **
 		memset(gehci.td[i], 0, sizeof(struct qTD));	
 	}
 	gehci.descriptor = (struct descriptor *)usb_malloc(sizeof(struct descriptor));
-	if(gehci.descriptor == NULL)
+	if (gehci.descriptor == NULL)
 	{
 		debug("decriptor malloc failed");
 		hc_free_buffers(&gehci);
 		return(-1);
 	}
 	memcpy(gehci.descriptor, &rom_descriptor, sizeof(struct descriptor));
-	if((long)pci_rsc_desc >= 0)
+	if ((long)pci_rsc_desc >= 0)
 	{
 		unsigned short flags;
 		do
 		{
 			debug("PCI USB descriptors: flags 0x%04x start 0x%08lx \r\n offset 0x%08lx dmaoffset 0x%08lx length 0x%08lx",
 			 pci_rsc_desc->flags, pci_rsc_desc->start, pci_rsc_desc->offset, pci_rsc_desc->dmaoffset, pci_rsc_desc->length);
-			if(!(pci_rsc_desc->flags & FLG_IO))
+			if (!(pci_rsc_desc->flags & FLG_IO))
 			{
-				if(usb_base_addr == 0xFFFFFFFF)
+				if (usb_base_addr == 0xFFFFFFFF)
 				{
 					usb_base_addr = pci_rsc_desc->start;
 					gehci.hccr = (struct ehci_hccr *)(pci_rsc_desc->offset + pci_rsc_desc->start);
 					gehci.dma_offset = pci_rsc_desc->dmaoffset;
-					if((pci_rsc_desc->flags & FLG_ENDMASK) == ORD_MOTOROLA)
+					if ((pci_rsc_desc->flags & FLG_ENDMASK) == ORD_MOTOROLA)
 						gehci.big_endian = 0; /* host bridge make swapping intel -> motorola */
 					else
 						gehci.big_endian = 1; /* driver must swapping intel -> motorola */
@@ -1009,12 +1012,12 @@ int ehci_usb_lowlevel_init(long handle, const struct pci_device_id *ent, void **
 		hc_free_buffers(&gehci);
 		return(-1); /* get_resource error */
 	}
-	if(usb_base_addr == 0xFFFFFFFF)
+	if (usb_base_addr == 0xFFFFFFFF)
 	{
 		hc_free_buffers(&gehci);
 		return(-1);
 	}
-	if(handle && (ent != NULL))
+	if (handle && (ent != NULL))
 	{
 		switch(ent->vendor)
 		{
@@ -1027,7 +1030,7 @@ int ehci_usb_lowlevel_init(long handle, const struct pci_device_id *ent, void **
 	xprintf("EHCI usb-%s, regs address 0x%08X, PCI handle 0x%X\r\n", gehci.slot_name, gehci.hccr, handle);
 
 	/* EHCI spec section 4.1 */
-	if(ehci_reset() != 0)
+	if (ehci_reset() != 0)
 	{
 		hc_free_buffers(&gehci);
 		return(-1);
@@ -1045,10 +1048,10 @@ int ehci_usb_lowlevel_init(long handle, const struct pci_device_id *ent, void **
 	gehci.descriptor->hub.bNbrPorts = HCS_N_PORTS(reg);
 	info("Register %x NbrPorts %d", reg, gehci.descriptor->hub.bNbrPorts);
 	/* Port Indicators */
-	if(HCS_INDICATOR(reg))
+	if (HCS_INDICATOR(reg))
 		gehci.descriptor->hub.wHubCharacteristics |= 0x80;
 	/* Port Power Control */
-	if(HCS_PPC(reg))
+	if (HCS_PPC(reg))
 		gehci.descriptor->hub.wHubCharacteristics |= 0x01;
 	/* Start the host controller. */
 	cmd = ehci_readl(&gehci.hcor->or_usbcmd);
@@ -1070,7 +1073,7 @@ int ehci_usb_lowlevel_init(long handle, const struct pci_device_id *ent, void **
 	pci_hook_interrupt(handle, handle_usb_interrupt, &gehci);
 	ehci_writel(&gehci.hcor->or_usbintr, INTR_PCDE);
 	rootdev = 0;
-	if(priv != NULL)
+	if (priv != NULL)
 		*priv = (void *)&gehci;
 	ehci_inited = 1;
 	return(0);
@@ -1079,8 +1082,8 @@ int ehci_usb_lowlevel_init(long handle, const struct pci_device_id *ent, void **
 int ehci_usb_lowlevel_stop(void *priv)
 {
 	uint32_t cmd;
-	if(priv);
-	if(!ehci_inited)
+	if (priv);
+	if (!ehci_inited)
 		return(0);
   /* turn off interrupts */
 	ehci_writel(&gehci.hcor->or_usbintr, 0);
@@ -1102,7 +1105,7 @@ int ehci_usb_lowlevel_stop(void *priv)
 
 int ehci_submit_bulk_msg(struct usb_device *dev, uint32_t pipe, void *buffer, int length)
 {
-	if(usb_pipetype(pipe) != PIPE_BULK)
+	if (usb_pipetype(pipe) != PIPE_BULK)
 	{
 		debug("non-bulk pipe (type=%lu)", usb_pipetype(pipe));
 		return -1;
@@ -1112,14 +1115,14 @@ int ehci_submit_bulk_msg(struct usb_device *dev, uint32_t pipe, void *buffer, in
 
 int ehci_submit_control_msg(struct usb_device *dev, uint32_t pipe, void *buffer, int length, struct devrequest *setup)
 {
-	if(usb_pipetype(pipe) != PIPE_CONTROL)
+	if (usb_pipetype(pipe) != PIPE_CONTROL)
 	{
 		debug("non-control pipe (type=%lu)", usb_pipetype(pipe));
 		return -1;
 	}
-	if(usb_pipedevice(pipe) == rootdev)
+	if (usb_pipedevice(pipe) == rootdev)
 	{
-		if(rootdev == 0)
+		if (rootdev == 0)
 			dev->speed = USB_SPEED_HIGH;
 		return ehci_submit_root(dev, pipe, buffer, length, setup);
 	}

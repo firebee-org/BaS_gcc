@@ -31,9 +31,9 @@
 #define USB_MEM_DEBUG
 
 #ifdef	USB_MEM_DEBUG
-#define	USB_MEM_PRINTF(fmt,args...)	xprintf(fmt ,##args)
+#define	USB_MEM_PRINTF(fmt, args...)	xprintf(fmt, ##args)
 #else
-#define USB_MEM_PRINTF(fmt,args...)
+#define USB_MEM_PRINTF(fmt, args...)
 #endif
 
 extern int asm_set_ipl(int level);
@@ -93,7 +93,7 @@ static void xmfreblk(void *m)
 
 static MD *ffit(long amount, MPB *mp)
 {
-	MD *p,*q,*p1;                    /* free list is composed of MD's */
+	MD *p, *q, *p1;                    /* free list is composed of MD's */
 	int maxflg;
 	long maxval;
 	if (amount != -1)
@@ -248,7 +248,6 @@ int usb_mem_init(void)
 #ifdef USE_RADEON_MEMORY
 	usb_buffer = (void *)offscren_reserved();
 	if (usb_buffer == NULL)
-#else
 #endif
 	memset(usb_buffer, 0, USB_BUFFER_SIZE);
 
