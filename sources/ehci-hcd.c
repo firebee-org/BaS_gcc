@@ -23,6 +23,7 @@
 
 
 #include "util.h"		/* for endian conversions */
+#include "bas_printf.h"	/* for diagnostics */
 #include "wait.h"
 #include "cache.h"
 #include "usb.h"
@@ -268,69 +269,12 @@ static int ehci_reset(void)
 	uint32_t tmp;
 	uint32_t *reg_ptr;
 	int ret = 0;
-#ifdef MCF547X
 	if ((gehci.ent->vendor == PCI_VENDOR_ID_NEC)
 	 && (gehci.ent->device == PCI_DEVICE_ID_NEC_USB_2))
 	{
 		debug("ehci_reset set 48MHz clock\r\n");
-#ifdef PCI_XBIOS
-	 	write_config_longword(gehci.handle, 0xE4, 0x20); // oscillator
-#else
-	 	Write_config_longword(gehci.handle, 0xE4, 0x20); // oscillator
-#endif
+	 	pci_write_config_longword(gehci.handle, 0xE4, 0x20); // oscillator
 	}
-#endif /* MCF547X */
-#if !defined(COLDFIRE) && defined(CONFIG_USB_OHCI) && !defined(CONFIG_USB_INTERRUPT_POLLING)
-	{	/* if driver started without PCI reset => disable OHCI interrupts */
-#define OHCI_INTRDISABLE     0x14
-#define OHCI_INTR_MIE (1 << 31)	/* master interrupt enable */
-		short index = 0;
-		long handle;
-		do
-		{
-#ifdef PCI_XBIOS
-			handle = find_pci_device(0x0000FFFFL, index++);
-#else
-			handle = Find_pci_device(0x0000FFFFL, index++);
-#endif
-			if ((handle >= 0) && ((gehci.handle & 0xFFFF) == (handle & 0xFFFF)))
-			{
-				uint32_t class;
-#ifdef PCI_XBIOS
-				long error = read_config_longword(handle, PCIREV, &class);
-#else
-				long error = Read_config_longword(handle, PCIREV, &class);
-#endif
-				if ((error >= 0) && ((class >> 16) == PCI_CLASS_SERIAL_USB) && ((class >> 8) == PCI_CLASS_SERIAL_USB_OHCI))
-				 {
-					uint32_t usb_base_addr = 0xFFFFFFFF;
-					PCI_RSC_DESC *pci_rsc_desc;
-					pci_rsc_desc = (PCI_RSC_DESC *)pci_get_resource(handle); /* USB OHCI */
-					if ((long)pci_rsc_desc >= 0)
-					{
-						unsigned short flags;
-						do
-						{
-							if (!(pci_rsc_desc->flags & FLG_IO))
-							{
-								if (usb_base_addr == 0xFFFFFFFF)
-								{
-									uint32_t base = pci_rsc_desc->offset + pci_rsc_desc->start;
-									usb_base_addr = pci_rsc_desc->start;
-									ehci_writel(base + OHCI_INTRDISABLE, OHCI_INTR_MIE);
-								}
-							}
-							flags = pci_rsc_desc->flags;
-							pci_rsc_desc = (PCI_RSC_DESC *)((uint32_t)pci_rsc_desc->next + (uint32_t)pci_rsc_desc);
-						}
-						while(!(flags & FLG_LAST));
-					}
-				}
-			}
-		}
-		while(handle >= 0);
-	}
-#endif /* !defined(COLDFIRE) && defined(CONFIG_USB_OHCI) && !defined(CONFIG_USB_INTERRUPT_POLLING) */
 	cmd = ehci_readl(&gehci.hcor->or_usbcmd);
 	cmd |= CMD_RESET;
 	ehci_writel(&gehci.hcor->or_usbcmd, cmd);
@@ -345,9 +289,7 @@ static int ehci_reset(void)
 		reg_ptr = (uint32_t *)((u8 *)gehci.hcor + USBMODE);
 		tmp = ehci_readl(reg_ptr);
 		tmp |= USBMODE_CM_HC;
-#if defined(CONFIG_EHCI_MMIO_BIG_ENDIAN)
 		tmp |= USBMODE_BE;
-#endif
 		ehci_writel(reg_ptr, tmp);
 	}
 out:
@@ -860,30 +802,12 @@ static int hc_interrupt(struct ehci *ehci)
 				pstatus |= EHCI_PS_PO;
 				ehci_writel(&ehci->hcor->or_portsc[i-1], pstatus);
 			}
-#ifdef USB_POLL_HUB
-			else if ((queue_poll_hub != NULL) && (pstatus & EHCI_PS_CSC))
-			{
-				portBASE_TYPE xNeedSwitch = pdFALSE;
-				xNeedSwitch = xQueueSendFromISR(queue_poll_hub, &ehci->usbnum, xNeedSwitch);
-			} /* to fix xNeedSwitch usage */
-#endif		
 			i--;
 		}
 	} 
   ehci_writel(&ehci->hcor->or_usbsts, status);
 	return(1); /* interrupt was from this card */
 }
-
-#ifdef CONFIG_USB_INTERRUPT_POLLING
-
-void ehci_usb_event_poll(int interrupt)
-{
-	if (interrupt);
-	if (ehci_inited && gehci.handle)
-		hc_interrupt(&gehci);
-}
-
-#else /* !CONFIG_USB_INTERRUPT_POLLING */
 
 void ehci_usb_enable_interrupt(int enable)
 {
@@ -894,8 +818,6 @@ static int handle_usb_interrupt(struct ehci *ehci)
 {
 	return(hc_interrupt(ehci));
 }
-
-#endif /* CONFIG_USB_INTERRUPT_POLLING */
 
 static void hc_free_buffers(struct ehci *ehci)
 {
@@ -930,9 +852,6 @@ int ehci_usb_lowlevel_init(long handle, const struct pci_device_id *ent, void **
 	int i;
 	uint32_t reg;
 	uint32_t cmd;
-#ifndef COLDFIRE
-	uint32_t tmp;
-#endif
 	uint32_t usb_base_addr = 0xFFFFFFFF;
 	PCI_RSC_DESC *pci_rsc_desc;
 	pci_rsc_desc = (PCI_RSC_DESC *)pci_get_resource(handle); /* USB EHCI */
