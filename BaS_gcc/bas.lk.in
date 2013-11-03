@@ -70,14 +70,14 @@ SECTIONS
 		__BAS_DATA_END = .;
 		*(.bss)	
 #endif /* TARGET_ADDRESS */
+#if (TARGET_ADDRESS < 0x1FFFFFFF && TARGET_ADDRESS > 0)
+		. = ALIGN(16);
+		_usb_buffer = .;
+#endif
 
 #if (FORMAT == elf32-m68k)
 		*(.rodata)
 		*(.rodata.*)
-#endif
-#if (TARGET_ADDRESS < 0x1FFFFFFF && TARGET_ADDRESS > 0)
-		. = ALIGN(16);
-		_usb_buffer = .;
 #endif
 	} > bas_rom
 
