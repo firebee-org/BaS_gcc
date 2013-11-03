@@ -21,6 +21,8 @@
  *      Author: Markus Fröschle
  */
 
+#include <stdint.h>
+
 #define	 PCI_MEMORY_OFFSET	(0x80000000)
 #define	 PCI_MEMORY_SIZE	(0x40000000)	/* 1 GByte PCI memory window */
 #define	 PCI_IO_OFFSET		(0xD0000000)
@@ -196,5 +198,8 @@ typedef struct                       /* structure of address conversion     */
 extern void init_eport(void);
 extern void init_xlbus_arbiter(void);
 extern void init_pci(void);
+
+extern int pci_find_device(uint16_t device_id, uint16_t vendor_id, int index);
+
 
 #endif /* _PCI_H_ */

@@ -101,14 +101,6 @@ uint32_t pci_read_config_longword(uint16_t bus, uint16_t slot, uint16_t function
 	wait(1000);
 	value =  * (volatile uint32_t *) PCI_IO_OFFSET;	/* access device */
 
-#ifdef _NOT_USED_
-	/* finish config cycle */
-
-	MCF_PCI_PCICAR = MCF_PCI_PCICAR_DEVNUM(10) |
-			MCF_PCI_PCICAR_FUNCNUM(function) |
-			MCF_PCI_PCICAR_DWORD(0);
-#endif /* _NOT_USED_ */
-
 	swpl(value);
 
 	//xprintf("PCISCR after config cycle: %lx\r\n", MCF_PCI_PCISCR);
@@ -157,15 +149,45 @@ void pci_write_config_longword(uint16_t bus, uint16_t slot, uint16_t function, u
 	wait(1000);
 	swpl(value);
 	* (volatile uint32_t *) PCI_IO_OFFSET = value;	/* access device */
-
-#ifdef _NOT_USED_
-	/* finish config cycle */
-
-	MCF_PCI_PCICAR = MCF_PCI_PCICAR_DEVNUM(10) |
-			MCF_PCI_PCICAR_FUNCNUM(function) |
-			MCF_PCI_PCICAR_DWORD(0);
-#endif /* _NOT_USED_ */
 }
+
+int pci_find_device(uint16_t device_id, uint16_t vendor_id, int index)
+{
+	uint16_t bus;
+	uint16_t slot;
+	uint16_t function;
+	uint16_t pos = 0;
+	int handle;
+
+	for (bus = 0; bus < 1; bus++)
+	{
+		for (slot = 0; slot < 32; slot++)
+		{
+			for (function = 0; function < 8; function++)
+			{
+				uint32_t value;
+
+				value = pci_read_config_longword(bus, slot, function, 0);
+				handle = bus << 16 | slot << 8 | function;
+				if (value != 0xffffffff)	/* we have a device at this position */
+				{
+					if (vendor_id == 0xffff)	/* ignore vendor id */
+					{
+						return handle;
+					}
+					else if (PCI_VENDOR_ID(value) == vendor_id && PCI_DEVICE_ID(value) == device_id)
+					{
+						if (pos == index)
+							return handle;
+						pos++;
+					}
+				}
+			}
+		}
+	}
+	return PCI_DEVICE_NOT_FOUND;
+}
+
 
 static uint32_t mem_address = PCI_MEMORY_OFFSET;
 static uint32_t io_address = PCI_IO_OFFSET;
