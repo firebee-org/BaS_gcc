@@ -158,7 +158,7 @@ static struct ehci {
 	struct qTD *td[3];
 	struct descriptor *descriptor;
 	int irq;
-	unsigned long dma_offset;
+	uint32_t dma_offset;
 	const char *slot_name;
 } gehci;
 
@@ -299,7 +299,7 @@ static int ehci_reset(void)
 #endif
 			if((handle >= 0) && ((gehci.handle & 0xFFFF) == (handle & 0xFFFF)))
 			{
-				unsigned long class;
+				uint32_t class;
 #ifdef PCI_XBIOS
 				long error = read_config_longword(handle, PCIREV, &class);
 #else
@@ -307,7 +307,7 @@ static int ehci_reset(void)
 #endif
 				if((error >= 0) && ((class >> 16) == PCI_CLASS_SERIAL_USB) && ((class >> 8) == PCI_CLASS_SERIAL_USB_OHCI))
 				 {
-					unsigned long usb_base_addr = 0xFFFFFFFF;
+					uint32_t usb_base_addr = 0xFFFFFFFF;
 					PCI_RSC_DESC *pci_rsc_desc;
 #ifdef PCI_XBIOS
 					pci_rsc_desc = (PCI_RSC_DESC *)get_resource(handle); /* USB OHCI */
@@ -323,13 +323,13 @@ static int ehci_reset(void)
 							{
 								if(usb_base_addr == 0xFFFFFFFF)
 								{
-									unsigned long base = pci_rsc_desc->offset + pci_rsc_desc->start;
+									uint32_t base = pci_rsc_desc->offset + pci_rsc_desc->start;
 									usb_base_addr = pci_rsc_desc->start;
 									ehci_writel(base + OHCI_INTRDISABLE, OHCI_INTR_MIE);
 								}
 							}
 							flags = pci_rsc_desc->flags;
-							pci_rsc_desc = (PCI_RSC_DESC *)((unsigned long)pci_rsc_desc->next + (unsigned long)pci_rsc_desc);
+							pci_rsc_desc = (PCI_RSC_DESC *)((uint32_t)pci_rsc_desc->next + (uint32_t)pci_rsc_desc);
 						}
 						while(!(flags & FLG_LAST));
 					}
@@ -414,12 +414,12 @@ static int ehci_td_buffer(struct qTD *td, void *buf, size_t sz)
 	return 0;
 }
 
-static int ehci_submit_async(struct usb_device *dev, unsigned long pipe, void *buffer, int length, struct devrequest *req)
+static int ehci_submit_async(struct usb_device *dev, uint32_t pipe, void *buffer, int length, struct devrequest *req)
 {
 	struct QH *qh;
 	struct qTD *td;
 	volatile struct qTD *vtd;
-	unsigned long ts;
+	uint32_t ts;
 	uint32_t *tdp;
 	uint32_t endpt, token, usbsts;
 	uint32_t c, toggle;
@@ -615,7 +615,7 @@ static inline int min3(int a, int b, int c)
 	return a;
 }
 
-static int ehci_submit_root(struct usb_device *dev, unsigned long pipe, void *buffer, int length, struct devrequest *req)
+static int ehci_submit_root(struct usb_device *dev, uint32_t pipe, void *buffer, int length, struct devrequest *req)
 {
 	uint8_t tmpbuf[4];
 	u16 typeReq;
@@ -945,7 +945,7 @@ int ehci_usb_lowlevel_init(long handle, const struct pci_device_id *ent, void **
 #ifndef COLDFIRE
 	uint32_t tmp;
 #endif
-	unsigned long usb_base_addr = 0xFFFFFFFF;
+	uint32_t usb_base_addr = 0xFFFFFFFF;
 	PCI_RSC_DESC *pci_rsc_desc;
 #ifdef PCI_XBIOS
 	pci_rsc_desc = (PCI_RSC_DESC *)get_resource(handle); /* USB EHCI */
@@ -972,7 +972,7 @@ int ehci_usb_lowlevel_init(long handle, const struct pci_device_id *ent, void **
 		hc_free_buffers(&gehci);
 		return(-1);
 	}
-	gehci.qh_list = (struct QH *)(((unsigned long)gehci.qh_list_unaligned + 31) & ~31);
+	gehci.qh_list = (struct QH *)(((uint32_t)gehci.qh_list_unaligned + 31) & ~31);
 	memset(gehci.qh_list, 0, sizeof(struct QH));
 	gehci.qh_unaligned = (struct QH *)usb_malloc(sizeof(struct QH) + 32);
 	if(gehci.qh_unaligned == NULL)
@@ -981,7 +981,7 @@ int ehci_usb_lowlevel_init(long handle, const struct pci_device_id *ent, void **
 		hc_free_buffers(&gehci);
 		return(-1);
 	}
-	gehci.qh = (struct QH *)(((unsigned long)gehci.qh_unaligned + 31) & ~31);
+	gehci.qh = (struct QH *)(((uint32_t)gehci.qh_unaligned + 31) & ~31);
 	memset(gehci.qh, 0, sizeof(struct QH));
 	for(i = 0; i < 3; i++)
 	{
@@ -992,7 +992,7 @@ int ehci_usb_lowlevel_init(long handle, const struct pci_device_id *ent, void **
 			hc_free_buffers(&gehci);
 			return(-1);
 		}
-		gehci.td[i] = (struct qTD *)(((unsigned long)gehci.td_unaligned[i] + 31) & ~31);
+		gehci.td[i] = (struct qTD *)(((uint32_t)gehci.td_unaligned[i] + 31) & ~31);
 		memset(gehci.td[i], 0, sizeof(struct qTD));	
 	}
 	gehci.descriptor = (struct descriptor *)usb_malloc(sizeof(struct descriptor));
@@ -1024,7 +1024,7 @@ int ehci_usb_lowlevel_init(long handle, const struct pci_device_id *ent, void **
 				}
 			}
 			flags = pci_rsc_desc->flags;
-			pci_rsc_desc = (PCI_RSC_DESC *)((unsigned long)pci_rsc_desc->next + (unsigned long)pci_rsc_desc);
+			pci_rsc_desc = (PCI_RSC_DESC *)((uint32_t)pci_rsc_desc->next + (uint32_t)pci_rsc_desc);
 		}
 		while(!(flags & FLG_LAST));
 	}
@@ -1095,7 +1095,7 @@ int ehci_usb_lowlevel_init(long handle, const struct pci_device_id *ent, void **
 #ifdef PCI_XBIOS
 	hook_interrupt(handle, handle_usb_interrupt, &gehci);
 #else
-	Hook_interrupt(handle, (void *)handle_usb_interrupt, (unsigned long *)&gehci);
+	Hook_interrupt(handle, (void *)handle_usb_interrupt, (uint32_t *)&gehci);
 #endif /* PCI_BIOS */
 	ehci_writel(&gehci.hcor->or_usbintr, INTR_PCDE);
 #endif /* CONFIG_USB_INTERRUPT_POLLING */
@@ -1136,7 +1136,7 @@ int ehci_usb_lowlevel_stop(void *priv)
 	return(0);
 }
 
-int ehci_submit_bulk_msg(struct usb_device *dev, unsigned long pipe, void *buffer, int length)
+int ehci_submit_bulk_msg(struct usb_device *dev, uint32_t pipe, void *buffer, int length)
 {
 	if(usb_pipetype(pipe) != PIPE_BULK)
 	{
@@ -1146,7 +1146,7 @@ int ehci_submit_bulk_msg(struct usb_device *dev, unsigned long pipe, void *buffe
 	return ehci_submit_async(dev, pipe, buffer, length, NULL);
 }
 
-int ehci_submit_control_msg(struct usb_device *dev, unsigned long pipe, void *buffer, int length, struct devrequest *setup)
+int ehci_submit_control_msg(struct usb_device *dev, uint32_t pipe, void *buffer, int length, struct devrequest *setup)
 {
 	if(usb_pipetype(pipe) != PIPE_CONTROL)
 	{
@@ -1162,7 +1162,7 @@ int ehci_submit_control_msg(struct usb_device *dev, unsigned long pipe, void *bu
 	return ehci_submit_async(dev, pipe, buffer, length, setup);
 }
 
-int ehci_submit_int_msg(struct usb_device *dev, unsigned long pipe, void *buffer, int length, int interval)
+int ehci_submit_int_msg(struct usb_device *dev, uint32_t pipe, void *buffer, int length, int interval)
 {
 	debug("submit_int_msg dev=%p, pipe=%lu, buffer=%p, length=%d, interval=%d", dev, pipe, buffer, length, interval);
 	return -1;

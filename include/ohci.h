@@ -369,7 +369,7 @@ typedef struct
 	uint16_t td_cnt;	/* number of tds already serviced */
 	struct usb_device *dev;
 	int   state;
-	unsigned long pipe;
+	uint32_t pipe;
 	void *transfer_buffer;
 	int transfer_buffer_length;
 	int interval;
@@ -414,10 +414,10 @@ typedef struct ohci {
 	int disabled;			/* e.g. got a UE, we're hung */
 	int sleeping;
 #define OHCI_FLAGS_NEC 0x80000000
-	unsigned long flags;		/* for HC bugs */
+	uint32_t flags;		/* for HC bugs */
 
-	unsigned long offset;
-	unsigned long dma_offset;
+	uint32_t offset;
+	uint32_t dma_offset;
 	struct ohci_regs *regs; /* OHCI controller's memory */
 
 	int ohci_int_load[32];	 /* load of the 32 Interrupt Chains (for load balancing)*/
@@ -439,7 +439,7 @@ typedef struct ohci {
 /* endpoint */
 static int ep_link(ohci_t * ohci, ed_t * ed);
 static int ep_unlink(ohci_t * ohci, ed_t * ed);
-static ed_t * ep_add_ed(ohci_t * ohci, struct usb_device * usb_dev, unsigned long pipe, int interval, int load);
+static ed_t * ep_add_ed(ohci_t * ohci, struct usb_device * usb_dev, uint32_t pipe, int interval, int load);
 
 /*-------------------------------------------------------------------------*/
 
