@@ -131,16 +131,16 @@ struct usb_linux_config_descriptor {
 #define	ehci_readl(x)		(*((volatile u32 *)(x)))
 #define ehci_writel(a, b)	(*((volatile u32 *)(a)) = ((volatile u32)b))
 #else
-#define ehci_readl(x)		cpu_to_le32((*((volatile u32 *)(x))))
-#define ehci_writel(a, b)	(*((volatile u32 *)(a)) = cpu_to_le32(((volatile u32)b)))
+#define ehci_readl(x)		swpl((*((volatile u32 *)(x))))
+#define ehci_writel(a, b)	(*((volatile u32 *)(a)) = swpl(((volatile u32)b)))
 #endif
 
 #if defined CONFIG_EHCI_MMIO_BIG_ENDIAN
 #define hc32_to_cpu(x)		be32_to_cpu((x))
 #define cpu_to_hc32(x)		cpu_to_be32((x))
 #else
-#define hc32_to_cpu(x)		le32_to_cpu((x))
-#define cpu_to_hc32(x)		cpu_to_le32((x))
+#define hc32_to_cpu(x)		swpl((x))
+#define cpu_to_hc32(x)		swpl((x))
 #endif
 
 #define EHCI_PS_WKOC_E		(1 << 22)	/* RW wake on over current */

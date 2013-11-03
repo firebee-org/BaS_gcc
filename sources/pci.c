@@ -59,6 +59,8 @@ static struct pci_class
 };
 static int num_classes = sizeof(pci_classes) / sizeof(struct pci_class);
 
+static struct resource_descriptor resource_descriptors[16];
+
 static char *device_class(int classcode)
 {
 	int i;
@@ -153,6 +155,13 @@ void pci_write_config_longword(uint16_t handle, uint16_t offset, uint32_t value)
 
 	wait(1000);
 	* (volatile uint32_t *) PCI_IO_OFFSET = swpl(value);	/* access device */
+}
+
+struct resource_descriptor *pci_get_resource(uint16_t handle)
+{
+	/* TODO: implement */
+
+	return (struct resource_descriptor *) 0L;
 }
 
 int pci_find_device(uint16_t device_id, uint16_t vendor_id, int index)

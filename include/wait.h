@@ -36,6 +36,8 @@
 //#error unknown machine
 #endif /* MACHINE_FIREBEE */
 
+#include "MCF5475.h"
+
 typedef bool (*checker_func)(void);
 
 extern __inline__ void wait(uint32_t) __attribute__((always_inline));

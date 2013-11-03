@@ -83,6 +83,7 @@ CSRCS= \
 	$(SRCDIR)/MCD_tasks.c \
 	$(SRCDIR)/MCD_tasksInit.c \
 	\
+	$(SRCDIR)/usb.c \
 	$(SRCDIR)/ohci-hcd.c \
 	$(SRCDIR)/ehci-hcd.c \
 	\

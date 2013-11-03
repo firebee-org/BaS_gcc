@@ -42,6 +42,18 @@ void bzero(void *s, size_t n)
 		((unsigned char *) s)[i] = '\0';
 }
 
+void *memset(void *s, int c, size_t n)
+{
+	uint8_t *dst = s;
+
+	do
+	{
+		*dst++ = c;
+	} while ((dst - (uint8_t *) s) < n);
+
+	return s;
+}
+
 
 int strncmp(const char *s1, const char *s2, int max)
 {
