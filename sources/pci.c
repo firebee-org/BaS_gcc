@@ -132,6 +132,12 @@ uint8_t pci_read_config_byte(uint16_t handle, uint16_t offset)
 	return ((value >> (3 - offset % 4) * 8) & 0xff);
 }
 
+/*
+ * pci_write_config_longword()
+ *
+ * write an uint32_t value to the configuration space of a PCI device
+ * offset is a PCI DWORD value.
+ */
 void pci_write_config_longword(uint16_t handle, uint16_t offset, uint32_t value)
 {
 	uint16_t bus = PCI_BUS_FROM_HANDLE(handle);
@@ -163,6 +169,11 @@ void pci_write_config_longword(uint16_t handle, uint16_t offset, uint32_t value)
 	* (volatile uint32_t *) PCI_IO_OFFSET = swpl(value);	/* access device */
 }
 
+/*
+ * pci_get_resource
+ *
+ * get resource descriptor chain for handle
+ */
 PCI_RSC_DESC *pci_get_resource(uint16_t handle)
 {
 	int i;
@@ -176,6 +187,12 @@ PCI_RSC_DESC *pci_get_resource(uint16_t handle)
 	return resource_descriptors[handles[index].index];
 }
 
+/*
+ * pci_find_device()
+ *
+ * find index'th device by device_id and vendor_id. Special case: vendor id -1 (0xffff)
+ * matches all devices. You can search the whole bus by repeatedly calling this function
+ */
 int16_t pci_find_device(uint16_t device_id, uint16_t vendor_id, int index)
 {
 	uint16_t bus;
@@ -223,6 +240,7 @@ int16_t pci_find_device(uint16_t device_id, uint16_t vendor_id, int index)
 int16_t pci_hook_interrupt(uint16_t handle, void *handler, void *parameter)
 {
 	/* FIXME: implement */
+	xprintf("pci_hook_interrupt() still not implemented\r\n");
 	return PCI_SUCCESSFUL;
 }
 
@@ -230,6 +248,7 @@ int16_t pci_unhook_interrupt(uint16_t handle)
 {
 	/* FIXME: implement */
 
+	xprintf("pci_unhook_interrupt() still not implemented\r\n");
 	return PCI_SUCCESSFUL;
 }
 
@@ -237,7 +256,12 @@ int16_t pci_unhook_interrupt(uint16_t handle)
 static uint32_t mem_address = PCI_MEMORY_OFFSET;
 static uint32_t io_address = PCI_IO_OFFSET;
 
-void pci_device_config(uint16_t bus, uint16_t slot, uint16_t function)
+/*
+ * pci_device_config()
+ *
+ * Map card resources, adjust BARs and fill resource descriptors
+ */
+static void pci_device_config(uint16_t bus, uint16_t slot, uint16_t function)
 {
 	uint32_t address;
 	uint16_t handle;
@@ -245,7 +269,10 @@ void pci_device_config(uint16_t bus, uint16_t slot, uint16_t function)
 	PCI_RSC_DESC *descriptors;
 	int i;
 
+	/* determine pci handle from bus, slot + function number */
 	handle = PCI_HANDLE(bus, slot, function);
+
+	/* find index into resource descriptor table for handle */
 	for (i = 0; i < 10; i++)
 	{
 		if (handles[i].handle == handle)
@@ -283,10 +310,18 @@ void pci_device_config(uint16_t bus, uint16_t slot, uint16_t function)
 			{
 				int size = ~(address & 0xfffffff0) + 1;
 
+				/* calculate start adress with alignment */
 				mem_address = (mem_address + size - 1) & ~(size - 1);
+
+				/* write it to the BAR */
 				pci_write_config_longword(handle, 0x10 + i, mem_address);
+
+				/* read it back, just to be sure */
 				value = pci_read_config_longword(handle, 0x10 + i);
+
 				//xprintf("BAR[%d] configured to %08x, size %x\r\n", i, value, size);
+
+				/* fill resource descriptor */
 				descriptors[barnum].next = sizeof(PCI_RSC_DESC);
 				descriptors[barnum].flags = 0 | FLG_8BIT | FLG_16BIT | FLG_32BIT | 1;
 				descriptors[barnum].start = mem_address;
@@ -294,17 +329,28 @@ void pci_device_config(uint16_t bus, uint16_t slot, uint16_t function)
 				descriptors[barnum].offset = 0;
 				descriptors[barnum].dmaoffset = 0;
 
+				/* adjust memory adress for next turn */
 				mem_address += size;
+
+				/* index to next unused resource descriptor */
 				barnum++;
 			}
 			else if (IS_PCI_IO_BAR(value))
 			{
 				int size = ~(address & 0xfffffffc) + 1;
 
+				/* calculate start adress with alignment */
 				io_address = (io_address + size - 1) & ~(size - 1);
+
+				/* write it to the BAR */
 				pci_write_config_longword(handle, 0x10 + i, io_address);
+
+				/* read it back, just to be sure */
 				value = pci_read_config_longword(handle, 0x10 + i);
+
 				//xprintf("BAR[%d] mapped to %08x, size %x\r\n", i, value, size);
+
+				/* fill resource descriptor */
 				descriptors[barnum].next = sizeof(PCI_RSC_DESC);
 				descriptors[barnum].flags = FLG_IO | FLG_8BIT | FLG_16BIT | FLG_32BIT | 1;
 				descriptors[barnum].start = io_address;
@@ -312,11 +358,15 @@ void pci_device_config(uint16_t bus, uint16_t slot, uint16_t function)
 				descriptors[barnum].length = size;
 				descriptors[barnum].dmaoffset = PCI_MEMORY_OFFSET;
 
+				/* adjust I/O adress for next turn */
 				io_address += size;
+
+				/* index to next unused resource descriptor */
 				barnum++;
 			}
 		}
 	}
+	/* mark end of resource chain */
 	if (barnum > 0)
 		descriptors[barnum - 1].flags |= FLG_LAST;
 }
@@ -332,7 +382,7 @@ void pci_scan(void)
 	xprintf("\r\nPCI bus scan...\r\n\r\n");
 	xprintf(" Bus|Slot|Func|Vndr|Dev |\r\n");
 	xprintf("----+----+----|----+----|\r\n");
-	for (bus = 0; bus < 1; bus++)
+	for (bus = 0; bus < 2; bus++)	/* scan two busses. FireBee USB is on DEVSEL(17) */
 	{
 		for (slot = 0; slot < 32; slot++)
 		{
@@ -351,16 +401,20 @@ void pci_scan(void)
 
 					if (PCI_VENDOR_ID(value) != 0x1057 && PCI_DEVICE_ID(value) != 0x5806) /* do not configure bridge */
 					{
+						/* save handle to index value so that we later find our resources again */
 						handles[index].index = index;
 						handles[index].handle = PCI_HANDLE(bus, slot, function);
+
+						/* configure memory and I/O for card */
 						pci_device_config(bus, slot, function);
 					}
 
-					for (i = 0; i < 0x40; i += 4)
-					{
-						value = pci_read_config_longword(handle, i);
+					//for (i = 0; i < 0x40; i += 4)
+					//{
+						//value = pci_read_config_longword(handle, i);
 						//xprintf("register %02x value= %08x\r\n", i, value);
-					}
+					//}
+
 					/* test for multi-function device to avoid ghost device detects */
 					value = pci_read_config_longword(handle, 0x0c);	
 					if (function == 0 && !(PCI_HEADER_TYPE(value) & 0x80))	/* no multi function device */
