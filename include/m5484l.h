@@ -16,4 +16,6 @@
 #define TARGET_ADDRESS	BOOTFLASH_BASE_ADDRESS
 #endif /* COMPILE_RAM */
 
+#define	USB_BUFFER_SIZE	0x80000
+
 #endif /* _M5484L_H_ */

@@ -210,7 +210,7 @@ struct resource_descriptor
 	uint8_t	private;
 } __attribute__ ((packed));
 
-extern uint16_t pci_find_device(uint16_t device_id, uint16_t vendor_id, int index);
+extern int16_t pci_find_device(uint16_t device_id, uint16_t vendor_id, int index);
 
 extern uint32_t pci_read_config_longword(uint16_t handle, uint16_t offset);
 extern uint16_t pci_read_config_word(uint16_t handle, uint16_t offset);

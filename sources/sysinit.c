@@ -44,6 +44,10 @@
 #include "m5484l.h"
 #endif /* MACHINE_M5484LITE */
 
+#include "mod_devicetable.h"
+#include "pci_ids.h"
+#include "usb.h"
+
 #define UNUSED(x) (void)(x)               /* Unused variable         */
 
 extern volatile long _VRAM;	/* start address of video ram from linker script */
@@ -491,35 +495,71 @@ void init_video_ddr(void) {
 
 
 /*
- * probe for UPC720101 (USB)
+ * probe for NEC compatible USB host controller and install if found
  */
-void test_upd720101(void) 
+void init_usb(void) 
 {
-	xprintf("UDP720101 USB controller initialization: ");
+	extern struct pci_device_id ohci_usb_pci_table[];
+	extern struct pci_device_id ehci_usb_pci_table[];
+	struct pci_device_id *board;
+	int16_t handle;
+	uint16_t usb_found;
+	int index = 0;
 
-	/* select UPD720101 AD17 */
-	MCF_PCI_PCICAR = MCF_PCI_PCICAR_E +
-		MCF_PCI_PCICAR_DEVNUM(17) +
-		MCF_PCI_PCICAR_FUNCNUM(0) +
-		MCF_PCI_PCICAR_DWORD(0);
+	xprintf("USB controller initialization: ");
 
-	if (* (uint32_t *) PCI_IO_OFFSET == 0x33103500)
+	do
 	{
-		MCF_PCI_PCICAR = MCF_PCI_PCICAR_E + 
-			MCF_PCI_PCICAR_DEVNUM(17) +
-			MCF_PCI_PCICAR_FUNCNUM(0) +
-			MCF_PCI_PCICAR_DWORD(57);
+		handle = pci_find_device(0x0000, 0xffffL, index++);
+		xprintf("checking %d\r\n", handle);
+		if (handle > 0)
+		{
+			uint32_t id = 0;
+			uint32_t class = 0;
 
-		* (uint8_t *) PCI_IO_OFFSET = 0x20;
-	}
-	else
-	{
-		xprintf("NOT ");
+			xprintf("ckecking board #%d, handle %d\r\n", index, handle);
+			id = pci_read_config_longword(handle, PCIIDR);
+			class = pci_read_config_longword(handle, PCIREV);
 
-		MCF_PCI_PCICAR = MCF_PCI_PCICAR_DEVNUM(17) +
-			MCF_PCI_PCICAR_FUNCNUM(0) +
-			MCF_PCI_PCICAR_DWORD(57);
-	}
+			if (class >> 16 == PCI_CLASS_SERIAL_USB)
+			{
+				xprintf("serial USB found at #%d\r\n", handle);
+				if (class >> 8 == PCI_CLASS_SERIAL_USB_EHCI)
+				{
+					board = ehci_usb_pci_table;
+					while (board->vendor)
+					{
+						xprintf("ckecking %x against %x\r\n", board->vendor, id & 0xffff); 
+						if ((board->vendor == (id & 0xffff)) && board->device == (id >> 16))
+						{
+							xprintf("board match at handle %x\r\n", handle);
+							if (usb_init(handle, board) >= 0)
+							{
+								usb_found++;
+							}
+						}
+						board++;
+					}
+				}
+				if (class >> 8 == PCI_CLASS_SERIAL_USB_OHCI)
+				{
+					board = ohci_usb_pci_table;
+					while (board->vendor)
+					{
+						xprintf("ckecking %x against %x\r\n", board->vendor, id & 0xffff); 
+						if ((board->vendor == (id & 0xffff)) && board->device == (id >> 16))
+						{
+							xprintf("board match at handle %x\r\n", handle);
+							if (usb_init(handle, board) >= 0)
+								usb_found++;
+						}
+						board++;
+					}
+				}
+			}
+		}
+	} while (handle >= 0);
+
 	xprintf("finished\r\n");
 }
 
@@ -976,7 +1016,7 @@ void initialize_hardware(void)
 	init_video_ddr();
 	dvi_on();
 #endif /* MACHINE_FIREBEE */
-	test_upd720101();
+	init_usb();
 	//video_1280_1024();
 #ifdef MACHINE_FIREBEE
 	init_ac97();

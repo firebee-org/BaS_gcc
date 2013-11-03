@@ -13,7 +13,7 @@ MEMORY
    /*
 	* target to copy BaS data segment to. 20k should be enough for now
 	*/
-   bas_ram (WX) : ORIGIN = 0x1FFFB000, LENGTH = 0x005000
+   bas_ram (WX) : ORIGIN = 0x1FFFB000, LENGTH = 0x900000
 }
 
 SECTIONS
@@ -35,6 +35,7 @@ SECTIONS
 		OBJDIR/mmu.o(.text)		
 		OBJDIR/pci.o(.text)
 		OBJDIR/usb.o(.text)
+		OBJDIR/usb_mem.o(.text)
 		OBJDIR/ohci-hcd.o(.text)
 		OBJDIR/ehci-hcd.o(.text)
 		
@@ -75,6 +76,9 @@ SECTIONS
 		*(.rodata)
 		*(.rodata.*)
 #endif
+		. = ALIGN(16);
+		_usb_buffer = .;
+		//. = . + USB_BUFFER_SIZE;
 	} > bas_rom
 
 #if (TARGET_ADDRESS == BOOTFLASH_BASE_ADDRESS)
@@ -97,6 +101,8 @@ SECTIONS
 		 	 * is a multiple of the following value.
 		 	 */
 			. = ALIGN(16);
+			_usb_buffer = .;
+			//. = . + USB_BUFFER_SIZE;
 		} > bas_ram
 #endif
 

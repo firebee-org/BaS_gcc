@@ -164,7 +164,7 @@ struct resource_descriptor *pci_get_resource(uint16_t handle)
 	return (struct resource_descriptor *) 0L;
 }
 
-uint16_t pci_find_device(uint16_t device_id, uint16_t vendor_id, int index)
+int16_t pci_find_device(uint16_t device_id, uint16_t vendor_id, int index)
 {
 	uint16_t bus;
 	uint16_t slot;
@@ -184,16 +184,23 @@ uint16_t pci_find_device(uint16_t device_id, uint16_t vendor_id, int index)
 				value = pci_read_config_longword(handle, 0);
 				if (value != 0xffffffff)	/* we have a device at this position */
 				{
-					if (vendor_id == 0xffff)	/* ignore vendor id */
+					if (vendor_id == 0xffff && pos == index)	/* ignore device id */
 					{
 						return handle;
 					}
-					else if (PCI_VENDOR_ID(value) == vendor_id && PCI_DEVICE_ID(value) == device_id)
+					else
+					{
+						/* we found a match, but at wrong position */
+						pos++;
+						continue;
+					}
+					if (PCI_VENDOR_ID(value) == vendor_id && PCI_DEVICE_ID(value) == device_id)
 					{
 						if (pos == index)
 							return handle;
-						pos++;
 					}
+					else
+						pos++;
 				}
 			}
 		}

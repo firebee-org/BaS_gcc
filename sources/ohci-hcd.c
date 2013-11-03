@@ -78,10 +78,35 @@
 
 #define min_t(type, x, y) ({ type __x = (x); type __y = (y); __x < __y ? __x: __y; })
 
-struct pci_device_id ohci_usb_pci_table[] = {
-	{ PCI_VENDOR_ID_AL, PCI_DEVICE_ID_AL_M5237, PCI_ANY_ID, PCI_ANY_ID, PCI_CLASS_SERIAL_USB_OHCI, 0, 0 }, /* ULI1575 PCI OHCI module ids */
-	{ PCI_VENDOR_ID_NEC, PCI_DEVICE_ID_NEC_USB, PCI_ANY_ID, PCI_ANY_ID, PCI_CLASS_SERIAL_USB_OHCI, 0, 0 }, /* NEC PCI OHCI module ids */
-	{ PCI_VENDOR_ID_PHILIPS, PCI_DEVICE_ID_PHILIPS_ISP1561, PCI_ANY_ID, PCI_ANY_ID, PCI_CLASS_SERIAL_USB_OHCI, 0, 0 }, /* Philips 1561 PCI OHCI module ids */
+struct pci_device_id ohci_usb_pci_table[] =
+{
+	{
+		PCI_VENDOR_ID_AL,
+		PCI_DEVICE_ID_AL_M5237,
+		PCI_ANY_ID,
+		PCI_ANY_ID,
+		PCI_CLASS_SERIAL_USB_OHCI,
+		0,
+		0
+	}, /* ULI1575 PCI OHCI module ids */
+	{
+		PCI_VENDOR_ID_NEC,
+		PCI_DEVICE_ID_NEC_USB,
+		PCI_ANY_ID,
+		PCI_ANY_ID,
+		PCI_CLASS_SERIAL_USB_OHCI,
+		0,
+		0
+	}, /* NEC PCI OHCI module ids */
+	{
+		PCI_VENDOR_ID_PHILIPS,
+		PCI_DEVICE_ID_PHILIPS_ISP1561,
+		PCI_ANY_ID,
+		PCI_ANY_ID,
+		PCI_CLASS_SERIAL_USB_OHCI,
+		0,
+		0
+	}, /* Philips 1561 PCI OHCI module ids */
 	/* Please add supported PCI OHCI controller ids here */
 	{ 0, 0, 0, 0, 0, 0, 0 }
 };

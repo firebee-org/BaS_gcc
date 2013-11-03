@@ -24,6 +24,7 @@
 
 #include "util.h"		/* for endian conversions */
 #include "wait.h"
+#include "cache.h"
 #include "usb.h"
 #include "ehci.h"
 
@@ -177,15 +178,7 @@ static struct ehci {
 
 static void cache_qtd(struct qTD *qtd, int flush)
 {
-	uint32_t *ptr = (uint32_t *) swpl(qtd->qt_buffer[0]);
-	int len = (qtd->qt_token & 0x7fff0000) >> 16;
-
-	flush_invalidate((uint32_t)qtd, sizeof(struct qTD), flush);
-	if((ptr != NULL) && len)
-	{
-		ptr += gehci.dma_offset;
-		flush_invalidate((uint32_t)ptr, len, flush);
-	}
+	flush_and_invalidate_caches();
 }
 
 static inline struct QH *qh_addr(struct QH *qh)
@@ -201,7 +194,7 @@ static void cache_qh(struct QH *qh, int flush)
 	/* Walk the QH list and flush/invalidate all entries */
 	while(1)
 	{
-		flush_invalidate((uint32_t)qh_addr(qh), sizeof(struct QH), flush);
+		flush_and_invalidate_caches();
 		if((uint32_t)qh & QH_LINK_TYPE_QH)
 			break;
 		qh = qh_addr(qh);
@@ -255,7 +248,7 @@ static int handshake(uint32_t *ptr, uint32_t mask, uint32_t done, int usec)
 		result &= mask;
 		if(result == done)
 			return 0;
-		udelay(1);
+		wait(1);
 		usec--;
 	}
 	while(usec > 0);
