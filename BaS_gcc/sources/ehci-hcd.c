@@ -173,7 +173,7 @@ static struct ehci {
 #endif /* DEBUG */
 #define err xprintf
 #ifdef SHOW_INFO
-#define info(format, arg...) board_printf("INFO: " format "\r\n", ## arg)
+#define info(format, arg...) xprintf("INFO: " format "\r\n", ## arg)
 #else
 #define info(format, arg...) do {} while (0)
 #endif
