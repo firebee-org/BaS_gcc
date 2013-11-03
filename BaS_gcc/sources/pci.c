@@ -59,7 +59,13 @@ static struct pci_class
 };
 static int num_classes = sizeof(pci_classes) / sizeof(struct pci_class);
 
-static struct resource_descriptor resource_descriptors[16];
+static struct handle_index
+{
+	uint16_t handle;
+	uint16_t index;
+} handles[10];
+
+static PCI_RSC_DESC resource_descriptors[10][6]; /* FIXME: fix number of cards */
 
 static char *device_class(int classcode)
 {
@@ -157,11 +163,17 @@ void pci_write_config_longword(uint16_t handle, uint16_t offset, uint32_t value)
 	* (volatile uint32_t *) PCI_IO_OFFSET = swpl(value);	/* access device */
 }
 
-struct resource_descriptor *pci_get_resource(uint16_t handle)
+PCI_RSC_DESC *pci_get_resource(uint16_t handle)
 {
-	/* TODO: implement */
+	int i;
+	int index = -1;
 
-	return (struct resource_descriptor *) 0L;
+	for (i = 0; i < 10; i++)
+		if (handles[i].handle == handle)
+			index = i;
+	if (index == -1)
+		return NULL;
+	return resource_descriptors[handles[index].index];
 }
 
 int16_t pci_find_device(uint16_t device_id, uint16_t vendor_id, int index)
@@ -229,13 +241,32 @@ void pci_device_config(uint16_t bus, uint16_t slot, uint16_t function)
 {
 	uint32_t address;
 	uint16_t handle;
+	uint16_t index = - 1;
+	PCI_RSC_DESC *descriptors;
 	int i;
 
+	handle = PCI_HANDLE(bus, slot, function);
+	for (i = 0; i < 10; i++)
+	{
+		if (handles[i].handle == handle)
+		{
+			index = i;
+			break;
+		}
+	}
+	if (index == -1)
+	{
+		xprintf("cannot find index for handle %d\r\n", handle);
+		return;
+	}
+
+	int barnum = 0;
+	descriptors = resource_descriptors[index];
 	for (i = 0; i < 6; i++)		/* for all bars */
 	{
 		uint32_t value;
+		
 
-		handle = bus << 8 | slot << 5 | function;
 		value = pci_read_config_longword(handle, 0x10 + i);			/* read BAR value */
 		pci_write_config_longword(handle, 0x10 + i, 0xffffffff);	/* write all bits */
 		address = pci_read_config_longword(handle, 0x10 + i);		/* read back value */
@@ -256,7 +287,15 @@ void pci_device_config(uint16_t bus, uint16_t slot, uint16_t function)
 				pci_write_config_longword(handle, 0x10 + i, mem_address);
 				value = pci_read_config_longword(handle, 0x10 + i);
 				//xprintf("BAR[%d] configured to %08x, size %x\r\n", i, value, size);
+				descriptors[barnum].next = sizeof(PCI_RSC_DESC);
+				descriptors[barnum].flags = 0 | FLG_8BIT | FLG_16BIT | FLG_32BIT | 1;
+				descriptors[barnum].start = mem_address;
+				descriptors[barnum].length = size;
+				descriptors[barnum].offset = 0;
+				descriptors[barnum].dmaoffset = 0;
+
 				mem_address += size;
+				barnum++;
 			}
 			else if (IS_PCI_IO_BAR(value))
 			{
@@ -266,10 +305,20 @@ void pci_device_config(uint16_t bus, uint16_t slot, uint16_t function)
 				pci_write_config_longword(handle, 0x10 + i, io_address);
 				value = pci_read_config_longword(handle, 0x10 + i);
 				//xprintf("BAR[%d] mapped to %08x, size %x\r\n", i, value, size);
+				descriptors[barnum].next = sizeof(PCI_RSC_DESC);
+				descriptors[barnum].flags = FLG_IO | FLG_8BIT | FLG_16BIT | FLG_32BIT | 1;
+				descriptors[barnum].start = io_address;
+				descriptors[barnum].offset = PCI_MEMORY_OFFSET;
+				descriptors[barnum].length = size;
+				descriptors[barnum].dmaoffset = PCI_MEMORY_OFFSET;
+
 				io_address += size;
+				barnum++;
 			}
 		}
 	}
+	if (barnum > 0)
+		descriptors[barnum - 1].flags |= FLG_LAST;
 }
 
 void pci_scan(void)
@@ -277,6 +326,7 @@ void pci_scan(void)
 	uint16_t bus;
 	uint16_t slot;
 	uint16_t function;
+	uint16_t index = 0;
 	uint16_t i;
 
 	xprintf("\r\nPCI bus scan...\r\n\r\n");
@@ -301,6 +351,8 @@ void pci_scan(void)
 
 					if (PCI_VENDOR_ID(value) != 0x1057 && PCI_DEVICE_ID(value) != 0x5806) /* do not configure bridge */
 					{
+						handles[index].index = index;
+						handles[index].handle = PCI_HANDLE(bus, slot, function);
 						pci_device_config(bus, slot, function);
 					}
 
