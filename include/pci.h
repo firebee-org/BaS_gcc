@@ -199,17 +199,6 @@ extern void init_eport(void);
 extern void init_xlbus_arbiter(void);
 extern void init_pci(void);
 
-struct resource_descriptor
-{
-	uint16_t next;
-	uint16_t flags;
-	uint32_t	start;
-	uint32_t length;
-	uint32_t offset;
-	uint32_t dma_offset;
-	uint8_t	private;
-} __attribute__ ((packed));
-
 extern int16_t pci_find_device(uint16_t device_id, uint16_t vendor_id, int index);
 
 extern uint32_t pci_read_config_longword(uint16_t handle, uint16_t offset);
@@ -220,7 +209,7 @@ extern void pci_write_config_longword(uint16_t handle, uint16_t offset, uint32_t
 extern void pci_write_config_word(uint16_t handle, uint16_t offset, uint16_t value);
 extern void pci_write_config_byte(uint16_t handle, uint16_t offset, uint8_t value);
 
-extern struct resource_descriptor *pci_get_resource(uint16_t handle);
+extern PCI_RSC_DESC *pci_get_resource(uint16_t handle);
 extern int16_t pci_hook_interrupt(uint16_t handle, void *interrupt_handler, void *parameter);
 extern int16_t pci_unhook_interrupt(uint16_t handle);
 
