@@ -31,7 +31,7 @@
  * uint16_t swpw(uint16_t val);
  *   swap endianess of val, 16 bits only.
  */
-inline uint16_t swpw(uint16_t w)
+static inline uint16_t swpw(uint16_t w)
 {
 	register uint32_t result asm("d0");
 	__asm__ __volatile__
@@ -52,7 +52,7 @@ inline uint16_t swpw(uint16_t w)
  *   swap endianess of val, 32 bits only.
  *   e.g. ABCD => DCBA
  */
-inline uint32_t swpl(uint32_t l)
+static inline uint32_t swpl(uint32_t l)
 {
 	register uint32_t result asm("d0");
 

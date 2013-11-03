@@ -26,8 +26,8 @@
 #ifndef _USB_H_
 #define _USB_H_
 
-#include <stdlib.h>
-#include <string.h>
+//#include <stdlib.h>
+#include <bas_string.h>
 #include "pci.h"
 #include "mod_devicetable.h"
 #include "pci_ids.h"
@@ -44,15 +44,15 @@ extern long *tab_funcs_pci;
 #define out32r(addr,val)	Write_mem_longword(usb_handle,addr,val)
 
 
-#define __u8 unsigned char
-#define __u16 unsigned short
-#define __u32 unsigned long
-#define u8 unsigned char
-#define u16 unsigned short
-#define u32 unsigned long
-#define uint8_t unsigned char
-#define uint32_t unsigned long
-#define uint16_t unsigned short
+#define __u8 uint8_t
+#define __u16 uint16_t
+#define __u32 uint32_t
+#define u8 uint8_t
+#define u16 uint16_t
+#define u32 uint32_t
+#define uint8_t uint8_t
+#define uint32_t uint32_t
+#define uint16_t uint16_t
 
 extern void kprint(const char *fmt, ...);
 extern int sprintD(char *s, const char *fmt, ...);
@@ -75,71 +75,71 @@ extern int sprintD(char *s, const char *fmt, ...);
 
 /* String descriptor */
 struct usb_string_descriptor {
-	unsigned char	bLength;
-	unsigned char	bDescriptorType;
-	unsigned short	wData[1];
+	uint8_t	bLength;
+	uint8_t	bDescriptorType;
+	uint16_t	wData[1];
 } __attribute__ ((packed));
 
 /* device request (setup) */
 struct devrequest {
-	unsigned char	requesttype;
-	unsigned char	request;
-	unsigned short	value;
-	unsigned short	index;
-	unsigned short	length;
+	uint8_t	requesttype;
+	uint8_t	request;
+	uint16_t	value;
+	uint16_t	index;
+	uint16_t	length;
 } __attribute__ ((packed));
 
 /* All standard descriptors have these 2 fields in common */
 struct usb_descriptor_header {
-	unsigned char	bLength;
-	unsigned char	bDescriptorType;
+	uint8_t	bLength;
+	uint8_t	bDescriptorType;
 } __attribute__ ((packed));
 
 /* Device descriptor */
 struct usb_device_descriptor {
-	unsigned char	bLength;
-	unsigned char	bDescriptorType;
-	unsigned short	bcdUSB;
-	unsigned char	bDeviceClass;
-	unsigned char	bDeviceSubClass;
-	unsigned char	bDeviceProtocol;
-	unsigned char	bMaxPacketSize0;
-	unsigned short	idVendor;
-	unsigned short	idProduct;
-	unsigned short	bcdDevice;
-	unsigned char	iManufacturer;
-	unsigned char	iProduct;
-	unsigned char	iSerialNumber;
-	unsigned char	bNumConfigurations;
+	uint8_t	bLength;
+	uint8_t	bDescriptorType;
+	uint16_t	bcdUSB;
+	uint8_t	bDeviceClass;
+	uint8_t	bDeviceSubClass;
+	uint8_t	bDeviceProtocol;
+	uint8_t	bMaxPacketSize0;
+	uint16_t	idVendor;
+	uint16_t	idProduct;
+	uint16_t	bcdDevice;
+	uint8_t	iManufacturer;
+	uint8_t	iProduct;
+	uint8_t	iSerialNumber;
+	uint8_t	bNumConfigurations;
 } __attribute__ ((packed));
 
 /* Endpoint descriptor */
 struct usb_endpoint_descriptor {
-	unsigned char	bLength;
-	unsigned char	bDescriptorType;
-	unsigned char	bEndpointAddress;
-	unsigned char	bmAttributes;
-	unsigned short	wMaxPacketSize;
-	unsigned char	bInterval;
-	unsigned char	bRefresh;
-	unsigned char	bSynchAddress;
+	uint8_t	bLength;
+	uint8_t	bDescriptorType;
+	uint8_t	bEndpointAddress;
+	uint8_t	bmAttributes;
+	uint16_t	wMaxPacketSize;
+	uint8_t	bInterval;
+	uint8_t	bRefresh;
+	uint8_t	bSynchAddress;
 } __attribute__ ((packed)) __attribute__ ((aligned(2)));
 
 /* Interface descriptor */
 struct usb_interface_descriptor {
-	unsigned char	bLength;
-	unsigned char	bDescriptorType;
-	unsigned char	bInterfaceNumber;
-	unsigned char	bAlternateSetting;
-	unsigned char	bNumEndpoints;
-	unsigned char	bInterfaceClass;
-	unsigned char	bInterfaceSubClass;
-	unsigned char	bInterfaceProtocol;
-	unsigned char	iInterface;
+	uint8_t	bLength;
+	uint8_t	bDescriptorType;
+	uint8_t	bInterfaceNumber;
+	uint8_t	bAlternateSetting;
+	uint8_t	bNumEndpoints;
+	uint8_t	bInterfaceClass;
+	uint8_t	bInterfaceSubClass;
+	uint8_t	bInterfaceProtocol;
+	uint8_t	iInterface;
 
-	unsigned char	no_of_ep;
-	unsigned char	num_altsetting;
-	unsigned char	act_altsetting;
+	uint8_t	no_of_ep;
+	uint8_t	num_altsetting;
+	uint8_t	act_altsetting;
 
 	struct usb_endpoint_descriptor ep_desc[USB_MAXENDPOINTS];
 } __attribute__ ((packed));
@@ -147,16 +147,16 @@ struct usb_interface_descriptor {
 
 /* Configuration descriptor information.. */
 struct usb_config_descriptor {
-	unsigned char	bLength;
-	unsigned char	bDescriptorType;
-	unsigned short	wTotalLength;
-	unsigned char	bNumInterfaces;
-	unsigned char	bConfigurationValue;
-	unsigned char	iConfiguration;
-	unsigned char	bmAttributes;
-	unsigned char	MaxPower;
+	uint8_t	bLength;
+	uint8_t	bDescriptorType;
+	uint16_t	wTotalLength;
+	uint8_t	bNumInterfaces;
+	uint8_t	bConfigurationValue;
+	uint8_t	iConfiguration;
+	uint8_t	bmAttributes;
+	uint8_t	MaxPower;
 
-	unsigned char	no_of_if;	/* number of interfaces */
+	uint8_t	no_of_if;	/* number of interfaces */
 	struct usb_interface_descriptor if_desc[USB_MAXINTERFACES];
 } __attribute__ ((packed));
 
@@ -193,14 +193,14 @@ struct usb_device {
 	int have_langid;		/* whether string_langid is valid yet */
 	int string_langid;		/* language ID for strings */
 	int (*irq_handle)(struct usb_device *dev);
-	unsigned long irq_status;
+	uint32_t irq_status;
 	int irq_act_len;		/* transfered bytes */
 	void *privptr;
 	/*
 	 * Child devices -  if this is a hub device
 	 * Each instance needs its own set of data structures.
 	 */
-	unsigned long status;
+	uint32_t status;
 	int act_len;			/* transfered bytes */
 	int maxchild;			/* Number of ports if hub */
 	int portnr;
@@ -230,16 +230,16 @@ typedef struct
 
 int ohci_usb_lowlevel_init(long handle, const struct pci_device_id *ent, void **priv);
 int ohci_usb_lowlevel_stop(void *priv);
-int ohci_submit_bulk_msg(struct usb_device *dev, unsigned long pipe, void *buffer, int transfer_len);
-int ohci_submit_control_msg(struct usb_device *dev, unsigned long pipe, void *buffer, int transfer_len, struct devrequest *setup);
-int ohci_submit_int_msg(struct usb_device *dev, unsigned long pipe, void *buffer, int transfer_len, int interval);
+int ohci_submit_bulk_msg(struct usb_device *dev, uint32_t pipe, void *buffer, int transfer_len);
+int ohci_submit_control_msg(struct usb_device *dev, uint32_t pipe, void *buffer, int transfer_len, struct devrequest *setup);
+int ohci_submit_int_msg(struct usb_device *dev, uint32_t pipe, void *buffer, int transfer_len, int interval);
 void ohci_usb_enable_interrupt(int enable);
 
 int ehci_usb_lowlevel_init(long handle, const struct pci_device_id *ent, void **priv);
 int ehci_usb_lowlevel_stop(void *priv);
-int ehci_submit_bulk_msg(struct usb_device *dev, unsigned long pipe, void *buffer, int transfer_len);
-int ehci_submit_control_msg(struct usb_device *dev, unsigned long pipe, void *buffer, int transfer_len, struct devrequest *setup);
-int ehci_submit_int_msg(struct usb_device *dev, unsigned long pipe, void *buffer, int transfer_len, int interval);
+int ehci_submit_bulk_msg(struct usb_device *dev, uint32_t pipe, void *buffer, int transfer_len);
+int ehci_submit_control_msg(struct usb_device *dev, uint32_t pipe, void *buffer, int transfer_len, struct devrequest *setup);
+int ehci_submit_int_msg(struct usb_device *dev, uint32_t pipe, void *buffer, int transfer_len, int interval);
 void ehci_usb_enable_interrupt(int enable);
 
 void usb_enable_interrupt(int enable);
@@ -276,16 +276,16 @@ int usb_stop(void); /* stop the USB Controller */
 int usb_set_protocol(struct usb_device *dev, int ifnum, int protocol);
 int usb_set_idle(struct usb_device *dev, int ifnum, int duration, int report_id);
 struct usb_device *usb_get_dev_index(int index, int bus);
-int usb_control_msg(struct usb_device *dev, unsigned int pipe, unsigned char request, unsigned char requesttype, unsigned short value, 
- unsigned short index, void *data, unsigned short size, int timeout);
+int usb_control_msg(struct usb_device *dev, unsigned int pipe, uint8_t request, uint8_t requesttype, uint16_t value, 
+ uint16_t index, void *data, uint16_t size, int timeout);
 int usb_bulk_msg(struct usb_device *dev, unsigned int pipe, void *data, int len, int *actual_length, int timeout);
-int usb_submit_int_msg(struct usb_device *dev, unsigned long pipe, void *buffer, int transfer_len, int interval);
+int usb_submit_int_msg(struct usb_device *dev, uint32_t pipe, void *buffer, int transfer_len, int interval);
 void usb_disable_asynch(int disable);
-int usb_maxpacket(struct usb_device *dev, unsigned long pipe);
-void wait_ms(unsigned long ms);
-int usb_get_configuration_no(struct usb_device *dev, unsigned char *buffer, int cfgno);
-int usb_get_report(struct usb_device *dev, int ifnum, unsigned char type, unsigned char id, void *buf, int size);
-int usb_get_class_descriptor(struct usb_device *dev, int ifnum, unsigned char type, unsigned char id, void *buf, int size);
+int usb_maxpacket(struct usb_device *dev, uint32_t pipe);
+void wait_ms(uint32_t ms);
+int usb_get_configuration_no(struct usb_device *dev, uint8_t *buffer, int cfgno);
+int usb_get_report(struct usb_device *dev, int ifnum, uint8_t type, uint8_t id, void *buf, int size);
+int usb_get_class_descriptor(struct usb_device *dev, int ifnum, uint8_t type, uint8_t id, void *buf, int size);
 int usb_clear_halt(struct usb_device *dev, int pipe);
 int usb_string(struct usb_device *dev, int index, char *buf, size_t size);
 int usb_set_interface(struct usb_device *dev, int interface, int alternate);
@@ -391,26 +391,26 @@ int usb_set_interface(struct usb_device *dev, int interface, int alternate);
  * Hub Stuff
  */
 struct usb_port_status {
-	unsigned short wPortStatus;
-	unsigned short wPortChange;
+	uint16_t wPortStatus;
+	uint16_t wPortChange;
 } __attribute__ ((packed));
 
 struct usb_hub_status {
-	unsigned short wHubStatus;
-	unsigned short wHubChange;
+	uint16_t wHubStatus;
+	uint16_t wHubChange;
 } __attribute__ ((packed));
 
 
 /* Hub descriptor */
 struct usb_hub_descriptor {
-	unsigned char  bLength;
-	unsigned char  bDescriptorType;
-	unsigned char  bNbrPorts;
-	unsigned short wHubCharacteristics;
-	unsigned char  bPwrOn2PwrGood;
-	unsigned char  bHubContrCurrent;
-	unsigned char  DeviceRemovable[(USB_MAXCHILDREN+1+7)/8];
-	unsigned char  PortPowerCtrlMask[(USB_MAXCHILDREN+1+7)/8];
+	uint8_t  bLength;
+	uint8_t  bDescriptorType;
+	uint8_t  bNbrPorts;
+	uint16_t wHubCharacteristics;
+	uint8_t  bPwrOn2PwrGood;
+	uint8_t  bHubContrCurrent;
+	uint8_t  DeviceRemovable[(USB_MAXCHILDREN+1+7)/8];
+	uint8_t  PortPowerCtrlMask[(USB_MAXCHILDREN+1+7)/8];
 	/* DeviceRemovable and PortPwrCtrlMask want to be variable-length
 	   bitmaps that hold max 255 entries. (bit0 is ignored) */
 } __attribute__ ((packed));

@@ -33,6 +33,7 @@ extern char *strcat(char *dst, const char *src);
 extern char *strncat(char *dst, const char *src, int max);
 extern int atoi(const char *c);
 extern void *memcpy(void *dst, const void *src, size_t n);
+extern void *memset(void *s, int c, size_t n);
 extern void bzero(void *s, size_t n);
 
 #define isdigit(c)	(((c) >= '0') && ((c) <= '9'))
