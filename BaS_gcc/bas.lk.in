@@ -73,6 +73,7 @@ SECTIONS
 #if (TARGET_ADDRESS < 0x1FFFFFFF && TARGET_ADDRESS > 0)
 		. = ALIGN(16);
 		_usb_buffer = .;
+		. = . + USB_BUFFER_SIZE;
 #endif
 
 #if (FORMAT == elf32-m68k)
