@@ -167,7 +167,7 @@ static struct ehci {
 #else
 #define debug(format, arg...) do {} while (0)
 #endif /* DEBUG */
-#define err usb_error_msg
+#define err xprintf
 #ifdef SHOW_INFO
 #define info(format, arg...) board_printf("INFO: " format "\r\n", ## arg)
 #else
@@ -309,11 +309,7 @@ static int ehci_reset(void)
 				 {
 					uint32_t usb_base_addr = 0xFFFFFFFF;
 					PCI_RSC_DESC *pci_rsc_desc;
-#ifdef PCI_XBIOS
-					pci_rsc_desc = (PCI_RSC_DESC *)get_resource(handle); /* USB OHCI */
-#else
-					pci_rsc_desc = (PCI_RSC_DESC *)Get_resource(handle); /* USB OHCI */
-#endif
+					pci_rsc_desc = (PCI_RSC_DESC *)pci_get_resource(handle); /* USB OHCI */
 					if((long)pci_rsc_desc >= 0)
 					{
 						unsigned short flags;
@@ -594,11 +590,7 @@ fail:
 	ehci_free(qh, sizeof(*qh));
 	if(ehci_readl(&gehci.hcor->or_usbsts) & STS_HSE) /* Host System Error */
 	{
-#ifdef PCI_XBIOS
-		unsigned short status = fast_read_config_word(gehci.handle, PCISR);
-#else
-		unsigned short status = Fast_read_config_word(gehci.handle, PCISR);
-#endif
+		unsigned short status = pci_read_config_word(gehci.handle, PCISR);
 		err("EHCI Host System Error, controller usb-%s disabled\r\n(SR:0x%04X%s%s%s%s%s%s)", gehci.slot_name, status & 0xFFFF,
 		 status & 0x8000 ? ", Parity error" : "", status & 0x4000 ? ", Signaled system error" : "", status & 0x2000 ? ", Received master abort" : "",
 		 status & 0x1000 ? ", Received target abort" : "", status & 0x800 ? ", Signaled target abort" : "", status & 0x100 ? ", Data parity error" : "");
@@ -947,16 +939,7 @@ int ehci_usb_lowlevel_init(long handle, const struct pci_device_id *ent, void **
 #endif
 	uint32_t usb_base_addr = 0xFFFFFFFF;
 	PCI_RSC_DESC *pci_rsc_desc;
-#ifdef PCI_XBIOS
-	pci_rsc_desc = (PCI_RSC_DESC *)get_resource(handle); /* USB EHCI */
-#else
-	USB_COOKIE *p = usb_get_cookie('_PCI'); 
-  PCI_COOKIE *bios_cookie = (PCI_COOKIE *)p->v.l;
-	if(bios_cookie == NULL)   /* faster than XBIOS calls */
-		return(-1);	
-	tab_funcs_pci = &bios_cookie->routine[0];
-	pci_rsc_desc = (PCI_RSC_DESC *)Get_resource(handle); /* USB EHCI */
-#endif
+	pci_rsc_desc = (PCI_RSC_DESC *)pci_get_resource(handle); /* USB EHCI */
 	if(handle && (ent != NULL))
 	{
 		memset(&gehci, 0, sizeof(struct ehci));
@@ -1048,7 +1031,7 @@ int ehci_usb_lowlevel_init(long handle, const struct pci_device_id *ent, void **
 		}
 	}
 	gehci.hcor = (struct ehci_hcor *)((uint32_t)gehci.hccr + HC_LENGTH(ehci_readl(&gehci.hccr->cr_capbase)));
-	kprint("EHCI usb-%s, regs address 0x%08X, PCI handle 0x%X\r\n", gehci.slot_name, gehci.hccr, handle);
+	xprintf("EHCI usb-%s, regs address 0x%08X, PCI handle 0x%X\r\n", gehci.slot_name, gehci.hccr, handle);
 
 	/* EHCI spec section 4.1 */
 	if(ehci_reset() != 0)
@@ -1090,15 +1073,9 @@ int ehci_usb_lowlevel_init(long handle, const struct pci_device_id *ent, void **
 	wait(5 * 1000);
 	reg = HC_VERSION(ehci_readl(&gehci.hccr->cr_capbase));
 	info("USB EHCI %x.%02x", reg >> 8, reg & 0xff);
-#ifndef CONFIG_USB_INTERRUPT_POLLING
   /* turn on interrupts */
-#ifdef PCI_XBIOS
-	hook_interrupt(handle, handle_usb_interrupt, &gehci);
-#else
-	Hook_interrupt(handle, (void *)handle_usb_interrupt, (uint32_t *)&gehci);
-#endif /* PCI_BIOS */
+	pci_hook_interrupt(handle, handle_usb_interrupt, &gehci);
 	ehci_writel(&gehci.hcor->or_usbintr, INTR_PCDE);
-#endif /* CONFIG_USB_INTERRUPT_POLLING */
 	rootdev = 0;
 	if(priv != NULL)
 		*priv = (void *)&gehci;
@@ -1112,15 +1089,9 @@ int ehci_usb_lowlevel_stop(void *priv)
 	if(priv);
 	if(!ehci_inited)
 		return(0);
-#ifndef CONFIG_USB_INTERRUPT_POLLING
   /* turn off interrupts */
 	ehci_writel(&gehci.hcor->or_usbintr, 0);
-#ifdef PCI_XBIOS
-	unhook_interrupt(gehci.handle);
-#else              
-	Unhook_interrupt(gehci.handle);
-#endif /* PCI_BIOS */
-#endif /* CONFIG_USB_INTERRUPT_POLLING */
+	pci_unhook_interrupt(gehci.handle);
 	/* stop the controller */
 	cmd = ehci_readl(&gehci.hcor->or_usbcmd);
 	cmd &= ~CMD_RUN;
