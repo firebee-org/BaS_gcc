@@ -207,10 +207,10 @@ void pci_device_config(uint16_t bus, uint16_t slot, uint16_t function)
 
 		if (address)	/* is bar in use? */
 		{
-			xprintf("%s region found with base address %08x, size = %x\r\n",
-				(IS_PCI_MEM_BAR(value) ? "Memory" : "I/O"),
-				(IS_PCI_MEM_BAR(value) ? PCI_MEMBAR_ADR(value) : PCI_IOBAR_ADR(value)),
-				(IS_PCI_MEM_BAR(value) ? ~(address & 0xfffffff0) + 1 : ~(address & 0xfffffffc) + 1));
+			//xprintf("%s region found with base address %08x, size = %x\r\n",
+				//(IS_PCI_MEM_BAR(value) ? "Memory" : "I/O"),
+				//(IS_PCI_MEM_BAR(value) ? PCI_MEMBAR_ADR(value) : PCI_IOBAR_ADR(value)),
+				//(IS_PCI_MEM_BAR(value) ? ~(address & 0xfffffff0) + 1 : ~(address & 0xfffffffc) + 1));
 
 			/* adjust base address to alignment requirements */
 			if (IS_PCI_MEM_BAR(value))
@@ -219,7 +219,8 @@ void pci_device_config(uint16_t bus, uint16_t slot, uint16_t function)
 
 				mem_address = (mem_address + size - 1) & ~(size - 1);
 				pci_write_config_longword(bus, slot, function, 0x10 + i, mem_address);
-				xprintf("BAR[%d] configured to %08x, size %x\r\n", i, mem_address, size);
+				value = pci_read_config_longword(bus, slot, function, 0x10 + i);
+				xprintf("BAR[%d] configured to %08x, size %x\r\n", i, value, size);
 				mem_address += size;
 			}
 			else if (IS_PCI_IO_BAR(value))
@@ -228,7 +229,8 @@ void pci_device_config(uint16_t bus, uint16_t slot, uint16_t function)
 
 				io_address = (io_address + size - 1) & ~(size - 1);
 				pci_write_config_longword(bus, slot, function, 0x10 + i, io_address);
-				xprintf("BAR[%d] mapped to %08x, size %x\r\n", i, io_address, size);
+				value = pci_read_config_longword(bus, slot, function, 0x10 + i);
+				xprintf("BAR[%d] mapped to %08x, size %x\r\n", i, value, size);
 				io_address += size;
 			}
 		}
