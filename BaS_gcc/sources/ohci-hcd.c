@@ -1522,12 +1522,8 @@ static int hc_reset(ohci_t *ohci)
 		long handle;
 		do
 		{
-#ifdef PCI_XBIOS
-			handle = find_pci_device(0x0000FFFFL, index++);
-#else
-			handle = Find_pci_device(0x0000FFFFL, index++);
-#endif
-			if(handle >= 0)
+			handle = pci_find_device(0x0, 0xffff, index++)
+			if (handle >= 0)
 			{
 				unsigned long id = 0;
 #ifdef PCI_XBIOS
