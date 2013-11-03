@@ -117,11 +117,7 @@ struct pci_device_id ohci_usb_pci_table[] =
 #define dbg(format, arg...) do {} while (0)
 #endif /* DEBUG */
 #define err xprintf
-#ifdef SHOW_INFO
-#define info(format, arg...)  do board_printf("INFO: " format "\r\n", ## arg)
-#else
-#define info(format, arg...) do {} while (0)
-#endif
+#define info(format, arg...)  xprintf("INFO: " format "\r\n", ## arg)
 
 extern void udelay(long usec);
 
@@ -1896,6 +1892,7 @@ int ohci_usb_lowlevel_init(long handle, const struct pci_device_id *ent, void **
 	uint32_t usb_base_addr = 0xFFFFFFFF;
 	ohci_t *ohci = &gohci[(handle >> 16) & 1]; // function & 1
 	PCI_RSC_DESC *pci_rsc_desc = (PCI_RSC_DESC *) pci_get_resource(handle); /* USB OHCI */
+
 	if (handle && (ent != NULL))
 	{
 		memset(ohci, 0, sizeof(ohci_t));
@@ -1904,6 +1901,7 @@ int ohci_usb_lowlevel_init(long handle, const struct pci_device_id *ent, void **
 	}
 	else if(!ohci->handle) /* for restart USB cmd */
 		return(-1);	
+
 	info("ohci 0x%p", ohci);
 	ohci->controller = (ohci->handle >> 16) & 3; /* PCI function */
 	/* this must be aligned to a 256 byte boundary */
