@@ -463,7 +463,7 @@ int usb_parse_config(struct usb_device *dev, unsigned char *buffer, int cfgno)
 		return -1;
 	}
 	memcpy(&dev->config, buffer, buffer[0]);
-	swpw(&(dev->config.wTotalLength));
+	dev->config.wTotalLength = swpw(dev->config.wTotalLength);
 	dev->config.no_of_if = 0;
 	index = dev->config.bLength;
 	/* Ok the first entry must be a configuration entry,
