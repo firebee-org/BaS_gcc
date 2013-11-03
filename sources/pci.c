@@ -184,7 +184,7 @@ int16_t pci_find_device(uint16_t device_id, uint16_t vendor_id, int index)
 	uint16_t pos = 0;
 	int handle;
 
-	for (bus = 0; bus < 1; bus++)
+	for (bus = 0; bus < 2; bus++)	/* FireBee USB is on DEVSEL(17) ??? */
 	{
 		for (slot = 0; slot < 32; slot++)
 		{
