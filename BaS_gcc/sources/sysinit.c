@@ -1010,8 +1010,8 @@ void initialize_hardware(void)
 	init_video_ddr();
 	dvi_on();
 #endif /* MACHINE_FIREBEE */
-	init_usb();
-	//video_1280_1024();
+	/* moved the following line (temporarily) to BaS (after MMU init) to be able to catch adressing errors on USB init */
+	//init_usb();
 #ifdef MACHINE_FIREBEE
 	init_ac97();
 #endif /* MACHINE_FIREBEE */
