@@ -224,7 +224,6 @@ void BaS(void)
 {
 	uint8_t *src;
 	uint8_t *dst = (uint8_t *)TOS;
-	uint32_t *adr;
 
 #ifdef MACHINE_FIREBEE	/* LITE board has no pic and (currently) no nvram */
 	pic_init();
@@ -295,12 +294,7 @@ void BaS(void)
 	/*
 	 * memory setup
 	 */
-	for (adr = (uint32_t *) 0x400L; adr < (uint32_t *) 0x800L; ) {
-		*adr++ = 0x0L;
-		*adr++ = 0x0L;
-		*adr++ = 0x0L;
-		*adr++ = 0x0L;
-	}
+	memset((void *) 0x400, 0, 0x400);
 
 	/* set Falcon bus control register */
 	/* sets bit 3 and 6. Both are undefined on an original Falcon? */
