@@ -1391,7 +1391,7 @@ static int submit_common_msg(ohci_t *ohci, struct usb_device *dev, uint32_t pipe
 	int stat = 0;
 	int maxsize = usb_maxpacket(dev, pipe);
 	int timeout;
-	urb_priv_t *urb = (urb_priv_t *)usb_malloc(sizeof(urb_priv_t));
+	urb_priv_t *urb = (urb_priv_t *) usb_malloc(sizeof(urb_priv_t));
 	if (urb == NULL)
 	{
 		err("submit_common_msg malloc failed");
@@ -1403,6 +1403,7 @@ static int submit_common_msg(ohci_t *ohci, struct usb_device *dev, uint32_t pipe
 	urb->transfer_buffer = buffer;
 	urb->transfer_buffer_length = transfer_len;
 	urb->interval = interval;
+
 	/* device pulled? Shortcut the action. */
 	if (ohci->devgone == dev)
 	{
@@ -1895,6 +1896,7 @@ static void hc_free_buffers(ohci_t *ohci)
 
 /*-------------------------------------------------------------------------*/
 
+td_t *ptd;
 /*
  * low level initalisation routine, called from usb.c
  */
@@ -1916,41 +1918,45 @@ int ohci_usb_lowlevel_init(long handle, const struct pci_device_id *ent, void **
 	info("ohci %p", ohci);
 	ohci->controller = (ohci->handle >> 16) & 3; /* PCI function */
 	/* this must be aligned to a 256 byte boundary */
-	ohci->hcca_unaligned = (struct ohci_hcca *)usb_malloc(sizeof(struct ohci_hcca) + 256);
+	ohci->hcca_unaligned = (struct ohci_hcca *) usb_malloc(sizeof(struct ohci_hcca) + 256);
 	if (ohci->hcca_unaligned == NULL)
 	{
 		err("HCCA malloc failed");
 		return(-1);
 	}
 	/* align the storage */
-	ohci->hcca = (struct ohci_hcca *)(((uint32_t)ohci->hcca_unaligned + 255) & ~255);
+	ohci->hcca = (struct ohci_hcca *) (((uint32_t)ohci->hcca_unaligned + 255) & ~255);
 	memset(ohci->hcca, 0, sizeof(struct ohci_hcca));
 	info("aligned ghcca %p", ohci->hcca);
-	ohci->ohci_dev_unaligned = (struct ohci_device *)usb_malloc(sizeof(struct ohci_device) + 8);
+	ohci->ohci_dev_unaligned = (struct ohci_device *) usb_malloc(sizeof(struct ohci_device) + 8);
 	if (ohci->ohci_dev_unaligned == NULL)
 	{
 		err("EDs malloc failed");
 		hc_free_buffers(ohci);
 		return(-1);
 	}
-	ohci->ohci_dev = (struct ohci_device *)(((uint32_t)ohci->ohci_dev_unaligned + 7) & ~7);
+	ohci->ohci_dev = (struct ohci_device *) (((uint32_t) ohci->ohci_dev_unaligned + 7) & ~7);
 	memset(ohci->ohci_dev, 0, sizeof(struct ohci_device));
 	info("aligned EDs %p", ohci->ohci_dev);
-	ohci->td_unaligned = (td_t *)usb_malloc(sizeof(td_t) * (NUM_TD + 1));
+
+	ohci->td_unaligned = (td_t *) usb_malloc(sizeof(td_t) * (NUM_TD + 1));
 	if (ohci->td_unaligned == NULL)
 	{
 		err("TDs malloc failed");
 		hc_free_buffers(ohci);
 		return(-1);
 	}
-	ptd = (td_t *)(((uint32_t)ohci->td_unaligned + 7) & ~7);
+	
+	ptd = (td_t *) (((uint32_t) ohci->td_unaligned + 7) & ~7);
+
 	xprintf("memset from %p to %p\r\n", ptd, ptd + sizeof(td_t) * NUM_TD);
 	memset(ptd, 0, sizeof(td_t) * NUM_TD);
 	info("aligned TDs %p", ptd);
+
 	ohci->disabled = 1;
 	ohci->sleeping = 0;
 	ohci->irq = -1;
-	if ((long)pci_rsc_desc >= 0)
+	if ((long) pci_rsc_desc >= 0)
 	{
 		unsigned short flags;
 		do

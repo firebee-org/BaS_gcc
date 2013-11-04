@@ -32,9 +32,7 @@ RANLIB=$(TCPREFIX)ranlib
 INCLUDE=-Iinclude
 CFLAGS=-mcpu=5474\
 	   -Wall\
-	   -g\
-	   -Winline\
-	   -O \
+		-g \
 	   -fomit-frame-pointer\
 	   -ffreestanding\
 	   -fleading-underscore\

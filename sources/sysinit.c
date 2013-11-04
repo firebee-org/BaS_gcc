@@ -347,15 +347,15 @@ void init_fbcs()
 	xprintf("FlexBus chip select registers initialization: ");
 
 	/* Flash */
-	MCF_FBCS0_CSAR = BOOTFLASH_BASE_ADDRESS;/* flash base address */
-	MCF_FBCS0_CSCR = MCF_FBCS_CSCR_PS_16 |	/* 16 bit word access */
-			MCF_FBCS_CSCR_WS(6)|			/* 6 Waitstates */
-			MCF_FBCS_CSCR_AA;				/* */
+	MCF_FBCS0_CSAR = BOOTFLASH_BASE_ADDRESS;	/* flash base address */
+	MCF_FBCS0_CSCR = MCF_FBCS_CSCR_PS_16 |		/* 16 bit word access */
+			MCF_FBCS_CSCR_WS(6)|						/* 6 Waitstates */
+			MCF_FBCS_CSCR_AA;							/* */
 	MCF_FBCS0_CSMR = BOOTFLASH_BAM |
-			MCF_FBCS_CSMR_V;				/* 8 MByte on */
+			MCF_FBCS_CSMR_V;							/* enable */
 
 
-#ifdef MACHINE_FIREBEE /* FBC setup for FireBee */
+#if MACHINE_FIREBEE /* FBC setup for FireBee */
 	MCF_FBCS1_CSAR = 0xFFF00000;			/* ATARI I/O ADRESS */
 	MCF_FBCS1_CSCR = MCF_FBCS_CSCR_PS_16	/* 16BIT PORT */
 	    | MCF_FBCS_CSCR_WS(8)				/* DEFAULT 8WS */
@@ -381,6 +381,12 @@ void init_fbcs()
 	    | MCF_FBCS_CSCR_BSTW;				// BURST WRITE ENABLE
 	MCF_FBCS4_CSMR = MCF_FBCS_CSMR_BAM_1G	// 4000'0000-7FFF'FFFF
 			  | MCF_FBCS_CSMR_V;
+#elif MACHINE_M5484LITE
+	/* disable other FBCS for now */
+	MCF_FBCS1_CSMR = 0;
+	MCF_FBCS2_CSMR = 0;
+	MCF_FBCS3_CSMR = 0;
+	MCF_FBCS4_CSMR = 0;
 #endif /* MACHINE_FIREBEE */
 
 
@@ -837,7 +843,7 @@ extern uint8_t _BAS_RESIDENT_TEXT[];
 extern uint8_t _BAS_RESIDENT_TEXT_SIZE[];
 #define BAS_RESIDENT_TEXT_SIZE ((uint32_t) _BAS_RESIDENT_TEXT_SIZE)
 
-void clear_datasegment(void)
+void clear_data_segment(void)
 {
 	extern uint8_t _BAS_DATA_START[];
 	uint8_t *BAS_DATA_START = &_BAS_DATA_START[0];
@@ -845,6 +851,16 @@ void clear_datasegment(void)
 	uint8_t *BAS_DATA_END = &_BAS_DATA_END[0];
 
 	bzero(BAS_DATA_START, BAS_DATA_END - BAS_DATA_START);
+}
+
+void clear_bss_segment(void)
+{
+	extern uint8_t _BAS_BSS_START[];
+	uint8_t * BAS_BSS_START = &_BAS_BSS_START[0];
+	extern uint8_t _BAS_BSS_END[];
+	uint8_t *BAS_BSS_END = &_BAS_BSS_END[0];
+
+	bzero(BAS_BSS_START, BAS_BSS_END - BAS_BSS_END);
 }
 
 void initialize_hardware(void)
@@ -881,8 +897,9 @@ void initialize_hardware(void)
 
 	if (BAS_LMA != BAS_IN_RAM)
 	{
-		clear_datasegment();
+		clear_data_segment();
 	}
+	clear_bss_segment();
 
 	init_gpio();
 	init_serial();
