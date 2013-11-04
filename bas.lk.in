@@ -33,16 +33,15 @@ SECTIONS
 		OBJDIR/illegal_instruction.o(.text)
 		OBJDIR/supervisor.o(.text)
 		OBJDIR/mmu.o(.text)		
+		
+		OBJDIR/BaS.o(.text)
 		OBJDIR/pci.o(.text)
 		OBJDIR/usb.o(.text)
 		OBJDIR/usb_mem.o(.text)
 		OBJDIR/ohci-hcd.o(.text)
 		OBJDIR/ehci-hcd.o(.text)
-		
-		OBJDIR/BaS.o(.text)
 		OBJDIR/wait.o(.text)
 
-		/* put other routines into the same segment (RAM) as BaS.o */ 
 		OBJDIR/unicode.o(.text)
 		OBJDIR/mmc.o(.text)
 		OBJDIR/ff.o(.text)
@@ -105,7 +104,7 @@ SECTIONS
 		 	 */
 			. = ALIGN(16);
 			_usb_buffer = .;
-			. = . + USB_BUFFER_SIZE;
+			//. = . + USB_BUFFER_SIZE;
 		} > bas_ram
 #endif
 
@@ -179,6 +178,9 @@ SECTIONS
  	__RAMBAR0               = 0xFF100000;
  	__RAMBAR0_SIZE          = 0x00001000;
 
+	/* 4KB on-chip Core SRAM1 */
+ 	__RAMBAR1               = 0xFF101000;
+ 	__RAMBAR1_SIZE          = 0x00001000;
  	__SUP_SP                = __RAMBAR0 + __RAMBAR0_SIZE - 4;
 
 	/* system variables */
@@ -202,7 +204,4 @@ SECTIONS
 	_video_sbt = __RAMBAR0 + 0x83C;
 	_rt_mbar   = __RAMBAR0 + 0x844;   	/* (c)0f */
 
-	/* 4KB on-chip Core SRAM1 */
- 	__RAMBAR1               = 0xFF101000;
- 	__RAMBAR1_SIZE          = 0x00001000;
 }

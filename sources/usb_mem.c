@@ -15,6 +15,7 @@
 #include "bas_string.h"
 #include "bas_printf.h"
 #include "usb.h"
+
 #if MACHINE_FIREBEE
 #include "firebee.h"
 #elif MACHINE_M5484LITE
@@ -40,7 +41,7 @@ extern int asm_set_ipl(int level);
 extern void *info_fvdi;
 extern long offscren_reserved(void);
 
-extern uint8_t usb_buffer[];	/* defined in linker control file */
+extern uint8_t usb_buffer[USB_BUFFER_SIZE];	/* defined in linker control file */
 
 /* MD - Memory Descriptor */
 
@@ -51,7 +52,7 @@ MD
 	MD *m_link;
 	long m_start;
 	long m_length;
-  void *m_own;
+	void *m_own;
 };
 
 /* MPB - Memory Partition Block */

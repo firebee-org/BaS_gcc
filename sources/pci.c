@@ -184,7 +184,7 @@ PCI_RSC_DESC *pci_get_resource(uint16_t handle)
 			index = i;
 	if (index == -1)
 		return NULL;
-	return resource_descriptors[handles[index].index];
+	return resource_descriptors[index];
 }
 
 /*
