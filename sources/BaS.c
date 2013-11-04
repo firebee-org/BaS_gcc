@@ -27,6 +27,7 @@
 #include "MCF5475.h"
 #include "MCF5475_SLT.h"
 #include "startcf.h"
+#include "sysinit.h"
 #include "cache.h"
 #include "bas_printf.h"
 #include "bas_string.h"
@@ -253,6 +254,8 @@ void BaS(void)
 	MCF_MMU_MMUCR = MCF_MMU_MMUCR_EN;	/* MMU on */
 	NOP();										/* force pipeline sync */
 	xprintf("finished\r\n");
+
+	init_usb();
 
 #ifdef MACHINE_FIREBEE
 	xprintf("IDE reset: ");

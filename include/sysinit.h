@@ -30,6 +30,7 @@
 
 /* function(s) from init_fpga.c */
 extern void init_fpga(void);
+extern void init_usb(void);
 
 #endif /* __SYSINIT_H__ */
 

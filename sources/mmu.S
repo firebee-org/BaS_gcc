@@ -86,10 +86,32 @@
 
 //
 // to avoid chicken and egg situations, we need to make sure that MMU TLB miss exceptions do not end up in a memory
-// area that in turn cause a TLB miss exception themself after the MMU is enabled. At least the exception handler must live
-// in an area that's either covered by one of the ACR's or a locked MMU TLB entry. This is especially important when we link
-// BaS for RAM.
+// area that in turn cause a TLB miss exception themself after the MMU is enabled. At least the exception handler
+// must live in an area that's either covered by one of the ACR's or a locked MMU TLB entry. This is especially
+// important when we link BaS for RAM.
 //
+
+// some ACR bit defines upfront
+#define ACR_BA(x)					((x) & 0xffff0000)
+#define ACR_ADMSK(x)				(((x) & 0xffff) << 16)
+#define ACR_E(x)					(((x) & 1) << 15)
+
+#define ACR_S(x)					(((x) & 3) << 13)
+#define ACR_S_USERMODE				0
+#define ACR_S_SUPERVISOR_MODE		1
+#define ACR_S_ALL					2
+
+#define ACR_AMM(x)					(((x) & 1) << 10)
+
+#define	ACR_CM(x)					(((x) & 3) << 5)
+#define	ACR_CM_CACHEABLE_WT			0x0
+#define ACR_CM_CACHEABLE_CB			0x1
+#define ACR_CM_CACHE_INH_PRECISE	0x2
+#define ACR_CM_CACHE_INH_IMPRECISE	0x3
+
+#define ACR_SP(x)			(((x) & 1) << 3)
+#define ACR_W(x)			(((x) & 1) << 2)
+
 .text
 _mmu_init:
 		move.l	d3,-(sp)			// Backup registers
@@ -98,9 +120,17 @@ _mmu_init:
  		clr.l	d0
 		movec	d0,ASID				// ASID always 0
 		move.l	d0,_rt_asid			// save shadow register
-		
-		move.l	#0xC03FC040,d0		// data r/w precise  c000'0000-ffff'ffff
-		movec	d0,ACR0
+
+		move.l	#0 |\
+				ACR_W(0) |			/* read and write accesses permitted */ \
+				ACR_SP(0) |			/* supervisor AND user mode access permitted */ \
+				ACR_CM(ACR_CM_CACHE_INH_PRECISE) |	/* cache inhibit, precise */ \
+				ACR_AMM(0) |		/* control region > 16M */ \
+				ACR_S(ACR_S_ALL) |	/* match addresses in user AND supervisor mode */ \
+				ACR_E(1) |			/* enable ACR */ \
+				ACR_ADMSK(0x3f) |	/* cover 1 GB area from 0xC0000000 to 0xFFFFFFFF */ \
+				ACR_BA(0xC0000000),d0	/* (equals area from 3 to 4 GB) */
+		movec	d0,ACR0				// ACR0 covers data
 		move.l	d0,_rt_acr0			// save shadow register
 		
 		move.l	#0x601FC000,d0		// data r/w wt 6000'0000-7fff'ffff
@@ -175,12 +205,9 @@ _mmu_init:
 		move.l	d3,MCF_MMU_MMUOR						// mapped to ffffxxx, precise,
 #endif /* MACHINE_FIREBEE */
 
-// 1ff0'0000 locked
-// maps virtual 0x1FF0'0000 - 0x1FFF'FFFF to the same physical address
-		move.l	#(SDRAM_START + SDRAM_SIZE - 0x100000) | std_mmutr, d0	// last MB of physical RAM reserved for BaS
-		// move.l	#0x1FF00000|std_mmutr,d0				// last megabyte of physical RAM. Reserved for BaS
+// maps (locked) the last MB (this is where BaS .data and .bss resides) of physical SDRAM to the same physical address
+		move.l	#(SDRAM_START + SDRAM_SIZE - 0x100000) | std_mmutr, d0	
 		move.l	#(SDRAM_START + SDRAM_SIZE - 0x100000) | copyback_mmudr | MCF_MMU_MMUDR_LK,d1
-		// move.l	#0x1FF00000|copyback_mmudr|MCF_MMU_MMUDR_LK,d1
 		move.l	d0,MCF_MMU_MMUTR
 		move.l	d1,MCF_MMU_MMUDR
 		move.l	d2,MCF_MMU_MMUOR						// setzen data
@@ -191,7 +218,7 @@ _mmu_init:
 		rts
 
 /*
- * Everything else gets 1:1 mapped on miss
+ * Everything else (that is not filtered out in the access error handler) gets a 1:1 mapping on miss
  */
 _mmutr_miss:
 		lea		-4 * 4(sp),sp
