@@ -230,12 +230,14 @@ void BaS(void)
 	nvram_init();
 #endif /* MACHINE_FIREBEE */
 
+#ifdef MACHINE_FIREBEE 
 	xprintf("copy EmuTOS: ");
 
 	/* copy EMUTOS */
 	src = (uint8_t *) EMUTOS;
 	memcpy(dst, src, EMUTOS_SIZE);
 	xprintf("finished\r\n");
+#endif /* MACHINE_FIREBEE */
 
 	xprintf("initialize MMU: ");
 	mmu_init();

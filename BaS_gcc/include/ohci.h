@@ -447,17 +447,17 @@ static ed_t * ep_add_ed(ohci_t * ohci, struct usb_device * usb_dev, uint32_t pip
 #define NUM_TD 64
 
 /* pointers to aligned storage */
-td_t *ptd;
+extern td_t *ptd;
 
 /* TDs ... */
 static inline struct td *td_alloc(struct usb_device *usb_dev)
 {
 	int i;
-	struct td	*td;
+	struct td *td;
 	td = NULL;
-	for(i = 0; i < NUM_TD; i++)
+	for (i = 0; i < NUM_TD; i++)
 	{
-		if(ptd[i].usb_dev == NULL)
+		if (ptd[i].usb_dev == NULL)
 		{
 			td = &ptd[i];
 			td->usb_dev = usb_dev;

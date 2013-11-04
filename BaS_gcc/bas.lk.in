@@ -68,17 +68,17 @@ SECTIONS
 		__BAS_DATA_START = .;
 		*(.data)
 		__BAS_DATA_END = .;
+		__BAS_BSS_START = .;
 		*(.bss)	
+		__BAS_BSS_END = .;
 #endif /* TARGET_ADDRESS */
-#if (TARGET_ADDRESS < 0x1FFFFFFF && TARGET_ADDRESS > 0)
-		. = ALIGN(16);
-		_usb_buffer = .;
-		. = . + USB_BUFFER_SIZE;
-#endif
-
 #if (FORMAT == elf32-m68k)
 		*(.rodata)
 		*(.rodata.*)
+#endif
+#if (TARGET_ADDRESS < 0x1FFFFFFF && TARGET_ADDRESS > 0)
+		. = ALIGN(16);
+		_usb_buffer = .;
 #endif
 	} > bas_rom
 
@@ -96,7 +96,9 @@ SECTIONS
 			__BAS_DATA_START = .;
 			*(.data)
 			__BAS_DATA_END = .;
+			__BAS_BSS_START = .;
 			*(.bss)	
+			__BAS_BSS_END = .;
 
 			/* The BaS copy routine assumes that tha BaS size
 		 	 * is a multiple of the following value.
