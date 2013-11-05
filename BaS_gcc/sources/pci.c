@@ -484,6 +484,9 @@ void init_pci(void)
 
 	/* initialize resource descriptor table */
 	memset(&resource_descriptors, 0, NUM_CARDS * NUM_RESOURCES * sizeof(struct pci_rd));
+	/* initialize handles array */
+	memset(handles, 0, NUM_CARDS * sizeof(uint16_t));
+
 	pci_scan();
 }
 
