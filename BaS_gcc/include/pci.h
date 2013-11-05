@@ -91,7 +91,7 @@
 #define PCI_IO_LIMIT_UPPER16   0x32
 #define PCI_BRIDGE_CONTROL     0x3E  /* Bridge Control */
 
-struct pci_resource_descriptor          /* structure of resource descriptor    */
+struct pci_rd          /* structure of resource descriptor    */
 {
     unsigned short next;               /* length of the following structure   */
     unsigned short flags;              /* type of resource and misc. flags    */
@@ -202,7 +202,7 @@ extern void pci_write_config_longword(uint16_t handle, uint16_t offset, uint32_t
 extern void pci_write_config_word(uint16_t handle, uint16_t offset, uint16_t value);
 extern void pci_write_config_byte(uint16_t handle, uint16_t offset, uint8_t value);
 
-extern struct pci_resource_descriptor *pci_get_resource(uint16_t handle);
+extern struct pci_rd *pci_get_resource(uint16_t handle);
 extern int16_t pci_hook_interrupt(uint16_t handle, void *interrupt_handler, void *parameter);
 extern int16_t pci_unhook_interrupt(uint16_t handle);
 
