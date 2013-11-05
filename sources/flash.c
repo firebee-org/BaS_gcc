@@ -2,6 +2,12 @@
 #include <stddef.h>
 #include "bas_types.h"
 
+#if MACHINE_FIREBEE
+#include "firebee.h"
+#elif MACHINE_M5484LITE
+#include "m5484l.h"
+#endif /* MACHINE_FIREBEE */
+
 #define AMD_FLASH_BUS_SHIFT     1
 #define AMD_FLASH_CELL          volatile uint16_t
 #define AMD_FLASH_CELL_BYTES    2
@@ -175,7 +181,7 @@ static const struct romram flash_areas[] =
 };
 static const int num_flash_areas = sizeof(flash_areas) / sizeof(struct romram);
 
-#define FLASH_ADDRESS 0xe0000000
+#define FLASH_ADDRESS BOOTFLASH_BASE_ADDRESS
 
 /*
  * erase a flash sector
