@@ -1590,7 +1590,7 @@ static int hc_reset(ohci_t *ohci)
 				 {
 					int timeout = 1000;
 					uint32_t usb_base_addr = 0xFFFFFFFF;
-					struct pci_resource_descriptor *pci_rsc_desc;
+					struct pci_rd *pci_rsc_desc;
 					pci_rsc_desc = pci_get_resource(handle); /* USB OHCI */
 					if ((long)pci_rsc_desc >= 0)
 					{
@@ -1616,7 +1616,7 @@ static int hc_reset(ohci_t *ohci)
 								}
 							}
 							flags = pci_rsc_desc->flags;
-							pci_rsc_desc = (struct pci_resource_descriptor *) ((uint32_t)pci_rsc_desc->next + (uint32_t)pci_rsc_desc);
+							pci_rsc_desc = (struct pci_rd *) ((uint32_t)pci_rsc_desc->next + (uint32_t)pci_rsc_desc);
 						}
 						while (!(flags & FLG_LAST));
 					}
@@ -1927,7 +1927,7 @@ int ohci_usb_lowlevel_init(uint16_t handle, const struct pci_device_id *ent, voi
 {
 	uint32_t usb_base_addr = 0xFFFFFFFF;
 	ohci_t *ohci = &gohci[PCI_FUNCTION_FROM_HANDLE(handle) & 1];
-	struct pci_resource_descriptor *pci_rsc_desc = pci_get_resource(handle); /* USB OHCI */
+	struct pci_rd *pci_rsc_desc = pci_get_resource(handle); /* USB OHCI */
 
 	if (handle && (ent != NULL))
 	{
@@ -2008,7 +2008,7 @@ int ohci_usb_lowlevel_init(uint16_t handle, const struct pci_device_id *ent, voi
 				}
 			}
 			flags = pci_rsc_desc->flags;
-			pci_rsc_desc = (struct pci_resource_descriptor *)((uint32_t)pci_rsc_desc->next + (uint32_t)pci_rsc_desc);
+			pci_rsc_desc = (struct pci_rd *)((uint32_t)pci_rsc_desc->next + (uint32_t)pci_rsc_desc);
 		}
 		while (!(flags & FLG_LAST));
 	}

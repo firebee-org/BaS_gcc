@@ -63,7 +63,7 @@ static int num_classes = sizeof(pci_classes) / sizeof(struct pci_class);
 #define NUM_CARDS		10
 #define NUM_RESOURCES	6
 uint16_t handles[NUM_CARDS];	/* holds the handle of a card at position = array index */
-static struct pci_resource_descriptor resource_descriptors[NUM_CARDS][NUM_RESOURCES]; /* FIXME: fix number of cards */
+static struct pci_rd resource_descriptors[NUM_CARDS][NUM_RESOURCES]; /* FIXME: fix number of cards */
 
 static char *device_class(int classcode)
 {
@@ -172,7 +172,7 @@ void pci_write_config_longword(uint16_t handle, uint16_t offset, uint32_t value)
  *
  * get resource descriptor chain for handle
  */
-struct pci_resource_descriptor *pci_get_resource(uint16_t handle)
+struct pci_rd *pci_get_resource(uint16_t handle)
 {
 	int i;
 	int index = -1;
@@ -264,7 +264,7 @@ static void pci_device_config(uint16_t bus, uint16_t slot, uint16_t function)
 	uint32_t address;
 	uint16_t handle;
 	uint16_t index = - 1;
-	struct pci_resource_descriptor *descriptors;
+	struct pci_rd *descriptors;
 	int i;
 
 	/* determine pci handle from bus, slot + function number */
@@ -320,7 +320,7 @@ static void pci_device_config(uint16_t bus, uint16_t slot, uint16_t function)
 				//xprintf("BAR[%d] configured to %08x, size %x\r\n", i, value, size);
 
 				/* fill resource descriptor */
-				descriptors[barnum].next = sizeof(struct pci_resource_descriptor);
+				descriptors[barnum].next = sizeof(struct pci_rd);
 				descriptors[barnum].flags = 0 | FLG_8BIT | FLG_16BIT | FLG_32BIT | 1;
 				descriptors[barnum].start = mem_address;
 				descriptors[barnum].length = size;
@@ -349,7 +349,7 @@ static void pci_device_config(uint16_t bus, uint16_t slot, uint16_t function)
 				//xprintf("BAR[%d] mapped to %08x, size %x\r\n", i, value, size);
 
 				/* fill resource descriptor */
-				descriptors[barnum].next = sizeof(struct pci_resource_descriptor);
+				descriptors[barnum].next = sizeof(struct pci_rd);
 				descriptors[barnum].flags = FLG_IO | FLG_8BIT | FLG_16BIT | FLG_32BIT | 1;
 				descriptors[barnum].start = io_address;
 				descriptors[barnum].offset = PCI_MEMORY_OFFSET;
@@ -483,7 +483,7 @@ void init_pci(void)
 	xprintf("finished\r\n");
 
 	/* initialize resource descriptor table */
-	memset(&resource_descriptors, 0, NUM_CARDS * NUM_RESOURCES * sizeof(struct pci_resource_descriptor));
+	memset(&resource_descriptors, 0, NUM_CARDS * NUM_RESOURCES * sizeof(struct pci_rd));
 	pci_scan();
 }
 
