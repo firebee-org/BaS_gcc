@@ -6,10 +6,16 @@
 #include "m5484l.h"
 #endif /* MACHINE_M5484LITE */
 
+/* make bas_rom access flags rx if compiling to RAM */
+#if (TARGET_ADDRESS < 0x1FFFFFFF && TARGET_ADDRESS > 0)
+#define ROMFLAGS	WX
+#else
+#define ROMFLAGS	RX
+#endif /* TARGET_ADDRESS */
 
 MEMORY
 {
-   bas_rom (RX) : ORIGIN = TARGET_ADDRESS, LENGTH = 0x00100000
+   bas_rom (ROMFLAGS) : ORIGIN = TARGET_ADDRESS, LENGTH = 0x00100000
    /*
 	* target to copy BaS data segment to. 20k should be enough for now
 	*/
