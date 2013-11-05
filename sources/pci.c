@@ -469,7 +469,7 @@ void init_pci(void)
        + MCF_PCIARB_PACR_EXTMINTEN(0x1F);
 
 	/* Setup burst parameters */
-	MCF_PCI_PCICR1 = MCF_PCI_PCICR1_CACHELINESIZE(4) + MCF_PCI_PCICR1_LATTIMER(32);
+	MCF_PCI_PCICR1 = MCF_PCI_PCICR1_CACHELINESIZE(4) + MCF_PCI_PCICR1_LATTIMER(64); /* TODO: test increased latency timer */
 	MCF_PCI_PCICR2 = MCF_PCI_PCICR2_MINGNT(16) + MCF_PCI_PCICR2_MAXLAT(16);
 
 	/* Turn on error signaling, 32 write retries on failure */
