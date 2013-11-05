@@ -114,7 +114,7 @@ uint32_t pci_read_config_longword(uint16_t handle, uint16_t offset)
 				MCF_PCI_PCISCR_DP;					/* clear parity error */
 	
 	//(void) MCF_PCI_PCISCR;
-	wait(1000);
+	//wait(10);
 
 	//xprintf("PCISCR before config cycle: %lx\r\n", MCF_PCI_PCISCR);
 
@@ -126,7 +126,7 @@ uint32_t pci_read_config_longword(uint16_t handle, uint16_t offset)
 			MCF_PCI_PCICAR_FUNCNUM(function) |	/* function number */
 			MCF_PCI_PCICAR_DWORD(offset / 4);
 
-	wait(1000);
+	//wait(10);
 	value =  * (volatile uint32_t *) PCI_IO_OFFSET;	/* access device */
 	//xprintf("pci_read_config_longword(%d (bus=%d, slot=%d, function=%d), %d) = %d\r\n", handle, bus, slot, function, offset, swpl(value));
 
@@ -170,7 +170,7 @@ void pci_write_config_longword(uint16_t handle, uint16_t offset, uint32_t value)
 				MCF_PCI_PCISCR_DP;					/* clear parity error */
 
 	//(void) MCF_PCI_PCISCR;
-	wait(1000);
+	//wait(10);
 
 	//xprintf("PCISCR before config cycle: %lx\r\n", MCF_PCI_PCISCR);
 
@@ -182,7 +182,7 @@ void pci_write_config_longword(uint16_t handle, uint16_t offset, uint32_t value)
 			MCF_PCI_PCICAR_FUNCNUM(function) |		/* function number */
 			MCF_PCI_PCICAR_DWORD(offset / 4);
 
-	wait(1000);
+	//wait(10);
 	* (volatile uint32_t *) PCI_IO_OFFSET = swpl(value);	/* access device */
 }
 
@@ -398,7 +398,7 @@ void pci_scan(void)
 			for (function = 0; function < 8; function++)
 			{
 				uint32_t value;
-				uint16_t handle = 0 | bus << 8 | slot << 5 | function;
+				uint16_t handle = PCI_HANDLE(bus, slot, function);
 
 				value = pci_read_config_longword(handle, 0);
 				if (value != 0xffffffff)
