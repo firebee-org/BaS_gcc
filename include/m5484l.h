@@ -29,7 +29,7 @@
 
 #define SYSCLK			100000
 
-#define BOOTFLASH_BASE_ADDRESS	0xFF800000
+#define BOOTFLASH_BASE_ADDRESS	0xe0000000
 #define BOOTFLASH_SIZE				0x400000				/* LITEKIT has 4MB flash */
 #define BOOTFLASH_BAM				(BOOTFLASH_SIZE - 1)
 
@@ -43,5 +43,7 @@
 #endif /* COMPILE_RAM */
 
 #define	USB_BUFFER_SIZE	0x80000
+
+#define EMUTOS_BASE_ADDRESS 0xe0100000
 
 #endif /* _M5484L_H_ */
