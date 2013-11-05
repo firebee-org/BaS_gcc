@@ -267,8 +267,6 @@ int16_t pci_unhook_interrupt(uint16_t handle)
 }
 
 
-static uint32_t mem_address = PCI_MEMORY_OFFSET;
-static uint32_t io_address = PCI_IO_OFFSET;
 
 /*
  * pci_device_config()
@@ -282,6 +280,8 @@ static void pci_device_config(uint16_t bus, uint16_t device, uint16_t function)
 	int16_t index = - 1;
 	struct pci_rd *descriptors;
 	int i;
+	uint32_t mem_address = PCI_MEMORY_OFFSET;
+	uint32_t io_address = PCI_IO_OFFSET;
 
 	/* determine pci handle from bus, device + function number */
 	handle = PCI_HANDLE(bus, device, function);
