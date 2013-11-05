@@ -10,7 +10,7 @@
 
 # can be either "Y" or "N" (without quotes). "Y" for using the m68k-elf-, "N" for using the m68k-atari-mint
 # toolchain
-COMPILE_ELF=N
+COMPILE_ELF=Y
 
 ifeq (Y,$(COMPILE_ELF))
 TCPREFIX=m68k-elf-
@@ -118,6 +118,7 @@ lib: $(LIBS)
 		do rm -f $$d/*.map $$d/*.s19 $$d/*.elf $$d/*.lk $$d/objs/* ;\
 	done
 	rm -f depend
+	rm -f tags
 
 
 # flags for targets
@@ -202,6 +203,8 @@ depend: $(ASRCS) $(CSRCS)
 		do $(CC) $(CFLAGS) $(INCLUDE) -M $(ASRCS) $(CSRCS) | sed -e "s#^\(.*\).o:#$$d/objs/\1.o:#" >> depend; \
 	done
 
+tags: $(ASRCS) $(CSRCS) include/*
+	ctags -R sources include
 	
 ifneq (clean,$(MAKECMDGOALS))
 -include depend

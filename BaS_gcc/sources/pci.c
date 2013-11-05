@@ -32,6 +32,9 @@
 #include "util.h"
 #include "wait.h"
 
+/*
+ * PCI device class descriptions displayed during PCI bus scan
+ */
 static struct pci_class
 {
 	int classcode;
@@ -58,18 +61,34 @@ static struct pci_class
 	{ 0x11, "Data Acquisition and Signal Processing Controller" },
 	{ 0xff, "Device does not fit any defined class" },
 };
-static int num_classes = sizeof(pci_classes) / sizeof(struct pci_class);
+static int num_pci_classes = sizeof(pci_classes) / sizeof(struct pci_class);
 
 #define NUM_CARDS		10
 #define NUM_RESOURCES	6
-uint16_t handles[NUM_CARDS];	/* holds the handle of a card at position = array index */
-static struct pci_rd resource_descriptors[NUM_CARDS][NUM_RESOURCES]; /* FIXME: fix number of cards */
+/* holds the handle of a card at position = array index */
+static uint16_t handles[NUM_CARDS];	
+/* holds the card's resource descriptors; filled in pci_device_config() */
+static struct pci_rd resource_descriptors[NUM_CARDS][NUM_RESOURCES]; 
+
+static int16_t handle2index(int16_t handle)
+{
+	int i;
+
+	for (i = 0; i < NUM_CARDS; i++)
+	{
+		if (handles[i] == handle)
+		{
+			return i;
+		}
+	}
+	return -1;
+}
 
 static char *device_class(int classcode)
 {
 	int i;
 
-	for (i = 0; i < num_classes; i++)
+	for (i = 0; i < num_pci_classes; i++)
 	{
 		if (pci_classes[i].classcode == classcode)
 		{
@@ -174,12 +193,9 @@ void pci_write_config_longword(uint16_t handle, uint16_t offset, uint32_t value)
  */
 struct pci_rd *pci_get_resource(uint16_t handle)
 {
-	int i;
 	int index = -1;
 
-	for (i = 0; i < NUM_CARDS; i++)
-		if (handles[i] == handle)
-			index = i;
+	index = handle2index(handle);
 	if (index == -1)
 		return NULL;
 	return resource_descriptors[index];
@@ -263,7 +279,7 @@ static void pci_device_config(uint16_t bus, uint16_t slot, uint16_t function)
 {
 	uint32_t address;
 	uint16_t handle;
-	uint16_t index = - 1;
+	int16_t index = - 1;
 	struct pci_rd *descriptors;
 	int i;
 
@@ -271,14 +287,8 @@ static void pci_device_config(uint16_t bus, uint16_t slot, uint16_t function)
 	handle = PCI_HANDLE(bus, slot, function);
 
 	/* find index into resource descriptor table for handle */
-	for (i = 0; i < NUM_CARDS; i++)
-	{
-		if (handles[i] == handle)
-		{
-			index = i;
-			break;
-		}
-	}
+	index = handle2index(handle);
+
 	if (index == -1)
 	{
 		xprintf("cannot find index for handle %d\r\n", handle);
@@ -303,7 +313,9 @@ static void pci_device_config(uint16_t bus, uint16_t slot, uint16_t function)
 				//(IS_PCI_MEM_BAR(value) ? PCI_MEMBAR_ADR(value) : PCI_IOBAR_ADR(value)),
 				//(IS_PCI_MEM_BAR(value) ? ~(address & 0xfffffff0) + 1 : ~(address & 0xfffffffc) + 1));
 
-			/* adjust base address to alignment requirements */
+			struct pci_rd *rd = &descriptors[barnum]; 
+
+			/* adjust base address to card's alignment requirements */
 			if (IS_PCI_MEM_BAR(value))
 			{
 				int size = ~(address & 0xfffffff0) + 1;
@@ -320,12 +332,12 @@ static void pci_device_config(uint16_t bus, uint16_t slot, uint16_t function)
 				//xprintf("BAR[%d] configured to %08x, size %x\r\n", i, value, size);
 
 				/* fill resource descriptor */
-				descriptors[barnum].next = sizeof(struct pci_rd);
-				descriptors[barnum].flags = 0 | FLG_8BIT | FLG_16BIT | FLG_32BIT | 1;
-				descriptors[barnum].start = mem_address;
-				descriptors[barnum].length = size;
-				descriptors[barnum].offset = 0;
-				descriptors[barnum].dmaoffset = 0;
+				rd->next = sizeof(struct pci_rd);
+				rd->flags = 0 | FLG_8BIT | FLG_16BIT | FLG_32BIT | ORD_MOTOROLA;
+				rd->start = mem_address;
+				rd->length = size;
+				rd->offset = 0;
+				rd->dmaoffset = 0;
 
 				/* adjust memory adress for next turn */
 				mem_address += size;
@@ -349,12 +361,12 @@ static void pci_device_config(uint16_t bus, uint16_t slot, uint16_t function)
 				//xprintf("BAR[%d] mapped to %08x, size %x\r\n", i, value, size);
 
 				/* fill resource descriptor */
-				descriptors[barnum].next = sizeof(struct pci_rd);
-				descriptors[barnum].flags = FLG_IO | FLG_8BIT | FLG_16BIT | FLG_32BIT | 1;
-				descriptors[barnum].start = io_address;
-				descriptors[barnum].offset = PCI_MEMORY_OFFSET;
-				descriptors[barnum].length = size;
-				descriptors[barnum].dmaoffset = PCI_MEMORY_OFFSET;
+				rd->next = sizeof(struct pci_rd);
+				rd->flags = FLG_IO | FLG_8BIT | FLG_16BIT | FLG_32BIT | 1;
+				rd->start = io_address;
+				rd->offset = PCI_MEMORY_OFFSET;
+				rd->length = size;
+				rd->dmaoffset = PCI_MEMORY_OFFSET;
 
 				/* adjust I/O adress for next turn */
 				io_address += size;
@@ -374,7 +386,7 @@ void pci_scan(void)
 	uint16_t bus;
 	uint16_t slot;
 	uint16_t function;
-	uint16_t index = 0;
+	int16_t index = 0;
 
 	xprintf("\r\nPCI bus scan...\r\n\r\n");
 	xprintf(" Bus|Slot|Func|Vndr|Dev |\r\n");
@@ -399,7 +411,7 @@ void pci_scan(void)
 					if (PCI_VENDOR_ID(value) != 0x1057 && PCI_DEVICE_ID(value) != 0x5806) /* do not configure bridge */
 					{
 						/* save handle to index value so that we later find our resources again */
-						handles[index] = PCI_HANDLE(bus, slot, function);
+						handles[index++] = PCI_HANDLE(bus, slot, function);
 
 						/* configure memory and I/O for card */
 						pci_device_config(bus, slot, function);
