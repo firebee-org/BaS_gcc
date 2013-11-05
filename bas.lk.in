@@ -158,7 +158,7 @@ SECTIONS
 
 	/* Other flash components */
 	__FIRETOS               = 0xe0400000;
-	__EMUTOS                = 0xe0600000;
+	__EMUTOS                = EMUTOS_BASE_ADDRESS;
 	__EMUTOS_SIZE           = 0x00100000;
 
 	/* where FPGA data lives in flash */
