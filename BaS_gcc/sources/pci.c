@@ -102,7 +102,7 @@ uint32_t pci_read_config_longword(uint16_t handle, uint16_t offset)
 {
 	uint32_t value;
 	uint16_t bus = PCI_BUS_FROM_HANDLE(handle);
-	uint16_t slot = PCI_SLOT_FROM_HANDLE(handle);
+	uint16_t device = PCI_DEVICE_FROM_HANDLE(handle);
 	uint16_t function = PCI_FUNCTION_FROM_HANDLE(handle);
 
 	/* clear PCI status/command register */
@@ -114,7 +114,7 @@ uint32_t pci_read_config_longword(uint16_t handle, uint16_t offset)
 				MCF_PCI_PCISCR_DP;					/* clear parity error */
 	
 	//(void) MCF_PCI_PCISCR;
-	//wait(10);
+	//wait(100);
 
 	//xprintf("PCISCR before config cycle: %lx\r\n", MCF_PCI_PCISCR);
 
@@ -122,13 +122,13 @@ uint32_t pci_read_config_longword(uint16_t handle, uint16_t offset)
 
 	MCF_PCI_PCICAR = MCF_PCI_PCICAR_E |			/* enable configuration access special cycle */
 			MCF_PCI_PCICAR_BUSNUM(bus) |
-			MCF_PCI_PCICAR_DEVNUM(slot) |			/* device number, devices 0 - 9 are reserved */
+			MCF_PCI_PCICAR_DEVNUM(device) |		/* device number, devices 0 - 9 are reserved */
 			MCF_PCI_PCICAR_FUNCNUM(function) |	/* function number */
 			MCF_PCI_PCICAR_DWORD(offset / 4);
 
-	//wait(10);
+	//wait(100);
 	value =  * (volatile uint32_t *) PCI_IO_OFFSET;	/* access device */
-	//xprintf("pci_read_config_longword(%d (bus=%d, slot=%d, function=%d), %d) = %d\r\n", handle, bus, slot, function, offset, swpl(value));
+	//xprintf("pci_read_config_longword(%d (bus=%d, device=%d, function=%d), %d) = %d\r\n", handle, bus, device, function, offset, swpl(value));
 
 	return swpl(value);
 }
@@ -158,7 +158,7 @@ uint8_t pci_read_config_byte(uint16_t handle, uint16_t offset)
 void pci_write_config_longword(uint16_t handle, uint16_t offset, uint32_t value)
 {
 	uint16_t bus = PCI_BUS_FROM_HANDLE(handle);
-	uint16_t slot = PCI_SLOT_FROM_HANDLE(handle);
+	uint16_t device = PCI_DEVICE_FROM_HANDLE(handle);
 	uint16_t function = PCI_FUNCTION_FROM_HANDLE(handle);
 
 	/* clear PCI status/command register */
@@ -178,7 +178,7 @@ void pci_write_config_longword(uint16_t handle, uint16_t offset, uint32_t value)
 
 	MCF_PCI_PCICAR = MCF_PCI_PCICAR_E |				/* enable configuration access special cycle */
 			MCF_PCI_PCICAR_BUSNUM(bus) |
-			MCF_PCI_PCICAR_DEVNUM(slot) |			/* device number, devices 0 - 9 are reserved */
+			MCF_PCI_PCICAR_DEVNUM(device) |			/* device number, devices 0 - 9 are reserved */
 			MCF_PCI_PCICAR_FUNCNUM(function) |		/* function number */
 			MCF_PCI_PCICAR_DWORD(offset / 4);
 
@@ -210,20 +210,20 @@ struct pci_rd *pci_get_resource(uint16_t handle)
 int16_t pci_find_device(uint16_t device_id, uint16_t vendor_id, int index)
 {
 	uint16_t bus;
-	uint16_t slot;
+	uint16_t device;
 	uint16_t function;
 	uint16_t pos = 0;
 	int handle;
 
-	for (bus = 0; bus < 2; bus++)	/* FireBee USB is on DEVSEL(17) ??? */
+	for (bus = 0; bus < 255; bus++)	/* FireBee USB is on DEVSEL(17) ??? */
 	{
-		for (slot = 0; slot < 32; slot++)
+		for (device = 0; device < 32; device++)
 		{
 			for (function = 0; function < 8; function++)
 			{
 				uint32_t value;
 
-				handle = PCI_HANDLE(bus, slot, function);
+				handle = PCI_HANDLE(bus, device, function);
 				value = pci_read_config_longword(handle, 0);
 				if (value != 0xffffffff)	/* we have a device at this position */
 				{
@@ -275,7 +275,7 @@ static uint32_t io_address = PCI_IO_OFFSET;
  *
  * Map card resources, adjust BARs and fill resource descriptors
  */
-static void pci_device_config(uint16_t bus, uint16_t slot, uint16_t function)
+static void pci_device_config(uint16_t bus, uint16_t device, uint16_t function)
 {
 	uint32_t address;
 	uint16_t handle;
@@ -283,8 +283,8 @@ static void pci_device_config(uint16_t bus, uint16_t slot, uint16_t function)
 	struct pci_rd *descriptors;
 	int i;
 
-	/* determine pci handle from bus, slot + function number */
-	handle = PCI_HANDLE(bus, slot, function);
+	/* determine pci handle from bus, device + function number */
+	handle = PCI_HANDLE(bus, device, function);
 
 	/* find index into resource descriptor table for handle */
 	index = handle2index(handle);
@@ -384,26 +384,26 @@ static void pci_device_config(uint16_t bus, uint16_t slot, uint16_t function)
 void pci_scan(void)
 {
 	uint16_t bus;
-	uint16_t slot;
+	uint16_t device;
 	uint16_t function;
 	int16_t index = 0;
 
 	xprintf("\r\nPCI bus scan...\r\n\r\n");
-	xprintf(" Bus|Slot|Func|Vndr|Dev |\r\n");
+	xprintf(" Bus| Dev|Func|Vndr|D-ID|\r\n");
 	xprintf("----+----+----|----+----|\r\n");
-	for (bus = 0; bus < 2; bus++)	/* scan two busses. FireBee USB is on DEVSEL(17) */
+	for (bus = 0; bus < 255; bus++)	/* scan two busses. FireBee USB is on DEVSEL(17) */
 	{
-		for (slot = 0; slot < 32; slot++)
+		for (device = 0; device < 32; device++)
 		{
 			for (function = 0; function < 8; function++)
 			{
 				uint32_t value;
-				uint16_t handle = PCI_HANDLE(bus, slot, function);
+				uint16_t handle = PCI_HANDLE(bus, device, function);
 
 				value = pci_read_config_longword(handle, 0);
 				if (value != 0xffffffff)
 				{
-					xprintf(" %02x | %02x | %02x |%04x|%04x| %s\r\n", bus, slot, function,
+					xprintf(" %02x | %02x | %02x |%04x|%04x| %s\r\n", bus, device, function,
 							PCI_VENDOR_ID(value),
 							PCI_DEVICE_ID(value),
 							device_class(pci_read_config_longword(handle, 0x08) >> 24 & 0xff));
@@ -411,10 +411,10 @@ void pci_scan(void)
 					if (PCI_VENDOR_ID(value) != 0x1057 && PCI_DEVICE_ID(value) != 0x5806) /* do not configure bridge */
 					{
 						/* save handle to index value so that we later find our resources again */
-						handles[index++] = PCI_HANDLE(bus, slot, function);
+						handles[index++] = PCI_HANDLE(bus, device, function);
 
 						/* configure memory and I/O for card */
-						pci_device_config(bus, slot, function);
+						pci_device_config(bus, device, function);
 					}
 
 					/* test for multi-function device to avoid ghost device detects */
