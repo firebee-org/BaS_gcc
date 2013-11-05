@@ -7,11 +7,11 @@
 #endif /* MACHINE_M5484LITE */
 
 /* make bas_rom access flags rx if compiling to RAM */
-#if (TARGET_ADDRESS < 0x1FFFFFFF && TARGET_ADDRESS > 0)
+#if COMPILE_RAM
 #define ROMFLAGS	WX
 #else
 #define ROMFLAGS	RX
-#endif /* TARGET_ADDRESS */
+#endif /* COMPILE_RAM */
 
 MEMORY
 {
@@ -68,7 +68,7 @@ SECTIONS
 		/*
 		 * if we compile to RAM anyway, there is no need to copy anything
 		 */
-#if (TARGET_ADDRESS < 0x1FFFFFFF && TARGET_ADDRESS > 0)
+#if COMPILE_RAM
 		. = ALIGN(16);
 		__BAS_DATA_START = .;
 		*(.data)
@@ -76,15 +76,15 @@ SECTIONS
 		__BAS_BSS_START = .;
 		*(.bss)	
 		__BAS_BSS_END = .;
-#endif /* TARGET_ADDRESS */
+#endif /* COMPILE_RAM */
 #if (FORMAT == elf32-m68k)
 		*(.rodata)
 		*(.rodata.*)
 #endif
-#if (TARGET_ADDRESS < 0x1FFFFFFF && TARGET_ADDRESS > 0)
+#if COMPILE_RAM
 		. = ALIGN(16);
 		_usb_buffer = .;
-#endif
+#endif /* COMPILE_RAM */
 	} > bas_rom
 
 #if (TARGET_ADDRESS == BOOTFLASH_BASE_ADDRESS)
