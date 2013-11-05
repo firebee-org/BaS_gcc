@@ -189,9 +189,12 @@ void acia_init()
 void enable_coldfire_interrupts()
 {
 	xprintf("enable interrupts: ");
+#if MACHINE_FIREBEE
 	*FPGA_INTR_CONTRL = 0L;				/* disable all interrupts */
+#endif /* MACHINE_FIREBEE */
 	MCF_EPORT_EPPAR = 0xaaa8;			/* all interrupts on falling edge */
 
+#if MACHINE_FIREBEE
 	/*
 	 * TIN0 on the Coldfire is connected to the FPGA. TIN0 triggers every write
 	 * access to 0xff8201 (vbasehi), i.e. everytime the video base address is written
@@ -203,6 +206,7 @@ void enable_coldfire_interrupts()
 	MCF_INTC_ICR62 = 0x3f;				/* interrupt level 7, interrupt priority 7 */
 
 	*FPGA_INTR_ENABLE  = 0xfe;	/* enable int 1-7 */
+#endif /* MACHINE_FIREBEE */
 	MCF_EPORT_EPIER = 0xfe;				/* int 1-7 on */
 	MCF_EPORT_EPFR = 0xff;				/* clear all pending interrupts */
 	MCF_INTC_IMRL = 0xffffff00;			/* int 1-7 on */
@@ -230,14 +234,12 @@ void BaS(void)
 	nvram_init();
 #endif /* MACHINE_FIREBEE */
 
-#ifdef MACHINE_FIREBEE 
 	xprintf("copy EmuTOS: ");
 
 	/* copy EMUTOS */
 	src = (uint8_t *) EMUTOS;
-	memcpy(dst, src, EMUTOS_SIZE);
+	//dma_memcpy(dst, src, EMUTOS_SIZE);
 	xprintf("finished\r\n");
-#endif /* MACHINE_FIREBEE */
 
 	xprintf("initialize MMU: ");
 	mmu_init();
