@@ -10,7 +10,7 @@
 
 # can be either "Y" or "N" (without quotes). "Y" for using the m68k-elf-, "N" for using the m68k-atari-mint
 # toolchain
-COMPILE_ELF=Y
+COMPILE_ELF=N
 
 ifeq (Y,$(COMPILE_ELF))
 TCPREFIX=m68k-elf-
@@ -168,7 +168,7 @@ $(1)/$$(FLASH_EXEC): $(1)/$(LIBBAS) $(LDCSRC)
 ifeq ($(COMPILE_ELF),Y)
 	$(OBJCOPY) -O srec $$@ $$(basename $$@).s19
 else
-	objcopy -I srec -O elf32big --alt-machine-code 4 $$@ $$(basename $$@).elf
+	objcopy -I srec -O elf32-big --alt-machine-code 4 $$@ $$(basename $$@).elf
 endif
 
 # pattern rule for RAM
@@ -179,7 +179,7 @@ $(1)/$$(RAM_EXEC): $(1)/$(LIBBAS) $(LDCSRC)
 ifeq ($(COMPILE_ELF),Y)
 	$(OBJCOPY) -O srec $$@ $$(basename $$@).s19
 else
-	objcopy -I srec -O elf32big --alt-machine-code 4 $$@ $$(basename $$@).elf
+	objcopy -I srec -O elf32-big --alt-machine-code 4 $$@ $$(basename $$@).elf
 endif
 
 # pattern rule for basflash
@@ -190,7 +190,7 @@ $(1)/$$(BASFLASH_EXEC): $(1)/objs/basflash.o $(1)/objs/basflash_start.o $(1)/$(L
 ifeq ($(COMPILE_ELF),Y)
 	$(OBJCOPY) -O srec $$@ $$(basename $$@).s19
 else
-	objcopy -I srec -O elf32big --alt-machine-code 4 $$@ $$(basename $$@).elf
+	objcopy -I srec -O elf32-big --alt-machine-code 4 $$@ $$(basename $$@).elf
 endif
 endef
 $(foreach DIR,$(TRGTDIRS),$(eval $(call EX_TEMPLATE,$(DIR))))
