@@ -168,7 +168,7 @@ _mmu_init:
 // 00D0'0000 - 0x00DF'FFFF (last megabyte of ST RAM = Falcon video memory) locked ID=6
 // mapped to physical address 60D0'0000 (FPGA video memory)
 // video ram: read write execute normal write true
-#ifdef MACHINE_FIREBEE
+#if MACHINE_FIREBEE
  		move.l	#0x00d00000|MCF_MMU_MMUTR_ID(sca_page_ID)|std_mmutr,d0
 		move.l	#0x60d00000|writethrough_mmudr|MCF_MMU_MMUDR_LK,d1
 		move.l	d0,MCF_MMU_MMUTR		
@@ -196,9 +196,19 @@ _mmu_init:
 // this maps virtual 0x00F0'0000 - 0x00FF'FFFF to physical 0xFFF0'0000 - 0xFFFF'FFFF effectively making I/O area
 // accesses ST-compatible (just the same what Atari made for TT and Falcon). This does not get mapped for the
 // m5484LITE boards which enables us to later act on I/O access attempts during a page miss exception
-#ifdef MACHINE_FIREBEE
+#if MACHINE_FIREBEE
 		move.l	#0x00f00000|std_mmutr,d0
 		move.l	#0xfff00000|nocache_precise_mmudr|MCF_MMU_MMUDR_LK,d1
+		move.l	d0,MCF_MMU_MMUTR		
+		move.l	d1,MCF_MMU_MMUDR
+		move.l	d2,MCF_MMU_MMUOR						// mapped to ffffxxx, precise,
+		move.l	d3,MCF_MMU_MMUOR						// mapped to ffffxxx, precise,
+#elif MACHINE_M5484LITE
+//
+// Instead, we lock PCI address space. Uncached, precise. For now, only for the M5484LITE
+//
+		move.l	#0x80000000|std_mmutr,d0
+		move.l	#0x80000000|nocache_precise_mmudr|MCF_MMU_MMUDR_LK,d1
 		move.l	d0,MCF_MMU_MMUTR		
 		move.l	d1,MCF_MMU_MMUDR
 		move.l	d2,MCF_MMU_MMUOR						// mapped to ffffxxx, precise,
