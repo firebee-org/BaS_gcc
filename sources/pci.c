@@ -460,8 +460,8 @@ void init_pci(void)
 	MCF_PCI_PCICR1 = MCF_PCI_PCICR1_CACHELINESIZE(4) + MCF_PCI_PCICR1_LATTIMER(32);
 	MCF_PCI_PCICR2 = MCF_PCI_PCICR2_MINGNT(16) + MCF_PCI_PCICR2_MAXLAT(16);
 
-	/* Turn on error signaling */
-	MCF_PCI_PCIICR = MCF_PCI_PCIICR_TAE + MCF_PCI_PCIICR_TAE + MCF_PCI_PCIICR_REE + 32;
+	/* Turn on error signaling, 32 write retries on failure */
+	MCF_PCI_PCIICR = MCF_PCI_PCIICR_REE + MCF_PCI_PCIICR_IAE + MCF_PCI_PCIICR_TAE + 32;
 	MCF_PCI_PCIGSCR |= MCF_PCI_PCIGSCR_SEE;
 
 	/* Configure Initiator Windows */
@@ -476,6 +476,9 @@ void init_pci(void)
 
 	/* initiator window configuration register */
 	MCF_PCI_PCIIWCR = MCF_PCI_PCIIWCR_WINCTRL0_MEMRDLINE + MCF_PCI_PCIIWCR_WINCTRL1_IO;
+
+	/* initialize target control register */
+	MCF_PCI_PCITCR = 0;
 	
 	/* reset PCI devices */
 	MCF_PCI_PCIGSCR &= ~MCF_PCI_PCIGSCR_PR;
