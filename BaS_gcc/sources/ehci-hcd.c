@@ -853,8 +853,8 @@ int ehci_usb_lowlevel_init(long handle, const struct pci_device_id *ent, void **
 	uint32_t reg;
 	uint32_t cmd;
 	uint32_t usb_base_addr = 0xFFFFFFFF;
-	PCI_RSC_DESC *pci_rsc_desc;
-	pci_rsc_desc = (PCI_RSC_DESC *)pci_get_resource(handle); /* USB EHCI */
+	struct pci_resource_descriptor *pci_rsc_desc;
+	pci_rsc_desc = pci_get_resource(handle); /* USB EHCI */
 	if (handle && (ent != NULL))
 	{
 		memset(&gehci, 0, sizeof(struct ehci));
@@ -922,7 +922,7 @@ int ehci_usb_lowlevel_init(long handle, const struct pci_device_id *ent, void **
 				}
 			}
 			flags = pci_rsc_desc->flags;
-			pci_rsc_desc = (PCI_RSC_DESC *)((uint32_t)pci_rsc_desc->next + (uint32_t)pci_rsc_desc);
+			pci_rsc_desc = (struct pci_resource_descriptor *)((uint32_t)pci_rsc_desc->next + (uint32_t)pci_rsc_desc);
 		}
 		while(!(flags & FLG_LAST));
 	}

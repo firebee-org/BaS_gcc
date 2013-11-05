@@ -28,6 +28,7 @@
 #include "pci.h"
 #include "stdint.h"
 #include "bas_printf.h"
+#include "bas_string.h"
 #include "util.h"
 #include "wait.h"
 
@@ -59,13 +60,10 @@ static struct pci_class
 };
 static int num_classes = sizeof(pci_classes) / sizeof(struct pci_class);
 
-static struct handle_index
-{
-	uint16_t handle;
-	uint16_t index;
-} handles[10];
-
-static PCI_RSC_DESC resource_descriptors[10][6]; /* FIXME: fix number of cards */
+#define NUM_CARDS		10
+#define NUM_RESOURCES	6
+uint16_t handles[NUM_CARDS];	/* holds the handle of a card at position = array index */
+static struct pci_resource_descriptor resource_descriptors[NUM_CARDS][NUM_RESOURCES]; /* FIXME: fix number of cards */
 
 static char *device_class(int classcode)
 {
@@ -174,13 +172,13 @@ void pci_write_config_longword(uint16_t handle, uint16_t offset, uint32_t value)
  *
  * get resource descriptor chain for handle
  */
-PCI_RSC_DESC *pci_get_resource(uint16_t handle)
+struct pci_resource_descriptor *pci_get_resource(uint16_t handle)
 {
 	int i;
 	int index = -1;
 
-	for (i = 0; i < 10; i++)
-		if (handles[i].handle == handle)
+	for (i = 0; i < NUM_CARDS; i++)
+		if (handles[i] == handle)
 			index = i;
 	if (index == -1)
 		return NULL;
@@ -266,16 +264,16 @@ static void pci_device_config(uint16_t bus, uint16_t slot, uint16_t function)
 	uint32_t address;
 	uint16_t handle;
 	uint16_t index = - 1;
-	PCI_RSC_DESC *descriptors;
+	struct pci_resource_descriptor *descriptors;
 	int i;
 
 	/* determine pci handle from bus, slot + function number */
 	handle = PCI_HANDLE(bus, slot, function);
 
 	/* find index into resource descriptor table for handle */
-	for (i = 0; i < 10; i++)
+	for (i = 0; i < NUM_CARDS; i++)
 	{
-		if (handles[i].handle == handle)
+		if (handles[i] == handle)
 		{
 			index = i;
 			break;
@@ -322,7 +320,7 @@ static void pci_device_config(uint16_t bus, uint16_t slot, uint16_t function)
 				//xprintf("BAR[%d] configured to %08x, size %x\r\n", i, value, size);
 
 				/* fill resource descriptor */
-				descriptors[barnum].next = sizeof(PCI_RSC_DESC);
+				descriptors[barnum].next = sizeof(struct pci_resource_descriptor);
 				descriptors[barnum].flags = 0 | FLG_8BIT | FLG_16BIT | FLG_32BIT | 1;
 				descriptors[barnum].start = mem_address;
 				descriptors[barnum].length = size;
@@ -351,7 +349,7 @@ static void pci_device_config(uint16_t bus, uint16_t slot, uint16_t function)
 				//xprintf("BAR[%d] mapped to %08x, size %x\r\n", i, value, size);
 
 				/* fill resource descriptor */
-				descriptors[barnum].next = sizeof(PCI_RSC_DESC);
+				descriptors[barnum].next = sizeof(struct pci_resource_descriptor);
 				descriptors[barnum].flags = FLG_IO | FLG_8BIT | FLG_16BIT | FLG_32BIT | 1;
 				descriptors[barnum].start = io_address;
 				descriptors[barnum].offset = PCI_MEMORY_OFFSET;
@@ -377,7 +375,6 @@ void pci_scan(void)
 	uint16_t slot;
 	uint16_t function;
 	uint16_t index = 0;
-	uint16_t i;
 
 	xprintf("\r\nPCI bus scan...\r\n\r\n");
 	xprintf(" Bus|Slot|Func|Vndr|Dev |\r\n");
@@ -402,18 +399,11 @@ void pci_scan(void)
 					if (PCI_VENDOR_ID(value) != 0x1057 && PCI_DEVICE_ID(value) != 0x5806) /* do not configure bridge */
 					{
 						/* save handle to index value so that we later find our resources again */
-						handles[index].index = index;
-						handles[index].handle = PCI_HANDLE(bus, slot, function);
+						handles[index] = PCI_HANDLE(bus, slot, function);
 
 						/* configure memory and I/O for card */
 						pci_device_config(bus, slot, function);
 					}
-
-					//for (i = 0; i < 0x40; i += 4)
-					//{
-						//value = pci_read_config_longword(handle, i);
-						//xprintf("register %02x value= %08x\r\n", i, value);
-					//}
 
 					/* test for multi-function device to avoid ghost device detects */
 					value = pci_read_config_longword(handle, 0x0c);	
@@ -461,37 +451,39 @@ void init_pci(void)
 {
 	xprintf("initializing PCI bridge:");
 
-   MCF_PCIARB_PACR = MCF_PCIARB_PACR_INTMPRI
+	MCF_PCIARB_PACR = MCF_PCIARB_PACR_INTMPRI
        + MCF_PCIARB_PACR_EXTMPRI(0x1F)
        + MCF_PCIARB_PACR_INTMINTEN
        + MCF_PCIARB_PACR_EXTMINTEN(0x1F);
 
-   /* Setup burst parameters */
-   MCF_PCI_PCICR1 = MCF_PCI_PCICR1_CACHELINESIZE(4) + MCF_PCI_PCICR1_LATTIMER(32);
-   MCF_PCI_PCICR2 = MCF_PCI_PCICR2_MINGNT(16) + MCF_PCI_PCICR2_MAXLAT(16);
+	/* Setup burst parameters */
+	MCF_PCI_PCICR1 = MCF_PCI_PCICR1_CACHELINESIZE(4) + MCF_PCI_PCICR1_LATTIMER(32);
+	MCF_PCI_PCICR2 = MCF_PCI_PCICR2_MINGNT(16) + MCF_PCI_PCICR2_MAXLAT(16);
 
-   /* Turn on error signaling */
-   MCF_PCI_PCIICR = MCF_PCI_PCIICR_TAE + MCF_PCI_PCIICR_TAE + MCF_PCI_PCIICR_REE + 32;
-   MCF_PCI_PCIGSCR |= MCF_PCI_PCIGSCR_SEE;
+	/* Turn on error signaling */
+	MCF_PCI_PCIICR = MCF_PCI_PCIICR_TAE + MCF_PCI_PCIICR_TAE + MCF_PCI_PCIICR_REE + 32;
+	MCF_PCI_PCIGSCR |= MCF_PCI_PCIGSCR_SEE;
 
-   /* Configure Initiator Windows */
-   /* initiator window 0 base / translation adress register */
-   MCF_PCI_PCIIW0BTAR = (PCI_MEMORY_OFFSET + ((PCI_MEMORY_SIZE -1) >> 8)) & 0xffff0000;
+	/* Configure Initiator Windows */
+	/* initiator window 0 base / translation adress register */
+	MCF_PCI_PCIIW0BTAR = (PCI_MEMORY_OFFSET + ((PCI_MEMORY_SIZE -1) >> 8)) & 0xffff0000;
 
-   /* initiator window 1 base / translation adress register */
-   MCF_PCI_PCIIW1BTAR = (PCI_IO_OFFSET + ((PCI_IO_SIZE - 1) >> 8)) & 0xffff0000;
+	/* initiator window 1 base / translation adress register */
+	MCF_PCI_PCIIW1BTAR = (PCI_IO_OFFSET + ((PCI_IO_SIZE - 1) >> 8)) & 0xffff0000;
 
-   /* initiator window 2 base / translation address register */
-   MCF_PCI_PCIIW2BTAR = 0L;   /* not used */
+	/* initiator window 2 base / translation address register */
+	MCF_PCI_PCIIW2BTAR = 0L;   /* not used */
 
-   /* initiator window configuration register */
-   MCF_PCI_PCIIWCR = MCF_PCI_PCIIWCR_WINCTRL0_MEMRDLINE + MCF_PCI_PCIIWCR_WINCTRL1_IO;
+	/* initiator window configuration register */
+	MCF_PCI_PCIIWCR = MCF_PCI_PCIIWCR_WINCTRL0_MEMRDLINE + MCF_PCI_PCIIWCR_WINCTRL1_IO;
+	
+	/* reset PCI devices */
+	MCF_PCI_PCIGSCR &= ~MCF_PCI_PCIGSCR_PR;
 
-   /* reset PCI devices */
-   MCF_PCI_PCIGSCR &= ~MCF_PCI_PCIGSCR_PR;
+	xprintf("finished\r\n");
 
-   xprintf("finished\r\n");
-
+	/* initialize resource descriptor table */
+	memset(&resource_descriptors, 0, NUM_CARDS * NUM_RESOURCES * sizeof(struct pci_resource_descriptor));
 	pci_scan();
 }
 
