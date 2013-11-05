@@ -50,36 +50,6 @@ void *dma_memcpy(void *dst, void *src, size_t n)
 	volatile int32_t time;
 	volatile int32_t start;
 	volatile int32_t end;
-	uint8_t *d;
-	uint8_t *s;
-
-	xprintf("compare memcpy() to memory to memory DMA from %p to %p (0x%x bytes ending at 0x%x)\r\n",
-				src, dst, n, dst + n);
-	d = dst;
-	s = src;
-
-	start = MCF_SLT0_SCNT;
-	/* first check if we can do a "traditional" memcpy() to the destination and measure speed */
-
-	memcpy(d, s, n);
-
-	end = MCF_SLT0_SCNT;
-
-	time = (start - end) / (SYSCLK / 1000) / 1000;
-	xprintf("memcpy() took %d ms (%f Mbytes/second)\r\n",
-			time, n / (float) time / 1000.0);
-	flush_and_invalidate_caches();
-
-	xprintf("clear target area after memcpy():");
-	start = MCF_SLT0_SCNT;
-	bzero(dst, n);
-	end = MCF_SLT0_SCNT;
-	time = (start - end) / (SYSCLK / 1000);
-	xprintf("bzero() took %d ms (%f Mbytes/second)\r\n", time, n / (float) time / 1000.0);
-
-	xprintf(" finished, flush caches: ");
-	flush_and_invalidate_caches();
-	xprintf("finished\r\n");
 
 	start = MCF_SLT0_SCNT;
 	ret = MCD_startDma(1, src, 4, dst, 4, n, 4, DMA_ALWAYS, 0, MCD_SINGLE_DMA, 0);
@@ -127,46 +97,7 @@ void *dma_memcpy(void *dst, void *src, size_t n)
 
 	end = MCF_SLT0_SCNT;
 	time = (start - end) / (SYSCLK / 1000) / 1000;
-	//xprintf("start = %d, end = %d, time = %d\r\n", start, end, time);
 	xprintf("took %d ms (%f Mbytes/second)\r\n",	time, n / (float) time / 1000.0);
-
-	/*
-	 * verify if copy succeeded
-	 */
-	xprintf("verify if DMA copy succeeded:\r\n");
-
-	xprintf("flush caches first:");
-	flush_and_invalidate_caches();
-	xprintf(" done.\r\n");
-
-	s = src;
-	d = dst;
-
-	start = MCF_SLT0_SCNT;
-	do
-	{
-		if (*d != *s)
-		{
-			xprintf("copy verification failed: %d (%p) != %d (%p) !\r\n", *d, d, *s, s);
-			break;
-		}
-		d++; s++;
-	} while (d < (uint8_t *) dst + n);
-	if (d >= (uint8_t *) dst + n)
-	{
-		xprintf("DMA copy verification successful!\r\n");
-		end = MCF_SLT0_SCNT;
-
-		time = (start - end) / (SYSCLK / 1000) / 1000;
-		xprintf("took %d ms (%f Mbytes/second)\r\n",	time, n / (float) time / 1000.0);
-
-	}
-
-#ifdef _NOT_USED_
-	__asm__ __volatile__("move.w	sr,d0\n\t"
-						 "stop		#0x2700\n\t"
-						 "move.w	d0,sr": : :);	/* halt CPU until DMA finished */
-#endif /* _NOT_USED_ */
 
 	return dst;
 }
@@ -188,7 +119,7 @@ int dma_init(void)
 	xprintf("DMA API version %d.%d initialized. Tasks are at %p\r\n", version / 0xff, version % 0xff, SYS_SRAM);
 
 	// test
-	dma_memcpy((void *) 0x01000000, (void *) 0xe0000000, 0x00100000);	/* copy one megabyte of flash to RAM */
+	dma_memcpy((void *) 0x10000, (void *) 0xe0000000, 0x00100000);	/* copy one megabyte of flash to RAM */
 
 	xprintf("DMA finished\r\n");
 	return 0;
