@@ -298,10 +298,12 @@ void BaS(void)
 	 */
 	memset((void *) 0x400, 0, 0x400);
 
+#ifdef MACHINE_FIREBEE
 	/* set Falcon bus control register */
 	/* sets bit 3 and 6. Both are undefined on an original Falcon? */
 
 	* (volatile uint8_t *) 0xffff8007 = 0x48;
+#endif /* MACHINE_FIREBEE */
 
 	/* ST RAM */
 
@@ -316,6 +318,7 @@ void BaS(void)
 	* (uint32_t *) 0x5a4 = 0x1d000000;
 	* (uint32_t *) 0x5a8 = 0x1357bd13;	/* ramvalid TOS system variable */
 
+#ifdef MACHINE_FIREBEE /* m5484lite has no ACIA and no dip switch... */
 	acia_init();
 
 	/* Test for pseudo-supervisor mode: DIP switch #6 down */
@@ -324,6 +327,7 @@ void BaS(void)
 		 * and all the supervisor instructions are emulated. */
 		__asm__ __volatile__("move.w #0x0700,sr	\n\t" : : : "memory");
 	}
+#endif /* MACHINE_FIREBEE */
 
 	srec_execute("BASFLASH.S19");
 
