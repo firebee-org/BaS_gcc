@@ -122,12 +122,13 @@ struct pci_device_id ohci_usb_pci_table[] =
 	}
 };
 
+#define DEBUG
 #ifdef DEBUG
-#define dbg(format, arg...) do board_printf("DEBUG: " format "\r\n", ## arg)
+#define dbg(format, arg...) do {xprintf("DEBUG: " format "\r\n", ## arg);} while(0)
 #else
 #define dbg(format, arg...) do {} while (0)
 #endif /* DEBUG */
-#define err xprintf
+#define err(format, arg...) do {xprintf("ERROR: " format "\r\n", ## arg); }while(0)
 #define info(format, arg...)  xprintf("INFO: " format "\r\n", ## arg)
 
 extern void udelay(long usec);
@@ -224,18 +225,18 @@ static void pkt_print(ohci_t *ohci, urb_priv_t *purb, struct usb_device *dev,
 		int i, len;
 		if (usb_pipecontrol(pipe))
 		{
-			board_printf(__FILE__ ": cmd(8):");
+			xprintf(__FILE__ ": cmd(8):");
 			for (i = 0; i < 8 ; i++)
-				board_printf(" %02x", ((uint8_t *)setup)[i]);
-			board_printf("\r\n");
+				xprintf(" %02x", ((uint8_t *)setup)[i]);
+			xprintf("\r\n");
 		}
 		if (transfer_len > 0 && buffer)
 		{
-			board_printf(__FILE__ ": data(%d/%d):", (purb ? purb->actual_length : 0), transfer_len);
+			xprintf(__FILE__ ": data(%d/%d):", (purb ? purb->actual_length : 0), transfer_len);
 			len = usb_pipeout(pipe)? transfer_len : (purb ? purb->actual_length : 0);
 			for (i = 0; i < 16 && i < len; i++)
-				board_printf(" %02x", ((uint8_t *)buffer)[i]);
-			board_printf("%s\r\n", i < len? "...": "");
+				xprintf(" %02x", ((uint8_t *)buffer)[i]);
+			xprintf("%s\r\n", i < len? "...": "");
 		}
 	}
 #endif
@@ -253,14 +254,14 @@ static void ep_print_int_eds(ohci_t *ohci, char *str)
 		ed_p = &(ohci->hcca->int_table[i]);
 		if (*ed_p == 0)
 			continue;
-		board_printf(__FILE__ ": %s branch int %2d(%2x):", str, i, i);
+		xprintf(__FILE__ ": %s branch int %2d(%2x):", str, i, i);
 		while (*ed_p != 0 && j--)
 		{
 			ed_t *ed = (ed_t *)swpl((uint32_t)ed_p);
-			board_printf(" ed: %4x;", ed->hwINFO);
+			xprintf(" ed: %4x;", ed->hwINFO);
 			ed_p = &ed->hwNextED;
 		}
-		board_printf("\r\n");
+		xprintf("\r\n");
 	}
 }
 
@@ -819,8 +820,8 @@ static void td_fill(ohci_t *ohci, unsigned int info, void *data, int len,
 	if (usb_pipebulk(urb_priv->pipe) && usb_pipeout(urb_priv->pipe))
 	{
 		for (i = 0; i < len; i++)
-			board_printf("td->data[%d] %#2x ", i, ((unsigned char *)td->data)[i]);
-		board_printf("\r\n");
+			xprintf("td->data[%d] %#2x ", i, ((unsigned char *)td->data)[i]);
+		xprintf("\r\n");
 	}
 #endif
 	if (!len)
@@ -843,14 +844,14 @@ static void td_fill(ohci_t *ohci, unsigned int info, void *data, int len,
 	if (data)
 	{
 		int i;
-		board_printf("td_fill: %08x %08x %08X %08X at 0x%08X\r\n", 
+		xprintf("td_fill: %08x %08x %08X %08X at 0x%08X\r\n", 
 		 swpl(td->hwINFO), swpl(td->hwCBP), swpl(td->hwNextTD), swpl(td->hwBE), td);
 		for (i = 0; i < len; i++)
-			board_printf("%02X ", *(unsigned char *)(data + i) & 0xff);
-		board_printf("\r\n");
+			xprintf("%02X ", *(unsigned char *)(data + i) & 0xff);
+		xprintf("\r\n");
 	}
 	else
-		board_printf("td_fill: %08x %08x %08X %08X at 0x%08X\r\n", 
+		xprintf("td_fill: %08x %08x %08X %08X at 0x%08X\r\n", 
 		 swpl(td->hwINFO), swpl(td->hwCBP), swpl(td->hwNextTD), swpl(td->hwBE), td);
 #endif
 }
@@ -1611,7 +1612,7 @@ static int hc_reset(ohci_t *ohci)
 											err("USB RootHub reset timed out!\r\n");
 											break;
 										}
-										wait(1 * 1000);
+										wait(1);
 									}
 								}
 							}
@@ -1637,10 +1638,11 @@ static int hc_reset(ohci_t *ohci)
 		else
 		{
 		 	pci_write_config_longword(ohci->handle, 0xE4, pci_read_config_longword(ohci->handle, 0xE4) | 0x01); // disable ehci
-			wait(10 * 1000);
+			wait(10);
 		}
 	}
 
+	xprintf("control: %x\r\n", readl(&ohci->regs->control));
 	if (readl(&ohci->regs->control) & OHCI_CTRL_IR)
 	{
 		/* SMM owns the HC */
@@ -1648,7 +1650,7 @@ static int hc_reset(ohci_t *ohci)
 		info("USB HC TakeOver from SMM");
 		while (readl(&ohci->regs->control) & OHCI_CTRL_IR)
 		{
-			wait(10 * 1000);
+			wait(10);
 			if (--smm_timeout == 0)
 			{
 				err("USB HC TakeOver failed!");
@@ -1788,7 +1790,7 @@ static int hc_interrupt(ohci_t *ohci)
 		}
 	}
 	if (ohci->irq)
-	  dbg("Interrupt: 0x%x frame: 0x%x bus: %d", ints, le16_to_cpu(ohci->hcca->frame_no), ohci->controller);
+	  dbg("Interrupt: 0x%x frame: 0x%x bus: %d", ints, swpw(ohci->hcca->frame_no), ohci->controller);
 	if (ints & OHCI_INTR_RHSC) /* root hub status change */
 	{
 #ifdef USB_POLL_HUB
