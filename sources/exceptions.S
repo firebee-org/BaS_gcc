@@ -426,6 +426,22 @@ std_exc_vec:
 
 		move.w	8(sp),d0			// fetch vector
 		and.l	#0x3fc,d0			// mask out vector number
+
+
+		// printout vector number of exception
+
+		lea		-4 * 4(sp),sp		// reserve stack space
+		movem.l	d0-d1/a0-a1,(sp)	// save gcc scratch registers
+
+		lsr.l	#2,d0				// shift vector number in place
+		move.l	d0,-(sp)			// provide it to xprintf()
+		pea		exception_text		
+		jsr		_xprintf			// call xprintf()
+		addq.l	#2*4,sp				// adjust stack
+		
+		movem.l	(sp),d0-d1/a0-a1	// restore registers
+		lea		4 * 4(sp),sp
+		
 		add.l	_rt_vbr,d0			// + VBR
 		move.l	d0,a5				
 		move.l	(a5),d0				// fetch exception routine address
@@ -438,6 +454,13 @@ std_exc_vec:
 		move.w	d0,sr				//
 		move.l	(a7)+,d0			// restore d0
 		rts							// jump to exception routine
+
+		.data
+exception_text:
+		.ascii	"EXCEPTION %d caught"
+		.byte	13, 10, 0
+
+		.text
 
 #ifdef MACHINE_FIREBEE
 stv_protect:
