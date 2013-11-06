@@ -119,22 +119,15 @@ uint32_t pci_read_config_longword(uint16_t handle, uint16_t offset)
 				MCF_PCI_PCISCR_TS |					/* clear target abort signalling (as target) */
 				MCF_PCI_PCISCR_DP;					/* clear parity error */
 	
-	//(void) MCF_PCI_PCISCR;
-	//wait(100);
-
-	//xprintf("PCISCR before config cycle: %lx\r\n", MCF_PCI_PCISCR);
 
 	/* initiate PCI configuration access to device */
-
 	MCF_PCI_PCICAR = MCF_PCI_PCICAR_E |			/* enable configuration access special cycle */
 			MCF_PCI_PCICAR_BUSNUM(bus) |
 			MCF_PCI_PCICAR_DEVNUM(device) |		/* device number, devices 0 - 9 are reserved */
 			MCF_PCI_PCICAR_FUNCNUM(function) |	/* function number */
 			MCF_PCI_PCICAR_DWORD(offset / 4);
 
-	//wait(100);
 	value =  * (volatile uint32_t *) PCI_IO_OFFSET;	/* access device */
-	//xprintf("pci_read_config_longword(%d (bus=%d, device=%d, function=%d), %d) = %d\r\n", handle, bus, device, function, offset, swpl(value));
 
 	return swpl(value);
 }
@@ -175,20 +168,13 @@ void pci_write_config_longword(uint16_t handle, uint16_t offset, uint32_t value)
 				MCF_PCI_PCISCR_TS |					/* clear target abort signalling (as target) */
 				MCF_PCI_PCISCR_DP;					/* clear parity error */
 
-	//(void) MCF_PCI_PCISCR;
-	//wait(10);
-
-	//xprintf("PCISCR before config cycle: %lx\r\n", MCF_PCI_PCISCR);
-
 	/* initiate PCI configuration access to device */
-
 	MCF_PCI_PCICAR = MCF_PCI_PCICAR_E |				/* enable configuration access special cycle */
 			MCF_PCI_PCICAR_BUSNUM(bus) |
 			MCF_PCI_PCICAR_DEVNUM(device) |			/* device number, devices 0 - 9 are reserved */
 			MCF_PCI_PCICAR_FUNCNUM(function) |		/* function number */
 			MCF_PCI_PCICAR_DWORD(offset / 4);
 
-	//wait(10);
 	* (volatile uint32_t *) PCI_IO_OFFSET = swpl(value);	/* access device */
 }
 
