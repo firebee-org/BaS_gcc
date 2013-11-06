@@ -227,9 +227,9 @@ void disable_coldfire_interrupts()
 void BaS(void)
 {
 	uint8_t *src;
-	uint8_t *dst = (uint8_t *)TOS;
+	uint8_t *dst = (uint8_t *) TOS;
 
-#ifdef MACHINE_FIREBEE	/* LITE board has no pic and (currently) no nvram */
+#if MACHINE_FIREBEE	/* LITE board has no pic and (currently) no nvram */
 	pic_init();
 	nvram_init();
 #endif /* MACHINE_FIREBEE */
@@ -238,7 +238,7 @@ void BaS(void)
 
 	/* copy EMUTOS */
 	src = (uint8_t *) EMUTOS;
-	//dma_memcpy(dst, src, EMUTOS_SIZE);
+	dma_memcpy(dst, src, EMUTOS_SIZE);
 	xprintf("finished\r\n");
 
 	xprintf("initialize MMU: ");
