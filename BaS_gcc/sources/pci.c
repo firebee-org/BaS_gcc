@@ -70,6 +70,9 @@ static uint16_t handles[NUM_CARDS];
 /* holds the card's resource descriptors; filled in pci_device_config() */
 static struct pci_rd resource_descriptors[NUM_CARDS][NUM_RESOURCES]; 
 
+/*
+ * retrieve handle for i'th device
+ */
 static int16_t handle2index(int16_t handle)
 {
 	int i;
@@ -84,6 +87,9 @@ static int16_t handle2index(int16_t handle)
 	return -1;
 }
 
+/*
+ * retrieve device class (in cleartext) for a PCI classcode
+ */
 static char *device_class(int classcode)
 {
 	int i;
@@ -378,51 +384,42 @@ static void pci_device_config(uint16_t bus, uint16_t device, uint16_t function)
 		descriptors[barnum - 1].flags |= FLG_LAST;
 }
 
+/*
+ * scan PCI bus and display devices found. Create a handle for each device and call pci_device_config() for it
+ */
 void pci_scan(void)
 {
-	uint16_t bus;
-	uint16_t device;
-	uint16_t function;
+	int16_t handle;
 	int16_t index = 0;
 
 	xprintf("\r\nPCI bus scan...\r\n\r\n");
 	xprintf(" Bus| Dev|Func|Vndr|D-ID|\r\n");
-	xprintf("----+----+----|----+----|\r\n");
+	xprintf("----+----+----+----+----|\r\n");
 
-	/* FIXME: FireBee USB is on DEVSEL(17), but currently not found for whatever reason */
-	for (bus = 0; bus < 255; bus++)
+	handle = pci_find_device(0x0, 0xFFFF, index);
+	while (handle != PCI_DEVICE_NOT_FOUND)
 	{
-		for (device = 0; device < 32; device++)
+		uint32_t value;
+
+		value = pci_read_config_longword(handle, PCIIDR);
+		xprintf(" %02x | %02x | %02x |%04x|%04x| %s\r\n",
+				PCI_BUS_FROM_HANDLE(handle),
+				PCI_DEVICE_FROM_HANDLE(handle),
+				PCI_FUNCTION_FROM_HANDLE(handle),
+				PCI_VENDOR_ID(value), PCI_DEVICE_ID(value),
+				device_class(pci_read_config_byte(handle, PCICCR)));
+
+		if (PCI_VENDOR_ID(value) != 0x1057 && PCI_DEVICE_ID(value) != 0x5806) /* do not configure bridge */
 		{
-			for (function = 0; function < 8; function++)
-			{
-				uint32_t value;
-				uint16_t handle = PCI_HANDLE(bus, device, function);
+			/* save handle to index value so that we'll be able to later find our resources */
+			handles[index++] = handle;
 
-				value = pci_read_config_longword(handle, 0);
-				if (value != 0xffffffff)
-				{
-					xprintf(" %02x | %02x | %02x |%04x|%04x| %s\r\n", bus, device, function,
-							PCI_VENDOR_ID(value),
-							PCI_DEVICE_ID(value),
-							device_class(pci_read_config_longword(handle, 0x08) >> 24 & 0xff));
-
-					if (PCI_VENDOR_ID(value) != 0x1057 && PCI_DEVICE_ID(value) != 0x5806) /* do not configure bridge */
-					{
-						/* save handle to index value so that we'll be able to  later find our resources */
-						handles[index++] = PCI_HANDLE(bus, device, function);
-
-						/* configure memory and I/O for card */
-						pci_device_config(bus, device, function);
-					}
-
-					/* test for multi-function device to avoid ghost device detects */
-					value = pci_read_config_longword(handle, 0x0c);	
-					if (function == 0 && !(PCI_HEADER_TYPE(value) & 0x80))	/* no multi function device */
-						function = 8; /* cancel inner loop */
-				}
-			}
+			/* configure memory and I/O for card */
+			pci_device_config(PCI_BUS_FROM_HANDLE(handle),
+						PCI_DEVICE_FROM_HANDLE(handle),
+						PCI_FUNCTION_FROM_HANDLE(handle));
 		}
+		handle = pci_find_device(0x0, 0xFFF, ++index);
 	}
 	xprintf("\r\n...finished\r\n");
 }
@@ -476,17 +473,24 @@ void init_pci(void)
 	MCF_PCI_PCIGSCR |= MCF_PCI_PCIGSCR_SEE;
 
 	/* Configure Initiator Windows */
-	/* initiator window 0 base / translation adress register */
-	MCF_PCI_PCIIW0BTAR = (PCI_MEMORY_OFFSET + ((PCI_MEMORY_SIZE -1) >> 8)) & 0xffff0000;
+
+	/*
+	 * initiator window 0 base / translation adress register
+	 *
+	 * Window starts at PCI_MEMORY_OFFSET, ends at PCI_MEMORY_OFFSET + PCI_MEMORY_SIZE - 1 (2 GB)
+	 * There is no translation from M54xx address space to PCI address space
+	 */
+	MCF_PCI_PCIIW0BTAR = PCI_MEMORY_OFFSET | (((PCI_MEMORY_SIZE - 1) >> 8) & 0xffff0000) |
+							PCI_MEMORY_OFFSET >> 16;
 
 	/* initiator window 1 base / translation adress register */
-	MCF_PCI_PCIIW1BTAR = (PCI_IO_OFFSET + ((PCI_IO_SIZE - 1) >> 8)) & 0xffff0000;
+	MCF_PCI_PCIIW1BTAR = (PCI_IO_OFFSET | ((PCI_IO_SIZE - 1) >> 8)) & 0xffff0000;
 
 	/* initiator window 2 base / translation address register */
 	MCF_PCI_PCIIW2BTAR = 0L;   /* not used */
 
 	/* initiator window configuration register */
-	MCF_PCI_PCIIWCR = MCF_PCI_PCIIWCR_WINCTRL0_MEMRDLINE + MCF_PCI_PCIIWCR_WINCTRL1_IO;
+	MCF_PCI_PCIIWCR = MCF_PCI_PCIIWCR_WINCTRL0_MEMRDLINE | MCF_PCI_PCIIWCR_WINCTRL1_IO;
 
 	/* initialize target control register */
 	MCF_PCI_PCITCR = 0;
