@@ -113,7 +113,8 @@ bfl: $(patsubst %,%/$(BASFLASH_EXEC),$(TRGTDIRS))
 lib: $(LIBS)
 
 
-.PHONY clean:
+.PHONY: clean
+clean:
 	for d in $(TRGTDIRS);\
 		do rm -f $$d/*.map $$d/*.s19 $$d/*.elf $$d/*.lk $$d/objs/* ;\
 	done
@@ -203,7 +204,8 @@ depend: $(ASRCS) $(CSRCS)
 		do $(CC) $(CFLAGS) $(INCLUDE) -M $(ASRCS) $(CSRCS) | sed -e "s#^\(.*\).o:#$$d/objs/\1.o:#" >> depend; \
 	done
 
-tags: $(ASRCS) $(CSRCS) include/*
+.PHONY: tags
+tags:
 	ctags -R sources include
 	
 ifneq (clean,$(MAKECMDGOALS))
