@@ -931,9 +931,9 @@ static void td_submit_job(ohci_t *ohci, struct usb_device *dev, uint32_t pipe,
 
 static void dl_transfer_length(ohci_t *ohci, td_t *td)
 {
-	uint32_t tdINFO, tdBE, tdCBP;
+	uint32_t tdBE, tdCBP;
 	urb_priv_t *lurb_priv = td->ed->purb;
-	tdINFO = swpl(td->hwINFO);
+
 	tdBE   = swpl(td->hwBE);
 	tdCBP  = swpl(td->hwCBP);
 	if (tdBE)
