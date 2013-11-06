@@ -27,23 +27,23 @@
  *      Author: Markus Fröschle
  */
 
-#define SYSCLK		132000
+#define SYSCLK			132000
 
-#define BOOTFLASH_BASE_ADDRESS	0xE0000000
-#define BOOTFLASH_SIZE			0x800000		/* FireBee has 8 MByte Flash */
-#define BOOTFLASH_BAM			(BOOTFLASH_SIZE - 1)
+#define BOOTFLASH_BASE_ADDRESS		0xE0000000
+#define BOOTFLASH_SIZE				0x800000		/* FireBee has 8 MByte Flash */
+#define BOOTFLASH_BAM				(BOOTFLASH_SIZE - 1)
 
-#define SDRAM_START				0x00000000	/* start at address 0 */
-#define SDRAM_SIZE				0x20000000	/* 512 MB on the Firebee */
+#define SDRAM_START					0x00000000	/* start at address 0 */
+#define SDRAM_SIZE					0x20000000	/* 512 MB on the Firebee */
 
 #ifdef COMPILE_RAM
-#define TARGET_ADDRESS  (SDRAM_START + SDRAM_SIZE - 0x100000)
+#define TARGET_ADDRESS  	(SDRAM_START + SDRAM_SIZE - 0x100000)
 #else
-#define TARGET_ADDRESS  BOOTFLASH_BASE_ADDRESS
+#define TARGET_ADDRESS  	BOOTFLASH_BASE_ADDRESS
 
 #endif /* COMPILE_RAM */
 
-#define  USB_BUFFER_SIZE   0x80000
+#define USB_BUFFER_SIZE   	0x80000
 
 #define EMUTOS_BASE_ADDRESS	0xe0600000
 
