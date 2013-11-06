@@ -302,34 +302,41 @@ static void pci_device_config(uint16_t bus, uint16_t device, uint16_t function)
 		uint32_t value;
 		
 
-		value = pci_read_config_longword(handle, 0x10 + i);			/* read BAR value */
-		pci_write_config_longword(handle, 0x10 + i, 0xffffffff);	/* write all bits */
-		address = pci_read_config_longword(handle, 0x10 + i);		/* read back value */
+		/*
+		 * read BAR[i] value
+		 */
+		value = pci_read_config_longword(handle, PCIBAR0 + i);
+
+		/*
+		 * write all bits of BAR[i]
+		 */
+		pci_write_config_longword(handle, 0x10 + i, 0xffffffff);
+
+		/*
+		 * read back value to see which bits have been set
+		 */
+		address = pci_read_config_longword(handle, PCIBAR0 + i);
 
 		if (address)	/* is bar in use? */
 		{
-			//xprintf("%s region found with base address %08x, size = %x\r\n",
-				//(IS_PCI_MEM_BAR(value) ? "Memory" : "I/O"),
-				//(IS_PCI_MEM_BAR(value) ? PCI_MEMBAR_ADR(value) : PCI_IOBAR_ADR(value)),
-				//(IS_PCI_MEM_BAR(value) ? ~(address & 0xfffffff0) + 1 : ~(address & 0xfffffffc) + 1));
-
+			/*
+			 * resource descriptor for this device
+			 */
 			struct pci_rd *rd = &descriptors[barnum]; 
 
-			/* adjust base address to card's alignment requirements */
 			if (IS_PCI_MEM_BAR(value))
 			{
+				/* adjust base address to card's alignment requirements */
 				int size = ~(address & 0xfffffff0) + 1;
 
-				/* calculate start adress with alignment */
+				/* calculate a valid map adress with alignment requirements */
 				mem_address = (mem_address + size - 1) & ~(size - 1);
 
 				/* write it to the BAR */
-				pci_write_config_longword(handle, 0x10 + i, mem_address);
+				pci_write_config_longword(handle, PCIBAR0 + i, mem_address);
 
 				/* read it back, just to be sure */
-				value = pci_read_config_longword(handle, 0x10 + i);
-
-				//xprintf("BAR[%d] configured to %08x, size %x\r\n", i, value, size);
+				value = pci_read_config_longword(handle, PCIBAR0 + i);
 
 				/* fill resource descriptor */
 				rd->next = sizeof(struct pci_rd);
@@ -345,22 +352,14 @@ static void pci_device_config(uint16_t bus, uint16_t device, uint16_t function)
 				/* index to next unused resource descriptor */
 				barnum++;
 			}
-			else if (IS_PCI_IO_BAR(value))
+			else if (IS_PCI_IO_BAR(value)) /* same as above for I/O resources */
 			{
 				int size = ~(address & 0xfffffffc) + 1;
 
-				/* calculate start adress with alignment */
 				io_address = (io_address + size - 1) & ~(size - 1);
+				pci_write_config_longword(handle, PCIBAR0 + i, io_address);
+				value = pci_read_config_longword(handle, PCIBAR0 + i);
 
-				/* write it to the BAR */
-				pci_write_config_longword(handle, 0x10 + i, io_address);
-
-				/* read it back, just to be sure */
-				value = pci_read_config_longword(handle, 0x10 + i);
-
-				//xprintf("BAR[%d] mapped to %08x, size %x\r\n", i, value, size);
-
-				/* fill resource descriptor */
 				rd->next = sizeof(struct pci_rd);
 				rd->flags = FLG_IO | FLG_8BIT | FLG_16BIT | FLG_32BIT | 1;
 				rd->start = io_address;
@@ -368,10 +367,8 @@ static void pci_device_config(uint16_t bus, uint16_t device, uint16_t function)
 				rd->length = size;
 				rd->dmaoffset = PCI_MEMORY_OFFSET;
 
-				/* adjust I/O adress for next turn */
 				io_address += size;
 
-				/* index to next unused resource descriptor */
 				barnum++;
 			}
 		}
@@ -391,7 +388,9 @@ void pci_scan(void)
 	xprintf("\r\nPCI bus scan...\r\n\r\n");
 	xprintf(" Bus| Dev|Func|Vndr|D-ID|\r\n");
 	xprintf("----+----+----|----+----|\r\n");
-	for (bus = 0; bus < 255; bus++)	/* scan two busses. FireBee USB is on DEVSEL(17) */
+
+	/* FIXME: FireBee USB is on DEVSEL(17), but currently not found for whatever reason */
+	for (bus = 0; bus < 255; bus++)
 	{
 		for (device = 0; device < 32; device++)
 		{
@@ -410,7 +409,7 @@ void pci_scan(void)
 
 					if (PCI_VENDOR_ID(value) != 0x1057 && PCI_DEVICE_ID(value) != 0x5806) /* do not configure bridge */
 					{
-						/* save handle to index value so that we later find our resources again */
+						/* save handle to index value so that we'll be able to  later find our resources */
 						handles[index++] = PCI_HANDLE(bus, device, function);
 
 						/* configure memory and I/O for card */
@@ -420,7 +419,7 @@ void pci_scan(void)
 					/* test for multi-function device to avoid ghost device detects */
 					value = pci_read_config_longword(handle, 0x0c);	
 					if (function == 0 && !(PCI_HEADER_TYPE(value) & 0x80))	/* no multi function device */
-						function = 8;
+						function = 8; /* cancel inner loop */
 				}
 			}
 		}

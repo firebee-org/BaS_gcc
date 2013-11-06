@@ -1018,15 +1018,15 @@ void initialize_hardware(void)
 	init_slt();
 	init_fbcs();
 	init_ddram();
-	init_eport();
-	init_xlbus_arbiter();
-	init_pci();
 #ifdef MACHINE_FIREBEE
 	init_fpga();
 	init_pll();
 	init_video_ddr();
 	dvi_on();
 #endif /* MACHINE_FIREBEE */
+	init_eport();
+	init_xlbus_arbiter();
+	init_pci();
 	/* moved the following line (temporarily) to BaS (after MMU init) to be able to catch adressing errors on USB init */
 	//init_usb();
 #ifdef MACHINE_FIREBEE
