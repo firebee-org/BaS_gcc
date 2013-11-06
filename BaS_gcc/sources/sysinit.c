@@ -980,7 +980,7 @@ void initialize_hardware(void)
 
 	/* make sure MMU is disabled */
 	MCF_MMU_MMUCR = 0;	/* MMU off */
-	NOP();								/* force pipeline sync */
+	NOP();				/* force pipeline sync */
 
 	/*
 	 * Determine the processor revision
@@ -1018,7 +1018,7 @@ void initialize_hardware(void)
 	init_slt();
 	init_fbcs();
 	init_ddram();
-#ifdef MACHINE_FIREBEE
+#if MACHINE_FIREBEE
 	init_fpga();
 	init_pll();
 	init_video_ddr();
@@ -1029,7 +1029,7 @@ void initialize_hardware(void)
 	init_pci();
 	/* moved the following line (temporarily) to BaS (after MMU init) to be able to catch adressing errors on USB init */
 	//init_usb();
-#ifdef MACHINE_FIREBEE
+#if MACHINE_FIREBEE
 	init_ac97();
 #endif /* MACHINE_FIREBEE */
 
