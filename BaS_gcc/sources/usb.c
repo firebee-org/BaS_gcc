@@ -190,7 +190,7 @@ int usb_init(uint16_t handle, const struct pci_device_id *ent)
 	}
 	else
 	{
-		xprintf("Error, couldn't init Lowlevel part\r\n");
+		xprintf("\r\nError, couldn't init Lowlevel part\r\n");
 		usb_started = 0;
 		return -1;
 	}
