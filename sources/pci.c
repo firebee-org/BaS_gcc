@@ -457,6 +457,9 @@ void init_xlbus_arbiter(void)
 
 void init_pci(void)
 {
+	uint32_t value;
+	uint32_t new_value;
+
 	xprintf("initializing PCI bridge:");
 
 	MCF_PCIARB_PACR = MCF_PCIARB_PACR_INTMPRI
@@ -495,8 +498,22 @@ void init_pci(void)
 	/* initialize target control register */
 	MCF_PCI_PCITCR = 0;
 	
+	value =  MCF_PCI_PCISCR_M | /* memory access control enabled */
+		MCF_PCI_PCISCR_B |		/* bus master enabled */
+		MCF_PCI_PCISCR_MW |		/* memory write and invalidate enabled */
+		MCF_PCI_PCISCR_PER |	/* parity errors enabled, PERR# will be asserted */
+		MCF_PCI_PCISCR_S;		/* SERR enabbled */
+
+	MCF_PCI_PCISCR = value;
+
+	new_value = MCF_PCI_PCISCR;
+
+	if (new_value != value)
+		xprintf("MCF_PCI_PCISCR wanted: %08x, got %08x\r\n", value, new_value);
+
 	/* reset PCI devices */
 	MCF_PCI_PCIGSCR &= ~MCF_PCI_PCIGSCR_PR;
+	do ; while (MCF_PCI_PCIGSCR & 1); /* wait until reset finished */
 
 	xprintf("finished\r\n");
 
