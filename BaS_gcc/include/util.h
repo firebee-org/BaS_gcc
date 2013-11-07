@@ -37,9 +37,9 @@ static inline uint16_t swpw(uint16_t w)
 	__asm__ __volatile__
 	(
 		"lea		%[input],a0\n\t"				\
-		"mvz.b	3(a0),%[output]\n\t"			\
+		"mvz.b	1(a0),%[output]\n\t"			\
 		"lsl.l	#8,%[output]\n\t"				\
-		"move.b	2(a0),%[output]\n\t"			\
+		"move.b	(a0),%[output]\n\t"			\
 		:	[output] "=d" (result)	/* output */
 		:	[input] "o" (w)			/* input */
 		: "cc", "a0", "memory"	/* clobbered */
