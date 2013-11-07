@@ -37,7 +37,7 @@
 #define PCICR                 0x04   /* PCI Command Register                */
 #define PCISR                 0x06   /* PCI Status Register                 */
 #define PCIREV                0x08   /* PCI Revision ID Register            */
-#define PCICCR                0x09   /* PCI Class Code Register             */
+#define PCICCR                0x0B   /* PCI Class Code Register             */
 #define PCICLSR               0x0C   /* PCI Cache Line Size Register        */
 #define PCILTR                0x0D   /* PCI Latency Timer Register          */
 #define PCIHTR                0x0E   /* PCI Header Type Register            */
@@ -155,16 +155,16 @@ typedef struct                       /* structure of address conversion     */
 /* PCI configuration space macros */
 
 /* register 0x00 macros */
-#define PCI_VENDOR_ID(i)	((i) & 0xffff)
-#define PCI_DEVICE_ID(i)	(((i) & 0xffff0000) >> 16)
+#define PCI_VENDOR_ID(i)	swpw((uint16_t)(((i) & 0xffff0000) >> 16))
+#define PCI_DEVICE_ID(i)	swpw((uint16_t) ((i) & 0xffff))
 
 /* register 0x04 macros */
-#define PCI_STATUS(i)		(((i) >> 16) & 0xffff)
-#define PCI_COMMAND(i)		((i) & 0xffff)
+#define PCI_STATUS(i)		((i) & 0xffff)
+#define PCI_COMMAND(i)		(((i) >> 16) & 0xffff)
 
 /* register 0x08 macros */
-#define PCI_CLASS_CODE(i)	(((i) & 0xff000000) >> 24)
-#define PCI_SUBCLASS(i)		(((i) & 0xff0000) >> 16)
+#define PCI_CLASS_CODE(i)	((swpl((i)) & 0xffff0000) >> 16)
+#define PCI_SUBCLASS(i)		((swpl((i)) & 0xffffff00) >> 8)
 #define PCI_PROF_IF(i)		(((i) & 0xff00) >> 8)
 #define PCI_REVISION_ID(i)	(((i) & 0xff))
 
