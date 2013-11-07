@@ -529,8 +529,6 @@ void init_usb(void)
 			if (PCI_CLASS_CODE(class) == PCI_CLASS_SERIAL_USB)
 			{
 				xprintf("serial USB found at #%x\r\n", handle);
-			xprintf("PCI_SUBCLASS(0x%08x) = 0x%06x (looking for 0x%06x\r\n", 
-					class, PCI_SUBCLASS(class), PCI_CLASS_SERIAL_USB_EHCI);
 				if (PCI_SUBCLASS(class) == PCI_CLASS_SERIAL_USB_EHCI)
 				{
 					board = ehci_usb_pci_table;
