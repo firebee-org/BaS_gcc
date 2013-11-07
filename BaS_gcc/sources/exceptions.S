@@ -434,10 +434,19 @@ std_exc_vec:
 		movem.l	d0-d1/a0-a1,(sp)	// save gcc scratch registers
 
 		lsr.l	#2,d0				// shift vector number in place
+		cmp.l	#33,d0
+		beq		noprint
+		cmp.l	#34,d0
+		beq		noprint
+		cmp.l	#45,d0
+		beq		noprint
+		cmp.l	#46,d0
+		beq		noprint
 		move.l	d0,-(sp)			// provide it to xprintf()
 		pea		exception_text		
 		jsr		_xprintf			// call xprintf()
 		addq.l	#2*4,sp				// adjust stack
+noprint:
 		
 		movem.l	(sp),d0-d1/a0-a1	// restore registers
 		lea		4 * 4(sp),sp
@@ -697,12 +706,12 @@ irq6_sca_pn1c:
 		// experiment: do video page copy using Coldfire DMA
 
 		lea 	-15 * 4(sp),sp
-		movem.l	d0-d1/a0-a1,sp		// save gcc scratch registers
+		movem.l	d0-d1/a0-a1,(sp)	// save gcc scratch registers
 		clr.l	-(sp)				// no special functions
 		move.l	#MCD_SINGLE_DMA|MCD_TT_FLAGS_CW|MCD_TT_FLAGS_RL|MCD_TT_FLAGS_SP,-(sp)
 		mov3q	#7,-(sp)			// highest DMA priority
 		move.l	#DMA_ALWAYS,-(sp)	// do memory to memory DMA
-		move.l	#4,-(sp)			// copy 4 bytes at a time
+		move.l	#1,-(sp)			// copy 4 bytes at a time
 		move.l	#0x100000,-(sp)		// copy 1 Megabyte
 		move.l	#4,-(sp)			// destination increment
 		move.l	a1,-(sp)			// destination adress
@@ -710,6 +719,7 @@ irq6_sca_pn1c:
 		move.l	a0,-(sp)			// source adress
 		move.l	#1,-(sp)			// channel 1
 		jsr		_MCD_startDma
+
 		movem.l	(sp),d0-d1/a0-a1	// restore gcc scratch registers
 		lea		15 * 4(sp),sp		// adjust stack
 
@@ -1005,18 +1015,18 @@ video_copy_data:
 		add.l	#0x60000000,a1
 		move.l	#0x10000,d4			// whole page
 
-#define _DO_CPU_COPY
 #ifndef _DO_CPU_COPY
 
 		// experiment: do video page copy using Coldfire DMA
 
-		move.l	d0,-(sp)			// save d0
+		lea 	-15 * 4(sp),sp
+		movem.l	d0-d1/a0-a1,(sp)	// save gcc scratch registers
 
 		clr.l	-(sp)				// no special functions
 		move.l	#MCD_SINGLE_DMA|MCD_TT_FLAGS_CW|MCD_TT_FLAGS_RL|MCD_TT_FLAGS_SP,-(sp)
 		mov3q	#7,-(sp)			// highest DMA priority
 		move.l	#DMA_ALWAYS,-(sp)	// do memory to memory DMA
-		move.l	#4,-(sp)			// copy 4 bytes at a time
+		move.l	#1,-(sp)			// copy 4 bytes at a time
 		move.l	#0x100000,-(sp)		// copy 1 Megabyte
 		move.l	#4,-(sp)			// destination increment
 		move.l	a1,-(sp)			// destination adress
@@ -1033,9 +1043,8 @@ video_copy_data:
 		cmp.l	#6,d0
 		bne		.wait_dma_finished
 
-		lea		11 * 4(sp),sp		// adjust stack
-
-		move.l	(sp)+,d0			// restore d0
+		movem.l	(sp),d0-d1/a0-a1	// restore gcc scratch registers
+		lea		15 * 4(sp),sp		// adjust stack
 
 #else
 video_copy_data_loop:
