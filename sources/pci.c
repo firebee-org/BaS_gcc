@@ -111,6 +111,7 @@ uint32_t pci_read_config_longword(uint16_t handle, uint16_t offset)
 	uint16_t device = PCI_DEVICE_FROM_HANDLE(handle);
 	uint16_t function = PCI_FUNCTION_FROM_HANDLE(handle);
 
+#ifdef _NOT_USED_
 	/* clear PCI status/command register */
 	MCF_PCI_PCISCR = MCF_PCI_PCISCR_PE |		/* clear parity error bit */
 				MCF_PCI_PCISCR_SE |					/* clear system error */
@@ -118,6 +119,7 @@ uint32_t pci_read_config_longword(uint16_t handle, uint16_t offset)
 				MCF_PCI_PCISCR_TR |					/* clear target abort */
 				MCF_PCI_PCISCR_TS |					/* clear target abort signalling (as target) */
 				MCF_PCI_PCISCR_DP;					/* clear parity error */
+#endif /* _NOT_USED_ */
 	
 
 	/* initiate PCI configuration access to device */
@@ -136,16 +138,17 @@ uint16_t pci_read_config_word(uint16_t handle, uint16_t offset)
 {
    uint32_t value;
 
-   value = pci_read_config_longword(handle, offset / 2);
-   return((value >> (1 - offset % 2) * 8) & 0xffff);
+   value = pci_read_config_longword(handle, offset);
+   return value >> ((1 - offset % 2) * 16) & 0xffff;
 }
 
 uint8_t pci_read_config_byte(uint16_t handle, uint16_t offset)
 {
 	uint32_t value;
 	
-	value = pci_read_config_longword(handle, offset / 4);
-	return ((value >> (3 - offset % 4) * 8) & 0xff);
+	value = pci_read_config_longword(handle, offset);
+	//xprintf("pci_read_config_longword(0x%x, 0x%x) = 0x%04x\r\n", handle, offset, value);
+	return value >> ((3 - offset % 4) * 8) & 0xff;
 }
 
 /*
@@ -203,13 +206,13 @@ int16_t pci_find_device(uint16_t device_id, uint16_t vendor_id, int index)
 {
 	uint16_t bus;
 	uint16_t device;
-	uint16_t function;
+	uint16_t function = 0;
 	uint16_t pos = 0;
 	int handle;
 
 	for (bus = 0; bus < 255; bus++)
 	{
-		for (device = 0; device < 32; device++)
+		for (device = 10; device < 32; device++)
 		{
 			uint32_t value;
 			uint8_t htr;
@@ -218,27 +221,23 @@ int16_t pci_find_device(uint16_t device_id, uint16_t vendor_id, int index)
 			value = pci_read_config_longword(handle, PCIIDR);
 			if (value != 0xffffffff)	/* we have a device at this position */
 			{
-				if (vendor_id == 0xffff || (PCI_VENDOR_ID(value) == vendor_id && PCI_DEVICE_ID(value) == device_id))
+				if (vendor_id == 0xffff ||
+					(PCI_VENDOR_ID(value) == vendor_id && PCI_DEVICE_ID(value) == device_id))
 				{
 					if (pos == index)
 					{
 						return handle;
 					}
-					else
-					{
-						/* we found a match, but at wrong position */
-						pos++;
-						continue;
-					}
 				}
-
-				/* check if we have a multi-function device at this position */
-				htr = pci_read_config_byte(handle, PCIHTR);
-
-				if (htr & 0x80) /* multi-function device found */
+				if (pci_read_config_byte(handle, PCIHTR) & 0x80)
 				{
+					/* check if we have a multi-function device at this position */
+					htr = pci_read_config_byte(handle, PCIHTR);
+					xprintf("bus = %02x, dev = %02x, func = %02x PCIHTR=%02x\r\n", bus, device, function, htr);
+		
 					for (function = 1; function < 8; function++)
 					{
+						pos++;
 						handle = PCI_HANDLE(bus, device, function);
 						value = pci_read_config_longword(handle, PCIIDR);
 						if (value != 0xFFFFFFFF)	/* device found */
@@ -252,14 +251,14 @@ int16_t pci_find_device(uint16_t device_id, uint16_t vendor_id, int index)
 								}
 								else
 								{
-									/* found a match, but at wrong position */
-									pos++;
-									continue;
+									//pos++;
 								}
 							}
 						}
 					}
 				}
+				/* we found a match, but at wrong position */
+				pos++;
 			}
 		}
 	}
@@ -411,12 +410,13 @@ void pci_scan(void)
 		uint32_t value;
 
 		value = pci_read_config_longword(handle, PCIIDR);
-		xprintf(" %02x | %02x | %02x |%04x|%04x| %s\r\n",
+		xprintf(" %02x | %02x | %02x |%04x|%04x| %s (0x%02x)\r\n",
 				PCI_BUS_FROM_HANDLE(handle),
 				PCI_DEVICE_FROM_HANDLE(handle),
 				PCI_FUNCTION_FROM_HANDLE(handle),
 				PCI_VENDOR_ID(value), PCI_DEVICE_ID(value),
-				device_class(pci_read_config_byte(handle, PCICCR)));
+				device_class(pci_read_config_byte(handle, PCICCR)),
+				pci_read_config_byte(handle, PCICCR));
 
 		if (PCI_VENDOR_ID(value) != 0x1057 && PCI_DEVICE_ID(value) != 0x5806) /* do not configure bridge */
 		{
