@@ -17,9 +17,9 @@ MEMORY
 {
    bas_rom (ROMFLAGS) : ORIGIN = TARGET_ADDRESS, LENGTH = 0x00100000
    /*
-	* target to copy BaS data segment to. 20k should be enough for now
+	* target to copy BaS data segment to. 1M should be enough for now
 	*/
-   bas_ram (WX) : ORIGIN = 0x1FFFB000, LENGTH = 0x900000
+   bas_ram (WX) : ORIGIN = SDRAM_START + SDRAM_SIZE - 0x00100000, LENGTH = 0x00100000
 }
 
 SECTIONS
@@ -118,7 +118,7 @@ SECTIONS
 	 * Global memory map
 	 */
 
-	/* SDRAM Initialization @ 0000_0000 - 1FFF_FFFF 512Mbytes */
+	/* SDRAM Initialization */
  	___SDRAM                = SDRAM_START;
  	___SDRAM_SIZE           = SDRAM_SIZE;
 	_SDRAM_VECTOR_TABLE		= ___SDRAM;
