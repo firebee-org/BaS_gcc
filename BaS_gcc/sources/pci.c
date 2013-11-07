@@ -246,13 +246,16 @@ int16_t pci_find_device(uint16_t device_id, uint16_t vendor_id, int index)
 							if (vendor_id == 0xffff || 
 								(PCI_VENDOR_ID(value) == vendor_id && PCI_DEVICE_ID(value) == device_id))
 							{
-								return handle;
-							}
-							else
-							{
-								/* found a match, but at wrong position */
-								pos++;
-								continue;
+								if (pos == index)
+								{
+									return handle;
+								}
+								else
+								{
+									/* found a match, but at wrong position */
+									pos++;
+									continue;
+								}
 							}
 						}
 					}
