@@ -207,19 +207,20 @@ int16_t pci_find_device(uint16_t device_id, uint16_t vendor_id, int index)
 	uint16_t pos = 0;
 	int handle;
 
-	for (bus = 0; bus < 255; bus++)	/* FireBee USB is on DEVSEL(17) ??? */
+	for (bus = 0; bus < 255; bus++)
 	{
 		for (device = 0; device < 32; device++)
 		{
-			for (function = 0; function < 8; function++)
-			{
-				uint32_t value;
+			uint32_t value;
+			uint8_t htr;
 
-				handle = PCI_HANDLE(bus, device, function);
-				value = pci_read_config_longword(handle, 0);
-				if (value != 0xffffffff)	/* we have a device at this position */
+			handle = PCI_HANDLE(bus, device, 0);
+			value = pci_read_config_longword(handle, PCIIDR);
+			if (value != 0xffffffff)	/* we have a device at this position */
+			{
+				if (vendor_id == 0xffff || (PCI_VENDOR_ID(value) == vendor_id && PCI_DEVICE_ID(value) == device_id))
 				{
-					if (vendor_id == 0xffff && pos == index)	/* ignore device id */
+					if (pos == index)
 					{
 						return handle;
 					}
@@ -229,13 +230,32 @@ int16_t pci_find_device(uint16_t device_id, uint16_t vendor_id, int index)
 						pos++;
 						continue;
 					}
-					if (PCI_VENDOR_ID(value) == vendor_id && PCI_DEVICE_ID(value) == device_id)
+				}
+
+				/* check if we have a multi-function device at this position */
+				htr = pci_read_config_byte(handle, PCIHTR);
+
+				if (htr & 0x80) /* multi-function device found */
+				{
+					for (function = 1; function < 8; function++)
 					{
-						if (pos == index)
-							return handle;
+						handle = PCI_HANDLE(bus, device, function);
+						value = pci_read_config_longword(handle, PCIIDR);
+						if (value != 0xFFFFFFFF)	/* device found */
+						{
+							if (vendor_id == 0xffff || 
+								(PCI_VENDOR_ID(value) == vendor_id && PCI_DEVICE_ID(value) == device_id))
+							{
+								return handle;
+							}
+							else
+							{
+								/* found a match, but at wrong position */
+								pos++;
+								continue;
+							}
+						}
 					}
-					else
-						pos++;
 				}
 			}
 		}
@@ -405,7 +425,7 @@ void pci_scan(void)
 						PCI_DEVICE_FROM_HANDLE(handle),
 						PCI_FUNCTION_FROM_HANDLE(handle));
 		}
-		handle = pci_find_device(0x0, 0xFFF, ++index);
+		handle = pci_find_device(0x0, 0xFFFF, ++index);
 	}
 	xprintf("\r\n...finished\r\n");
 }
