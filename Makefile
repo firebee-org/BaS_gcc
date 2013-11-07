@@ -118,7 +118,7 @@ lib: $(LIBS)
 .PHONY: clean
 clean:
 	for d in $(TRGTDIRS);\
-		do rm -f $$d/*.map $$d/*.s19 $$d/*.elf $$d/*.lk $$d/objs/* ;\
+		do rm -f $$d/*.map $$d/*.s19 $$d/*.elf $$d/*.lk $$d/*.a $$d/objs/* ;\
 	done
 	rm -f depend
 	rm -f tags
