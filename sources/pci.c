@@ -204,9 +204,13 @@ int32_t pci_find_device(uint16_t device_id, uint16_t vendor_id, int index)
 			uint8_t htr;
 
 			handle = PCI_HANDLE(bus, device, 0);
-			value = swpl(pci_read_config_longword(handle, PCIIDR));
+			value = pci_read_config_longword(handle, PCIIDR);
 			if (value != 0xffffffff)	/* we have a device at this position */
 			{
+#ifdef _NOT_USED_
+				xprintf("value=%08x, vendor_id = 0x%04x, device_id=0x%04x\r\n",
+						value, PCI_VENDOR_ID(value), PCI_DEVICE_ID(value));
+#endif /* _NOT_USED_ */
 				if (vendor_id == 0xffff ||
 					(PCI_VENDOR_ID(value) == vendor_id && PCI_DEVICE_ID(value) == device_id))
 				{
@@ -214,6 +218,7 @@ int32_t pci_find_device(uint16_t device_id, uint16_t vendor_id, int index)
 					{
 						return handle;
 					}
+					n++;
 				}
 
 				/*
@@ -224,15 +229,13 @@ int32_t pci_find_device(uint16_t device_id, uint16_t vendor_id, int index)
 				if ((htr = pci_read_config_byte(handle, PCIHTR)) & 0x80)
 				{
 					/* yes, this is a multi-function device, look for more functions */
-					xprintf("bus = %02x, dev = %02x, func = %02x PCIHTR=%02x\r\n", bus, device, function, htr);
-		
+
 					for (function = 1; function < 8; function++)
 					{
 						handle = PCI_HANDLE(bus, device, function);
-						value = swpl(pci_read_config_longword(handle, PCIIDR));
+						value = pci_read_config_longword(handle, PCIIDR);
 						if (value != 0xFFFFFFFF)	/* device found */
 						{
-							n++;
 							if (vendor_id == 0xffff || 
 								(PCI_VENDOR_ID(value) == vendor_id && PCI_DEVICE_ID(value) == device_id))
 							{
@@ -240,12 +243,11 @@ int32_t pci_find_device(uint16_t device_id, uint16_t vendor_id, int index)
 								{
 									return handle;
 								}
+								n++;
 							}
 						}
 					}
 				}
-				else	/* no, current device is not multi-function */
-					n++;	/* next one */
 			}
 		}
 	}
@@ -408,7 +410,7 @@ void pci_scan(void)
 		if (PCI_VENDOR_ID(value) != 0x1057 && PCI_DEVICE_ID(value) != 0x5806) /* do not configure bridge */
 		{
 			/* save handle to index value so that we'll be able to later find our resources */
-			handles[index++] = handle;
+			handles[index] = handle;
 
 			/* configure memory and I/O for card */
 			pci_device_config(PCI_BUS_FROM_HANDLE(handle),
