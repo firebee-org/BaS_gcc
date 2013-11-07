@@ -388,7 +388,6 @@ DSTATUS disk_initialize(uint8_t drv)
 {
 	uint8_t n, cmd, card_type, ocr[4];
 	uint8_t buff[16];
-	int res;
 
 	if (drv)
 		return STA_NOINIT;			/* Supports only drive 0 */
@@ -458,7 +457,7 @@ DSTATUS disk_initialize(uint8_t drv)
 	}
 	CardType = card_type;	/* Card type */
 
-	res = disk_ioctl(0, MMC_GET_CSD, buff);
+	//res = disk_ioctl(0, MMC_GET_CSD, buff);
 	/*
 	if (res == RES_OK)
 	{
@@ -475,7 +474,7 @@ DSTATUS disk_initialize(uint8_t drv)
 		SPICLK_FAST();			/* Set fast clock */
 		Stat &= ~STA_NOINIT;	/* Clear STA_NOINIT flag */
 		xprintf("card type: %d\r\n", card_type);
-		res = disk_ioctl(0, MMC_GET_CSD, buff);
+		//res = disk_ioctl(0, MMC_GET_CSD, buff);
 		/*
 		if (res == RES_OK)
 		{
