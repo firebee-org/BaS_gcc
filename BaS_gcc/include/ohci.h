@@ -170,7 +170,7 @@ struct ohci_hcca {
 	uint16_t	pad1;			/* set to 0 on each frame_no change */
 #endif
 	uint32_t	done_head;		/* info returned for an interrupt */
-	u8		reserved_for_hc[116];
+	uint8_t		reserved_for_hc[116];
 } __attribute__((aligned(256)));
 
 /*

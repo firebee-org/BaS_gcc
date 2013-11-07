@@ -69,7 +69,6 @@
 /*
  * e.g. PCI controllers need this
  */
-#define CONFIG_SYS_OHCI_SWAP_REG_ACCES
 
 #ifdef CONFIG_SYS_OHCI_SWAP_REG_ACCESS
 #define readl(a) swpl(*((volatile uint32_t *)(a)))
@@ -1925,7 +1924,7 @@ static void hc_free_buffers(ohci_t *ohci)
 /*
  * low level initalisation routine, called from usb.c
  */
-int ohci_usb_lowlevel_init(uint16_t handle, const struct pci_device_id *ent, void **priv)
+int ohci_usb_lowlevel_init(int32_t handle, const struct pci_device_id *ent, void **priv)
 {
 	uint32_t usb_base_addr = 0xFFFFFFFF;
 	ohci_t *ohci = &gohci[PCI_FUNCTION_FROM_HANDLE(handle) & 1];
@@ -1990,7 +1989,7 @@ int ohci_usb_lowlevel_init(uint16_t handle, const struct pci_device_id *ent, voi
 		unsigned short flags;
 		do
 		{
-			xprintf("PCI USB descriptors: flags 0x%04x start 0x%08lx \r\n offset 0x%08lx dmaoffset 0x%08lx length 0x%08lx",
+			xprintf("\r\nPCI USB descriptors: flags 0x%04x start 0x%08lx \r\n offset 0x%08lx dmaoffset 0x%08lx length 0x%08lx\r\n",
 					pci_rsc_desc->flags, pci_rsc_desc->start, pci_rsc_desc->offset, pci_rsc_desc->dmaoffset, pci_rsc_desc->length);
 			if (!(pci_rsc_desc->flags & FLG_IO))
 			{

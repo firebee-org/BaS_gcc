@@ -228,7 +228,7 @@ typedef struct
  * this is how the lowlevel part communicate with the outer world
  */
 
-int ohci_usb_lowlevel_init(uint16_t handle, const struct pci_device_id *ent, void **priv);
+int ohci_usb_lowlevel_init(int32_t handle, const struct pci_device_id *ent, void **priv);
 int ohci_usb_lowlevel_stop(void *priv);
 int ohci_submit_bulk_msg(struct usb_device *dev, uint32_t pipe, void *buffer, int transfer_len);
 int ohci_submit_control_msg(struct usb_device *dev, uint32_t pipe, void *buffer, int transfer_len, struct devrequest *setup);
@@ -270,7 +270,7 @@ void usb_mem_stop(void);
 /* routines */
 USB_COOKIE *usb_get_cookie(long id);
 void usb_error_msg(const char *const fmt, ... );
-int usb_init(uint16_t handle, const struct pci_device_id *ent); /* initialize the USB Controller */
+int usb_init(int32_t handle, const struct pci_device_id *ent); /* initialize the USB Controller */
 int usb_stop(void); /* stop the USB Controller */
 
 int usb_set_protocol(struct usb_device *dev, int ifnum, int protocol);
