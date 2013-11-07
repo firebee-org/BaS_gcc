@@ -168,7 +168,7 @@ static struct ehci {
 #define SHOW_INFO
 
 #ifdef DEBUG
-#define debug(format, arg...) xprintf("DEBUG: " format, ## arg)
+#define debug(format, arg...) xprintf("DEBUG: " format "\r\n", ## arg)
 #else
 #define debug(format, arg...) do {} while (0)
 #endif /* DEBUG */
@@ -276,6 +276,7 @@ static int ehci_reset(void)
 	 	pci_write_config_longword(gehci.handle, 0xE4, 0x20); // oscillator
 	}
 	cmd = ehci_readl(&gehci.hcor->or_usbcmd);
+	debug("cmd: 0x%08x\r\n", cmd);
 	cmd |= CMD_RESET;
 	ehci_writel(&gehci.hcor->or_usbcmd, cmd);
 	ret = handshake((uint32_t *)&gehci.hcor->or_usbcmd, CMD_RESET, 0, 250 * 1000);

@@ -111,7 +111,7 @@ extern int printk(PRINTK_INFO *info, const char *fmt, va_list ap);
 /***************************************************************************
  * Init USB Device
  */
-int usb_init(uint16_t handle, const struct pci_device_id *ent)
+int usb_init(int32_t handle, const struct pci_device_id *ent)
 {
 	void *priv;
 	int res = 0;

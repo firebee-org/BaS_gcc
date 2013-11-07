@@ -513,7 +513,7 @@ void init_usb(void)
 	uint16_t usb_found;
 	int index = 0;
 
-	xprintf("USB controller initialization: ");
+	xprintf("USB controller initialization:\r\n");
 
 	do
 	{
@@ -528,7 +528,11 @@ void init_usb(void)
 
 			if (PCI_CLASS_CODE(class) == PCI_CLASS_SERIAL_USB)
 			{
-				xprintf("serial USB found at #%x\r\n", handle);
+				xprintf("serial USB found at bus=0x%x, dev=0x%x, fnc=0x%x (0x%x)\r\n",
+						PCI_BUS_FROM_HANDLE(handle),
+						PCI_DEVICE_FROM_HANDLE(handle),
+						PCI_FUNCTION_FROM_HANDLE(handle),
+						handle);
 				if (PCI_SUBCLASS(class) == PCI_CLASS_SERIAL_USB_EHCI)
 				{
 					board = ehci_usb_pci_table;
