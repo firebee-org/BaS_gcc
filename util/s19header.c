@@ -27,14 +27,15 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <stdio.h>
+#include <string.h>
 
 #include "s19reader.h"
 
 /*
  * Yes, I know. The following doesn't really look like code should look like...
  *
- * I did try to map structures over the S-records with (packed) which didn't work reliably due to gcc _not_ packing them appropiate
- * and finally ended up with this. Not nice, put paid (and working).
+ * I did try to map structures over the S-records with (packed) which didn't work reliably due to
+ * gcc _not_ packing them appropiate and finally ended up with this. Not nice, put paid (and working).
  *
  */
 #define SREC_TYPE(a) 		(a)[0]							/* type of record */
@@ -238,6 +239,8 @@ int main(int argc, char *argv[])
 		{
 			lineno++;
 			uint8_t vector[80];
+			char str[255];
+			int length;
 
 
 
@@ -263,8 +266,16 @@ int main(int argc, char *argv[])
 						printf("S7 or S3 record found before S0: S-records corrupt?\r\n");
 						ret = FAIL;
 					}
+					printf("address: 0x%04x\n", SREC_ADDR16(vector));
 					printf("length of record: %d\n", SREC_COUNT(vector));
-					printf("comment: %s\n", &vector[4]);
+					length = SREC_DATA16_SIZE(vector) - (SREC_DATA16(vector) - vector);
+					printf("length: %d\n", length);
+					strncpy(str, SREC_DATA16(vector), length);
+					str[length] = '\0';
+					printf("Name: %s\n", str);
+					printf("version: %d, revision %d\n",
+									* (unsigned short *)((char *) SREC_DATA16(vector) + length),
+									* (unsigned short *)((char *) SREC_DATA16(vector) + length + 1));
 
 					break;
 
@@ -346,19 +357,6 @@ static err_t simulate()
 
 	return ret;
 }
-
-
-#ifdef _NOT_USED_
-static err_t flash(uint8_t *dst, uint8_t *src, uint32_t length)
-{
-	err_t ret = OK;
-
-	/* TODO: do the actual flash */
-	amd_flash_program(dst, src, length, false, NULL, xputchar);
-
-	return ret;
-}
-#endif /* _NOT_USED_ */
 
 
 /*
