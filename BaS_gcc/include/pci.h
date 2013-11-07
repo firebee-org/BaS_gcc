@@ -28,16 +28,20 @@
 #define	 PCI_IO_OFFSET		(0xD0000000)
 #define	 PCI_IO_SIZE		(0x10000000)	/* 128 MByte PCI I/O window */
 
+/*
+ * Note: the byte offsets are in little endian format, so you can't use them
+ * on byteswapped (Motorola format) values!
+ */
 #define PCIIDR                0x00   /* PCI Configuration ID Register       */
 #define PCICSR                0x04   /* PCI Command/Status Register         */
 #define PCICR                 0x04   /* PCI Command Register                */
 #define PCISR                 0x06   /* PCI Status Register                 */
 #define PCIREV                0x08   /* PCI Revision ID Register            */
-#define PCICCR                0x08   /* PCI Class Code Register             */
-#define PCICLSR               0x0F   /* PCI Cache Line Size Register        */
-#define PCILTR                0x0E   /* PCI Latency Timer Register          */
-#define PCIHTR                0x0D   /* PCI Header Type Register            */
-#define PCIBISTR              0x0C   /* PCI Build-In Self Test Register     */
+#define PCICCR                0x09   /* PCI Class Code Register             */
+#define PCICLSR               0x0C   /* PCI Cache Line Size Register        */
+#define PCILTR                0x0D   /* PCI Latency Timer Register          */
+#define PCIHTR                0x0E   /* PCI Header Type Register            */
+#define PCIBISTR              0x0F   /* PCI Build-In Self Test Register     */
 #define PCIBAR0               0x10   /* PCI Base Address Register for Memory
                                         Accesses to Local, Runtime, and DMA */
 #define PCIBAR1               0x14   /* PCI Base Address Register for I/O
@@ -50,15 +54,13 @@
 #define PCIBAR5               0x24   /* PCI Base Address Register, reserved */
 #define PCICIS                0x28   /* PCI Cardbus CIS Pointer, not support*/
 #define PCISVID               0x2E   /* PCI Subsystem Vendor ID             */
-#define PCISID                0x2C   /* PCI Subsystem ID                    */
+#define PCISID                0x2E   /* PCI Subsystem ID                    */
 #define PCIERBAR              0x30   /* PCI Expansion ROM Base Register     */
-#define CAP_PTR               0x37   /* New Capability Pointer              */
-#define PCIILR                0x3F   /* PCI Interrupt Line Register         */
-#define PCIIPR                0x3E   /* PCI Interrupt Pin Register          */
-#define PCIMGR                0x3D   /* PCI Min_Gnt Register                */
-#define PCIMLR                0x3C   /* PCI Max_Lat Register                */
-
-// FIXME: register numbers swapped from here on
+#define CAP_PTR               0x34   /* New Capability Pointer              */
+#define PCIILR                0x3C   /* PCI Interrupt Line Register         */
+#define PCIIPR                0x3D   /* PCI Interrupt Pin Register          */
+#define PCIMGR                0x3E   /* PCI Min_Gnt Register                */
+#define PCIMLR                0x3F   /* PCI Max_Lat Register                */
 #define PMCAPID               0x40   /* Power Management Capability ID      */
 #define PMNEXT                0x41   /* Power Management Next Capability
                                         Pointer                             */
@@ -194,19 +196,19 @@ extern void init_eport(void);
 extern void init_xlbus_arbiter(void);
 extern void init_pci(void);
 
-extern int16_t pci_find_device(uint16_t device_id, uint16_t vendor_id, int index);
+extern int32_t pci_find_device(uint16_t device_id, uint16_t vendor_id, int index);
 
-extern uint32_t pci_read_config_longword(uint16_t handle, uint16_t offset);
-extern uint16_t pci_read_config_word(uint16_t handle, uint16_t offset);
-extern uint8_t pci_read_config_byte(uint16_t handle, uint16_t offset);
+extern uint32_t pci_read_config_longword(int32_t handle, int offset);
+extern uint16_t pci_read_config_word(int32_t handle, int offset);
+extern uint8_t pci_read_config_byte(int32_t handle, int offset);
 
-extern void pci_write_config_longword(uint16_t handle, uint16_t offset, uint32_t value);
-extern void pci_write_config_word(uint16_t handle, uint16_t offset, uint16_t value);
-extern void pci_write_config_byte(uint16_t handle, uint16_t offset, uint8_t value);
+extern int32_t pci_write_config_longword(int32_t handle, int offset, uint32_t value);
+extern int32_t pci_write_config_word(int32_t handle, int offset, uint16_t value);
+extern int32_t pci_write_config_byte(int32_t handle, int offset, uint8_t value);
 
-extern struct pci_rd *pci_get_resource(uint16_t handle);
-extern int16_t pci_hook_interrupt(uint16_t handle, void *interrupt_handler, void *parameter);
-extern int16_t pci_unhook_interrupt(uint16_t handle);
+extern struct pci_rd *pci_get_resource(int32_t handle);
+extern int32_t pci_hook_interrupt(int32_t handle, void *interrupt_handler, void *parameter);
+extern int32_t pci_unhook_interrupt(int32_t handle);
 
 
 
