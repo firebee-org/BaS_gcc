@@ -28,19 +28,21 @@ CPP=$(TCPREFIX)cpp
 OBJCOPY=$(TCPREFIX)objcopy
 AR=$(TCPREFIX)ar
 RANLIB=$(TCPREFIX)ranlib
+NATIVECC=gcc
 
 INCLUDE=-Iinclude
 CFLAGS=-mcpu=5474\
-	   -Wall\
+		-Wall\
 		-g \
-	   -fomit-frame-pointer\
-	   -ffreestanding\
-	   -fleading-underscore\
-	   -Wa,--register-prefix-optional
+		-fomit-frame-pointer\
+		-ffreestanding\
+		-fleading-underscore\
+		-Wa,--register-prefix-optional
 
 SRCDIR=sources
 TRGTDIRS= ./firebee ./m5484lite
 OBJDIRS=$(patsubst %, %/objs,$(TRGTDIRS))
+TOOLDIR=util
 
 # Linker control file. The final $(LDCFILE) is intermediate only (preprocessed  version of $(LDCSRC)
 LDCFILE=bas.lk
@@ -204,6 +206,9 @@ depend: $(ASRCS) $(CSRCS)
 		do $(CC) $(CFLAGS) $(INCLUDE) -M $(ASRCS) $(CSRCS) | sed -e "s#^\(.*\).o:#$$d/objs/\1.o:#" >> depend; \
 	done
 
+indent: $(CSRCS)
+	indent $<
+	
 .PHONY: tags
 tags:
 	ctags sources/* include/*
@@ -220,4 +225,8 @@ ifeq (MACHINE_M5484LITE,$$(MACHINE))
 else ifeq (MACHINE_FIREBEE,$(MACHINE))
    	MNAME=firebee
 endif
+
+tools:
+	$(NATIVECC) $(INCLUDE) -c $(TOOLDIR)/s19header.c -o $(TOOLDIR)/s19header.o 
+	$(NATIVECC) -o $(TOOLDIR)/s19header $(TOOLDIR)/s19header.o
 
