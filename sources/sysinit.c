@@ -35,6 +35,7 @@
 #include "bas_string.h"
 #include "bas_types.h"
 #include "wait.h"
+#include "util.h"
 #include "version.h"
 #ifdef MACHINE_FIREBEE
 #include "firebee.h"
@@ -525,15 +526,17 @@ void init_usb(void)
 			id = pci_read_config_longword(handle, PCIIDR);
 			class = pci_read_config_longword(handle, PCIREV);
 
-			if (class >> 16 == PCI_CLASS_SERIAL_USB)
+			if (PCI_CLASS_CODE(class) == PCI_CLASS_SERIAL_USB)
 			{
 				xprintf("serial USB found at #%x\r\n", handle);
-				if (class >> 8 == PCI_CLASS_SERIAL_USB_EHCI)
+			xprintf("PCI_SUBCLASS(0x%08x) = 0x%06x (looking for 0x%06x\r\n", 
+					class, PCI_SUBCLASS(class), PCI_CLASS_SERIAL_USB_EHCI);
+				if (PCI_SUBCLASS(class) == PCI_CLASS_SERIAL_USB_EHCI)
 				{
 					board = ehci_usb_pci_table;
 					while (board->vendor)
 					{
-						if ((board->vendor == (id & 0xffff)) && board->device == (id >> 16))
+						if ((board->vendor == PCI_VENDOR_ID(id)) && board->device == PCI_DEVICE_ID(id))
 						{
 							if (usb_init(handle, board) >= 0)
 							{
@@ -543,12 +546,12 @@ void init_usb(void)
 						board++;
 					}
 				}
-				if (class >> 8 == PCI_CLASS_SERIAL_USB_OHCI)
+				if (PCI_SUBCLASS(class) == PCI_CLASS_SERIAL_USB_OHCI)
 				{
 					board = ohci_usb_pci_table;
 					while (board->vendor)
 					{
-						if ((board->vendor == (id & 0xffff)) && board->device == (id >> 16))
+						if ((board->vendor == (id & 0xffff)) && board->device == PCI_DEVICE_ID(id))
 						{
 							if (usb_init(handle, board) >= 0)
 								usb_found++;
