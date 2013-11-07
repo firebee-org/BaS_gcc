@@ -33,11 +33,11 @@
 #define PCICR                 0x04   /* PCI Command Register                */
 #define PCISR                 0x06   /* PCI Status Register                 */
 #define PCIREV                0x08   /* PCI Revision ID Register            */
-#define PCICCR                0x09   /* PCI Class Code Register             */
-#define PCICLSR               0x0C   /* PCI Cache Line Size Register        */
-#define PCILTR                0x0D   /* PCI Latency Timer Register          */
-#define PCIHTR                0x0E   /* PCI Header Type Register            */
-#define PCIBISTR              0x0F   /* PCI Build-In Self Test Register     */
+#define PCICCR                0x08   /* PCI Class Code Register             */
+#define PCICLSR               0x0F   /* PCI Cache Line Size Register        */
+#define PCILTR                0x0E   /* PCI Latency Timer Register          */
+#define PCIHTR                0x0D   /* PCI Header Type Register            */
+#define PCIBISTR              0x0C   /* PCI Build-In Self Test Register     */
 #define PCIBAR0               0x10   /* PCI Base Address Register for Memory
                                         Accesses to Local, Runtime, and DMA */
 #define PCIBAR1               0x14   /* PCI Base Address Register for I/O
@@ -49,14 +49,16 @@
 #define PCIBAR4               0x20   /* PCI Base Address Register, reserved */
 #define PCIBAR5               0x24   /* PCI Base Address Register, reserved */
 #define PCICIS                0x28   /* PCI Cardbus CIS Pointer, not support*/
-#define PCISVID               0x2C   /* PCI Subsystem Vendor ID             */
-#define PCISID                0x2E   /* PCI Subsystem ID                    */
+#define PCISVID               0x2E   /* PCI Subsystem Vendor ID             */
+#define PCISID                0x2C   /* PCI Subsystem ID                    */
 #define PCIERBAR              0x30   /* PCI Expansion ROM Base Register     */
-#define CAP_PTR               0x34   /* New Capability Pointer              */
-#define PCIILR                0x3C   /* PCI Interrupt Line Register         */
-#define PCIIPR                0x3D   /* PCI Interrupt Pin Register          */
-#define PCIMGR                0x3E   /* PCI Min_Gnt Register                */
-#define PCIMLR                0x3F   /* PCI Max_Lat Register                */
+#define CAP_PTR               0x37   /* New Capability Pointer              */
+#define PCIILR                0x3F   /* PCI Interrupt Line Register         */
+#define PCIIPR                0x3E   /* PCI Interrupt Pin Register          */
+#define PCIMGR                0x3D   /* PCI Min_Gnt Register                */
+#define PCIMLR                0x3C   /* PCI Max_Lat Register                */
+
+// FIXME: register numbers swapped from here on
 #define PMCAPID               0x40   /* Power Management Capability ID      */
 #define PMNEXT                0x41   /* Power Management Next Capability
                                         Pointer                             */
