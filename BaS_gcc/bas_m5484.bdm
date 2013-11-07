@@ -50,3 +50,6 @@ sleep 100
 
 load -v m5484lite/ram.elf
 execute
+# wait is _needed_ here if using the P&E BDM interface. Otherwise 
+# the Coldfire resets after some time!
+#wait
