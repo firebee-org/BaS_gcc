@@ -206,7 +206,7 @@ depend: $(ASRCS) $(CSRCS)
 
 .PHONY: tags
 tags:
-	ctags -d sources/* include/*
+	ctags sources/* include/*
 	
 ifneq (clean,$(MAKECMDGOALS))
 -include depend
