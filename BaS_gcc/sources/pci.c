@@ -167,6 +167,9 @@ int32_t pci_write_config_longword(int32_t handle, int offset, uint32_t value)
 
 	* (volatile uint32_t *) PCI_IO_OFFSET = value;	/* access device */
 
+	/* finish configuration space access cycle */
+	MCF_PCI_PCICAR &= ~MCF_PCI_PCICAR_E;
+
 	return PCI_SUCCESSFUL;
 }
 
