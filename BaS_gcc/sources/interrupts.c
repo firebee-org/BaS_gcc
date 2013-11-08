@@ -23,9 +23,9 @@
  */
 
 #include <stdint.h>
+#include "MCF5475.h"
 #include "bas_utils.h"
 #include "interrupts.h"
-#include "MCF5475.h"
 
 extern uint8_t _rtl_vbr[];
 #define VBR	((uint32_t **) &_rtl_vbr[0])
@@ -93,3 +93,10 @@ int register_handler(uint8_t priority, uint8_t intr, void (*func)())
 
 	return 0;
 }
+
+__attribute__((interrupt)) void pci_arb_interrupt(void)
+{
+	xprintf("XLBARB slave error interrupt\r\n");
+	MCF_XLB_XARB_SR |= ~MCF_XLB_XARB_SR_SEA;
+}
+

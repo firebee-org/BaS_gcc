@@ -447,7 +447,7 @@ void init_eport(void)
 			MCF_EPORT_EPPAR_EPPA1(MCF_EPORT_EPPAR_FALLING);
 	MCF_EPORT_EPDDR = 0;	/* clear data direction register. All pins as input */
 	MCF_EPORT_EPFR = 0;		/* clear all EPORT interrupt flags */
-	MCF_EPORT_EPIER = 0;	/* disable all EPORT interrupts (for now) */
+	MCF_EPORT_EPIER = 0xfe;	/* enable all EPORT interrupts (for now) */
 }
 
 void init_xlbus_arbiter(void)
