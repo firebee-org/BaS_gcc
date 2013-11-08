@@ -119,7 +119,6 @@ static uint8_t checksum(uint8_t arr[])
 	return ~checksum;
 }
 
-#ifdef _NOT_USED_
 void print_record(uint8_t *arr)
 {
 	switch (SREC_TYPE(arr))
@@ -151,7 +150,6 @@ void print_record(uint8_t *arr)
 			break;
 	}
 }
-#endif /* _NOT_USED_ */
 
 /*
  * convert an S-record line into its corresponding byte vector (ASCII->binary)
@@ -173,6 +171,11 @@ static void line_to_vector(uint8_t *buff, uint8_t *vector)
 		*vp++ = hex_to_byte(buff);
 		buff += 2;
 	}
+}
+
+static void vector_to_line(uint8_t *vector, uint8_t *buff)
+{
+	sprintf(buff, "S");
 }
 
 /*
@@ -276,6 +279,7 @@ int main(int argc, char *argv[])
 					printf("version: %d, revision %d\n",
 									* (unsigned short *)((char *) SREC_DATA16(vector) + length),
 									* (unsigned short *)((char *) SREC_DATA16(vector) + length + 1));
+					print_record(vector);
 
 					break;
 
