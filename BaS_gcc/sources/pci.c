@@ -342,10 +342,13 @@ static void pci_device_config(uint16_t bus, uint16_t device, uint16_t function)
 				mem_address = (mem_address + size - 1) & ~(size - 1);
 
 				/* write it to the BAR */
-				pci_write_config_longword(handle, PCIBAR0 + i, mem_address);
+				pci_write_config_longword(handle, PCIBAR0 + i, swpl(mem_address));
 
 				/* read it back, just to be sure */
 				value = swpl(pci_read_config_longword(handle, PCIBAR0 + i));
+				
+				xprintf("set PCIBAR%d on device 0x%02x to 0x%08x\r\n",
+						i, handle, value);
 
 				/* fill resource descriptor */
 				rd->next = sizeof(struct pci_rd);
@@ -366,8 +369,11 @@ static void pci_device_config(uint16_t bus, uint16_t device, uint16_t function)
 				int size = ~(address & 0xfffffffc) + 1;
 
 				io_address = (io_address + size - 1) & ~(size - 1);
-				pci_write_config_longword(handle, PCIBAR0 + i, io_address);
+				pci_write_config_longword(handle, PCIBAR0 + i, swpl(io_address));
 				value = swpl(pci_read_config_longword(handle, PCIBAR0 + i));
+
+				xprintf("set PCIBAR%d on device 0x%02x to 0x%08x\r\n",
+					i, handle, value);
 
 				rd->next = sizeof(struct pci_rd);
 				rd->flags = FLG_IO | FLG_8BIT | FLG_16BIT | FLG_32BIT | 1;
