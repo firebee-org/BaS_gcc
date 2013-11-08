@@ -125,6 +125,9 @@ uint32_t pci_read_config_longword(int32_t handle, int offset)
 
 	value =  * (volatile uint32_t *) PCI_IO_OFFSET;	/* access device */
 
+	/* finish PCI configuration access special cycle (allow regular PCI accesses) */
+	MCF_PCI_PCICAR &= ~MCF_PCI_PCICAR_E;
+
 	return value;
 }
 
@@ -520,6 +523,42 @@ void init_pci(void)
 	/* initialize handles array */
 	memset(handles, 0, NUM_CARDS * sizeof(uint16_t));
 
+#if MACHINE_FIREBEE
+	/*
+	 * experimental: leave "old" USB initialization in place for the FireBee USB controller
+	 * which seems to be found on second access only with the new PCI scan routines
+	 */
+
+	/* PCI config space access for UPD720101 on AD17 */
+	MCF_PCI_PCICAR = MCF_PCI_PCICAR_E +
+		MCF_PCI_PCICAR_DEVNUM(17) +
+		MCF_PCI_PCICAR_FUNCNUM(0) +
+		MCF_PCI_PCICAR_DWORD(0);
+
+	if (* (uint32_t *) PCI_IO_OFFSET == 0x33103500)
+	{
+		/* device found */
+
+		MCF_PCI_PCICAR = MCF_PCI_PCICAR_E + 
+			MCF_PCI_PCICAR_DEVNUM(17) +
+			MCF_PCI_PCICAR_FUNCNUM(0) +
+			MCF_PCI_PCICAR_DWORD(57);	/* FIXME: PCI configuration access to reserved register? */
+
+		* (uint8_t *) PCI_IO_OFFSET = 0x20;	// commented out (hangs currently)
+	}
+	else
+	{
+		xprintf("FireBee USB controller not found - disable");
+
+		MCF_PCI_PCICAR = MCF_PCI_PCICAR_DEVNUM(17) +
+			MCF_PCI_PCICAR_FUNCNUM(0) +
+			MCF_PCI_PCICAR_DWORD(57);
+	}
+#endif /* MACHINE_FIREBEE */
+
+	/*
+	 * do normal initialization
+	 */
 	pci_scan();
 }
 
