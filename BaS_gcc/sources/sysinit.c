@@ -1029,9 +1029,9 @@ void initialize_hardware(void)
 	init_video_ddr();
 	dvi_on();
 #endif /* MACHINE_FIREBEE */
+	init_pci();
 	init_eport();
 	init_xlbus_arbiter();
-	init_pci();
 	/* moved the following line (temporarily) to BaS (after MMU init) to be able to catch adressing errors on USB init */
 	//init_usb();
 #if MACHINE_FIREBEE
