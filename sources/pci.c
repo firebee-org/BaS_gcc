@@ -462,6 +462,11 @@ void init_xlbus_arbiter(void)
 		/* device errata 26: Flexbus hang up in 4:1 clock ratio */
 		MCF_PCI_PCIGSCR |= 0x80000000; /* disable pipeline */
 	}
+
+	xprintf("PCIGSCR = %08x\r\n");
+	MCF_PCI_PCIGSCR |= 0x60000000;	/* clear PERR and SERR in global status/command register */
+	xprintf("PCIGSCR = %08x\r\n");
+
 	/* FIXME: Firetos (boot2.S, l. 719) looks pretty strange at this place - is this a typo? */
 }
 
