@@ -73,7 +73,7 @@
 #define CONFIG_SYS_OHCI_SWAP_REG_ACCESS
 #ifdef CONFIG_SYS_OHCI_SWAP_REG_ACCESS
 #define readl(a) swpl(*((volatile uint32_t *)(a)))
-#define writel(a, b) (*((volatile uint32_t *)(b)) = swpl((volatile uint32_t)a))
+#define writel(a, b) (*((volatile uint32_t *)(b)) = swpl((volatile uint32_t)(a)))
 #else
 #define readl(a) (*((volatile uint32_t *)(a)))
 #define writel(a, b) (*((volatile uint32_t *)(b)) = ((volatile uint32_t)a))
@@ -1643,7 +1643,6 @@ static int hc_reset(ohci_t *ohci)
 	}
 
 	xprintf("control: %x\r\n", readl(&ohci->regs->control));
-	ohci_dump_status(ohci);
 	if (readl(&ohci->regs->control) & OHCI_CTRL_IR)
 	{
 		/* SMM owns the HC */
@@ -1659,8 +1658,10 @@ static int hc_reset(ohci_t *ohci)
 			}
 		}
 	}
+
 	/* Disable HC interrupts */
 	writel(OHCI_INTR_MIE, &ohci->regs->intrdisable);
+	ohci_dump_status(ohci);
 	dbg("USB OHCI HC reset_hc usb-%s-%c: ctrl = 0x%X", ohci->slot_name, (char)ohci->controller + '0', readl(&ohci->regs->control));
 	/* Reset USB (needed by some controllers) */
 	ohci->hc_control = 0;
@@ -1673,6 +1674,7 @@ static int hc_reset(ohci_t *ohci)
 		if (--timeout == 0)
 		{
 			err("USB HC reset timed out!");
+	ohci_dump_status(ohci);
 			return -1;
 		}
 		wait(10);
