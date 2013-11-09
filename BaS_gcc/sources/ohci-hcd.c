@@ -70,6 +70,7 @@
  * e.g. PCI controllers need this
  */
 
+#define CONFIG_SYS_OHCI_SWAP_REG_ACCESS
 #ifdef CONFIG_SYS_OHCI_SWAP_REG_ACCESS
 #define readl(a) swpl(*((volatile uint32_t *)(a)))
 #define writel(a, b) (*((volatile uint32_t *)(b)) = swpl((volatile uint32_t)a))
@@ -1642,6 +1643,7 @@ static int hc_reset(ohci_t *ohci)
 	}
 
 	xprintf("control: %x\r\n", readl(&ohci->regs->control));
+	ohci_dump_status(ohci);
 	if (readl(&ohci->regs->control) & OHCI_CTRL_IR)
 	{
 		/* SMM owns the HC */
@@ -1663,7 +1665,7 @@ static int hc_reset(ohci_t *ohci)
 	/* Reset USB (needed by some controllers) */
 	ohci->hc_control = 0;
 	writel(ohci->hc_control, &ohci->regs->control);
-	wait(50 * 1000);
+	wait(50);
 	/* HC Reset requires max 10 us delay */
 	writel(OHCI_HCR, &ohci->regs->cmdstatus);
 	while ((readl(&ohci->regs->cmdstatus) & OHCI_HCR) != 0)
@@ -1673,7 +1675,7 @@ static int hc_reset(ohci_t *ohci)
 			err("USB HC reset timed out!");
 			return -1;
 		}
-		wait(1 * 1000);
+		wait(10);
 	}
 	return 0;
 }
