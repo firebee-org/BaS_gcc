@@ -300,6 +300,7 @@ static void pci_device_config(uint16_t bus, uint16_t device, uint16_t function)
 	int16_t index = - 1;
 	struct pci_rd *descriptors;
 	int i;
+	uint32_t value;
 	static uint32_t mem_address = PCI_MEMORY_OFFSET;
 	static uint32_t io_address = PCI_IO_OFFSET;
 
@@ -319,9 +320,6 @@ static void pci_device_config(uint16_t bus, uint16_t device, uint16_t function)
 	descriptors = resource_descriptors[index];
 	for (i = 0; i < 6; i++)		/* for all bars */
 	{
-		uint32_t value;
-		
-
 		/*
 		 * read BAR[i] value
 		 */
@@ -348,6 +346,7 @@ static void pci_device_config(uint16_t bus, uint16_t device, uint16_t function)
 			{
 				/* adjust base address to card's alignment requirements */
 				int size = ~(address & 0xfffffff0) + 1;
+				xprintf("device 0x%x: BAR[%d] requests %d kBytes of memory\r\n", handle, i, size / 1024);
 
 				/* calculate a valid map adress with alignment requirements */
 				mem_address = (mem_address + size - 1) & ~(size - 1);
@@ -366,7 +365,7 @@ static void pci_device_config(uint16_t bus, uint16_t device, uint16_t function)
 				rd->flags = 0 | FLG_8BIT | FLG_16BIT | FLG_32BIT | ORD_MOTOROLA;
 				rd->start = mem_address;
 				rd->length = size;
-				rd->offset = 0;
+				rd->offset = PCI_MEMORY_OFFSET;
 				rd->dmaoffset = 0;
 
 				/* adjust memory adress for next turn */
@@ -378,6 +377,7 @@ static void pci_device_config(uint16_t bus, uint16_t device, uint16_t function)
 			else if (IS_PCI_IO_BAR(value)) /* same as above for I/O resources */
 			{
 				int size = ~(address & 0xfffffffc) + 1;
+				xprintf("device 0x%x: BAR[%d] requests %d bytes of memory\r\n", handle, i, size);
 
 				io_address = (io_address + size - 1) & ~(size - 1);
 				pci_write_config_longword(handle, PCIBAR0 + i, swpl(io_address));
@@ -389,7 +389,7 @@ static void pci_device_config(uint16_t bus, uint16_t device, uint16_t function)
 				rd->next = sizeof(struct pci_rd);
 				rd->flags = FLG_IO | FLG_8BIT | FLG_16BIT | FLG_32BIT | 1;
 				rd->start = io_address;
-				rd->offset = PCI_MEMORY_OFFSET;
+				rd->offset = PCI_IO_OFFSET;
 				rd->length = size;
 				rd->dmaoffset = PCI_MEMORY_OFFSET;
 
@@ -402,6 +402,16 @@ static void pci_device_config(uint16_t bus, uint16_t device, uint16_t function)
 	/* mark end of resource chain */
 	if (barnum > 0)
 		descriptors[barnum - 1].flags |= FLG_LAST;
+	
+	/*
+	 * enable device finally
+	 */
+	value = swpl(pci_read_config_longword(handle, PCICSR));
+	value |= 0xffff035f;
+	pci_write_config_longword(handle, PCICSR, swpl(value));
+
+	value = swpl(pci_read_config_longword(handle, PCICSR));
+	xprintf("device 0x%02x PCICSR = 0x%08x\r\n", handle, value);
 }
 
 /*
@@ -441,6 +451,7 @@ void pci_scan(void)
 						PCI_DEVICE_FROM_HANDLE(handle),
 						PCI_FUNCTION_FROM_HANDLE(handle));
 		}
+
 		handle = pci_find_device(0x0, 0xFFFF, ++index);
 	}
 	xprintf("\r\n...finished\r\n");
@@ -513,8 +524,8 @@ void init_pci(void)
 	 */
 
 	/* initiator window 0 base / translation adress register */
-	MCF_PCI_PCIIW0BTAR = PCI_MEMORY_OFFSET | (((PCI_MEMORY_SIZE - 1) >> 8) & 0xffff0000) |
-							PCI_MEMORY_OFFSET >> 16;
+	MCF_PCI_PCIIW0BTAR = PCI_MEMORY_OFFSET | (((PCI_MEMORY_SIZE - 1) >> 8) & 0xffff0000);
+	/* | PCI_MEMORY_OFFSET >> 16; */
 
 	/* initiator window 1 base / translation adress register */
 	MCF_PCI_PCIIW1BTAR = (PCI_IO_OFFSET | ((PCI_IO_SIZE - 1) >> 8)) & 0xffff0000;
