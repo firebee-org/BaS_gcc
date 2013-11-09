@@ -270,7 +270,7 @@ static int ehci_reset(void)
 	uint32_t *reg_ptr;
 	int ret = 0;
 	if ((gehci.ent->vendor == PCI_VENDOR_ID_NEC)
-	 && (gehci.ent->device == PCI_DEVICE_ID_NEC_USB_2))
+				&& (gehci.ent->device == PCI_DEVICE_ID_NEC_USB_2))
 	{
 		debug("ehci_reset set 48MHz clock\r\n");
 	 	pci_write_config_longword(gehci.handle, 0xE4, 0x20); // oscillator

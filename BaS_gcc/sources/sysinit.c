@@ -517,7 +517,7 @@ void init_usb(void)
 
 	do
 	{
-		handle = pci_find_device(0x0000, 0xffffL, index++);
+		handle = pci_find_device(0x0000, 0xffff, index++);
 		if (handle > 0)
 		{
 			uint32_t id = 0;
@@ -553,7 +553,7 @@ void init_usb(void)
 					board = ohci_usb_pci_table;
 					while (board->vendor)
 					{
-						if ((board->vendor == (id & 0xffff)) && board->device == PCI_DEVICE_ID(id))
+						if ((board->vendor == PCI_VENDOR_ID(id)) && board->device == PCI_DEVICE_ID(id))
 						{
 							if (usb_init(handle, board) >= 0)
 								usb_found++;
@@ -1030,8 +1030,6 @@ void initialize_hardware(void)
 	dvi_on();
 #endif /* MACHINE_FIREBEE */
 	init_pci();
-	init_eport();
-	init_xlbus_arbiter();
 	/* moved the following line (temporarily) to BaS (after MMU init) to be able to catch adressing errors on USB init */
 	//init_usb();
 #if MACHINE_FIREBEE
