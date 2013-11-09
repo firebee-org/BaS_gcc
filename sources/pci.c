@@ -362,10 +362,10 @@ static void pci_device_config(uint16_t bus, uint16_t device, uint16_t function)
 
 				/* fill resource descriptor */
 				rd->next = sizeof(struct pci_rd);
-				rd->flags = 0 | FLG_8BIT | FLG_16BIT | FLG_32BIT | ORD_MOTOROLA;
+				rd->flags = 0 | FLG_8BIT | FLG_16BIT | FLG_32BIT;
 				rd->start = mem_address;
 				rd->length = size;
-				rd->offset = PCI_MEMORY_OFFSET;
+				rd->offset = 0; /* PCI_MEMORY_OFFSET; */
 				rd->dmaoffset = 0;
 
 				/* adjust memory adress for next turn */
@@ -389,9 +389,9 @@ static void pci_device_config(uint16_t bus, uint16_t device, uint16_t function)
 				rd->next = sizeof(struct pci_rd);
 				rd->flags = FLG_IO | FLG_8BIT | FLG_16BIT | FLG_32BIT | 1;
 				rd->start = io_address;
-				rd->offset = PCI_IO_OFFSET;
+				rd->offset = 0; /* PCI_IO_OFFSET; */
 				rd->length = size;
-				rd->dmaoffset = PCI_MEMORY_OFFSET;
+				rd->dmaoffset = 0;
 
 				io_address += size;
 
@@ -509,7 +509,7 @@ void init_pci(void)
        + MCF_PCIARB_PACR_EXTMINTEN(0x1F);
 
 	/* Setup burst parameters */
-	MCF_PCI_PCICR1 = MCF_PCI_PCICR1_CACHELINESIZE(4) + MCF_PCI_PCICR1_LATTIMER(32); /* TODO: test increased latency timer */
+	MCF_PCI_PCICR1 = MCF_PCI_PCICR1_CACHELINESIZE(4) + MCF_PCI_PCICR1_LATTIMER(16); /* TODO: test increased latency timer */
 	MCF_PCI_PCICR2 = MCF_PCI_PCICR2_MINGNT(16) + MCF_PCI_PCICR2_MAXLAT(16);
 
 	/* Turn on error signaling, 32 write retries on failure */
