@@ -300,8 +300,8 @@ static void pci_device_config(uint16_t bus, uint16_t device, uint16_t function)
 	int16_t index = - 1;
 	struct pci_rd *descriptors;
 	int i;
-	uint32_t mem_address = PCI_MEMORY_OFFSET;
-	uint32_t io_address = PCI_IO_OFFSET;
+	static uint32_t mem_address = PCI_MEMORY_OFFSET;
+	static uint32_t io_address = PCI_IO_OFFSET;
 
 	/* determine pci handle from bus, device + function number */
 	handle = PCI_HANDLE(bus, device, function);
@@ -498,7 +498,7 @@ void init_pci(void)
        + MCF_PCIARB_PACR_EXTMINTEN(0x1F);
 
 	/* Setup burst parameters */
-	MCF_PCI_PCICR1 = MCF_PCI_PCICR1_CACHELINESIZE(4) + MCF_PCI_PCICR1_LATTIMER(64); /* TODO: test increased latency timer */
+	MCF_PCI_PCICR1 = MCF_PCI_PCICR1_CACHELINESIZE(4) + MCF_PCI_PCICR1_LATTIMER(32); /* TODO: test increased latency timer */
 	MCF_PCI_PCICR2 = MCF_PCI_PCICR2_MINGNT(16) + MCF_PCI_PCICR2_MAXLAT(16);
 
 	/* Turn on error signaling, 32 write retries on failure */
@@ -508,11 +508,11 @@ void init_pci(void)
 	/* Configure Initiator Windows */
 
 	/*
-	 * initiator window 0 base / translation adress register
-	 *
 	 * Window starts at PCI_MEMORY_OFFSET, ends at PCI_MEMORY_OFFSET + PCI_MEMORY_SIZE - 1 (2 GB)
-	 * There is no translation from M54xx address space to PCI address space
+	 * There is no translation from M54xx address space to PCI address space (same addresses)
 	 */
+
+	/* initiator window 0 base / translation adress register */
 	MCF_PCI_PCIIW0BTAR = PCI_MEMORY_OFFSET | (((PCI_MEMORY_SIZE - 1) >> 8) & 0xffff0000) |
 							PCI_MEMORY_OFFSET >> 16;
 
@@ -550,40 +550,7 @@ void init_pci(void)
 	/* initialize resource descriptor table */
 	memset(&resource_descriptors, 0, NUM_CARDS * NUM_RESOURCES * sizeof(struct pci_rd));
 	/* initialize handles array */
-	memset(handles, 0, NUM_CARDS * sizeof(uint16_t));
-
-#if _NOT_USED_
-	/*
-	 * experimental: leave "old" USB initialization in place for the FireBee USB controller
-	 * which seems to be found on second access only with the new PCI scan routines
-	 */
-
-	/* PCI config space access for UPD720101 on AD17 */
-	MCF_PCI_PCICAR = MCF_PCI_PCICAR_E +
-		MCF_PCI_PCICAR_DEVNUM(17) +
-		MCF_PCI_PCICAR_FUNCNUM(0) +
-		MCF_PCI_PCICAR_DWORD(0);
-
-	if (* (uint32_t *) PCI_IO_OFFSET == 0x33103500)
-	{
-		/* device found */
-
-		MCF_PCI_PCICAR = MCF_PCI_PCICAR_E + 
-			MCF_PCI_PCICAR_DEVNUM(17) +
-			MCF_PCI_PCICAR_FUNCNUM(0) +
-			MCF_PCI_PCICAR_DWORD(57);	/* FIXME: PCI configuration access to reserved register? */
-
-		* (uint8_t *) PCI_IO_OFFSET = 0x20;	// commented out (hangs currently)
-	}
-	else
-	{
-		xprintf("FireBee USB controller not found - disable");
-
-		MCF_PCI_PCICAR = MCF_PCI_PCICAR_DEVNUM(17) +
-			MCF_PCI_PCICAR_FUNCNUM(0) +
-			MCF_PCI_PCICAR_DWORD(57);
-	}
-#endif /* _NOT_USED_ */
+	memset(handles, 0, NUM_CARDS * sizeof(int32_t));
 
 	/*
 	 * do normal initialization
