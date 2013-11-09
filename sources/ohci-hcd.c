@@ -72,11 +72,33 @@
 
 #define CONFIG_SYS_OHCI_SWAP_REG_ACCESS
 #ifdef CONFIG_SYS_OHCI_SWAP_REG_ACCESS
+/*
 #define readl(a) swpl(*((volatile uint32_t *)(a)))
-#define writel(a, b) (*((volatile uint32_t *)(b)) = swpl((volatile uint32_t)(a)))
+*/
+inline uint32_t readl(volatile uint32_t *addr)
+{
+	uint32_t res;
+
+	xprintf("reading from 0x%08x in %s, %d", addr, __FILE__, __LINE__);
+	res = swpl(*addr);
+	chip_errata_135();
+	xprintf(" result=0x%08x\r\n", res);
+}
+
+/*
+#define writel(a, b) {xprintf("writing %08x to %08x\r\n", (a), (b)); *((volatile uint32_t *)(b)) = swpl((volatile uint32_t)(a)); }
+*/
+inline void writel(uint32_t value, uint32_t *address)
+{
+	xprintf("writing %08x to %08x in %s, %d\r\n", value, address, __FILE__, __LINE__);
+	* (volatile uint32_t *) address = swpl(value);
+}
 #else
+/*
 #define readl(a) (*((volatile uint32_t *)(a)))
 #define writel(a, b) (*((volatile uint32_t *)(b)) = ((volatile uint32_t)a))
+*/
+#error CONFIG_SYS_OHCI_SWAP_REG_ACESS must be defined
 #endif /* CONFIG_SYS_OHCI_SWAP_REG_ACCESS */
 
 #define min_t(type, x, y) ({ type __x = (x); type __y = (y); __x < __y ? __x: __y; })
@@ -618,7 +640,7 @@ static int ep_link(ohci_t *ohci, ed_t *edi)
 		case PIPE_CONTROL:
 			ed->hwNextED = 0;
 			if (ohci->ed_controltail == NULL)
-				writel(ed - ohci->dma_offset, &ohci->regs->ed_controlhead);
+				writel((uint32_t) ed - ohci->dma_offset, &ohci->regs->ed_controlhead);
 			else
 				ohci->ed_controltail->hwNextED = swpl((uint32_t)ed - ohci->dma_offset); 	
 
@@ -633,7 +655,7 @@ static int ep_link(ohci_t *ohci, ed_t *edi)
 		case PIPE_BULK:
 			ed->hwNextED = 0;
 			if (ohci->ed_bulktail == NULL)
-				writel(ed - ohci->dma_offset, &ohci->regs->ed_bulkhead);
+				writel((uint32_t) ed - ohci->dma_offset, &ohci->regs->ed_bulkhead);
 			else
 				ohci->ed_bulktail->hwNextED = swpl((uint32_t)ed - ohci->dma_offset);	
 			ed->ed_prev = ohci->ed_bulktail;
@@ -1571,6 +1593,7 @@ static int hc_reset(ohci_t *ohci)
 	int timeout = 30;
 	int smm_timeout = 50; /* 0,5 sec */
 	dbg("%s\r\n", __FUNCTION__);
+
 	if ((ohci->ent->vendor == PCI_VENDOR_ID_PHILIPS)
 			&& (ohci->ent->device ==  PCI_DEVICE_ID_PHILIPS_ISP1561))
 	{
@@ -1603,8 +1626,7 @@ static int hc_reset(ohci_t *ohci)
 								if (usb_base_addr == 0xFFFFFFFF)
 								{
 									uint32_t base = pci_rsc_desc->offset + pci_rsc_desc->start;
-									usb_base_addr = pci_rsc_desc->start;
-									writel(readl(base + EHCI_USBCMD_OFF) | EHCI_USBCMD_HCRESET, base + EHCI_USBCMD_OFF);
+									writel(readl((uint32_t) base + EHCI_USBCMD_OFF) | EHCI_USBCMD_HCRESET, base + EHCI_USBCMD_OFF);
 									while (readl(base + EHCI_USBCMD_OFF) & EHCI_USBCMD_HCRESET)
 									{
 										if (timeout-- <= 0)
@@ -1627,13 +1649,13 @@ static int hc_reset(ohci_t *ohci)
 		while (handle >= 0);
 	}
 	if ((ohci->controller == 0) && (ohci->ent->vendor == PCI_VENDOR_ID_NEC)
-	 && (ohci->ent->device == PCI_DEVICE_ID_NEC_USB))
+								&& (ohci->ent->device == PCI_DEVICE_ID_NEC_USB))
 	{
 		if (ohci->handle == 1) /* NEC on motherboard has FPGA clock */
 		{
 			dbg("USB OHCI set 48MHz clock\r\n");
 		 	pci_write_config_longword(ohci->handle, 0xE4, 0x21); // oscillator & disable ehci
-			wait(10 * 1000);
+			wait(10);
 		}
 		else
 		{
@@ -1987,7 +2009,7 @@ int ohci_usb_lowlevel_init(int32_t handle, const struct pci_device_id *ent, void
 	ohci->disabled = 1;
 	ohci->sleeping = 0;
 	ohci->irq = -1;
-	xprintf("pci_rsc_desc: %p\r\n", pci_rsc_desc);
+
 	if (pci_rsc_desc != NULL)
 	{
 		unsigned short flags;
@@ -2000,7 +2022,6 @@ int ohci_usb_lowlevel_init(int32_t handle, const struct pci_device_id *ent, void
 				if (usb_base_addr == 0xFFFFFFFF)
 				{
 					usb_base_addr = pci_rsc_desc->start;
-					xprintf("usb_base_addr = %p\r\n", usb_base_addr);
 					ohci->offset = pci_rsc_desc->offset;
 					ohci->regs = (void *)(pci_rsc_desc->offset + pci_rsc_desc->start);
 					ohci->dma_offset = pci_rsc_desc->dmaoffset;
