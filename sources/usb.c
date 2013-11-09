@@ -160,11 +160,11 @@ int usb_init(int32_t handle, const struct pci_device_id *ent)
 			xprintf("sorry, no uhci driver available\r\n");
 			break;
 		case PCI_CLASS_SERIAL_USB_OHCI:
-			xprintf("initialize ohci interface, ");
+			xprintf("initialize ohci interface\r\n");
 			res = ohci_usb_lowlevel_init(handle, ent, &priv);
 			break;
 		case PCI_CLASS_SERIAL_USB_EHCI:
-			xprintf("initialize ehci interface, ");
+			xprintf("initialize ehci interface\r\n");
 			res = ehci_usb_lowlevel_init(handle, ent, &priv);
 			break;
 		default: res = -1; break;

@@ -32,6 +32,8 @@
 #include "util.h"
 #include "wait.h"
 
+#define pci_config_wait()	wait(10000);	/* FireBee USB not properly detected otherwise */
+
 /*
  * PCI device class descriptions displayed during PCI bus scan
  */
@@ -122,11 +124,15 @@ uint32_t pci_read_config_longword(int32_t handle, int offset)
 			MCF_PCI_PCICAR_DEVNUM(device) |		/* device number, devices 0 - 9 are reserved */
 			MCF_PCI_PCICAR_FUNCNUM(function) |	/* function number */
 			MCF_PCI_PCICAR_DWORD(offset / 4);
+	
+	pci_config_wait();
 
 	value =  * (volatile uint32_t *) PCI_IO_OFFSET;	/* access device */
 
 	/* finish PCI configuration access special cycle (allow regular PCI accesses) */
 	MCF_PCI_PCICAR &= ~MCF_PCI_PCICAR_E;
+
+	pci_config_wait();
 
 	return value;
 }
@@ -165,10 +171,15 @@ int32_t pci_write_config_longword(int32_t handle, int offset, uint32_t value)
 			MCF_PCI_PCICAR_FUNCNUM(function) |		/* function number */
 			MCF_PCI_PCICAR_DWORD(offset / 4);
 
+	pci_config_wait();
+
 	* (volatile uint32_t *) PCI_IO_OFFSET = value;	/* access device */
+
+	pci_config_wait();
 
 	/* finish configuration space access cycle */
 	MCF_PCI_PCICAR &= ~MCF_PCI_PCICAR_E;
+	pci_config_wait();
 
 	return PCI_SUCCESSFUL;
 }
@@ -202,9 +213,9 @@ int32_t pci_find_device(uint16_t device_id, uint16_t vendor_id, int index)
 	uint16_t n = 0;
 	int32_t handle;
 
-	for (bus = 0; bus < 255; bus++)
+	for (bus = 0; bus < 2; bus++)
 	{
-		for (device = 10; device < 32; device++)
+		for (device = 10; device < 31; device++)
 		{
 			uint32_t value;
 			uint8_t htr;
@@ -402,20 +413,21 @@ void pci_scan(void)
 	int16_t index = 0;
 
 	xprintf("\r\nPCI bus scan...\r\n\r\n");
-	xprintf(" Bus| Dev|Func|Vndr|D-ID|\r\n");
-	xprintf("----+----+----+----+----|\r\n");
+	xprintf(" Bus| Dev|Func|Vndr|D-ID|Hndl|\r\n");
+	xprintf("----+----+----+----+----+----+\r\n");
 
 	handle = pci_find_device(0x0, 0xFFFF, index);
-	while (handle != PCI_DEVICE_NOT_FOUND)
+	while (handle > 0)
 	{
 		uint32_t value;
 
-		value = swpl(pci_read_config_longword(handle, PCIIDR));
-		xprintf(" %02x | %02x | %02x |%04x|%04x| %s (0x%02x)\r\n",
+		value = pci_read_config_longword(handle, PCIIDR);
+		xprintf(" %02x | %02x | %02x |%04x|%04x|%04x| %s (0x%02x)\r\n",
 				PCI_BUS_FROM_HANDLE(handle),
 				PCI_DEVICE_FROM_HANDLE(handle),
 				PCI_FUNCTION_FROM_HANDLE(handle),
 				PCI_VENDOR_ID(value), PCI_DEVICE_ID(value),
+				handle,
 				device_class(pci_read_config_byte(handle, PCICCR)),
 				pci_read_config_byte(handle, PCICCR));
 
@@ -477,6 +489,9 @@ void init_pci(void)
 
 	xprintf("initializing PCI bridge:");
 
+	init_eport();
+	init_xlbus_arbiter();
+
 	MCF_PCIARB_PACR = MCF_PCIARB_PACR_INTMPRI
        + MCF_PCIARB_PACR_EXTMPRI(0x1F)
        + MCF_PCIARB_PACR_INTMINTEN
@@ -537,7 +552,7 @@ void init_pci(void)
 	/* initialize handles array */
 	memset(handles, 0, NUM_CARDS * sizeof(uint16_t));
 
-#if MACHINE_FIREBEE
+#if _NOT_USED_
 	/*
 	 * experimental: leave "old" USB initialization in place for the FireBee USB controller
 	 * which seems to be found on second access only with the new PCI scan routines
@@ -568,7 +583,7 @@ void init_pci(void)
 			MCF_PCI_PCICAR_FUNCNUM(0) +
 			MCF_PCI_PCICAR_DWORD(57);
 	}
-#endif /* MACHINE_FIREBEE */
+#endif /* _NOT_USED_ */
 
 	/*
 	 * do normal initialization

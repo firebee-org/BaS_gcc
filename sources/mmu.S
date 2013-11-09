@@ -203,9 +203,10 @@ _mmu_init:
 		move.l	d1,MCF_MMU_MMUDR
 		move.l	d2,MCF_MMU_MMUOR						// mapped to ffffxxx, precise,
 		move.l	d3,MCF_MMU_MMUOR						// mapped to ffffxxx, precise,
-#elif MACHINE_M5484LITE
+#endif
+
 //
-// Instead, we lock PCI address space. Uncached, precise. For now, only for the M5484LITE
+// We lock PCI address space. Uncached, precise.
 //
 		move.l	#0x80000000|std_mmutr,d0
 		move.l	#0x80000000|nocache_precise_mmudr|MCF_MMU_MMUDR_LK,d1
@@ -213,7 +214,6 @@ _mmu_init:
 		move.l	d1,MCF_MMU_MMUDR
 		move.l	d2,MCF_MMU_MMUOR						// mapped to ffffxxx, precise,
 		move.l	d3,MCF_MMU_MMUOR						// mapped to ffffxxx, precise,
-#endif /* MACHINE_FIREBEE */
 
 // maps (locked) the last MB (this is where BaS .data and .bss resides) of physical SDRAM to the same physical address
 		move.l	#(SDRAM_START + SDRAM_SIZE - 0x100000) | std_mmutr, d0	
