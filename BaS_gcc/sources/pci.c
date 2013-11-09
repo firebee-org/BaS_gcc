@@ -72,6 +72,51 @@ static int32_t handles[NUM_CARDS];
 /* holds the card's resource descriptors; filled in pci_device_config() */
 static struct pci_rd resource_descriptors[NUM_CARDS][NUM_RESOURCES]; 
 
+
+void chip_errata_135(void)
+{
+	/*
+	 * Errata type: Silicon
+	 * Affected component: PCI
+	 * Description: When core PCI transactions that involve writes to configuration or I/O space
+	 * are followed by a core line access to line addresses 0x4 and 0xC, core access
+	 * to the XL bus can hang.
+	 * Workaround: Prevent PCI configuration and I/O writes from being followed by the described
+	 * line access by the core by generating a known good XL bus transaction after
+	 * the PCI transaction.
+	 * Create a dummy function which is called immediately after each of the affected
+	 * transactions. There are three requirements for this dummy function.
+	 * 1. The function must be aligned to a 16-byte boundary.
+	 * 2. The function must contain a dummy write to a location on the XL bus,
+	 * preferably one with no side effects.
+	 * 3. The function must be longer than 32 bytes. If it is not, the function should
+	 * be padded with 16- or 48-bit TPF instructions placed after the end of
+	 * the function (after the RTS instruction) such that the length is longer
+	 * than 32 bytes.
+	 */
+
+	 __asm__ __volatile(
+		"		bra		.start\n\t"
+		"		.align	16\n\t"				/* force function start to 16-byte boundary */
+		".start:\n\t"
+		"		clr.l	d0\n\t"
+		"		move.l	d0, addr\n\t" /* Must use direct addressing. write to EPORT module */
+											/* xlbus -> slavebus -> eport, writing '0' to register */
+											/* has no effect */
+		"		rts\n\t"
+		"		tpf.l	#0x0\n\t"
+		"		tpf.l	#0x0\n\t"
+		"		tpf.l	#0x0\n\t"
+		"		tpf.l	#0x0\n\t"
+		"		tpf.l	#0x0\n\t"
+		"		.data\n\t"
+		"addr:	ds.l	1\n\t"
+		"		.text\n\t"
+		:::);
+}
+
+
+
 /*
  * retrieve handle for i'th device
  */
@@ -134,6 +179,7 @@ uint32_t pci_read_config_longword(int32_t handle, int offset)
 
 	pci_config_wait();
 
+	chip_errata_135();
 	return value;
 }
 
@@ -301,8 +347,8 @@ static void pci_device_config(uint16_t bus, uint16_t device, uint16_t function)
 	struct pci_rd *descriptors;
 	int i;
 	uint32_t value;
-	static uint32_t mem_address = PCI_MEMORY_OFFSET;
-	static uint32_t io_address = PCI_IO_OFFSET;
+	static uint32_t mem_address = 0;
+	static uint32_t io_address = 0;
 
 	/* determine pci handle from bus, device + function number */
 	handle = PCI_HANDLE(bus, device, function);
@@ -349,10 +395,10 @@ static void pci_device_config(uint16_t bus, uint16_t device, uint16_t function)
 				xprintf("device 0x%x: BAR[%d] requests %d kBytes of memory\r\n", handle, i, size / 1024);
 
 				/* calculate a valid map adress with alignment requirements */
-				mem_address = (mem_address + size - 1) & ~(size - 1);
+				address = (mem_address + size - 1) & ~(size - 1);
 
 				/* write it to the BAR */
-				pci_write_config_longword(handle, PCIBAR0 + i, swpl(mem_address));
+				pci_write_config_longword(handle, PCIBAR0 + i, swpl(address));
 
 				/* read it back, just to be sure */
 				value = swpl(pci_read_config_longword(handle, PCIBAR0 + i));
@@ -363,9 +409,9 @@ static void pci_device_config(uint16_t bus, uint16_t device, uint16_t function)
 				/* fill resource descriptor */
 				rd->next = sizeof(struct pci_rd);
 				rd->flags = 0 | FLG_8BIT | FLG_16BIT | FLG_32BIT;
-				rd->start = mem_address;
+				rd->start = address;
 				rd->length = size;
-				rd->offset = 0; /* PCI_MEMORY_OFFSET; */
+				rd->offset = PCI_MEMORY_OFFSET; 
 				rd->dmaoffset = 0;
 
 				/* adjust memory adress for next turn */
@@ -379,8 +425,8 @@ static void pci_device_config(uint16_t bus, uint16_t device, uint16_t function)
 				int size = ~(address & 0xfffffffc) + 1;
 				xprintf("device 0x%x: BAR[%d] requests %d bytes of memory\r\n", handle, i, size);
 
-				io_address = (io_address + size - 1) & ~(size - 1);
-				pci_write_config_longword(handle, PCIBAR0 + i, swpl(io_address));
+				address = (io_address + size - 1) & ~(size - 1);
+				pci_write_config_longword(handle, PCIBAR0 + i, swpl(address));
 				value = swpl(pci_read_config_longword(handle, PCIBAR0 + i));
 
 				xprintf("set PCIBAR%d on device 0x%02x to 0x%08x\r\n",
@@ -388,8 +434,8 @@ static void pci_device_config(uint16_t bus, uint16_t device, uint16_t function)
 
 				rd->next = sizeof(struct pci_rd);
 				rd->flags = FLG_IO | FLG_8BIT | FLG_16BIT | FLG_32BIT | 1;
-				rd->start = io_address;
-				rd->offset = 0; /* PCI_IO_OFFSET; */
+				rd->start = address;
+				rd->offset = PCI_IO_OFFSET;
 				rd->length = size;
 				rd->dmaoffset = 0;
 
@@ -479,18 +525,19 @@ void init_xlbus_arbiter(void)
 
 	/* setup XL bus arbiter */
 	clock_ratio = (MCF_PCI_PCIGSCR >> 24) & 0x07;
-
 	if (clock_ratio == 4)
-	{
-		/* device errata 26: Flexbus hang up in 4:1 clock ratio */
-		MCF_PCI_PCIGSCR |= 0x80000000; /* disable pipeline */
-	}
+		MCF_XLB_XARB_CFG = MCF_XLB_XARB_CFG_BA |
+			MCF_XLB_XARB_CFG_DT |
+			MCF_XLB_XARB_CFG_AT |
+			MCF_XLB_XARB_CFG_PLDIS;
+	else
+		MCF_XLB_XARB_CFG = MCF_XLB_XARB_CFG_BA |
+			MCF_XLB_XARB_CFG_DT |
+			MCF_XLB_XARB_CFG_AT; 
 
-	xprintf("PCIGSCR = %08x\r\n");
-	MCF_PCI_PCIGSCR |= 0x60000000;	/* clear PERR and SERR in global status/command register */
-	xprintf("PCIGSCR = %08x\r\n");
-
-	/* FIXME: Firetos (boot2.S, l. 719) looks pretty strange at this place - is this a typo? */
+	MCF_XLB_XARB_ADRTO = 0x1fffff;
+	MCF_XLB_XARB_DATTO = 0x1fffff;
+	MCF_XLB_XARB_BUSTO = 0xffffff;
 }
 
 void init_pci(void)
@@ -503,18 +550,19 @@ void init_pci(void)
 	init_eport();
 	init_xlbus_arbiter();
 
+	/*
+	 * setup the PCI arbiter
+	 */
 	MCF_PCIARB_PACR = MCF_PCIARB_PACR_INTMPRI
        + MCF_PCIARB_PACR_EXTMPRI(0x1F)
        + MCF_PCIARB_PACR_INTMINTEN
        + MCF_PCIARB_PACR_EXTMINTEN(0x1F);
 
 	/* Setup burst parameters */
-	MCF_PCI_PCICR1 = MCF_PCI_PCICR1_CACHELINESIZE(4) + MCF_PCI_PCICR1_LATTIMER(16); /* TODO: test increased latency timer */
-	MCF_PCI_PCICR2 = MCF_PCI_PCICR2_MINGNT(16) + MCF_PCI_PCICR2_MAXLAT(16);
-
-	/* Turn on error signaling, 32 write retries on failure */
-	MCF_PCI_PCIICR = MCF_PCI_PCIICR_REE + MCF_PCI_PCIICR_IAE + MCF_PCI_PCIICR_TAE + 32;
-	MCF_PCI_PCIGSCR |= MCF_PCI_PCIGSCR_SEE;
+	MCF_PCI_PCICR1 = MCF_PCI_PCICR1_CACHELINESIZE(32) |
+						MCF_PCI_PCICR1_LATTIMER(32); /* TODO: test increased latency timer */
+	MCF_PCI_PCICR2 = MCF_PCI_PCICR2_MINGNT(16) |
+					MCF_PCI_PCICR2_MAXLAT(16);
 
 	/* Configure Initiator Windows */
 
@@ -539,18 +587,12 @@ void init_pci(void)
 	/* initialize target control register */
 	MCF_PCI_PCITCR = 0;
 	
-	value =  MCF_PCI_PCISCR_M | /* memory access control enabled */
+	MCF_PCI_PCISCR =  MCF_PCI_PCISCR_M | /* memory access control enabled */
 		MCF_PCI_PCISCR_B |		/* bus master enabled */
 		MCF_PCI_PCISCR_MW |		/* memory write and invalidate enabled */
 		MCF_PCI_PCISCR_PER |	/* parity errors enabled, PERR# will be asserted */
 		MCF_PCI_PCISCR_S;		/* SERR enabbled */
 
-	MCF_PCI_PCISCR = value;
-
-	new_value = MCF_PCI_PCISCR;
-
-	if (new_value != value)
-		xprintf("MCF_PCI_PCISCR wanted: %08x, got %08x\r\n", value, new_value);
 
 	/* reset PCI devices */
 	MCF_PCI_PCIGSCR &= ~MCF_PCI_PCIGSCR_PR;
@@ -568,4 +610,3 @@ void init_pci(void)
 	 */
 	pci_scan();
 }
-

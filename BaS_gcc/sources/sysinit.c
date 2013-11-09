@@ -351,7 +351,8 @@ void init_fbcs()
 	MCF_FBCS0_CSAR = BOOTFLASH_BASE_ADDRESS;	/* flash base address */
 	MCF_FBCS0_CSCR = MCF_FBCS_CSCR_PS_16 |		/* 16 bit word access */
 			MCF_FBCS_CSCR_WS(6)|						/* 6 Waitstates */
-			MCF_FBCS_CSCR_AA;							/* */
+			MCF_FBCS_CSCR_AA |
+			MCF_FBCS_CSCR_RDAH(1);				/* chip errata SECF077 */
 	MCF_FBCS0_CSMR = BOOTFLASH_BAM |
 			MCF_FBCS_CSMR_V;							/* enable */
 
@@ -394,13 +395,13 @@ void init_fbcs()
 	MCF_FBCS5_CSAR = 0x0;
 	MCF_FBCS5_CSCR = MCF_FBCS_CSCR_PS_8
 		| MCF_FBCS_CSCR_BSTR
-		| MCF_FBCS_CSCR_BSTW;
+		| MCF_FBCS_CSCR_BSTW
+		| MCF_FBCS_CSCR_RDAH(1);				/* chip errata SECF077 */
 	MCF_FBCS5_CSMR = MCF_FBCS_CSMR_BAM_1G;
 			/* | MCF_FBCS_CSMR_V; */		/* not enabled */
 
 	xprintf("finished\r\n");
 }
-
 
 void wait_pll(void)
 {
