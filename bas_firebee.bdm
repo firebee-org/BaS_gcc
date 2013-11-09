@@ -1,0 +1,71 @@
+#!/usr/local/bin/bdmctrl -D2 -v9 -d9
+#
+# firebee board initialization for bdmctrl 
+#
+open $1
+reset
+sleep 10
+
+# Turn on MBAR at 0xFF00_0000
+write-ctrl 0x0C0F 0xFF000000
+
+# set VBR
+write-ctrl 0x0801 0x00000000
+
+# Turn on RAMBAR0 at address FF10_0000 
+write-ctrl 0x0C04 0xFF100007
+
+# Turn on RAMBAR1 at address FF10_1000 (disabled - not mapped by bdm currently)
+write-ctrl 0x0C05 0xFF101001
+
+# Init CS0 (BootFLASH @ E000_0000 - E07F_FFFF 8Mbytes)
+write 0xFF000500 0xE0000000 4
+write 0xFF000508 0x00041180 4
+write 0xFF000504 0x007F0001 4
+wait
+
+# Init CS1 (Atari I/O address range)
+write 0xFF00050C 0xFFF00000 4
+write 0xFF000514 0x00002180 4
+write 0xFF000510 0x000F0001 4
+# Init CS2 (FireBee 32 bit I/O address range)
+write 0xFF000518 0xF0000000 4
+write 0xFF000520 0x00002100 4
+write 0xFF00051C 0x07FF0001 4
+# Init CS3 (FireBee 16 bit I/O address range)
+write 0xFF000524 0xF8000000 4
+write 0xFF00052C 0x00000180 4
+write 0xFF000528 0x03FF0001 4
+# Init CS4 (FireBee video address range)
+write 0xFF000530 0x40000000 4
+write 0xFF000538 0x00000018 4
+write 0xFF000534 0x003F0001 4
+
+
+# SDRAM Initialization @ 0000_0000 - 1FFF_FFFF 512Mbytes
+write 0xFF000004 0x000002AA 4	# SDRAMDS configuration
+write 0xFF000020 0x0000001A 4	# SDRAM CS0 configuration (128Mbytes 0000_0000 - 07FF_FFFF)
+write 0xFF000024 0x0800001A 4	# SDRAM CS1 configuration (128Mbytes 0800_0000 - 0FFF_FFFF)
+write 0xFF000028 0x1000001A 4	# SDRAM CS2 configuration (128Mbytes 1000_0000 - 17FF_FFFF)
+write 0xFF00002C 0x1800001A 4	# SDRAM CS3 configuration (128Mbytes 1800_0000 - 1FFF_FFFF)
+write 0xFF000108 0x73622830 4	# SDCFG1
+write 0xFF00010C 0x46770000 4	# SDCFG2
+
+write 0xFF000104 0xE10D0002 4	# SDCR + IPALL
+write 0xFF000100 0x40010000 4	# SDMR (write to LEMR)
+write 0xFF000100 0x048D0000 4	# SDMR (write to LMR)
+sleep 100
+write 0xFF000104 0xE10D0002 4	# SDCR + IPALL
+write 0xFF000104 0xE10D0004 4	# SDCR + IREF (first refresh)
+write 0xFF000104 0xE10D0004 4	# SDCR + IREF (first refresh)
+write 0xFF000100 0x008D0000 4	# SDMR (write to LMR)
+write 0xFF000104 0x710D0F00 4	# SDCR (lock SDMR and enable refresh)
+sleep 100
+
+load -v firebee/ram.elf
+write-ctrl 0x80e	0x2700
+write-ctrl 0x2	0xa50c8120
+dump-register SR
+dump-register CACR
+dump-register MBAR
+execute
