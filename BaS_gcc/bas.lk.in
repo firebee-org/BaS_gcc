@@ -36,6 +36,7 @@ SECTIONS
 #endif /* MACHINE_FIREBEE */
 		OBJDIR/wait.o(.text)
 		OBJDIR/exceptions.o(.text)
+		OBJDIR/interrupts.o(.text)
 		OBJDIR/illegal_instruction.o(.text)
 		OBJDIR/supervisor.o(.text)
 		OBJDIR/mmu.o(.text)		

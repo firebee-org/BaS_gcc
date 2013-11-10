@@ -260,7 +260,7 @@ void init_serial(void)
 	MCF_PSC3_PSCCR = 0x05;
 #endif /* MACHINE_FIREBEE */
 
-	MCF_INTC_ICR32 = 0x3F;	//MAXIMALE PRIORITY/**********/
+	//MCF_INTC_ICR32 = 0x3F;	//MAXIMALE PRIORITY/**********/
 
 	xprintf("\r\nserial interfaces initialization: finished\r\n");
 }
