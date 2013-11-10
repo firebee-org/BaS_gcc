@@ -119,7 +119,7 @@ int dma_init(void)
 	xprintf("DMA API version %d.%d initialized. Tasks are at %p\r\n", version / 0xff, version % 0xff, SYS_SRAM);
 
 	// test
-	dma_memcpy((void *) 0x10000, (void *) 0xe0000000, 0x00100000);	/* copy one megabyte of flash to RAM */
+	dma_memcpy((void *) 0x10000, (void *) 0x03e00000, 0x00100000);	/* copy one megabyte of flash to RAM */
 
 	xprintf("DMA finished\r\n");
 	return 0;
