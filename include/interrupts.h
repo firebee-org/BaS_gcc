@@ -77,4 +77,5 @@
 #define	INT_SOURCE_GPT0				62	// GPT0 timer interrupt
 
 
+extern int register_interrupt_handler(uint8_t priority, uint8_t intr, void (*func)());
 #endif /* _INTERRUPTS_H_ */

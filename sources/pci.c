@@ -30,6 +30,7 @@
 #include "bas_printf.h"
 #include "bas_string.h"
 #include "util.h"
+#include "interrupts.h"
 #include "wait.h"
 
 #define pci_config_wait()	wait(10000);	/* FireBee USB not properly detected otherwise */
@@ -173,7 +174,7 @@ uint32_t pci_read_config_longword(int32_t handle, int offset)
 	value =  * (volatile uint32_t *) PCI_IO_OFFSET;	/* access device */
 
 	/* finish PCI configuration access special cycle (allow regular PCI accesses) */
-	MCF_PCI_PCICAR &= ~MCF_PCI_PCICAR_E;
+	//MCF_PCI_PCICAR &= ~MCF_PCI_PCICAR_E;
 
 	pci_config_wait();
 
@@ -222,7 +223,7 @@ int32_t pci_write_config_longword(int32_t handle, int offset, uint32_t value)
 	pci_config_wait();
 
 	/* finish configuration space access cycle */
-	MCF_PCI_PCICAR &= ~MCF_PCI_PCICAR_E;
+	//MCF_PCI_PCICAR &= ~MCF_PCI_PCICAR_E;
 	pci_config_wait();
 
 	return PCI_SUCCESSFUL;
@@ -345,8 +346,8 @@ static void pci_device_config(uint16_t bus, uint16_t device, uint16_t function)
 	struct pci_rd *descriptors;
 	int i;
 	uint32_t value;
-	static uint32_t mem_address = 0;
-	static uint32_t io_address = 0;
+	static uint32_t mem_address = PCI_MEMORY_OFFSET;
+	static uint32_t io_address = PCI_IO_OFFSET;
 
 	/* determine pci handle from bus, device + function number */
 	handle = PCI_HANDLE(bus, device, function);
@@ -372,7 +373,7 @@ static void pci_device_config(uint16_t bus, uint16_t device, uint16_t function)
 		/*
 		 * write all bits of BAR[i]
 		 */
-		pci_write_config_longword(handle, 0x10 + i, 0xffffffff);
+		pci_write_config_longword(handle, PCIBAR0 + i, 0xffffffff);
 
 		/*
 		 * read back value to see which bits have been set
@@ -390,7 +391,7 @@ static void pci_device_config(uint16_t bus, uint16_t device, uint16_t function)
 			{
 				/* adjust base address to card's alignment requirements */
 				int size = ~(address & 0xfffffff0) + 1;
-				xprintf("device 0x%x: BAR[%d] requests %d kBytes of memory\r\n", handle, i, size / 1024);
+				xprintf("device 0x%x: BAR[%d] requests %d bytes of memory\r\n", handle, i, size);
 
 				/* calculate a valid map adress with alignment requirements */
 				address = (mem_address + size - 1) & ~(size - 1);
@@ -399,17 +400,17 @@ static void pci_device_config(uint16_t bus, uint16_t device, uint16_t function)
 				pci_write_config_longword(handle, PCIBAR0 + i, swpl(address));
 
 				/* read it back, just to be sure */
-				value = swpl(pci_read_config_longword(handle, PCIBAR0 + i));
+				value = swpl(pci_read_config_longword(handle, PCIBAR0 + i)) & ~1;
 				
 				xprintf("set PCIBAR%d on device 0x%02x to 0x%08x\r\n",
 						i, handle, value);
 
 				/* fill resource descriptor */
 				rd->next = sizeof(struct pci_rd);
-				rd->flags = 0 | FLG_8BIT | FLG_16BIT | FLG_32BIT;
+				rd->flags = 0 | FLG_32BIT | FLG_16BIT | FLG_8BIT | 2; /* little endian, lane swapped */
 				rd->start = address;
 				rd->length = size;
-				rd->offset = PCI_MEMORY_OFFSET; 
+				rd->offset = 0; 
 				rd->dmaoffset = 0;
 
 				/* adjust memory adress for next turn */
@@ -421,7 +422,7 @@ static void pci_device_config(uint16_t bus, uint16_t device, uint16_t function)
 			else if (IS_PCI_IO_BAR(value)) /* same as above for I/O resources */
 			{
 				int size = ~(address & 0xfffffffc) + 1;
-				xprintf("device 0x%x: BAR[%d] requests %d bytes of memory\r\n", handle, i, size);
+				xprintf("device 0x%x: BAR[%d] requests %d bytes of I/O space\r\n", handle, i, size);
 
 				address = (io_address + size - 1) & ~(size - 1);
 				pci_write_config_longword(handle, PCIBAR0 + i, swpl(address));
@@ -431,9 +432,9 @@ static void pci_device_config(uint16_t bus, uint16_t device, uint16_t function)
 					i, handle, value);
 
 				rd->next = sizeof(struct pci_rd);
-				rd->flags = FLG_IO | FLG_8BIT | FLG_16BIT | FLG_32BIT | 1;
+				rd->flags = FLG_IO | FLG_8BIT | FLG_16BIT | FLG_32BIT | 2;
 				rd->start = address;
-				rd->offset = PCI_IO_OFFSET;
+				rd->offset = 0;
 				rd->length = size;
 				rd->dmaoffset = 0;
 
@@ -451,11 +452,27 @@ static void pci_device_config(uint16_t bus, uint16_t device, uint16_t function)
 	 * enable device finally
 	 */
 	value = swpl(pci_read_config_longword(handle, PCICSR));
-	value |= 0xffff035f;
+	xprintf("device 0x%02x PCICSR = 0x%08x\r\n", handle, value);
+	value = 0xffff0146;
 	pci_write_config_longword(handle, PCICSR, swpl(value));
 
 	value = swpl(pci_read_config_longword(handle, PCICSR));
 	xprintf("device 0x%02x PCICSR = 0x%08x\r\n", handle, value);
+}
+
+static void pci_bridge_config(uint16_t bus, uint16_t device, uint16_t function)
+{
+	int32_t handle;
+
+	if (function != 0)
+	{
+		xprintf("trying to configure a multi-function bridge. Cancelled\r\n");
+		return;
+	}
+	handle = PCI_HANDLE(bus, device, function);
+	pci_write_config_longword(handle, PCIBAR0, 0x40000000);
+	pci_write_config_longword(handle, PCIBAR1, 0x0);
+	pci_write_config_longword(handle, PCICSR, 0x146);
 }
 
 /*
@@ -491,6 +508,12 @@ void pci_scan(void)
 		{
 			/* configure memory and I/O for card */
 			pci_device_config(PCI_BUS_FROM_HANDLE(handle),
+						PCI_DEVICE_FROM_HANDLE(handle),
+						PCI_FUNCTION_FROM_HANDLE(handle));
+		}
+		else
+		{
+			pci_bridge_config(PCI_BUS_FROM_HANDLE(handle),
 						PCI_DEVICE_FROM_HANDLE(handle),
 						PCI_FUNCTION_FROM_HANDLE(handle));
 		}
@@ -545,9 +568,30 @@ void init_xlbus_arbiter(void)
 	MCF_XLB_XARB_BUSTO = 0xffffff;
 }
 
+
+__attribute__((interrupt)) void pci_arb_interrupt(void)
+{
+	xprintf("XLBARB slave error interrupt\r\n");
+	MCF_XLB_XARB_SR |= ~MCF_XLB_XARB_SR_SEA;
+}
+
+__attribute__((interrupt)) void xlb_pci_interrupt(void)
+{
+	xprintf("XLBPCI interrupt\r\n");
+}
+
 void init_pci(void)
 {
-	xprintf("initializing PCI bridge:");
+	int res;
+
+	xprintf("initializing PCI bridge:\r\n");
+
+	res = register_interrupt_handler(0, INT_SOURCE_PCIARB, pci_arb_interrupt);
+	xprintf("registered interrupt handler for PCI arbiter: %s\r\n",
+			(res < 0 ? "failed" : "succeeded"));
+	register_interrupt_handler(0, INT_SOURCE_XLBPCI, xlb_pci_interrupt);
+	xprintf("registered interrupt handler for XLB PCI: %s\r\n",
+			(res < 0 ? "failed" : "succeeded"));
 
 	init_eport();
 	init_xlbus_arbiter();
@@ -556,7 +600,7 @@ void init_pci(void)
 	 * setup the PCI arbiter
 	 */
 	MCF_PCIARB_PACR = MCF_PCIARB_PACR_INTMPRI	/* internal master priority: high */
-       | MCF_PCIARB_PACR_EXTMPRI(0x1F)			/* external master priority: high */
+       | MCF_PCIARB_PACR_EXTMPRI(0x4)			/* external master priority: high */
        | MCF_PCIARB_PACR_INTMINTEN				/* enable "internal master broken" interrupt */
        | MCF_PCIARB_PACR_EXTMINTEN(0x1F);		/* enable "external master broken" interrupt */
 
@@ -591,7 +635,9 @@ void init_pci(void)
 
 	/* initiator window 0 base / translation adress register */
 	MCF_PCI_PCIIW0BTAR = (PCI_MEMORY_OFFSET | (((PCI_MEMORY_SIZE - 1) >> 8) & 0xffff0000))
-						  | PCI_MEMORY_OFFSET >> 16; 
+						  | ((PCI_MEMORY_OFFSET >> 16) & 0xff00); 
+
+	xprintf("PCIIW0BTAR=0x%08x\r\n", MCF_PCI_PCIIW0BTAR);
 
 	/* initiator window 1 base / translation adress register */
 	MCF_PCI_PCIIW1BTAR = (PCI_IO_OFFSET | ((PCI_IO_SIZE - 1) >> 8)) & 0xffff0000;
@@ -600,11 +646,14 @@ void init_pci(void)
 	MCF_PCI_PCIIW2BTAR = 0L;   /* not used */
 
 	/* initiator window configuration register */
-	MCF_PCI_PCIIWCR = MCF_PCI_PCIIWCR_WINCTRL0_MEMRDLINE | MCF_PCI_PCIIWCR_WINCTRL1_IO;
+	MCF_PCI_PCIIWCR = MCF_PCI_PCIIWCR_WINCTRL0_MEMRDLINE |
+					MCF_PCI_PCIIWCR_WINCTRL1_IO |
+					MCF_PCI_PCIIWCR_WINCTRL0_E |
+					MCF_PCI_PCIIWCR_WINCTRL1_E;
 
 	/* initialize target control register */
 	MCF_PCI_PCIBAR0 = 0x40000000;	/* 256 kB window */
-	MCF_PCI_PCITBATR0 = (uint32_t) &_MBAR[0] +  MCF_PCI_PCITBATR0_EN;	/* target base address translation register 0 */
+	MCF_PCI_PCITBATR0 = (uint32_t) &_MBAR[0] |  MCF_PCI_PCITBATR0_EN;	/* target base address translation register 0 */
 	MCF_PCI_PCIBAR1 = 0;			/* 1GB window */
 	MCF_PCI_PCITBATR1 = MCF_PCI_PCITBATR1_EN;
 
@@ -627,4 +676,6 @@ void init_pci(void)
 	xprintf("PCIGSCR=0x%08x, PCISCR=0x%08x\r\n", MCF_PCI_PCIGSCR, MCF_PCI_PCISCR);
 	MCF_PCI_PCISCR |= 0xffff035f;		/* clear all error flags */
 	xprintf("PCIGSCR=0x%08x, PCISCR=0x%08x\r\n", MCF_PCI_PCIGSCR, MCF_PCI_PCISCR);
+
+	xprintf("XARB_SR=0x%08x\r\n", MCF_XLB_XARB_SR);
 }

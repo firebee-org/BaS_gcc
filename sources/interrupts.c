@@ -27,36 +27,39 @@
 #include "bas_utils.h"
 #include "interrupts.h"
 
-extern uint8_t _rtl_vbr[];
-#define VBR	((uint32_t **) &_rtl_vbr[0])
+extern uint32_t rt_vbr[];
+#define VBR	rt_vbr
 
 /*
- * register an interrupt handler at the Coldfire interrupt controller and add the handler to the interrupt vector table
+ * register an interrupt handler at the Coldfire interrupt controller and add the handler to
+ * the interrupt vector table
  */
-int register_handler(uint8_t priority, uint8_t intr, void (*func)())
+int register_interrupt_handler(uint8_t priority, uint8_t source, void (*func)())
 {
 	int i;
 	uint8_t level = 0b01111111;
-	uint32_t **adr = VBR;
+	uint32_t **adr = &VBR[0];
 
-	intr &= 63;
+	source &= 63;
 	priority &= 7;
 
-	if (intr <= 0)
+	if (source <= 0)
 		return -1;
 
 	for (i = 1; i < 64; i++)
-		if (i != intr)
+	{
+		if (i != source)
 		{
 			if ((MCF_INTC_ICR(i) & 7) == priority)
 				CLEAR_BIT_NO(level, (MCF_INTC_ICR(i) >> 3) & 7);
 		}
+	}
 
-	for (i = 0; 1 < 7; i++)
+	for (i = 0; i <= 7; i++)
 		if (level & (1 << i))
 			break;
 
-	if (i >= 7)
+	if (i > 7)
 		return -1;
 
 	/*
@@ -64,39 +67,35 @@ int register_handler(uint8_t priority, uint8_t intr, void (*func)())
 	 */
 	__asm__ volatile (
 			"move.w sr,d0\n\t"
-			"move.w d0,-(sp) \n\t"
+			"move.w d0,srsave \n\t"
 			"move.w #0x2700,sr\n\t"
+			"	.data\n\t"
+			"srsave:	ds.w	1\n\t"
+			"	.text\n\t"
 			:
 			:
-			: "sp","d0","memory"
+			: "d0","memory"
 	);
 
-	if (intr < 32)
-		CLEAR_BIT(MCF_INTC_IMRL, (1 << intr));
+	if (source < 32)
+		CLEAR_BIT(MCF_INTC_IMRL, (1 << source));
 	else
-		CLEAR_BIT(MCF_INTC_IMRH, (1 << (intr - 32)));
+		CLEAR_BIT(MCF_INTC_IMRH, (1 << (source - 32)));
 
-	MCF_INTC_ICR(intr) = MCF_INTC_ICR_IP(priority) | MCF_INTC_ICR_IL(i);
+	MCF_INTC_ICR(source) = MCF_INTC_ICR_IP(priority) | MCF_INTC_ICR_IL(i);
 
-	adr[64 + intr] = (uint32_t *) func;	/* first 64 vectors are system exceptions */
+	adr[64 + source] = (uint32_t *) func;	/* first 64 vectors are system exceptions */
 
 	/*
 	 * Return the saved priority level
 	 */
 	__asm__ volatile (
-			"move.w (sp)+,d2\n\t"
+			"move.w srsave,d2\n\t"
 			"move.w d2,sr\n\t"
 			:
 			:
-			: "sp","d2","memory"
+			: "d2","memory"
 	);
 
 	return 0;
 }
-
-__attribute__((interrupt)) void pci_arb_interrupt(void)
-{
-	xprintf("XLBARB slave error interrupt\r\n");
-	MCF_XLB_XARB_SR |= ~MCF_XLB_XARB_SR_SEA;
-}
-
