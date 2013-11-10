@@ -96,11 +96,12 @@ void chip_errata_135(void)
 	 */
 
 	 __asm__ __volatile(
+		"		.extern __MBAR\n\t"
 		"		bra		.start\n\t"
 		"		.align	16\n\t"				/* force function start to 16-byte boundary */
 		".start:\n\t"
 		"		clr.l	d0\n\t"
-		"		move.l	d0, addr\n\t" /* Must use direct addressing. write to EPORT module */
+		"		move.l	d0,__MBAR+0xF0C\n\t"		/* Must use direct addressing. write to EPORT module */
 											/* xlbus -> slavebus -> eport, writing '0' to register */
 											/* has no effect */
 		"		rts\n\t"
@@ -109,9 +110,6 @@ void chip_errata_135(void)
 		"		tpf.l	#0x0\n\t"
 		"		tpf.l	#0x0\n\t"
 		"		tpf.l	#0x0\n\t"
-		"		.data\n\t"
-		"addr:	ds.l	1\n\t"
-		"		.text\n\t"
 		:::);
 }
 
@@ -487,11 +485,10 @@ void pci_scan(void)
 				device_class(pci_read_config_byte(handle, PCICCR)),
 				pci_read_config_byte(handle, PCICCR));
 
+		/* save handle to index value so that we'll be able to later find our resources */
+		handles[index] = handle;
 		if (PCI_VENDOR_ID(value) != 0x1057 && PCI_DEVICE_ID(value) != 0x5806) /* do not configure bridge */
 		{
-			/* save handle to index value so that we'll be able to later find our resources */
-			handles[index] = handle;
-
 			/* configure memory and I/O for card */
 			pci_device_config(PCI_BUS_FROM_HANDLE(handle),
 						PCI_DEVICE_FROM_HANDLE(handle),
@@ -506,16 +503,20 @@ void pci_scan(void)
 /* start of PCI initialization code */
 void init_eport(void)
 {
-	/* concigure IRQ1-7 pins on EPORT falling edge triggered */
-	MCF_EPORT_EPPAR = MCF_EPORT_EPPAR_EPPA7(MCF_EPORT_EPPAR_FALLING) +
-			MCF_EPORT_EPPAR_EPPA6(MCF_EPORT_EPPAR_FALLING) +
-			MCF_EPORT_EPPAR_EPPA5(MCF_EPORT_EPPAR_FALLING) +
-			MCF_EPORT_EPPAR_EPPA4(MCF_EPORT_EPPAR_FALLING) +
-			MCF_EPORT_EPPAR_EPPA3(MCF_EPORT_EPPAR_FALLING) +
-			MCF_EPORT_EPPAR_EPPA2(MCF_EPORT_EPPAR_FALLING) +
+	/* configure IRQ1-7 pins on EPORT falling edge triggered */
+	MCF_EPORT_EPPAR = MCF_EPORT_EPPAR_EPPA7(MCF_EPORT_EPPAR_FALLING) |
+			MCF_EPORT_EPPAR_EPPA6(MCF_EPORT_EPPAR_FALLING) |
+#if MACHINE_FIREBEE		/* irq5 level triggered on FireBee */
+			MCF_EPORT_EPPAR_EPPA5(MCF_EPORT_EPPAR_LEVEL) |
+#elif MACHINE_M5484LITE
+			MCF_EPORT_EPPAR_EPPA5(MCF_EPORT_EPPAR_FALLING) |
+#endif /* MACHINE_FIREBEE */
+			MCF_EPORT_EPPAR_EPPA4(MCF_EPORT_EPPAR_FALLING) |
+			MCF_EPORT_EPPAR_EPPA3(MCF_EPORT_EPPAR_FALLING) |
+			MCF_EPORT_EPPAR_EPPA2(MCF_EPORT_EPPAR_FALLING) |
 			MCF_EPORT_EPPAR_EPPA1(MCF_EPORT_EPPAR_FALLING);
 	MCF_EPORT_EPDDR = 0;	/* clear data direction register. All pins as input */
-	MCF_EPORT_EPFR = 0;		/* clear all EPORT interrupt flags */
+	MCF_EPORT_EPFR = -1;	/* clear all EPORT interrupt flags */
 	MCF_EPORT_EPIER = 0xfe;	/* enable all EPORT interrupts (for now) */
 }
 
@@ -526,14 +527,18 @@ void init_xlbus_arbiter(void)
 	/* setup XL bus arbiter */
 	clock_ratio = (MCF_PCI_PCIGSCR >> 24) & 0x07;
 	if (clock_ratio == 4)
+	{
 		MCF_XLB_XARB_CFG = MCF_XLB_XARB_CFG_BA |
 			MCF_XLB_XARB_CFG_DT |
 			MCF_XLB_XARB_CFG_AT |
 			MCF_XLB_XARB_CFG_PLDIS;
+	}
 	else
+	{
 		MCF_XLB_XARB_CFG = MCF_XLB_XARB_CFG_BA |
 			MCF_XLB_XARB_CFG_DT |
 			MCF_XLB_XARB_CFG_AT; 
+	}
 
 	MCF_XLB_XARB_ADRTO = 0x1fffff;
 	MCF_XLB_XARB_DATTO = 0x1fffff;
@@ -542,9 +547,6 @@ void init_xlbus_arbiter(void)
 
 void init_pci(void)
 {
-	uint32_t value;
-	uint32_t new_value;
-
 	xprintf("initializing PCI bridge:");
 
 	init_eport();
@@ -553,27 +555,43 @@ void init_pci(void)
 	/*
 	 * setup the PCI arbiter
 	 */
-	MCF_PCIARB_PACR = MCF_PCIARB_PACR_INTMPRI
-       + MCF_PCIARB_PACR_EXTMPRI(0x1F)
-       + MCF_PCIARB_PACR_INTMINTEN
-       + MCF_PCIARB_PACR_EXTMINTEN(0x1F);
+	MCF_PCIARB_PACR = MCF_PCIARB_PACR_INTMPRI	/* internal master priority: high */
+       | MCF_PCIARB_PACR_EXTMPRI(0x1F)			/* external master priority: high */
+       | MCF_PCIARB_PACR_INTMINTEN				/* enable "internal master broken" interrupt */
+       | MCF_PCIARB_PACR_EXTMINTEN(0x1F);		/* enable "external master broken" interrupt */
+
+#if MACHINE_FIREBEE
+	//MCF_PAD_PAR_PCIBG = 0x3f; // FIXME: MiNT initialization hangs if this is enabled ???
+	//MCF_PAD_PAR_PCIBR = 0x3f;
+#elif MACHINE_M5484LITE
+	MCF_PAD_PAR_PCIBG = 0x3ff; /* enable all PCI bus grant and bus requests on the LITE board */
+	MCF_PAD_PAR_PCIBR = 0x3ff;
+#endif /* MACHINE_FIREBEE */
+
+	MCF_PCI_PCISCR =  MCF_PCI_PCISCR_M | /* memory access control enabled */
+		MCF_PCI_PCISCR_B |		/* bus master enabled */
+		MCF_PCI_PCISCR_MW;		/* memory write and invalidate enabled */
+		//MCF_PCI_PCISCR_PER |	/* parity errors enabled, PERR# will be asserted */
+		//MCF_PCI_PCISCR_S;		/* SERR enabbled */
+		
 
 	/* Setup burst parameters */
-	MCF_PCI_PCICR1 = MCF_PCI_PCICR1_CACHELINESIZE(32) |
+	MCF_PCI_PCICR1 = MCF_PCI_PCICR1_CACHELINESIZE(8) |
 						MCF_PCI_PCICR1_LATTIMER(32); /* TODO: test increased latency timer */
-	MCF_PCI_PCICR2 = MCF_PCI_PCICR2_MINGNT(16) |
-					MCF_PCI_PCICR2_MAXLAT(16);
+	MCF_PCI_PCICR2 = MCF_PCI_PCICR2_MINGNT(1) |
+					MCF_PCI_PCICR2_MAXLAT(32);
+
+	/* error signaling */
+	MCF_PCI_PCIICR = MCF_PCI_PCIICR_TAE |	/* target abort enable */
+		MCF_PCI_PCIICR_IAE; 				/* initiator abort enable */
+	
+	MCF_PCI_PCIGSCR |= MCF_PCI_PCIGSCR_SEE;	/* system error interrupt enable */
 
 	/* Configure Initiator Windows */
 
-	/*
-	 * Window starts at PCI_MEMORY_OFFSET, ends at PCI_MEMORY_OFFSET + PCI_MEMORY_SIZE - 1 (2 GB)
-	 * There is no translation from M54xx address space to PCI address space (same addresses)
-	 */
-
 	/* initiator window 0 base / translation adress register */
-	MCF_PCI_PCIIW0BTAR = PCI_MEMORY_OFFSET | (((PCI_MEMORY_SIZE - 1) >> 8) & 0xffff0000);
-	/* | PCI_MEMORY_OFFSET >> 16; */
+	MCF_PCI_PCIIW0BTAR = (PCI_MEMORY_OFFSET | (((PCI_MEMORY_SIZE - 1) >> 8) & 0xffff0000))
+						  | PCI_MEMORY_OFFSET >> 16; 
 
 	/* initiator window 1 base / translation adress register */
 	MCF_PCI_PCIIW1BTAR = (PCI_IO_OFFSET | ((PCI_IO_SIZE - 1) >> 8)) & 0xffff0000;
@@ -585,18 +603,14 @@ void init_pci(void)
 	MCF_PCI_PCIIWCR = MCF_PCI_PCIIWCR_WINCTRL0_MEMRDLINE | MCF_PCI_PCIIWCR_WINCTRL1_IO;
 
 	/* initialize target control register */
-	MCF_PCI_PCITCR = 0;
-	
-	MCF_PCI_PCISCR =  MCF_PCI_PCISCR_M | /* memory access control enabled */
-		MCF_PCI_PCISCR_B |		/* bus master enabled */
-		MCF_PCI_PCISCR_MW |		/* memory write and invalidate enabled */
-		MCF_PCI_PCISCR_PER |	/* parity errors enabled, PERR# will be asserted */
-		MCF_PCI_PCISCR_S;		/* SERR enabbled */
-
+	MCF_PCI_PCIBAR0 = 0x40000000;	/* 256 kB window */
+	MCF_PCI_PCITBATR0 = (uint32_t) &_MBAR[0] +  MCF_PCI_PCITBATR0_EN;	/* target base address translation register 0 */
+	MCF_PCI_PCIBAR1 = 0;			/* 1GB window */
+	MCF_PCI_PCITBATR1 = MCF_PCI_PCITBATR1_EN;
 
 	/* reset PCI devices */
 	MCF_PCI_PCIGSCR &= ~MCF_PCI_PCIGSCR_PR;
-	do ; while (MCF_PCI_PCIGSCR & 1); /* wait until reset finished */
+	do ; while (MCF_PCI_PCIGSCR & MCF_PCI_PCIGSCR_PR); /* wait until reset finished */
 
 	xprintf("finished\r\n");
 
@@ -609,4 +623,8 @@ void init_pci(void)
 	 * do normal initialization
 	 */
 	pci_scan();
+
+	xprintf("PCIGSCR=0x%08x, PCISCR=0x%08x\r\n", MCF_PCI_PCIGSCR, MCF_PCI_PCISCR);
+	MCF_PCI_PCISCR |= 0xffff035f;		/* clear all error flags */
+	xprintf("PCIGSCR=0x%08x, PCISCR=0x%08x\r\n", MCF_PCI_PCIGSCR, MCF_PCI_PCISCR);
 }
