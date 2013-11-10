@@ -83,6 +83,7 @@ inline uint32_t readl(volatile uint32_t *addr)
 	res = swpl(*addr);
 	chip_errata_135();
 	xprintf(" result=0x%08x\r\n", res);
+	return res;
 }
 
 /*
