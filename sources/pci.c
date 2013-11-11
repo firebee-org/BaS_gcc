@@ -361,7 +361,17 @@ static void pci_device_config(uint16_t bus, uint16_t device, uint16_t function)
 		return;
 	}
 
+	/*
+	 * disable device
+	 */
+	
+	value = swpl(pci_read_config_longword(handle, PCICSR));
+
+	pci_write_config_longword(handle, PCICSR, swpl(value));
+
 	int barnum = 0;
+	uint16_t command_register = 0;
+
 	descriptors = resource_descriptors[index];
 	for (i = 0; i < 6; i++)		/* for all bars */
 	{
@@ -416,6 +426,8 @@ static void pci_device_config(uint16_t bus, uint16_t device, uint16_t function)
 				/* adjust memory adress for next turn */
 				mem_address += size;
 
+				command_register |= 2;
+
 				/* index to next unused resource descriptor */
 				barnum++;
 			}
@@ -440,6 +452,8 @@ static void pci_device_config(uint16_t bus, uint16_t device, uint16_t function)
 
 				io_address += size;
 
+				command_register |= 1;
+
 				barnum++;
 			}
 		}
@@ -447,17 +461,11 @@ static void pci_device_config(uint16_t bus, uint16_t device, uint16_t function)
 	/* mark end of resource chain */
 	if (barnum > 0)
 		descriptors[barnum - 1].flags |= FLG_LAST;
-	
-	/*
-	 * enable device finally
-	 */
-	value = swpl(pci_read_config_longword(handle, PCICSR));
-	xprintf("device 0x%02x PCICSR = 0x%08x\r\n", handle, value);
-	value = 0xffff0146;
-	pci_write_config_longword(handle, PCICSR, swpl(value));
 
-	value = swpl(pci_read_config_longword(handle, PCICSR));
-	xprintf("device 0x%02x PCICSR = 0x%08x\r\n", handle, value);
+	/*
+	 * enable device memory or I/O access
+	 */
+	pci_write_config_longword(handle, PCICSR, swpw(command_register));
 }
 
 static void pci_bridge_config(uint16_t bus, uint16_t device, uint16_t function)
