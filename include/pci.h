@@ -77,6 +77,33 @@
 #define PVPDAD                0x4E   /* PCI Vital Product Data Address      */
 #define PVPDATA               0x50   /* PCI VPD Data                        */
 
+/*
+ * bit definitions for PCICSR lower half (Command Register)
+ */
+#define	PCICSR_IO			(1 << 0)	/* if set: device responds to I/O space accesses */
+#define	PCICSR_MEMORY		(1 << 1)	/* if set: device responds to memory space accesses */
+#define PCICSR_MASTER		(1 << 2)	/* if set: device is master */
+#define PCICSR_SPECIAL		(1 << 3)	/* if set: device reacts on special cycles */
+#define PCICSR_MEMWI		(1 << 4)	/* if set: device deals with memory write and invalidate */
+#define	PCICSR_VGA_SNOOP	(1 << 5)	/* if set: capable of palette snoop */
+#define PCICSR_PERR			(1 << 6)	/* if set: reacts to parity errors */
+#define PCICSR_STEPPING		(1 << 7)	/* if set: stepping enabled */
+#define PCICSR_SERR			(1 << 8)	/* if set: SERR pin enabled */
+#define PCICSR_FAST_BTOB_E	(1 << 9)	/* if set: fast back-to-back enabled */
+/*
+ * bit definitions for PCICSR upper half (Status Register)
+ */
+#define PCICSR_66MHZ		(1 << 5)	/* 66 MHz capable */
+#define PCICSR_UDF			(1 << 6)	/* UDF supported */
+#define PCICSR_FAST_BTOB	(1 << 7)	/* Fast back-to-back enabled */
+#define PCICSR_DPARITY_ERROR	(1 << 8)	/* data parity error detected */
+
+#define PCICSR_T_ABORT_S	(1 << 11)	/* target abort signaled */
+#define PCICSR_T_ABORT_R	(1 << 12)	/* target abort received */
+#define PCICSR_M_ABORT_R	(1 << 13)	/* master abort received */
+#define PCICSR_S_ERROR_S	(1 << 14)	/* system error signaled */
+#define PCICSR_PARITY_ERR	(1 << 15)	/* data parity error */
+
 /* Header type 1 (PCI-to-PCI bridges) */
 #define PCI_PRIMARY_BUS        0x18  /* Primary bus number */
 #define PCI_SECONDARY_BUS      0x19  /* Secondary bus number */
