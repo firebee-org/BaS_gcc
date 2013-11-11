@@ -1627,8 +1627,8 @@ static int hc_reset(ohci_t *ohci)
 								if (usb_base_addr == 0xFFFFFFFF)
 								{
 									uint32_t base = pci_rsc_desc->offset + pci_rsc_desc->start;
-									writel(readl((uint32_t) base + EHCI_USBCMD_OFF) | EHCI_USBCMD_HCRESET, base + EHCI_USBCMD_OFF);
-									while (readl(base + EHCI_USBCMD_OFF) & EHCI_USBCMD_HCRESET)
+									writel((uint32_t) readl((uint32_t *) base + EHCI_USBCMD_OFF) | EHCI_USBCMD_HCRESET, (uint32_t *) base + EHCI_USBCMD_OFF);
+									while (readl((uint32_t *) base + EHCI_USBCMD_OFF) & EHCI_USBCMD_HCRESET)
 									{
 										if (timeout-- <= 0)
 										{
