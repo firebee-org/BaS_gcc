@@ -217,4 +217,5 @@ extern int32_t pci_unhook_interrupt(int32_t handle);
 #define PCI_DEVICE_FROM_HANDLE(h)			(((h) & 0xf8) >> 3)
 #define PCI_FUNCTION_FROM_HANDLE(h)			(((h) & 0x7))
 
+extern void chip_errata_135(void); /* needed in ohci-hcd.c */
 #endif /* _PCI_H_ */
