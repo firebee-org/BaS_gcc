@@ -174,7 +174,7 @@ uint32_t pci_read_config_longword(int32_t handle, int offset)
 	value =  * (volatile uint32_t *) PCI_IO_OFFSET;	/* access device */
 
 	/* finish PCI configuration access special cycle (allow regular PCI accesses) */
-	//MCF_PCI_PCICAR &= ~MCF_PCI_PCICAR_E;
+	MCF_PCI_PCICAR &= ~MCF_PCI_PCICAR_E;
 
 	pci_config_wait();
 
@@ -223,12 +223,102 @@ int32_t pci_write_config_longword(int32_t handle, int offset, uint32_t value)
 	pci_config_wait();
 
 	/* finish configuration space access cycle */
-	//MCF_PCI_PCICAR &= ~MCF_PCI_PCICAR_E;
+	MCF_PCI_PCICAR &= ~MCF_PCI_PCICAR_E;
 	pci_config_wait();
 
 	return PCI_SUCCESSFUL;
 }
 
+/*
+ * write a 16-bit value to config space. Must be in little-endian format
+ */
+int32_t pci_write_config_word(int32_t handle, int offset, uint16_t value)
+{
+	uint16_t bus = PCI_BUS_FROM_HANDLE(handle);
+	uint16_t device = PCI_DEVICE_FROM_HANDLE(handle);
+	uint16_t function = PCI_FUNCTION_FROM_HANDLE(handle);
+
+	/* initiate PCI configuration access to device */
+	MCF_PCI_PCICAR = MCF_PCI_PCICAR_E |				/* enable configuration access special cycle */
+			MCF_PCI_PCICAR_BUSNUM(bus) |
+			MCF_PCI_PCICAR_DEVNUM(device) |
+			MCF_PCI_PCICAR_FUNCNUM(function) |
+			MCF_PCI_PCICAR_DWORD(offset / 4);
+	
+	pci_config_wait();
+
+	* (volatile uint16_t *) (PCI_IO_OFFSET + offset % 2) = value;
+	
+	pci_config_wait();
+	/* finish configuration space access cycle */
+	MCF_PCI_PCICAR &= ~MCF_PCI_PCICAR_E;
+
+	return PCI_SUCCESSFUL;
+}
+
+/*
+ * write a single byte to config space
+ */
+int32_t pci_write_config_byte(int32_t handle, int offset, uint8_t value)
+{
+	MCF_PCI_PCICAR = MCF_PCI_PCICAR_E |
+			MCF_PCI_PCICAR_BUSNUM(PCI_BUS_FROM_HANDLE(handle)) |
+			MCF_PCI_PCICAR_DEVNUM(PCI_DEVICE_FROM_HANDLE(handle)) |
+			MCF_PCI_PCICAR_FUNCNUM(PCI_FUNCTION_FROM_HANDLE(handle)) |
+			MCF_PCI_PCICAR_DWORD(offset / 4);
+	
+	pci_config_wait();
+
+	* (volatile uint8_t *) (PCI_IO_OFFSET + offset % 4) = value;
+
+	pci_config_wait();
+	/* finish configuration space access cycle */
+	MCF_PCI_PCICAR &= ~MCF_PCI_PCICAR_E;
+
+	return PCI_SUCCESSFUL;
+}
+
+void pci_print_device_abilities(int32_t handle)
+{
+	uint16_t value;
+	uint16_t saved_value;
+
+	saved_value = pci_read_config_word(handle, PCICSR);
+	pci_write_config_word(handle, PCICSR, 0xffff);
+	value = swpw(pci_read_config_word(handle, PCICSR));
+	xprintf("IO: %1d MEM: %1d MSTR:%1d SPCC: %1d MEMW: %1d VGAS: %1d PERR: %1d STEP: %1d SERR: %1d FBTB: %1d\r\n",
+			value & PCICSR_IO ? 1 : 0,
+			value & PCICSR_MEMORY ? 1 : 0,
+			value & PCICSR_MASTER ? 1 : 0,
+			value & PCICSR_SPECIAL ? 1 : 0,
+			value & PCICSR_MEMWI ? 1 : 0,
+			value & PCICSR_VGA_SNOOP ? 1 : 0,
+			value & PCICSR_PERR ? 1 : 0,
+			value & PCICSR_STEPPING ? 1 : 0,
+			value & PCICSR_SERR ? 1 : 0,
+			value & PCICSR_FAST_BTOB_E ? 1 : 0);
+	pci_write_config_word(handle, PCICSR, saved_value);
+}
+
+
+void pci_print_device_config(int32_t handle)
+{
+	uint16_t value;
+
+	value = swpw(pci_read_config_word(handle, PCICSR + 2));
+	xprintf("66M: %1d UDF: %1d FB2B:%1d PERR: %1d TABR: %1d DABR: %1d SERR: %1d PPER: %1d\r\n",
+			value & PCICSR_66MHZ ? 1 : 0,
+			value & PCICSR_UDF ? 1 : 0,
+			value & PCICSR_FAST_BTOB ? 1 : 0,
+			value & PCICSR_DPARITY_ERROR ? 1 : 0,
+			value & PCICSR_T_ABORT_S ? 1 : 0,
+			value & PCICSR_T_ABORT_R ? 1 : 0,
+			value & PCICSR_M_ABORT_R ? 1 : 0,
+			value & PCICSR_S_ERROR_S ? 1 : 0,
+			value & PCICSR_PARITY_ERR ? 1 : 0);
+}
+
+	
 /*
  * pci_get_resource
  *
@@ -465,7 +555,11 @@ static void pci_device_config(uint16_t bus, uint16_t device, uint16_t function)
 	/*
 	 * enable device memory or I/O access
 	 */
-	pci_write_config_longword(handle, PCICSR, swpw(command_register));
+	xprintf("PCICSR of card 0x%02x = 0x%04x\r\n", handle, swpw(pci_read_config_word(handle, PCICSR)));
+	pci_write_config_byte(handle, PCICSR, (uint8_t) command_register);
+	xprintf("PCICSR of card 0x%02x = 0x%04x\r\n", handle, swpw(pci_read_config_word(handle, PCICSR)));
+	pci_print_device_abilities(handle);
+	pci_print_device_config(handle);
 }
 
 static void pci_bridge_config(uint16_t bus, uint16_t device, uint16_t function)
@@ -478,6 +572,8 @@ static void pci_bridge_config(uint16_t bus, uint16_t device, uint16_t function)
 		return;
 	}
 	handle = PCI_HANDLE(bus, device, function);
+	pci_print_device_abilities(handle);
+	pci_print_device_config(handle);
 	pci_write_config_longword(handle, PCIBAR0, 0x40000000);
 	pci_write_config_longword(handle, PCIBAR1, 0x0);
 	pci_write_config_longword(handle, PCICSR, 0x146);

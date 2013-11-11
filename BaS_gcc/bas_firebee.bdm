@@ -69,3 +69,4 @@ dump-register SR
 dump-register CACR
 dump-register MBAR
 execute
+wait
