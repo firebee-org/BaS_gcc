@@ -31,12 +31,13 @@ RANLIB=$(TCPREFIX)ranlib
 NATIVECC=gcc
 
 INCLUDE=-Iinclude
-CFLAGS=-mcpu=5474\
-		-Wall\
+CFLAGS=-mcpu=5474 \
+		-Wall \
+		-Os \
 		-g \
-		-fomit-frame-pointer\
-		-ffreestanding\
-		-fleading-underscore\
+		-fomit-frame-pointer \
+		-ffreestanding \
+		-fleading-underscore \
 		-Wa,--register-prefix-optional
 
 SRCDIR=sources

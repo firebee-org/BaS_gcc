@@ -670,6 +670,21 @@ void init_xlbus_arbiter(void)
 	MCF_XLB_XARB_ADRTO = 0x1fffff;
 	MCF_XLB_XARB_DATTO = 0x1fffff;
 	MCF_XLB_XARB_BUSTO = 0xffffff;
+
+	/*
+	 * set arbitration priorities for XLBUS masters
+	 *
+	 * M0 = ColdFire core
+	 * M2 = Multichannel DMA
+	 * M3 = PCI target interface
+	 */
+	
+	MCF_XLB_XARB_PRIEN = MCF_XLB_XARB_PRIEN_M0 |	/* activate programmed priority for Coldfire core */
+					MCF_XLB_XARB_PRIEN_M2 |			/* activate programmed priority for Multichannel DMA */
+					MCF_XLB_XARB_PRIEN_M3;			/* activate programmed priority for PCI target interface */
+	MCF_XLB_XARB_PRI = MCF_XLB_XARB_PRI_M0P(3) |	/* Coldfire core gets lowest */
+					MCF_XLB_XARB_PRI_M2P(5) |		/* Multichannel DMA mid priority */
+					MCF_XLB_XARB_PRI_M3P(7);		/* PCI target interface is highest priority */
 }
 
 
