@@ -98,9 +98,7 @@ void chip_errata_135(void)
 
 	 __asm__ __volatile(
 		"		.extern __MBAR\n\t"
-		"		bra		.start\n\t"
 		"		.align	16\n\t"				/* force function start to 16-byte boundary */
-		".start:\n\t"
 		"		clr.l	d0\n\t"
 		"		move.l	d0,__MBAR+0xF0C\n\t"		/* Must use direct addressing. write to EPORT module */
 											/* xlbus -> slavebus -> eport, writing '0' to register */
@@ -158,44 +156,71 @@ static char *device_class(int classcode)
 uint32_t pci_read_config_longword(int32_t handle, int offset)
 {
 	uint32_t value;
-	uint16_t bus = PCI_BUS_FROM_HANDLE(handle);
-	uint16_t device = PCI_DEVICE_FROM_HANDLE(handle);
-	uint16_t function = PCI_FUNCTION_FROM_HANDLE(handle);
 
 	/* initiate PCI configuration access to device */
 	MCF_PCI_PCICAR = MCF_PCI_PCICAR_E |			/* enable configuration access special cycle */
-			MCF_PCI_PCICAR_BUSNUM(bus) |
-			MCF_PCI_PCICAR_DEVNUM(device) |		/* device number, devices 0 - 9 are reserved */
-			MCF_PCI_PCICAR_FUNCNUM(function) |	/* function number */
+			MCF_PCI_PCICAR_BUSNUM(PCI_BUS_FROM_HANDLE(handle)) |
+			MCF_PCI_PCICAR_DEVNUM(PCI_DEVICE_FROM_HANDLE(handle)) |	/* device number, devices 0 - 9 are reserved */
+			MCF_PCI_PCICAR_FUNCNUM(PCI_FUNCTION_FROM_HANDLE(handle)) |	/* function number */
 			MCF_PCI_PCICAR_DWORD(offset / 4);
 	
-	pci_config_wait();
+	__asm__ __volatile__("nop");				/* this is what the Linux BSP does */
 
 	value =  * (volatile uint32_t *) PCI_IO_OFFSET;	/* access device */
+
+	__asm__ __volatile__("tpf");				/* this is what the Linux BSP does */
 
 	/* finish PCI configuration access special cycle (allow regular PCI accesses) */
 	MCF_PCI_PCICAR &= ~MCF_PCI_PCICAR_E;
 
-	pci_config_wait();
-
-	chip_errata_135();
 	return value;
 }
 
 uint16_t pci_read_config_word(int32_t handle, int offset)
 {
-   uint32_t value;
+	uint16_t value;
 
-   value = pci_read_config_longword(handle, offset);
-   return value >> ((1 - offset % 2) * 16) & 0xffff;
+	/*
+	 * initiate PCI configuration space access to device
+	 */
+	MCF_PCI_PCICAR = MCF_PCI_PCICAR_E |		/* enable configuration space special cycle */
+			MCF_PCI_PCICAR_BUSNUM(PCI_BUS_FROM_HANDLE(handle)) |
+			MCF_PCI_PCICAR_DEVNUM(PCI_DEVICE_FROM_HANDLE(handle)) |
+			MCF_PCI_PCICAR_FUNCNUM(PCI_FUNCTION_FROM_HANDLE(handle)) |
+			MCF_PCI_PCICAR_DWORD(offset / 4);
+	
+	__asm__ __volatile("nop");			/* this is what Linux BSP does */
+
+	value = * (volatile uint16_t *) PCI_IO_OFFSET + (offset & 2);
+
+	__asm__ __volatile("tpf");
+
+	/* finish PCI configuration access special cycle */
+	MCF_PCI_PCICAR &= ~MCF_PCI_PCICAR_E;
+
+	return value;
 }
 
 uint8_t pci_read_config_byte(int32_t handle, int offset)
 {
-	uint32_t value;
+	uint8_t value;
+
+	/* initiate PCI configuration access to device */
+	MCF_PCI_PCICAR = MCF_PCI_PCICAR_E |				/* enable configuration access special cycle */
+		MCF_PCI_PCICAR_BUSNUM(PCI_BUS_FROM_HANDLE(handle)) |
+		MCF_PCI_PCICAR_DEVNUM(PCI_DEVICE_FROM_HANDLE(handle)) |		/* device number, devices 0 - 9 are reserved */
+		MCF_PCI_PCICAR_FUNCNUM(PCI_FUNCTION_FROM_HANDLE(handle)) |	/* function number */
+		MCF_PCI_PCICAR_DWORD(offset / 4);
 	
-	value = pci_read_config_longword(handle, offset);
-	return value >> ((3 - offset % 4) * 8) & 0xff;
+	__asm__ __volatile__("nop");
+
+	value = * (volatile uint8_t *) PCI_IO_OFFSET + (offset & 3);
+
+	__asm__ __volatile__("tpf");
+
+	MCF_PCI_PCICAR &= ~MCF_PCI_PCICAR_E;
+
+	return value;
 }
 
 /*
@@ -205,26 +230,23 @@ uint8_t pci_read_config_byte(int32_t handle, int offset)
  */
 int32_t pci_write_config_longword(int32_t handle, int offset, uint32_t value)
 {
-	uint16_t bus = PCI_BUS_FROM_HANDLE(handle);
-	uint16_t device = PCI_DEVICE_FROM_HANDLE(handle);
-	uint16_t function = PCI_FUNCTION_FROM_HANDLE(handle);
-
 	/* initiate PCI configuration access to device */
 	MCF_PCI_PCICAR = MCF_PCI_PCICAR_E |				/* enable configuration access special cycle */
-			MCF_PCI_PCICAR_BUSNUM(bus) |
-			MCF_PCI_PCICAR_DEVNUM(device) |			/* device number, devices 0 - 9 are reserved */
-			MCF_PCI_PCICAR_FUNCNUM(function) |		/* function number */
-			MCF_PCI_PCICAR_DWORD(offset / 4);
+		MCF_PCI_PCICAR_BUSNUM(PCI_BUS_FROM_HANDLE(handle)) |
+		MCF_PCI_PCICAR_DEVNUM(PCI_DEVICE_FROM_HANDLE(handle)) |		/* device number, devices 0 - 9 are reserved */
+		MCF_PCI_PCICAR_FUNCNUM(PCI_FUNCTION_FROM_HANDLE(handle)) |	/* function number */
+		MCF_PCI_PCICAR_DWORD(offset / 4);
 
-	pci_config_wait();
+	__asm__ __volatile__("tpf");
 
 	* (volatile uint32_t *) PCI_IO_OFFSET = value;	/* access device */
 
-	pci_config_wait();
+	__asm__ __volatile__("tpf");
 
 	/* finish configuration space access cycle */
 	MCF_PCI_PCICAR &= ~MCF_PCI_PCICAR_E;
-	pci_config_wait();
+
+	chip_errata_135();
 
 	return PCI_SUCCESSFUL;
 }
@@ -234,22 +256,19 @@ int32_t pci_write_config_longword(int32_t handle, int offset, uint32_t value)
  */
 int32_t pci_write_config_word(int32_t handle, int offset, uint16_t value)
 {
-	uint16_t bus = PCI_BUS_FROM_HANDLE(handle);
-	uint16_t device = PCI_DEVICE_FROM_HANDLE(handle);
-	uint16_t function = PCI_FUNCTION_FROM_HANDLE(handle);
-
 	/* initiate PCI configuration access to device */
 	MCF_PCI_PCICAR = MCF_PCI_PCICAR_E |				/* enable configuration access special cycle */
-			MCF_PCI_PCICAR_BUSNUM(bus) |
-			MCF_PCI_PCICAR_DEVNUM(device) |
-			MCF_PCI_PCICAR_FUNCNUM(function) |
+			MCF_PCI_PCICAR_BUSNUM(PCI_BUS_FROM_HANDLE(handle)) |
+			MCF_PCI_PCICAR_DEVNUM(PCI_DEVICE_FROM_HANDLE(handle)) |
+			MCF_PCI_PCICAR_FUNCNUM(PCI_FUNCTION_FROM_HANDLE(handle)) |
 			MCF_PCI_PCICAR_DWORD(offset / 4);
 	
-	pci_config_wait();
+	__asm__ __volatile__("tpf");
 
-	* (volatile uint16_t *) (PCI_IO_OFFSET + offset % 2) = value;
+	* (volatile uint16_t *) (PCI_IO_OFFSET + (offset & 2)) = value;
 	
-	pci_config_wait();
+	__asm__ __volatile__("tpf");
+
 	/* finish configuration space access cycle */
 	MCF_PCI_PCICAR &= ~MCF_PCI_PCICAR_E;
 
@@ -267,13 +286,15 @@ int32_t pci_write_config_byte(int32_t handle, int offset, uint8_t value)
 			MCF_PCI_PCICAR_FUNCNUM(PCI_FUNCTION_FROM_HANDLE(handle)) |
 			MCF_PCI_PCICAR_DWORD(offset / 4);
 	
-	pci_config_wait();
+	__asm__ __volatile__("tpf");
 
-	* (volatile uint8_t *) (PCI_IO_OFFSET + offset % 4) = value;
+	* (volatile uint8_t *) (PCI_IO_OFFSET + (offset & 3)) = value;
 
-	pci_config_wait();
+	__asm__ __volatile__("tpf");
+
 	/* finish configuration space access cycle */
 	MCF_PCI_PCICAR &= ~MCF_PCI_PCICAR_E;
+	chip_errata_135();
 
 	return PCI_SUCCESSFUL;
 }

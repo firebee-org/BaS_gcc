@@ -237,7 +237,10 @@ extern struct pci_rd *pci_get_resource(int32_t handle);
 extern int32_t pci_hook_interrupt(int32_t handle, void *interrupt_handler, void *parameter);
 extern int32_t pci_unhook_interrupt(int32_t handle);
 
-
+#define PCI_MK_CONF_ADDR(bus, device, function)	(MCF_PCI_PCICAR_E | \
+												((bus) << 16) | \
+												((device << 8) | \
+												(function)) 
 
 #define PCI_HANDLE(bus, slot, function)	(0 | ((bus & 0xff) << 8 | (slot & 0x1f) << 3 | (function & 7)))
 #define PCI_BUS_FROM_HANDLE(h)				(((h) & 0xff00) >> 8)
