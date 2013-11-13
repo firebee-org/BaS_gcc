@@ -98,7 +98,9 @@ void chip_errata_135(void)
 
 	 __asm__ __volatile(
 		"		.extern __MBAR\n\t"
+		"		bra		.errata\n\t"
 		"		.align	16\n\t"				/* force function start to 16-byte boundary */
+		".errata:\n\t"
 		"		clr.l	d0\n\t"
 		"		move.l	d0,__MBAR+0xF0C\n\t"		/* Must use direct addressing. write to EPORT module */
 											/* xlbus -> slavebus -> eport, writing '0' to register */
@@ -212,11 +214,11 @@ uint8_t pci_read_config_byte(int32_t handle, int offset)
 		MCF_PCI_PCICAR_FUNCNUM(PCI_FUNCTION_FROM_HANDLE(handle)) |	/* function number */
 		MCF_PCI_PCICAR_DWORD(offset / 4);
 	
-	__asm__ __volatile__("nop");
+	__asm__ __volatile__("nop" ::: "memory");
 
-	value = * (volatile uint8_t *) PCI_IO_OFFSET + (offset & 3);
+	value = * (volatile uint8_t *) (PCI_IO_OFFSET + (offset & 3));
 
-	__asm__ __volatile__("tpf");
+	__asm__ __volatile__("tpf" ::: "memory");
 
 	MCF_PCI_PCICAR &= ~MCF_PCI_PCICAR_E;
 
@@ -237,7 +239,7 @@ int32_t pci_write_config_longword(int32_t handle, int offset, uint32_t value)
 		MCF_PCI_PCICAR_FUNCNUM(PCI_FUNCTION_FROM_HANDLE(handle)) |	/* function number */
 		MCF_PCI_PCICAR_DWORD(offset / 4);
 
-	__asm__ __volatile__("tpf");
+	__asm__ __volatile__("nop");
 
 	* (volatile uint32_t *) PCI_IO_OFFSET = value;	/* access device */
 

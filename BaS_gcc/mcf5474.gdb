@@ -61,6 +61,6 @@ define ib
 	setup-dram
 end
 
-ib
 tr
+ib
 load
