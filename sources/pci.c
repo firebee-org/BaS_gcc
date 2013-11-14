@@ -274,6 +274,8 @@ int32_t pci_write_config_word(int32_t handle, int offset, uint16_t value)
 	/* finish configuration space access cycle */
 	MCF_PCI_PCICAR &= ~MCF_PCI_PCICAR_E;
 
+	chip_errata_135();
+
 	return PCI_SUCCESSFUL;
 }
 
@@ -296,6 +298,7 @@ int32_t pci_write_config_byte(int32_t handle, int offset, uint8_t value)
 
 	/* finish configuration space access cycle */
 	MCF_PCI_PCICAR &= ~MCF_PCI_PCICAR_E;
+
 	chip_errata_135();
 
 	return PCI_SUCCESSFUL;
