@@ -749,6 +749,7 @@ void init_pci(void)
        | MCF_PCIARB_PACR_INTMINTEN				/* enable "internal master broken" interrupt */
        | MCF_PCIARB_PACR_EXTMINTEN(0x1F);		/* enable "external master broken" interrupt */
 
+#ifdef _NOT_USED_	/* since this is already done in sysinit.c */
 #if MACHINE_FIREBEE
 	//MCF_PAD_PAR_PCIBG = 0x3f; // FIXME: MiNT initialization hangs if this is enabled ???
 	//MCF_PAD_PAR_PCIBR = 0x3f;
@@ -756,6 +757,7 @@ void init_pci(void)
 	MCF_PAD_PAR_PCIBG = 0x3ff; /* enable all PCI bus grant and bus requests on the LITE board */
 	MCF_PAD_PAR_PCIBR = 0x3ff;
 #endif /* MACHINE_FIREBEE */
+#endif /* _NOT_USED_ */
 
 	MCF_PCI_PCISCR =  MCF_PCI_PCISCR_M | /* memory access control enabled */
 		MCF_PCI_PCISCR_B |		/* bus master enabled */
@@ -796,7 +798,10 @@ void init_pci(void)
 					MCF_PCI_PCIIWCR_WINCTRL0_E |
 					MCF_PCI_PCIIWCR_WINCTRL1_E;
 
-	/* initialize target control register */
+	/*
+	 * Initialize target control register.
+	 * Used when an external bus master accesses the Coldfire PCI as target
+	 */
 	MCF_PCI_PCIBAR0 = 0x40000000;	/* 256 kB window */
 	MCF_PCI_PCITBATR0 = (uint32_t) &_MBAR[0] |  MCF_PCI_PCITBATR0_EN;	/* target base address translation register 0 */
 	MCF_PCI_PCIBAR1 = 0;			/* 1GB window */
