@@ -210,10 +210,10 @@ _mmu_init:
 //
 		move.l	#0x80000000|std_mmutr,d0
 		move.l	#0x80000000|nocache_precise_mmudr|MCF_MMU_MMUDR_LK,d1
-		move.l	d0,MCF_MMU_MMUTR		
+		move.l	d0,MCF_MMU_MMUTR
 		move.l	d1,MCF_MMU_MMUDR
-		move.l	d2,MCF_MMU_MMUOR						// mapped to ffffxxx, precise,
-		move.l	d3,MCF_MMU_MMUOR						// mapped to ffffxxx, precise,
+		move.l	d2,MCF_MMU_MMUOR
+		move.l	d3,MCF_MMU_MMUOR
 
 // maps (locked) the last MB (this is where BaS .data and .bss resides) of physical SDRAM to the same physical address
 		move.l	#(SDRAM_START + SDRAM_SIZE - 0x100000) | std_mmutr, d0	
