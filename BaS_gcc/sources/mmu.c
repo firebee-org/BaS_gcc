@@ -350,7 +350,7 @@ void mmutr_miss(void)
 {
 	register uint32_t address asm("d0");
 
-	debug_print("MMU TLB MISS at %08p\r\n", address);
+	debug_print("MMU TLB MISS at 0x%08x\r\n", address);
 	flush_and_invalidate_caches();
 
 	/* add missed page to TLB */
