@@ -55,10 +55,11 @@
 #include "m5484l.h"
 #endif /* MACHINE_FIREBEE */
 
+#define DEBUG_MMU
 #ifdef DEBUG_MMU
-#define debug_print(format, arg...) do { xprintf("DEBUG: " format "\r\n", ##arg); while(0)
+#define debug_print(format, arg...) do { xprintf("DEBUG: " format "\r\n", ##arg);} while(0)
 #else
-#define debug_print(format, arg...) do {} while (0)
+#define debug_print(format, arg...) do {;} while (0)
 #endif /* DEBUG_MMU */
 
 /*
@@ -358,7 +359,7 @@ void mmutr_miss(void)
 					MCF_MMU_MMUTR_V;		/* valid */
 	MCF_MMU_MMUDR = (address & 0xfff00000) |	/* physical aligned to 1M */
 					MCF_MMU_MMUDR_SZ(0) |	/* 1 MB page size */
-					MCF_MMU_MMUDR_CM(0x0) |	/* cacheable writethrough */
+					MCF_MMU_MMUDR_CM(0x1) |	/* cacheable copyback */
 					MCF_MMU_MMUDR_R |		/* read access enable */
 					MCF_MMU_MMUDR_W |		/* write access enable */
 					MCF_MMU_MMUDR_X;		/* execute access enable */
@@ -367,7 +368,6 @@ void mmutr_miss(void)
 	MCF_MMU_MMUOR = MCF_MMU_MMUOR_ITLB | 	/* instruction */
 					MCF_MMU_MMUOR_ACC |     /* access TLB */
 					MCF_MMU_MMUOR_UAA;      /* update allocation address field */
-
 }
 
 
