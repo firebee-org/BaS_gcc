@@ -31,7 +31,13 @@
 #elif MACHINE_M5484LITE
 #include "m5484l.h"
 #endif /* MACHINE_FIREBEE */
-			
+
+#ifdef DEBUG_MMU
+#define debug_print(format, arg...) do { xprintf("DEBUG: " format "\r\n", ##arg); while(0)
+#else
+#define debug_print(format, arg...) do {} while (0)
+#endif /* DEBUG_MMU */
+
 /*
  * set ASID register
  * saves new value to rt_asid and returns former value
@@ -298,10 +304,10 @@ void mmu_init(void)
 	 * virtual address. This is also used when BaS is in RAM
 	 */
 
-	MCF_MMU_MMUTR = SDRAM_START + SDRAM_SIZE - 0x00100000 |	/* virtual address */
+	MCF_MMU_MMUTR = (SDRAM_START + SDRAM_SIZE - 0x00100000) |	/* virtual address */
 					MCF_MMU_MMUTR_SG |		/* shared global */
 					MCF_MMU_MMUTR_V;		/* valid */
-	MCF_MMU_MMUDR = SDRAM_START + SDRAM_SIZE - 0x00100000 |	/* physical address */
+	MCF_MMU_MMUDR = (SDRAM_START + SDRAM_SIZE - 0x00100000) |	/* physical address */
 					MCF_MMU_MMUDR_SZ(0) |	/* 1 MB page size */
 					MCF_MMU_MMUDR_CM(0x0) |	/* cacheable writethrough */
 					MCF_MMU_MMUDR_SP |		/* supervisor protect */
@@ -316,11 +322,11 @@ void mmu_init(void)
 					MCF_MMU_MMUOR_UAA;      /* update allocation address field */
 }
 
-__attribute__((interrupt)) mmutr_miss()
+void __attribute__((interrupt)) mmutr_miss(void)
 {
 	register uint32_t address asm("d0");
 
-	xprintf("MMU TLB MISS at %p\r\n", address);
+	debug_print("MMU TLB MISS at %p\r\n", address);
 	flush_and_invalidate_caches();
 
 	/* add missed page to TLB */
