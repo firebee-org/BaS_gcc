@@ -33,7 +33,7 @@ NATIVECC=gcc
 INCLUDE=-Iinclude
 CFLAGS=-mcpu=5474 \
 		-Wall \
-		-Os \
+		-O2 \
 		-g \
 		-fomit-frame-pointer \
 		-ffreestanding \
@@ -61,6 +61,7 @@ BASFLASH_EXEC=basflash.$(EXE)
 CSRCS= \
 	$(SRCDIR)/sysinit.c \
 	$(SRCDIR)/init_fpga.c \
+	$(SRCDIR)/mmu.c \
 	$(SRCDIR)/fault_vectors.c \
 	$(SRCDIR)/interrupts.c \
 	$(SRCDIR)/bas_printf.c \
