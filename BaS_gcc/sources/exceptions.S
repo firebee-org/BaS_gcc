@@ -554,7 +554,9 @@ access_mmu:
 		move.l	MCF_MMU_MMUAR,d0
 		cmp.l	#__FASTRAM_END,d0	// above max User RAM area?
 		bge		bus_error			// -> bus error
-		bra		_mmutr_miss			// else we have an MMU TLB miss
+		bsr		_mmutr_miss			// else we have an MMU TLB miss
+		move.l	(sp)+,d0			// restore register
+		rte
 
 bus_error:
 		move.l	(sp)+,d0			// restore register

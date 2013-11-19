@@ -345,7 +345,7 @@ void mmu_init(void)
 					MCF_MMU_MMUOR_UAA;      /* update allocation address field */
 }
 
-void __attribute__((interrupt)) mmutr_miss(void)
+void mmutr_miss(void)
 {
 	register uint32_t address asm("d0");
 
@@ -367,6 +367,7 @@ void __attribute__((interrupt)) mmutr_miss(void)
 	MCF_MMU_MMUOR = MCF_MMU_MMUOR_ITLB | 	/* instruction */
 					MCF_MMU_MMUOR_ACC |     /* access TLB */
 					MCF_MMU_MMUOR_UAA;      /* update allocation address field */
+
 }
 
 
