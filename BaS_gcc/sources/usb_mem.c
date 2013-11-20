@@ -15,6 +15,7 @@
 #include "bas_string.h"
 #include "bas_printf.h"
 #include "usb.h"
+#include "exceptions.h"		/* set_ipl() */
 
 #if MACHINE_FIREBEE
 #include "firebee.h"
@@ -37,7 +38,6 @@
 #define USB_MEM_PRINTF(fmt, args...)
 #endif
 
-extern int asm_set_ipl(int level);
 extern void *info_fvdi;
 extern long offscren_reserved(void);
 
@@ -204,7 +204,7 @@ int usb_free(void *addr)
 	MD *p, **q;
 	MPB *mpb;
 	mpb = &pmd;
-	level = asm_set_ipl(7);
+	level = set_ipl(7);
 	for(p = *(q = &mpb->mp_mal); p; p = *(q = &p->m_link))
 	{
 		if ((long)addr == p->m_start)
@@ -212,12 +212,12 @@ int usb_free(void *addr)
 	}
 	if (!p)
 	{
-		asm_set_ipl(level);
+		set_ipl(level);
 		return(-1);
 	}
 	*q = p->m_link;
 	freeit(p, mpb);
-	asm_set_ipl(level);
+	set_ipl(level);
 	USB_MEM_PRINTF("usb_free(0x%08X)\r\n", addr);
 	return(0);
 }
@@ -233,11 +233,11 @@ void *usb_malloc(long amount)
 		return(0);
 	if ((amount & 1))
 		amount++;
-	level = asm_set_ipl(7);
+	level = set_ipl(7);
 	m = ffit(amount, &pmd);
 	if (m != NULL)
 		ret = (void *)m->m_start;
-	asm_set_ipl(level);
+	set_ipl(level);
 	USB_MEM_PRINTF("usb_malloc(%d) = 0x%08X\r\n", amount, ret);
 	return(ret);
 }
