@@ -33,6 +33,6 @@ extern long video_tlb;
 extern long video_sbt;
 
 extern void mmu_init(void);
-extern void mmutr_miss(void) __attribute__((interrupt));
+extern void mmutr_miss(void);
 
 #endif /* _MMU_H_ */
