@@ -357,14 +357,17 @@ void mmutr_miss(void)
 	MCF_MMU_MMUTR = (address & 0xfff00000) | /* virtual aligned to 1M */
 					MCF_MMU_MMUTR_SG |		/* shared global */
 					MCF_MMU_MMUTR_V;		/* valid */
+
 	MCF_MMU_MMUDR = (address & 0xfff00000) |	/* physical aligned to 1M */
 					MCF_MMU_MMUDR_SZ(0) |	/* 1 MB page size */
 					MCF_MMU_MMUDR_CM(0x1) |	/* cacheable copyback */
 					MCF_MMU_MMUDR_R |		/* read access enable */
 					MCF_MMU_MMUDR_W |		/* write access enable */
 					MCF_MMU_MMUDR_X;		/* execute access enable */
+
 	MCF_MMU_MMUOR = MCF_MMU_MMUOR_ACC |		/* access TLB, data */
 					MCF_MMU_MMUOR_UAA;		/* update allocation address field */
+
 	MCF_MMU_MMUOR = MCF_MMU_MMUOR_ITLB | 	/* instruction */
 					MCF_MMU_MMUOR_ACC |     /* access TLB */
 					MCF_MMU_MMUOR_UAA;      /* update allocation address field */
