@@ -17,8 +17,8 @@ inline uint32_t set_ipl(uint32_t ipl)
 		"		move.w	d0,sr\n\t"				/* put it in place */
 		"		andi.l	#0x0700,%[ret]\r\n"		/* mask out ipl bits */
 		"		lsr.l	#8,%[ret]\r\n"			/* shift them to position */
-		: [ret] "+g" (ret)		/* output */
-		: [ipl] "r" (ipl)		/* input */
+		: [ret] "+d" (ret)		/* output */
+		: [ipl] "d" (ipl)		/* input */
 		: "d0"	/* clobber */
 	);
 
