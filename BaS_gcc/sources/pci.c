@@ -168,6 +168,7 @@ uint32_t pci_read_config_longword(int32_t handle, int offset)
 	
 	__asm__ __volatile__("nop");				/* this is what the Linux BSP does */
 
+	pci_config_wait();
 	value =  * (volatile uint32_t *) PCI_IO_OFFSET;	/* access device */
 
 	__asm__ __volatile__("tpf");				/* this is what the Linux BSP does */
