@@ -21,6 +21,12 @@
 
 /* Copyright (C) 2012, mfro, all rights reserved. */
 
+// #define DEBUG_MMC
+#ifdef DEBUG_MMC
+#define debug_printf(format, arg...) do { xprintf("DEBUG: " format "\r\n", ##arg); } while (0)
+#else
+#define debug_printf(format, arg...) do { ; } while (0)
+#endif /* DEBUG_MMC */
 
 #define	CS_LOW()	{ dspi_fifo_val |= MCF_DSPI_DTFR_CS5; }
 #define	CS_HIGH()	{ dspi_fifo_val &= ~MCF_DSPI_DTFR_CS5; }
@@ -255,13 +261,13 @@ static int rcvr_datablock(uint8_t *buff, uint32_t btr)
 
 	if (token == 0xff)
 	{
-		xprintf("no data start token received after 2000ms in rcvr_datablock\r\n");
+		debug_printf("no data start token received after 2000ms in rcvr_datablock\r\n");
 		return 0;
 	}
 
 	if (token != 0xFE)
 	{
-		xprintf("invalid token (%x) in rcvr_datablock()!\r\n", token);
+		debug_printf("invalid token (%x) in rcvr_datablock()!\r\n", token);
 		return 0;		/* Function fails if invalid DataStart token or timeout */
 	}
 
@@ -287,7 +293,7 @@ static int xmit_datablock(const uint8_t *buff, uint8_t token)
 
 	if (!wait_ready(500))
 	{
-		xprintf("card did not respond ready after 500 ms in xmit_datablock()\r\n");
+		debug_printf("card did not respond ready after 500 ms in xmit_datablock()\r\n");
 		return 0;		/* Wait for card ready */
 	}
 
@@ -300,7 +306,7 @@ static int xmit_datablock(const uint8_t *buff, uint8_t token)
 		resp = xchg_spi(0xFF, 1);		/* Receive data resp */
 		if ((resp & 0x1F) != 0x05)		/* Function fails if the data packet was not accepted */
 		{
-			xprintf("card did not accept data packet in xmit_datablock() (resp = %x)\r\n", resp & 0x1F);
+			debug_printf("card did not accept data packet in xmit_datablock() (resp = %x)\r\n", resp & 0x1F);
 			return 0;
 		}
 	}
@@ -333,13 +339,13 @@ static uint8_t send_cmd(uint8_t cmd, uint32_t arg)
 	deselect();
 	if (!select())
 	{
-		xprintf("card could not be selected in send_cmd()\r\n");
+		debug_printf("card could not be selected in send_cmd()\r\n");
 		return 0xFF;
 	}
 
 	if (!wait_ready(500))
 	{
-		xprintf("card did not respond ready after 5000 ms in send_cmd()\r\n");
+		debug_printf("card did not respond ready after 5000 ms in send_cmd()\r\n");
 		return 0xff;		/* Wait for card ready */
 	}
 
@@ -387,7 +393,6 @@ static uint8_t send_cmd(uint8_t cmd, uint32_t arg)
 DSTATUS disk_initialize(uint8_t drv)
 {
 	uint8_t n, cmd, card_type, ocr[4];
-	uint8_t buff[16];
 
 	if (drv)
 		return STA_NOINIT;			/* Supports only drive 0 */
@@ -423,7 +428,7 @@ DSTATUS disk_initialize(uint8_t drv)
 					if (res != 0xff)
 						break;
 				}
-				xprintf("res = %d\r\n", res);
+				debug_printf("res = %d\r\n", res);
 
 				target = MCF_SLT_SCNT(0) - (1000L * 1000L * 132);	/* 1 sec */
 				while (MCF_SLT_SCNT(0) - target > 0)
@@ -432,7 +437,7 @@ DSTATUS disk_initialize(uint8_t drv)
 					if (res != 0xff)
 						break;
 				}
-				xprintf("res = %d\r\n", res);
+				debug_printf("res = %d\r\n", res);
 				for (n = 0; n < 4; n++)
 					ocr[n] = xchg_spi(0xFF, 1);
 				card_type = (ocr[0] & 0x40) ? CT_SD2 | CT_BLOCK : CT_SD2;	/* Card id SDv2 */
@@ -457,14 +462,19 @@ DSTATUS disk_initialize(uint8_t drv)
 	}
 	CardType = card_type;	/* Card type */
 
-	//res = disk_ioctl(0, MMC_GET_CSD, buff);
-	/*
-	if (res == RES_OK)
+#ifdef DEBUG
 	{
-		xprintf("CSD of card:\r\n");
-		hexdump(buff, 16);
+		uint8_t buff[16];
+		res = disk_ioctl(0, MMC_GET_CSD, buff);
+		
+		if (res == RES_OK)
+		{
+			debug_printf("CSD of card:\r\n");
+			hexdump(buff, 16);
+		}
 	}
-	*/
+#endif /* DEBUG */
+
 	deselect();
 
 	if (card_type)
@@ -473,12 +483,12 @@ DSTATUS disk_initialize(uint8_t drv)
 
 		SPICLK_FAST();			/* Set fast clock */
 		Stat &= ~STA_NOINIT;	/* Clear STA_NOINIT flag */
-		xprintf("card type: %d\r\n", card_type);
+		debug_printf("card type: %d\r\n", card_type);
 		//res = disk_ioctl(0, MMC_GET_CSD, buff);
 		/*
 		if (res == RES_OK)
 		{
-			xprintf("CSD of card now:\r\n");
+			debug_printf("CSD of card now:\r\n");
 			hexdump(buff, 16);
 		}
 		*/
@@ -527,19 +537,19 @@ DRESULT disk_read(uint8_t drv, uint8_t *buff, uint32_t sector, uint8_t count)
 {
 	if (drv)
 	{
-		xprintf("wrong drive in disk_read()\r\n");
+		debug_printf("wrong drive in disk_read()\r\n");
 		return RES_PARERR;		/* Check parameter */
 	}
 
 	if (! count)
 	{
-		xprintf("wrong count in disk_read()\r\n");
+		debug_printf("wrong count in disk_read()\r\n");
 		return RES_PARERR;
 	}
 
 	if (Stat & STA_NOINIT)
 	{
-		xprintf("drive not ready in disk_read()\r\n");
+		debug_printf("drive not ready in disk_read()\r\n");
 		return RES_NOTRDY;	/* Check if drive is ready */
 	}
 
@@ -593,7 +603,7 @@ DRESULT disk_write(uint8_t drv,	const uint8_t *buff, uint32_t sector, uint8_t co
 			count = 0;
 		}
 		else
-			xprintf("send_cmd(CMD24, ...) failed in disk_write()\r\n");
+			debug_printf("send_cmd(CMD24, ...) failed in disk_write()\r\n");
 
 		if (xmit_datablock(buff, 0xFE))
 		{
@@ -601,7 +611,7 @@ DRESULT disk_write(uint8_t drv,	const uint8_t *buff, uint32_t sector, uint8_t co
 		}
 		else
 		{
-			xprintf("xmit_datablock(buff, ...) failed in disk_write()\r\n");
+			debug_printf("xmit_datablock(buff, ...) failed in disk_write()\r\n");
 		}
 	}
 	else {				/* Multiple sector write */
@@ -624,7 +634,7 @@ DRESULT disk_write(uint8_t drv,	const uint8_t *buff, uint32_t sector, uint8_t co
 
 	if (count)	/* we had an error, try a reinit */
 	{
-		xprintf("disk_write() failed (count=%d)\r\n", count);
+		debug_printf("disk_write() failed (count=%d)\r\n", count);
 	}
 
 	return count ? RES_ERROR : RES_OK;	/* Return result */
