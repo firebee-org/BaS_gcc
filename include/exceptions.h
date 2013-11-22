@@ -3,7 +3,7 @@
 
 #include <stdint.h>
 
-inline uint32_t set_ipl(uint32_t ipl)
+static inline uint32_t set_ipl(uint32_t ipl)
 {
 	uint32_t ret;
 
@@ -17,7 +17,7 @@ inline uint32_t set_ipl(uint32_t ipl)
 		"		move.w	d0,sr\n\t"				/* put it in place */
 		"		andi.l	#0x0700,%[ret]\r\n"		/* mask out ipl bits */
 		"		lsr.l	#8,%[ret]\r\n"			/* shift them to position */
-		: [ret] "+d" (ret)		/* output */
+		: [ret] "=&d" (ret)		/* output */
 		: [ipl] "d" (ipl)		/* input */
 		: "d0"	/* clobber */
 	);
