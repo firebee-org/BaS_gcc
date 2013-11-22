@@ -33,6 +33,13 @@
 #include "interrupts.h"
 #include "wait.h"
 
+#define DEBUG_PCI
+#ifdef DEBUG_PCI
+#define debug_printf(format, arg...) do { xprintf("DEBUG: " format "\r\n", ##arg); } while (0)
+#else
+#define debug_printf(format, arg...) do { ; } while (0)
+#endif /* DEBUG_PCI */
+
 #define pci_config_wait()	wait(10000);	/* FireBee USB not properly detected otherwise */
 
 /*
@@ -313,7 +320,7 @@ void pci_print_device_abilities(int32_t handle)
 	saved_value = pci_read_config_word(handle, PCICSR);
 	pci_write_config_word(handle, PCICSR, 0xffff);
 	value = swpw(pci_read_config_word(handle, PCICSR));
-	xprintf("IO: %1d MEM: %1d MSTR:%1d SPCC: %1d MEMW: %1d VGAS: %1d PERR: %1d STEP: %1d SERR: %1d FBTB: %1d\r\n",
+	debug_printf("IO: %1d MEM: %1d MSTR:%1d SPCC: %1d MEMW: %1d VGAS: %1d PERR: %1d STEP: %1d SERR: %1d FBTB: %1d\r\n",
 			value & PCICSR_IO ? 1 : 0,
 			value & PCICSR_MEMORY ? 1 : 0,
 			value & PCICSR_MASTER ? 1 : 0,
@@ -333,7 +340,7 @@ void pci_print_device_config(int32_t handle)
 	uint16_t value;
 
 	value = swpw(pci_read_config_word(handle, PCICSR + 2));
-	xprintf("66M: %1d UDF: %1d FB2B:%1d PERR: %1d TABR: %1d DABR: %1d SERR: %1d PPER: %1d\r\n",
+	debug_printf("66M: %1d UDF: %1d FB2B:%1d PERR: %1d TABR: %1d DABR: %1d SERR: %1d PPER: %1d\r\n",
 			value & PCICSR_66MHZ ? 1 : 0,
 			value & PCICSR_UDF ? 1 : 0,
 			value & PCICSR_FAST_BTOB ? 1 : 0,
@@ -387,7 +394,7 @@ int32_t pci_find_device(uint16_t device_id, uint16_t vendor_id, int index)
 			if (value != 0xffffffff)	/* we have a device at this position */
 			{
 #ifdef _NOT_USED_
-				xprintf("value=%08x, vendor_id = 0x%04x, device_id=0x%04x\r\n",
+				debug_printf("value=%08x, vendor_id = 0x%04x, device_id=0x%04x\r\n",
 						value, PCI_VENDOR_ID(value), PCI_DEVICE_ID(value));
 #endif /* _NOT_USED_ */
 				if (vendor_id == 0xffff ||
@@ -436,7 +443,7 @@ int32_t pci_find_device(uint16_t device_id, uint16_t vendor_id, int index)
 int32_t pci_hook_interrupt(int32_t handle, void *handler, void *parameter)
 {
 	/* FIXME: implement */
-	xprintf("pci_hook_interrupt() still not implemented\r\n");
+	debug_printf("pci_hook_interrupt() still not implemented\r\n");
 	return PCI_SUCCESSFUL;
 }
 
@@ -444,7 +451,7 @@ int32_t pci_unhook_interrupt(int32_t handle)
 {
 	/* FIXME: implement */
 
-	xprintf("pci_unhook_interrupt() still not implemented\r\n");
+	debug_printf("pci_unhook_interrupt() still not implemented\r\n");
 	return PCI_SUCCESSFUL;
 }
 
@@ -474,7 +481,7 @@ static void pci_device_config(uint16_t bus, uint16_t device, uint16_t function)
 
 	if (index == -1)
 	{
-		xprintf("cannot find index for handle %d\r\n", handle);
+		debug_printf("cannot find index for handle %d\r\n", handle);
 		return;
 	}
 
@@ -518,7 +525,7 @@ static void pci_device_config(uint16_t bus, uint16_t device, uint16_t function)
 			{
 				/* adjust base address to card's alignment requirements */
 				int size = ~(address & 0xfffffff0) + 1;
-				xprintf("device 0x%x: BAR[%d] requests %d bytes of memory\r\n", handle, i, size);
+				debug_printf("device 0x%x: BAR[%d] requests %d bytes of memory\r\n", handle, i, size);
 
 				/* calculate a valid map adress with alignment requirements */
 				address = (mem_address + size - 1) & ~(size - 1);
@@ -529,7 +536,7 @@ static void pci_device_config(uint16_t bus, uint16_t device, uint16_t function)
 				/* read it back, just to be sure */
 				value = swpl(pci_read_config_longword(handle, PCIBAR0 + i)) & ~1;
 				
-				xprintf("set PCIBAR%d on device 0x%02x to 0x%08x\r\n",
+				debug_printf("set PCIBAR%d on device 0x%02x to 0x%08x\r\n",
 						i, handle, value);
 
 				/* fill resource descriptor */
@@ -551,13 +558,13 @@ static void pci_device_config(uint16_t bus, uint16_t device, uint16_t function)
 			else if (IS_PCI_IO_BAR(value)) /* same as above for I/O resources */
 			{
 				int size = ~(address & 0xfffffffc) + 1;
-				xprintf("device 0x%x: BAR[%d] requests %d bytes of I/O space\r\n", handle, i, size);
+				debug_printf("device 0x%x: BAR[%d] requests %d bytes of I/O space\r\n", handle, i, size);
 
 				address = (io_address + size - 1) & ~(size - 1);
 				pci_write_config_longword(handle, PCIBAR0 + i, swpl(address));
 				value = swpl(pci_read_config_longword(handle, PCIBAR0 + i));
 
-				xprintf("set PCIBAR%d on device 0x%02x to 0x%08x\r\n",
+				debug_printf("set PCIBAR%d on device 0x%02x to 0x%08x\r\n",
 					i, handle, value);
 
 				rd->next = sizeof(struct pci_rd);
@@ -582,9 +589,9 @@ static void pci_device_config(uint16_t bus, uint16_t device, uint16_t function)
 	/*
 	 * enable device memory or I/O access
 	 */
-	xprintf("PCICSR of card 0x%02x = 0x%04x\r\n", handle, swpw(pci_read_config_word(handle, PCICSR)));
+	debug_printf("PCICSR of card 0x%02x = 0x%04x\r\n", handle, swpw(pci_read_config_word(handle, PCICSR)));
 	pci_write_config_byte(handle, PCICSR, (uint8_t) command_register);
-	xprintf("PCICSR of card 0x%02x = 0x%04x\r\n", handle, swpw(pci_read_config_word(handle, PCICSR)));
+	debug_printf("PCICSR of card 0x%02x = 0x%04x\r\n", handle, swpw(pci_read_config_word(handle, PCICSR)));
 	pci_print_device_abilities(handle);
 	pci_print_device_config(handle);
 }
@@ -595,7 +602,7 @@ static void pci_bridge_config(uint16_t bus, uint16_t device, uint16_t function)
 
 	if (function != 0)
 	{
-		xprintf("trying to configure a multi-function bridge. Cancelled\r\n");
+		debug_printf("trying to configure a multi-function bridge. Cancelled\r\n");
 		return;
 	}
 	handle = PCI_HANDLE(bus, device, function);
@@ -717,13 +724,13 @@ void init_xlbus_arbiter(void)
 
 __attribute__((interrupt)) void pci_arb_interrupt(void)
 {
-	xprintf("XLBARB slave error interrupt\r\n");
+	debug_printf("XLBARB slave error interrupt\r\n");
 	MCF_XLB_XARB_SR |= ~MCF_XLB_XARB_SR_SEA;
 }
 
 __attribute__((interrupt)) void xlb_pci_interrupt(void)
 {
-	xprintf("XLBPCI interrupt\r\n");
+	debug_printf("XLBPCI interrupt\r\n");
 }
 
 void init_pci(void)
@@ -733,22 +740,24 @@ void init_pci(void)
 	xprintf("initializing PCI bridge:\r\n");
 
 	res = register_interrupt_handler(0, INT_SOURCE_PCIARB, pci_arb_interrupt);
-	xprintf("registered interrupt handler for PCI arbiter: %s\r\n",
+	debug_printf("registered interrupt handler for PCI arbiter: %s\r\n",
 			(res < 0 ? "failed" : "succeeded"));
 	register_interrupt_handler(0, INT_SOURCE_XLBPCI, xlb_pci_interrupt);
-	xprintf("registered interrupt handler for XLB PCI: %s\r\n",
+	debug_printf("registered interrupt handler for XLB PCI: %s\r\n",
 			(res < 0 ? "failed" : "succeeded"));
 
 	init_eport();
 	init_xlbus_arbiter();
 
+	MCF_PCI_PCIGSCR = 1;	/* reset PCI */
+
 	/*
 	 * setup the PCI arbiter
 	 */
 	MCF_PCIARB_PACR = MCF_PCIARB_PACR_INTMPRI	/* internal master priority: high */
-       | MCF_PCIARB_PACR_EXTMPRI(0x4)			/* external master priority: high */
+       | MCF_PCIARB_PACR_EXTMPRI(0xf)			/* external master priority: high */
        | MCF_PCIARB_PACR_INTMINTEN				/* enable "internal master broken" interrupt */
-       | MCF_PCIARB_PACR_EXTMINTEN(0x1F);		/* enable "external master broken" interrupt */
+       | MCF_PCIARB_PACR_EXTMINTEN(0x0f);		/* enable "external master broken" interrupt */
 
 #ifdef _NOT_USED_	/* since this is already done in sysinit.c */
 #if MACHINE_FIREBEE
@@ -762,20 +771,26 @@ void init_pci(void)
 
 	MCF_PCI_PCISCR =  MCF_PCI_PCISCR_M | /* memory access control enabled */
 		MCF_PCI_PCISCR_B |		/* bus master enabled */
+		MCF_PCI_PCISCR_M |		/* mem access enable */
+		MCF_PCI_PCISCR_MA |		/* clear master abort error */
 		MCF_PCI_PCISCR_MW;		/* memory write and invalidate enabled */
-		//MCF_PCI_PCISCR_PER |	/* parity errors enabled, PERR# will be asserted */
-		//MCF_PCI_PCISCR_S;		/* SERR enabbled */
 		
 
 	/* Setup burst parameters */
 	MCF_PCI_PCICR1 = MCF_PCI_PCICR1_CACHELINESIZE(8) |
-						MCF_PCI_PCICR1_LATTIMER(32); /* TODO: test increased latency timer */
+						MCF_PCI_PCICR1_LATTIMER(0xff); /* TODO: test increased latency timer */
+#ifdef _NOT_USED_
 	MCF_PCI_PCICR2 = MCF_PCI_PCICR2_MINGNT(1) |
 					MCF_PCI_PCICR2_MAXLAT(32);
+#endif /* _NOT_USED_ */
+	MCF_PCI_PCICR2 = 0;		/* this is what Linux does */
 
 	/* error signaling */
+#ifdef NOT_USED
 	MCF_PCI_PCIICR = MCF_PCI_PCIICR_TAE |	/* target abort enable */
 		MCF_PCI_PCIICR_IAE; 				/* initiator abort enable */
+#endif /* NOT_USED */
+	MCF_PCI_PCIICR = 0;						/* this is what Linux does */
 	
 	MCF_PCI_PCIGSCR |= MCF_PCI_PCIGSCR_SEE;	/* system error interrupt enable */
 
@@ -785,7 +800,7 @@ void init_pci(void)
 	MCF_PCI_PCIIW0BTAR = (PCI_MEMORY_OFFSET | (((PCI_MEMORY_SIZE - 1) >> 8) & 0xffff0000))
 						  | ((PCI_MEMORY_OFFSET >> 16) & 0xff00); 
 
-	xprintf("PCIIW0BTAR=0x%08x\r\n", MCF_PCI_PCIIW0BTAR);
+	debug_printf("PCIIW0BTAR=0x%08x\r\n", MCF_PCI_PCIIW0BTAR);
 
 	/* initiator window 1 base / translation adress register */
 	MCF_PCI_PCIIW1BTAR = (PCI_IO_OFFSET | ((PCI_IO_SIZE - 1) >> 8)) & 0xffff0000;
@@ -824,9 +839,7 @@ void init_pci(void)
 	 */
 	pci_scan();
 
-	xprintf("PCIGSCR=0x%08x, PCISCR=0x%08x\r\n", MCF_PCI_PCIGSCR, MCF_PCI_PCISCR);
-	MCF_PCI_PCISCR |= 0xffff035f;		/* clear all error flags */
-	xprintf("PCIGSCR=0x%08x, PCISCR=0x%08x\r\n", MCF_PCI_PCIGSCR, MCF_PCI_PCISCR);
+	debug_printf("PCIGSCR=0x%08x, PCISCR=0x%08x\r\n", MCF_PCI_PCIGSCR, MCF_PCI_PCISCR);
 
-	xprintf("XARB_SR=0x%08x\r\n", MCF_XLB_XARB_SR);
+	debug_printf("XARB_SR=0x%08x\r\n", MCF_XLB_XARB_SR);
 }
