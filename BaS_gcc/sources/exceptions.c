@@ -26,6 +26,7 @@
 #include "bas_string.h"
 #include "startcf.h"
 #include "interrupts.h"
+#include "exceptions.h"
 #include "MCF5475.h"
 
 #if MACHINE_FIREBEE
@@ -42,7 +43,7 @@
 #define debug_printf(format, arg...) do { ; } while (0)
 #endif /* DEBUG_EXC */
 
-typedef void (*exception_handler)(void);
+typedef void (*exception_handler)(uint32_t fs, uint32_t vector);
 
 static inline uint32_t set_vbr(uint32_t value)
 {
@@ -60,8 +61,32 @@ static inline uint32_t set_vbr(uint32_t value)
 	return ret;
 }
 
-static void __attribute__((interrupt)) std_exception_handler(void)
+static void std_exception_handler(uint32_t fs, uint32_t vector)
 {
+	register uint32_t d0 asm("d0");
+	register uint32_t d1 asm("d1");
+	register uint32_t a0 asm("a0");
+	register uint32_t a1 asm("a1");
+
+	uint32_t old_ipl;
+	extern uint32_t rt_vbr;
+
+	old_ipl = set_ipl(7);
+
+#if MACHINE_FIREBEE
+	if (DIP_SWITCH & (1 << 7))
+	{
+		xprintf("protect mode selected by DIP switch, but not implemented\r\n");
+	}
+#endif /* MACHINE_FIREBEE */
+
+	vector &= 0x3fc;	/* mask out vector number */
+
+	debug_printf("vector number = 0x%x\r\n", vector);
+
+	vector += rt_vbr;	/* add vector base */
+	
+
 }
 
 static void __attribute__((interrupt)) reset_exception_handler(void)
