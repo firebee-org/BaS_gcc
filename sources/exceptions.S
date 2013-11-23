@@ -544,7 +544,8 @@ access:
 		beq		access_mmu			// yes
 		cmpi.l	#0x0c02,d0			// TLB miss on data read, or read-modify-write?
 		beq		access_mmu			// yes
-		bra		bus_error			// everything else
+
+		bra		bus_error			// everything else is a classic bus error
 
 access_mmu:
 		move.l	MCF_MMU_MMUSR,d0	// did the last fault hit in TLB?
@@ -555,12 +556,12 @@ access_mmu:
 		cmp.l	#__FASTRAM_END,d0	// above max User RAM area?
 		bge		bus_error			// -> bus error
 
-		lea		-4*4(sp),sp
+		lea		-4*4(sp),sp			// save gcc scratch registers
 		movem.l	d0-d1/a0-a1,(sp)
 
 		jsr		_mmutr_miss			// else we have an MMU TLB miss
 
-		movem.l	(sp),d0-d1/a0-a1
+		movem.l	(sp),d0-d1/a0-a1	// restore gcc scratch registers
 		lea		4*4(sp),sp
 
 		move.l	(sp)+,d0			// restore register
