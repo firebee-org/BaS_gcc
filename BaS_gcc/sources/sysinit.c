@@ -306,6 +306,7 @@ void init_ddram(void)
 		 */
 		MCF_SDRAMC_SDRAMDS = 0x000002AA;/* SDRAMDS configuration */
 
+#if MACHINE_FIREBEE
 		MCF_SDRAMC_CS0CFG = 0x0000001A;	/* SDRAM CS0 configuration (128Mbytes 0000_0000 - 07FF_FFFF) */
 		MCF_SDRAMC_CS1CFG = 0x0800001A;	/* SDRAM CS1 configuration (128Mbytes 0800_0000 - 0FFF_FFFF) */
 		MCF_SDRAMC_CS2CFG = 0x1000001A;	/* SDRAM CS2 configuration (128Mbytes 1000_0000 - 07FF_FFFF) */
@@ -347,6 +348,52 @@ void init_ddram(void)
 		MCF_SDRAMC_SDCR = 0xE10D0004;	/* SDCR + IREF (second refresh) */
 		MCF_SDRAMC_SDMR = 0x008D0000;	/* SDMR (write to LMR) */
 		MCF_SDRAMC_SDCR = 0x710D0F00;	/* SDCR (lock SDMR and enable refresh) */
+
+#elif MACHINE_M5484LITE
+		MCF_SDRAMC_CS0CFG = 0x00000019;	/* SDRAM CS0 configuration (64 Mbytes 0000_0000 - 03FF_FFFF) */
+		MCF_SDRAMC_CS1CFG = 0x00000000;	/* SDRAM CS1 configuration - off */
+		MCF_SDRAMC_CS2CFG = 0x00000000;	/* SDRAM CS2 configuration - off */
+		MCF_SDRAMC_CS3CFG = 0x00000000;	/* SDRAM CS3 configuration - off */
+
+
+		/*
+		 *
+		 */
+		MCF_SDRAMC_SDCFG1 = MCF_SDRAMC_SDCFG1_WTLAT(3)	/* Write latency */
+				| MCF_SDRAMC_SDCFG1_REF2ACT(8)			/* Refresh to Active Delay */
+				| MCF_SDRAMC_SDCFG1_PRE2ACT(2)			/* Precharge to Active Delay */
+				| MCF_SDRAMC_SDCFG1_ACT2RW(2)			/* Active to Read/Write Delay */
+				| MCF_SDRAMC_SDCFG1_RDLAT(6)			/* Read CAS latency */
+				| MCF_SDRAMC_SDCFG1_SWT2RD(3)			/* Single Write to Read/Write/Precharge delay */
+				| MCF_SDRAMC_SDCFG1_SRD2RW(7);			/* Single Read to Read/Write/Precharge delay */
+
+		MCF_SDRAMC_SDCFG2 = MCF_SDRAMC_SDCFG2_BL(7)		/* Burst Length */
+				| MCF_SDRAMC_SDCFG2_BRD2WT(7)			/* Burst Read to Write delay */
+				| MCF_SDRAMC_SDCFG2_BWT2RW(6)			/* Burst Write to Read/Write/Precharge delay */
+				| MCF_SDRAMC_SDCFG2_BRD2PRE(4);			/* Burst Read to Read/Precharge delay */
+
+
+		MCF_SDRAMC_SDCR = MCF_SDRAMC_SDCR_IPALL			/* initiate Precharge All command */
+				| MCF_SDRAMC_SDCR_RCNT(13)				/* Refresh Count (= (x + 1) * 64 */
+				| MCF_SDRAMC_SDCR_MUX(1)				/* Muxing control */
+				| MCF_SDRAMC_SDCR_DDR
+				| MCF_SDRAMC_SDCR_CKE
+				| MCF_SDRAMC_SDCR_MODE_EN;
+
+		MCF_SDRAMC_SDMR = MCF_SDRAMC_SDMR_CMD			/* Generate an LMR/LEMR command */
+				| MCF_SDRAMC_SDMR_AD(0)					/* Address */
+				| MCF_SDRAMC_SDMR_BNKAD(1);				/* LEMR */
+		MCF_SDRAMC_SDMR = MCF_SDRAMC_SDMR_CMD			/* Generate an LMR/LEMR command */
+				| MCF_SDRAMC_SDMR_AD(0x123)
+				| MCF_SDRAMC_SDMR_BNKAD(0);				/* LMR */
+
+		MCF_SDRAMC_SDCR = 0xE10D0002;	/* SDCR + IPALL */
+		MCF_SDRAMC_SDCR = 0xE10D0004;	/* SDCR + IREF (first refresh) */
+		MCF_SDRAMC_SDCR = 0xE10D0004;	/* SDCR + IREF (second refresh) */
+		MCF_SDRAMC_SDMR = 0x008D0000;	/* SDMR (write to LMR) */
+		MCF_SDRAMC_SDCR = 0x710D0F00;	/* SDCR (lock SDMR and enable refresh) */
+
+#endif /* MACHINE_FIREBEE */
 
 		xprintf("finished\r\n");
 	}
