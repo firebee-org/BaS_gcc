@@ -33,7 +33,7 @@ NATIVECC=gcc
 INCLUDE=-Iinclude
 CFLAGS=-mcpu=5474 \
 		-Wall \
-		-O2 \
+		-Os \
 		-g \
 		-fomit-frame-pointer \
 		-ffreestanding \
