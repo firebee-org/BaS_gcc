@@ -23,8 +23,7 @@ write-ctrl 0x0C05 0xFF101001
 #
 # Init CS0 (BootFLASH @ E000_0000 - E03F_FFFF 4Mbytes)
 write 0xFF000500 0xE0000000 4
-#write 0xFF000508 0x00041180 4
-write 0xFF000508 0x00100D80 4
+write 0xFF000508 0x00041180 4
 write 0xFF000504 0x003F0001 4
 
 # SDRAM Initialization @ 0000_0000 - 03FF_FFFF 64 Mbytes
@@ -63,23 +62,10 @@ flash-plugin 0x1000 0xf000 flashintelc3.plugin
 #
 # contrary to documentation, it seems we need to erase-wait after each sector
 
-erase 0xE0000000 0
-erase 0xE0000000 1
-erase 0xE0000000 2
-erase 0xE0000000 3
-erase 0xE0000000 4
-erase 0xE0000000 5
-erase 0xE0000000 6
-erase 0xE0000000 7
-erase 0xE0000000 8
-erase 0xE0000000 9
-erase 0xE0000000 10
-erase 0xE0000000 11
-erase 0xE0000000 12
-#erase 0xE0000000 0x2000
-#erase 0xE0000000 0x3000
-#erase 0xE0000000 0x4000
-#erase 0xE0000000 0x5000
+#erase 0xE0000000 0x0
+#erase 0xE0002000 0x0
+#erase 0xE0000000 0x00004000
+#erase 0xE0000000 0x00005000
 #erase 0xE0000000 0x00006000
 #erase 0xE0000000 0x00007000
 #erase 0xE0000000 0x00008000
@@ -87,5 +73,6 @@ erase 0xE0000000 12
 #erase 0xE0000000 0x0000a000
 #erase 0xE0000000 0x0000b000
 #erase-wait 0xe0000000
-load -v ../m5484lite/bas.elf
+#blank-chk 0xE0000000 0x0
+load -v m5484lite_dbug_flash.elf
 wait
