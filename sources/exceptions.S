@@ -442,10 +442,11 @@ std_exc_vec:
 		beq		noprint
 		cmp.l	#46,d0
 		beq		noprint
+		move.l	4 * 4 + 8 + 4(sp),-(sp)	// pc at exception
 		move.l	d0,-(sp)			// provide it to xprintf()
 		pea		exception_text		
 		jsr		_xprintf			// call xprintf()
-		addq.l	#2*4,sp				// adjust stack
+		add.l	#3*4,sp				// adjust stack
 noprint:
 		
 		movem.l	(sp),d0-d1/a0-a1	// restore registers
@@ -466,7 +467,7 @@ noprint:
 
 		.data
 exception_text:
-		.ascii	"EXCEPTION %d caught"
+		.ascii	"EXCEPTION %d caught at %p"
 		.byte	13, 10, 0
 
 		.text
