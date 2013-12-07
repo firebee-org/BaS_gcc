@@ -902,12 +902,12 @@ int ehci_usb_lowlevel_init(long handle, const struct pci_device_id *ent, void **
 		return(-1);
 	}
 	memcpy(gehci.descriptor, &rom_descriptor, sizeof(struct descriptor));
-	if ((long)pci_rsc_desc >= 0)
+	if ((long) pci_rsc_desc >= 0)
 	{
 		unsigned short flags;
 		do
 		{
-			debug("PCI USB descriptors: flags 0x%04x start 0x%08lx \r\n offset 0x%08lx dmaoffset 0x%08lx length 0x%08lx\r\n",
+			debug("PCI USB descriptors (at %p): flags 0x%04x start 0x%08lx \r\n offset 0x%08lx dmaoffset 0x%08lx length 0x%08lx\r\n", pci_rsc_desc,
 			 pci_rsc_desc->flags, pci_rsc_desc->start, pci_rsc_desc->offset, pci_rsc_desc->dmaoffset, pci_rsc_desc->length);
 			if (!(pci_rsc_desc->flags & FLG_IO))
 			{

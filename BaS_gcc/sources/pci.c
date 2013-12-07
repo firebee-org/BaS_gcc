@@ -33,7 +33,7 @@
 #include "interrupts.h"
 #include "wait.h"
 
-// #define DEBUG_PCI
+//#define DEBUG_PCI
 #ifdef DEBUG_PCI
 #define debug_printf(format, arg...) do { xprintf("DEBUG: " format "\r\n", ##arg); } while (0)
 #else
@@ -130,8 +130,10 @@ static int handle2index(int32_t handle)
 {
 	int i;
 
+	debug_printf("handle2int: handles[] is at %p\r\n", &handles[0]);
 	for (i = 0; i < NUM_CARDS; i++)
 	{
+		debug_printf("handle2index: handles[%d] = %x (%x)\r\n", i, handles[i], handle);
 		if (handles[i] == handle)
 		{
 			return i;
@@ -361,11 +363,17 @@ void pci_print_device_config(int32_t handle)
 struct pci_rd *pci_get_resource(int32_t handle)
 {
 	int index = -1;
+	struct pci_rd *ret;
 
 	index = handle2index(handle);
 	if (index == -1)
-		return NULL;
-	return resource_descriptors[index];
+		ret = NULL;
+	else
+		ret = &resource_descriptors[index][0];
+
+	debug_printf("pci_get_resource: resource struct for handle %lx (index %d) is at %p\r\n", handle, index, ret);
+
+	return ret;
 }
 
 /*
@@ -465,7 +473,7 @@ int32_t pci_unhook_interrupt(int32_t handle)
 static void pci_device_config(uint16_t bus, uint16_t device, uint16_t function)
 {
 	uint32_t address;
-	uint16_t handle;
+	int32_t handle;
 	int16_t index = - 1;
 	struct pci_rd *descriptors;
 	int i;
