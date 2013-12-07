@@ -64,4 +64,4 @@ erase 0xe0000000 37
 erase 0xe0000000 38
 erase 0xe0000000 39
 
-load -v ../../emutos_evb/emutos2.elf
+load -v ../../emutos/emutos-m548x_bas.elf
