@@ -237,13 +237,9 @@ void BaS(void)
 	xprintf("copy EmuTOS: ");
 
 	/* copy EMUTOS */
-#if MACHINE_FIREBEE
 	src = (uint8_t *) EMUTOS;
 	memcpy(dst, src, EMUTOS_SIZE);
 	xprintf("finished\r\n");
-#elif MACHINE_M5484LITE
-	xprintf("not done\r\n");
-#endif
 
 	xprintf("initialize MMU: ");
 	mmu_init();
