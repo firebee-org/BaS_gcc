@@ -31,9 +31,10 @@ wait
 # SDRAM Initialization @ 0000_0000 - 0400_0000 64 MBytes
 write 0xFF000004 0x000002AA 4	# SDRAMDS configuration
 write 0xFF000020 0x00000019 4	# SDRAM CS0 configuration (64Mbytes 0000_0000 - 07FF_FFFF)
-write 0xFF000024 0x08000000 4	# SDRAM CS1 configuration
-write 0xFF000028 0x10000000 4	# SDRAM CS2 configuration
-write 0xFF00002C 0x18000000 4	# SDRAM CS3 configuration
+write 0xFF000024 0x00000000 4	# SDRAM CS1 configuration
+write 0xFF000028 0x00000000 4	# SDRAM CS2 configuration
+write 0xFF00002C 0x00000000 4	# SDRAM CS3 configuration
+
 write 0xFF000108 0x73711630 4	# SDCFG1
 write 0xFF00010C 0x46370000 4	# SDCFG2
 
