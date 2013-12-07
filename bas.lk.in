@@ -69,7 +69,7 @@ SECTIONS
 		/*
 		 * if we compile to RAM anyway, there is no need to copy anything
 		 */
-#if COMPILE_RAM
+#ifdef COMPILE_RAM
 		. = ALIGN(16);
 		__BAS_DATA_START = .;
 		*(.data)
@@ -82,7 +82,7 @@ SECTIONS
 		*(.rodata)
 		*(.rodata.*)
 #endif
-#if COMPILE_RAM
+#ifdef COMPILE_RAM
 		. = ALIGN(16);
 		_usb_buffer = .;
 #endif /* COMPILE_RAM */
@@ -98,7 +98,6 @@ SECTIONS
 	 */
 	AT (ALIGN(ADDR(.text) + SIZEOF(.text), 4))
 	{
-		. = ALIGN(16);
 		__BAS_DATA_START = .;
 		*(.data)
 		__BAS_DATA_END = .;

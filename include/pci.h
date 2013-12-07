@@ -242,8 +242,8 @@ extern int32_t pci_unhook_interrupt(int32_t handle);
 												((device << 8) | \
 												(function)) 
 
-#define PCI_HANDLE(bus, slot, function)	(0 | ((bus & 0xff) << 8 | (slot & 0x1f) << 3 | (function & 7)))
-#define PCI_BUS_FROM_HANDLE(h)				(((h) & 0xff00) >> 8)
+#define PCI_HANDLE(bus, slot, function)	(0 | ((bus & 0xff) << 10 | (slot & 0x1f) << 3 | (function & 7)))
+#define PCI_BUS_FROM_HANDLE(h)				(((h) & 0xff00) >> 10)
 #define PCI_DEVICE_FROM_HANDLE(h)			(((h) & 0xf8) >> 3)
 #define PCI_FUNCTION_FROM_HANDLE(h)			(((h) & 0x7))
 

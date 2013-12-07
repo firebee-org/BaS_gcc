@@ -258,8 +258,6 @@ void BaS(void)
 	NOP();										/* force pipeline sync */
 	xprintf("finished\r\n");
 
-	init_usb();
-
 #ifdef MACHINE_FIREBEE
 	xprintf("IDE reset: ");
 	/* IDE reset */
