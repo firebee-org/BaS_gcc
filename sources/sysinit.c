@@ -582,8 +582,8 @@ void init_usb(void)
 	extern struct pci_device_id ohci_usb_pci_table[];
 	extern struct pci_device_id ehci_usb_pci_table[];
 	struct pci_device_id *board;
-	int16_t handle;
-	uint16_t usb_found;
+	int32_t handle;
+	bool usb_found;
 	int index = 0;
 
 	xprintf("USB controller initialization:\r\n");
@@ -973,10 +973,6 @@ void initialize_hardware(void)
 	}
 #endif /* MACHINE_FIREBEE */
 
-	if (BAS_LMA != BAS_IN_RAM)
-	{
-		clear_data_segment();
-	}
 	clear_bss_segment();
 
 	init_gpio();
@@ -1093,21 +1089,6 @@ void initialize_hardware(void)
 							0							/* leave core clock enabled */
 						);
 
-	init_slt();
-	init_fbcs();
-	init_ddram();
-#if MACHINE_FIREBEE
-	init_fpga();
-	init_pll();
-	init_video_ddr();
-	dvi_on();
-#endif /* MACHINE_FIREBEE */
-	init_pci();
-	/* moved the following line (temporarily) to BaS (after MMU init) to be able to catch adressing errors on USB init */
-	//init_usb();
-#if MACHINE_FIREBEE
-	init_ac97();
-#endif /* MACHINE_FIREBEE */
 
 	if (BAS_LMA != BAS_IN_RAM)
 	{
@@ -1124,6 +1105,20 @@ void initialize_hardware(void)
 		xprintf("no BaS copy necessary - running from RAM already\r\n");
 	}
 
+	init_slt();
+	init_fbcs();
+	init_ddram();
+#if MACHINE_FIREBEE
+	init_fpga();
+	init_pll();
+	init_video_ddr();
+	dvi_on();
+#endif /* MACHINE_FIREBEE */
+	init_pci();
+	init_usb();
+#if MACHINE_FIREBEE
+	init_ac97();
+#endif /* MACHINE_FIREBEE */
 	/* jump into the BaS */
 	extern void BaS(void);
 	BaS();
