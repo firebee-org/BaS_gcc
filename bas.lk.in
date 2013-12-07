@@ -91,28 +91,28 @@ SECTIONS
 #if (TARGET_ADDRESS == BOOTFLASH_BASE_ADDRESS)
 	/* BaS in RAM */
 	.bas :
-		/*
-		 * The BaS is stored in the flash, just after the init part.
-		 * Then it will be copied to its final location in the RAM.
-		 * This data must be aligned for optimal copy loop speed.
-		 */
-		AT (ALIGN(ADDR(.text) + SIZEOF(.text), 4))
-		{
-			. = ALIGN(16);
-			__BAS_DATA_START = .;
-			*(.data)
-			__BAS_DATA_END = .;
-			__BAS_BSS_START = .;
-			*(.bss)	
-			__BAS_BSS_END = .;
+	/*
+	 * The BaS is stored in the flash, just after the init part.
+	 * Then it will be copied to its final location in the RAM.
+	 * This data must be aligned for optimal copy loop speed.
+	 */
+	AT (ALIGN(ADDR(.text) + SIZEOF(.text), 4))
+	{
+		. = ALIGN(16);
+		__BAS_DATA_START = .;
+		*(.data)
+		__BAS_DATA_END = .;
+		__BAS_BSS_START = .;
+		*(.bss)	
+		__BAS_BSS_END = .;
 
-			/* The BaS copy routine assumes that tha BaS size
-		 	 * is a multiple of the following value.
-		 	 */
-			. = ALIGN(16);
-			_usb_buffer = .;
-			//. = . + USB_BUFFER_SIZE;
-		} > bas_ram
+		/* The BaS copy routine assumes that tha BaS size
+	 	 * is a multiple of the following value.
+	 	 */
+		. = ALIGN(16);
+		_usb_buffer = .;
+		//. = . + USB_BUFFER_SIZE;
+	} > bas_ram
 #endif
 
 	/*
