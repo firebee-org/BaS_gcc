@@ -61,7 +61,6 @@ BASFLASH_EXEC=basflash.$(EXE)
 CSRCS= \
 	$(SRCDIR)/sysinit.c \
 	$(SRCDIR)/init_fpga.c \
-	$(SRCDIR)/exceptions.c \
 	$(SRCDIR)/mmu.c \
 	$(SRCDIR)/fault_vectors.c \
 	$(SRCDIR)/interrupts.c \
