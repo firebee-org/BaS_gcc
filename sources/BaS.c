@@ -338,9 +338,6 @@ void BaS(void)
 		void_func *initial_pc;
 	} ROM_HEADER;
 
-	xprintf("initialize and test DMA\r\n");
-	dma_init();
-
 	xprintf("BaS initialization finished, enable interrupts\r\n");
 	enable_coldfire_interrupts();
 
