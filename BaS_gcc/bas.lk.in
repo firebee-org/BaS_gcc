@@ -98,6 +98,7 @@ SECTIONS
 	 */
 	AT (ALIGN(ADDR(.text) + SIZEOF(.text), 4))
 	{
+		. = ALIGN(4);		/* same alignment than AT() statement! */
 		__BAS_DATA_START = .;
 		*(.data)
 		__BAS_DATA_END = .;
