@@ -164,8 +164,8 @@ static struct ehci {
 	const char *slot_name;
 } gehci;
 
-#define DEBUG
-#define SHOW_INFO
+//#define DEBUG
+//#define SHOW_INFO
 
 #ifdef DEBUG
 #define debug(format, arg...) xprintf("DEBUG: " format "\r\n", ## arg)

@@ -63,6 +63,13 @@
 #undef SHOW_INFO
 #undef OHCI_FILL_TRACE
 
+#ifdef DEBUG
+#define debug_printf(format, arg...) do { xprintf("DEBUG: " format "\r\n", ##arg
+); } while (0)
+#else
+#define debug_printf(format, arg...) do { ; } while (0)
+#endif /* DEBUG */
+
 /* For initializing controller (mask in an HCFS mode too) */
 #define OHCI_CONTROL_INIT (OHCI_CTRL_CBSR & 0x3) | OHCI_CTRL_IE | OHCI_CTRL_PLE
 
@@ -79,19 +86,19 @@ inline uint32_t readl(volatile uint32_t *addr)
 {
 	uint32_t res;
 
-	xprintf("reading from 0x%08x in %s, %d", addr, __FILE__, __LINE__);
+	debug_printf("reading from 0x%08x in %s, %d", addr, __FILE__, __LINE__);
 	res = swpl(*addr);
 	chip_errata_135();
-	xprintf(" result=0x%08x\r\n", res);
+	debug_printf(" result=0x%08x\r\n", res);
 	return res;
 }
 
 /*
-#define writel(a, b) {xprintf("writing %08x to %08x\r\n", (a), (b)); *((volatile uint32_t *)(b)) = swpl((volatile uint32_t)(a)); }
+#define writel(a, b) {debug_printf("writing %08x to %08x\r\n", (a), (b)); *((volatile uint32_t *)(b)) = swpl((volatile uint32_t)(a)); }
 */
 inline void writel(uint32_t value, uint32_t *address)
 {
-	xprintf("writing %08x to %08x in %s, %d\r\n", value, address, __FILE__, __LINE__);
+	debug_printf("writing %08x to %08x in %s, %d\r\n", value, address, __FILE__, __LINE__);
 	* (volatile uint32_t *) address = swpl(value);
 }
 #else
@@ -147,12 +154,12 @@ struct pci_device_id ohci_usb_pci_table[] =
 
 #define DEBUG
 #ifdef DEBUG
-#define dbg(format, arg...) do {xprintf("DEBUG: " format "\r\n", ## arg);} while(0)
+#define dbg(format, arg...) do {debug_printf("DEBUG: " format "\r\n", ## arg);} while(0)
 #else
 #define dbg(format, arg...) do {} while (0)
 #endif /* DEBUG */
-#define err(format, arg...) do {xprintf("ERROR: " format "\r\n", ## arg); }while(0)
-#define info(format, arg...)  xprintf("INFO: " format "\r\n", ## arg)
+#define err(format, arg...) do {debug_printf("ERROR: " format "\r\n", ## arg); }while(0)
+#define info(format, arg...)  debug_printf("INFO: " format "\r\n", ## arg)
 
 extern void udelay(long usec);
 
@@ -248,18 +255,18 @@ static void pkt_print(ohci_t *ohci, urb_priv_t *purb, struct usb_device *dev,
 		int i, len;
 		if (usb_pipecontrol(pipe))
 		{
-			xprintf(__FILE__ ": cmd(8):");
+			debug_printf(__FILE__ ": cmd(8):");
 			for (i = 0; i < 8 ; i++)
-				xprintf(" %02x", ((uint8_t *)setup)[i]);
-			xprintf("\r\n");
+				debug_printf(" %02x", ((uint8_t *)setup)[i]);
+			debug_printf("\r\n");
 		}
 		if (transfer_len > 0 && buffer)
 		{
-			xprintf(__FILE__ ": data(%d/%d):", (purb ? purb->actual_length : 0), transfer_len);
+			debug_printf(__FILE__ ": data(%d/%d):", (purb ? purb->actual_length : 0), transfer_len);
 			len = usb_pipeout(pipe)? transfer_len : (purb ? purb->actual_length : 0);
 			for (i = 0; i < 16 && i < len; i++)
-				xprintf(" %02x", ((uint8_t *)buffer)[i]);
-			xprintf("%s\r\n", i < len? "...": "");
+				debug_printf(" %02x", ((uint8_t *)buffer)[i]);
+			debug_printf("%s\r\n", i < len? "...": "");
 		}
 	}
 #endif
@@ -277,14 +284,14 @@ static void ep_print_int_eds(ohci_t *ohci, char *str)
 		ed_p = &(ohci->hcca->int_table[i]);
 		if (*ed_p == 0)
 			continue;
-		xprintf(__FILE__ ": %s branch int %2d(%2x):", str, i, i);
+		debug_printf(__FILE__ ": %s branch int %2d(%2x):", str, i, i);
 		while (*ed_p != 0 && j--)
 		{
 			ed_t *ed = (ed_t *)swpl((uint32_t)ed_p);
-			xprintf(" ed: %4x;", ed->hwINFO);
+			debug_printf(" ed: %4x;", ed->hwINFO);
 			ed_p = &ed->hwNextED;
 		}
-		xprintf("\r\n");
+		debug_printf("\r\n");
 	}
 }
 
@@ -843,8 +850,8 @@ static void td_fill(ohci_t *ohci, unsigned int info, void *data, int len,
 	if (usb_pipebulk(urb_priv->pipe) && usb_pipeout(urb_priv->pipe))
 	{
 		for (i = 0; i < len; i++)
-			xprintf("td->data[%d] %#2x ", i, ((unsigned char *)td->data)[i]);
-		xprintf("\r\n");
+			debug_printf("td->data[%d] %#2x ", i, ((unsigned char *)td->data)[i]);
+		debug_printf("\r\n");
 	}
 #endif
 	if (!len)
@@ -867,14 +874,14 @@ static void td_fill(ohci_t *ohci, unsigned int info, void *data, int len,
 	if (data)
 	{
 		int i;
-		xprintf("td_fill: %08x %08x %08X %08X at 0x%08X\r\n", 
+		debug_printf("td_fill: %08x %08x %08X %08X at 0x%08X\r\n", 
 		 swpl(td->hwINFO), swpl(td->hwCBP), swpl(td->hwNextTD), swpl(td->hwBE), td);
 		for (i = 0; i < len; i++)
-			xprintf("%02X ", *(unsigned char *)(data + i) & 0xff);
-		xprintf("\r\n");
+			debug_printf("%02X ", *(unsigned char *)(data + i) & 0xff);
+		debug_printf("\r\n");
 	}
 	else
-		xprintf("td_fill: %08x %08x %08X %08X at 0x%08X\r\n", 
+		debug_printf("td_fill: %08x %08x %08X %08X at 0x%08X\r\n", 
 		 swpl(td->hwINFO), swpl(td->hwCBP), swpl(td->hwNextTD), swpl(td->hwBE), td);
 #endif
 }
@@ -1665,7 +1672,7 @@ static int hc_reset(ohci_t *ohci)
 		}
 	}
 
-	xprintf("control: %x\r\n", readl(&ohci->regs->control));
+	debug_printf("control: %x\r\n", readl(&ohci->regs->control));
 	if (readl(&ohci->regs->control) & OHCI_CTRL_IR)
 	{
 		/* SMM owns the HC */
@@ -2003,7 +2010,7 @@ int ohci_usb_lowlevel_init(int32_t handle, const struct pci_device_id *ent, void
 	
 	ptd = (struct td *) (((uint32_t) ohci->td_unaligned + 7) & ~7);
 
-	xprintf("memset from %p to %p\r\n", ptd, ptd + sizeof(td_t) * NUM_TD);
+	debug_printf("memset from %p to %p\r\n", ptd, ptd + sizeof(td_t) * NUM_TD);
 	memset(ptd, 0, sizeof(td_t) * NUM_TD);
 	info("aligned TDs %p", ptd);
 
@@ -2016,7 +2023,7 @@ int ohci_usb_lowlevel_init(int32_t handle, const struct pci_device_id *ent, void
 		unsigned short flags;
 		do
 		{
-			xprintf("\r\nPCI USB descriptors (at %p): flags 0x%04x start 0x%08lx \r\n offset 0x%08lx dmaoffset 0x%08lx length 0x%08lx\r\n", pci_rsc_desc,
+			debug_printf("\r\nPCI USB descriptors (at %p): flags 0x%04x start 0x%08lx \r\n offset 0x%08lx dmaoffset 0x%08lx length 0x%08lx\r\n", pci_rsc_desc,
 					pci_rsc_desc->flags, pci_rsc_desc->start, pci_rsc_desc->offset, pci_rsc_desc->dmaoffset, pci_rsc_desc->length);
 			if (!(pci_rsc_desc->flags & FLG_IO))
 			{
@@ -2042,7 +2049,7 @@ int ohci_usb_lowlevel_init(int32_t handle, const struct pci_device_id *ent, void
 	else
 	{
 		hc_free_buffers(ohci);
-		xprintf("pci_get_resource() failed in %s %s\r\n", __FILE__, __LINE__);
+		debug_printf("pci_get_resource() failed in %s %s\r\n", __FILE__, __LINE__);
 		return(-1); /* get_resource error */
 	}
 	if (usb_base_addr == 0xFFFFFFFF)
@@ -2061,7 +2068,7 @@ int ohci_usb_lowlevel_init(int32_t handle, const struct pci_device_id *ent, void
 			default: ohci->slot_name = "generic"; break;
 		}
 	}
-	xprintf("OHCI usb-%s-%c, regs address 0x%08X, PCI handle 0x%X\r\n", ohci->slot_name, (char)ohci->controller + '0', ohci->regs, handle);
+	debug_printf("OHCI usb-%s-%c, regs address 0x%08X, PCI handle 0x%X\r\n", ohci->slot_name, (char)ohci->controller + '0', ohci->regs, handle);
 	if (hc_reset(ohci) < 0)
 	{
 		err("Can't reset OHCI usb-%s-%c", ohci->slot_name, (char)ohci->controller + '0');
