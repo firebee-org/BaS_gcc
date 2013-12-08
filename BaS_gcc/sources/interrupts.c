@@ -69,7 +69,7 @@ int register_interrupt_handler(uint8_t priority, uint8_t source, void (*func)())
 			"move.w sr,d0\n\t"
 			"move.w d0,srsave \n\t"
 			"move.w #0x2700,sr\n\t"
-			"	.data\n\t"
+			"	.bss\n\t"
 			"srsave:	ds.w	1\n\t"
 			"	.text\n\t"
 			:
