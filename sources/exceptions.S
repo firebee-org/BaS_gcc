@@ -465,12 +465,9 @@ noprint:
 		move.l	(a7)+,d0			// restore d0
 		rts							// jump to exception routine
 
-		.data
 exception_text:
 		.ascii	"EXCEPTION %d caught at %p"
 		.byte	13, 10, 0
-
-		.text
 
 #ifdef MACHINE_FIREBEE
 stv_protect:
