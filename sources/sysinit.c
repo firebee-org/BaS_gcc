@@ -921,16 +921,6 @@ extern uint8_t _BAS_RESIDENT_TEXT[];
 extern uint8_t _BAS_RESIDENT_TEXT_SIZE[];
 #define BAS_RESIDENT_TEXT_SIZE ((uint32_t) _BAS_RESIDENT_TEXT_SIZE)
 
-void clear_data_segment(void)
-{
-	extern uint8_t _BAS_DATA_START[];
-	uint8_t *BAS_DATA_START = &_BAS_DATA_START[0];
-	extern uint8_t _BAS_DATA_END[];
-	uint8_t *BAS_DATA_END = &_BAS_DATA_END[0];
-
-	bzero(BAS_DATA_START, BAS_DATA_END - BAS_DATA_START);
-}
-
 void clear_bss_segment(void)
 {
 	extern uint8_t _BAS_BSS_START[];
@@ -938,7 +928,7 @@ void clear_bss_segment(void)
 	extern uint8_t _BAS_BSS_END[];
 	uint8_t *BAS_BSS_END = &_BAS_BSS_END[0];
 
-	bzero(BAS_BSS_START, BAS_BSS_END - BAS_BSS_END);
+	bzero(BAS_BSS_START, BAS_BSS_END - BAS_BSS_START - 1);
 }
 
 void initialize_hardware(void)
@@ -972,9 +962,6 @@ void initialize_hardware(void)
 		return;
 	}
 #endif /* MACHINE_FIREBEE */
-
-	clear_bss_segment();
-
 	init_gpio();
 	init_serial();
 
@@ -1089,25 +1076,22 @@ void initialize_hardware(void)
 							0							/* leave core clock enabled */
 						);
 
+	init_slt();
+	init_fbcs();
+	init_ddram();
+
+	/* the following only makes sense _after_ DDRAM has been initialized */
+	clear_bss_segment();
 
 	if (BAS_LMA != BAS_IN_RAM)
 	{
-		xprintf("copying BaS (%p - %p) to RAM (%p - %p)\r\n", BAS_LMA, BAS_LMA + BAS_SIZE, BAS_IN_RAM, BAS_IN_RAM + BAS_SIZE);
 		memcpy((void *) BAS_IN_RAM, BAS_LMA, BAS_SIZE);
-		xprintf("finished.\r\n");
 
 		/* we have copied a code area, so flush the caches */
 		flush_and_invalidate_caches();
 
 	}
-	else
-	{
-		xprintf("no BaS copy necessary - running from RAM already\r\n");
-	}
 
-	init_slt();
-	init_fbcs();
-	init_ddram();
 #if MACHINE_FIREBEE
 	init_fpga();
 	init_pll();
@@ -1119,6 +1103,10 @@ void initialize_hardware(void)
 #if MACHINE_FIREBEE
 	init_ac97();
 #endif /* MACHINE_FIREBEE */
+
+	xprintf("initialize and test DMA\r\n");
+	dma_init();
+
 	/* jump into the BaS */
 	extern void BaS(void);
 	BaS();
