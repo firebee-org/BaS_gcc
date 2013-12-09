@@ -1048,10 +1048,13 @@ void initialize_hardware(void)
 	 */
 	xprintf(" (revision %d)\r\n",((MCF_SIU_JTAGID & MCF_SIU_JTAGID_REV) >> 28));
 
+	init_slt();
+	init_fbcs();
+	init_ddram();
+
 	/*
 	 * install (preliminary) exception vectors
 	 */
-	extern void setup_vectors(void);
 	setup_vectors();
 	/* make sure the handlers are called */
 	// __asm__ __volatile__("dc.w 0xafff");  /* should trigger a line-A exception */
@@ -1075,10 +1078,6 @@ void initialize_hardware(void)
 							MCF_CLOCK_SPCR_CRYENB	|	/* disable crypto clock B */
 							0							/* leave core clock enabled */
 						);
-
-	init_slt();
-	init_fbcs();
-	init_ddram();
 
 	/* the following only makes sense _after_ DDRAM has been initialized */
 	clear_bss_segment();
