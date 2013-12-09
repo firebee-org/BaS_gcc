@@ -81,7 +81,7 @@ static int32_t handles[NUM_CARDS];
 static struct pci_rd resource_descriptors[NUM_CARDS][NUM_RESOURCES]; 
 
 
-void chip_errata_135(void)
+__attribute__((aligned(16))) void chip_errata_135(void)
 {
 	/*
 	 * Errata type: Silicon
@@ -105,9 +105,6 @@ void chip_errata_135(void)
 
 	 __asm__ __volatile(
 		"		.extern __MBAR\n\t"
-		"		bra		.errata\n\t"
-		"		.align	16\n\t"				/* force function start to 16-byte boundary */
-		".errata:\n\t"
 		"		clr.l	d0\n\t"
 		"		move.l	d0,__MBAR+0xF0C\n\t"		/* Must use direct addressing. write to EPORT module */
 											/* xlbus -> slavebus -> eport, writing '0' to register */
