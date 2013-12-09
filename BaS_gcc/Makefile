@@ -95,7 +95,6 @@ CSRCS= \
 
 ASRCS= \
 	$(SRCDIR)/startcf.S \
-	$(SRCDIR)/mmu.S \
 	$(SRCDIR)/printf_helper.S \
 	$(SRCDIR)/exceptions.S \
 	$(SRCDIR)/supervisor.S \

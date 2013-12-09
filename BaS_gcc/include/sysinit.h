@@ -32,6 +32,9 @@
 extern void init_fpga(void);
 extern void init_usb(void);
 
+/* fault_vectors */
+extern void setup_vectors(void);
+
 #endif /* __SYSINIT_H__ */
 
 
