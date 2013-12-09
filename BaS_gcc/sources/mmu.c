@@ -189,18 +189,53 @@ void mmu_init(void)
 	uint32_t TOS = (uint32_t) &_TOS[0];
 	
 	set_asid(0);			/* do not use address extension (ASID provides virtual 48 bit addresses */
+
+	/* set data access attributes in ACR0 and ACR1 */
 	set_acr0(ACR_W(0) |								/* read and write accesses permitted */
 			ACR_SP(0) |								/* supervisor and user mode access permitted */
 			ACR_CM(ACR_CM_CACHE_INH_PRECISE) |		/* cache inhibit, precise */
 			ACR_AMM(0) |							/* control region > 16 MB */
 			ACR_S(ACR_S_ALL) |						/* match addresses in user and supervisor mode */
 			ACR_E(1) |								/* enable ACR */
+#if MACHINE_FIREBEE
 			ACR_ADMSK(0x3f) |						/* cover 1GB area from 0xc0000000 to 0xffffffff */
 			ACR_BA(0xc0000000));					/* (equals area from 3 to 4 GB */
+#elif MACHINE_M5484LITE
+			ACR_ADMSK(0xff) |						/* cover 2 GB area from 0x80000000 to 0xffffffff */
+			ACR_BA(0x80000000));
+#endif /* MACHINE_FIREBEE */
 	
-	set_acr1(0x601fc000);
-	set_acr2(0xe007c400);
+	// set_acr1(0x601fc000);
+	set_acr1(ACR_W(0) |
+			ACR_SP(0) |
+			ACR_CM(0) |
+#if MACHINE_FIREBEE
+			ACR_CM(ACR_CM_CACHEABLE_WT) |			/* video RAM on the Firebee */
+#elif MACHINE_M5484LITE
+			ACR_CM(ACR_CM_CACHE_INH_PRECISE) |		/* Compact Flash on the M548xLITE */
+#endif /* MACHINE_FIREBEE */
+			ACR_AMM(0) |
+			ACR_S(ACR_S_ALL) |
+			ACR_E(1) |
+			ACR_ADMSK(0x1f) |
+			ACR_BA(0x60000000));
+	
+	/* set instruction access attributes in ACR2 and ACR3 */
+
+	//set_acr2(0xe007c400);
+	set_acr2(ACR_W(0) |
+			ACR_SP(0) |
+			ACR_CM(0) |
+			ACR_CM(ACR_CM_CACHEABLE_WT) |
+			ACR_AMM(1) |
+			ACR_S(ACR_S_ALL) |
+			ACR_E(1) |
+			ACR_ADMSK(0x7) |
+			ACR_BA(0xe0000000));
+
+	/* disable ACR3 */
 	set_acr3(0x0);
+
 	set_mmubar(MMUBAR | 1);		/* set and enable MMUBAR */
 
 	/* clear all MMU TLB entries */
@@ -299,29 +334,6 @@ void mmu_init(void)
 					MCF_MMU_MMUOR_ACC |     /* access TLB */
 					MCF_MMU_MMUOR_UAA;      /* update allocation address field */
 #endif /* MACHINE_FIREBEE */
-
-	/*
-	 * Map PCI memory address space. Uncached, precise, virtual = physical.
-	 * FIXME: this currently only maps the first megabyte, while in reality PCI address space should
-	 * cover 128 MByte. We need to do that as special case in the MMU TLB miss exception routine
-	 */
-
-	MCF_MMU_MMUTR = PCI_MEMORY_OFFSET |		/* virtual address */
-					MCF_MMU_MMUTR_SG |		/* shared global */
-					MCF_MMU_MMUTR_V;		/* valid */
-	MCF_MMU_MMUDR = PCI_MEMORY_OFFSET |		/* physical address */
-					MCF_MMU_MMUDR_SZ(0) |	/* 1 MB page size */
-					MCF_MMU_MMUDR_CM(0x2) |	/* nocache precise */
-					MCF_MMU_MMUDR_SP |		/* supervisor protect */
-					MCF_MMU_MMUDR_R |		/* read access enable */
-					MCF_MMU_MMUDR_W |		/* write access enable */
-					MCF_MMU_MMUDR_X |		/* execute access enable */
-					MCF_MMU_MMUDR_LK;		/* lock entry */
-	MCF_MMU_MMUOR = MCF_MMU_MMUOR_ACC |		/* access TLB, data */
-					MCF_MMU_MMUOR_UAA;		/* update allocation address field */
-	MCF_MMU_MMUOR = MCF_MMU_MMUOR_ITLB | 	/* instruction */
-					MCF_MMU_MMUOR_ACC |     /* access TLB */
-					MCF_MMU_MMUOR_UAA;      /* update allocation address field */
 
 	/*
 	 * Map (locked) the last MB of physical SDRAM (this is where BaS .data and .bss reside) to the same
