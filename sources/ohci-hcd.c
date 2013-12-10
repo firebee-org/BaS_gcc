@@ -63,9 +63,9 @@
 #undef SHOW_INFO
 #undef OHCI_FILL_TRACE
 
+//#define DEBUG
 #ifdef DEBUG
-#define debug_printf(format, arg...) do { xprintf("DEBUG: " format "\r\n", ##arg
-); } while (0)
+#define debug_printf(format, arg...) do { xprintf("DEBUG: " format "\r\n", ##arg); } while (0)
 #else
 #define debug_printf(format, arg...) do { ; } while (0)
 #endif /* DEBUG */
@@ -86,10 +86,10 @@ inline uint32_t readl(volatile uint32_t *addr)
 {
 	uint32_t res;
 
-	debug_printf("reading from 0x%08x in %s, %d", addr, __FILE__, __LINE__);
+	//debug_printf("reading from 0x%08x in %s, %d", addr, __FILE__, __LINE__);
 	res = swpl(*addr);
 	chip_errata_135();
-	debug_printf(" result=0x%08x\r\n", res);
+	//debug_printf(" result=0x%08x\r\n", res);
 	return res;
 }
 
@@ -98,7 +98,7 @@ inline uint32_t readl(volatile uint32_t *addr)
 */
 inline void writel(uint32_t value, uint32_t *address)
 {
-	debug_printf("writing %08x to %08x in %s, %d\r\n", value, address, __FILE__, __LINE__);
+	//debug_printf("writing %08x to %08x in %s, %d\r\n", value, address, __FILE__, __LINE__);
 	* (volatile uint32_t *) address = swpl(value);
 }
 #else

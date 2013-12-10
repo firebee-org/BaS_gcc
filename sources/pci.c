@@ -33,14 +33,14 @@
 #include "interrupts.h"
 #include "wait.h"
 
-//#define DEBUG_PCI
+#define DEBUG_PCI
 #ifdef DEBUG_PCI
-#define debug_printf(format, arg...) do { xprintf("DEBUG: " format "\r\n", ##arg); } while (0)
+#define debug_printf(format, arg...) do { xprintf("DEBUG: " format "", ##arg); } while (0)
 #else
 #define debug_printf(format, arg...) do { ; } while (0)
 #endif /* DEBUG_PCI */
 
-#define pci_config_wait()	wait(10000);	/* FireBee USB not properly detected otherwise */
+#define pci_config_wait()	wait(20000);	/* FireBee USB not properly detected otherwise */
 
 /*
  * PCI device class descriptions displayed during PCI bus scan
@@ -127,10 +127,8 @@ static int handle2index(int32_t handle)
 {
 	int i;
 
-	debug_printf("handle2int: handles[] is at %p\r\n", &handles[0]);
 	for (i = 0; i < NUM_CARDS; i++)
 	{
-		debug_printf("handle2index: handles[%d] = %x (%x)\r\n", i, handles[i], handle);
 		if (handles[i] == handle)
 		{
 			return i;
@@ -398,10 +396,6 @@ int32_t pci_find_device(uint16_t device_id, uint16_t vendor_id, int index)
 			value = pci_read_config_longword(handle, PCIIDR);
 			if (value != 0xffffffff)	/* we have a device at this position */
 			{
-#ifdef _NOT_USED_
-				debug_printf("value=%08x, vendor_id = 0x%04x, device_id=0x%04x\r\n",
-						value, PCI_VENDOR_ID(value), PCI_DEVICE_ID(value));
-#endif /* _NOT_USED_ */
 				if (vendor_id == 0xffff ||
 					(PCI_VENDOR_ID(value) == vendor_id && PCI_DEVICE_ID(value) == device_id))
 				{
@@ -477,6 +471,7 @@ static void pci_device_config(uint16_t bus, uint16_t device, uint16_t function)
 	uint32_t value;
 	static uint32_t mem_address = PCI_MEMORY_OFFSET;
 	static uint32_t io_address = PCI_IO_OFFSET;
+	uint16_t cr;
 
 	/* determine pci handle from bus, device + function number */
 	handle = PCI_HANDLE(bus, device, function);
@@ -494,12 +489,11 @@ static void pci_device_config(uint16_t bus, uint16_t device, uint16_t function)
 	 * disable device
 	 */
 	
-	value = swpl(pci_read_config_longword(handle, PCICSR));
-
-	pci_write_config_longword(handle, PCICSR, swpl(value));
+	cr = swpw(pci_read_config_word(handle, PCICSR));
+	cr &= ~3;	/* disable device response to address */
+	pci_write_config_word(handle, PCICSR, swpw(cr));
 
 	int barnum = 0;
-	uint16_t command_register = 0;
 
 	descriptors = resource_descriptors[index];
 	for (i = 0; i < 6; i++)		/* for all bars */
@@ -507,17 +501,17 @@ static void pci_device_config(uint16_t bus, uint16_t device, uint16_t function)
 		/*
 		 * read BAR[i] value
 		 */
-		value = swpl(pci_read_config_longword(handle, PCIBAR0 + i));
+		value = swpl(pci_read_config_longword(handle, PCIBAR0 + (i * 4)));
 
 		/*
 		 * write all bits of BAR[i]
 		 */
-		pci_write_config_longword(handle, PCIBAR0 + i, 0xffffffff);
+		pci_write_config_longword(handle, PCIBAR0 + (i * 4), 0xffffffff);
 
 		/*
 		 * read back value to see which bits have been set
 		 */
-		address = swpl(pci_read_config_longword(handle, PCIBAR0 + i));
+		address = swpl(pci_read_config_longword(handle, PCIBAR0 + (i * 4)));
 
 		if (address)	/* is bar in use? */
 		{
@@ -536,10 +530,10 @@ static void pci_device_config(uint16_t bus, uint16_t device, uint16_t function)
 				address = (mem_address + size - 1) & ~(size - 1);
 
 				/* write it to the BAR */
-				pci_write_config_longword(handle, PCIBAR0 + i, swpl(address));
+				pci_write_config_longword(handle, PCIBAR0 + (i * 4), swpl(address));
 
 				/* read it back, just to be sure */
-				value = swpl(pci_read_config_longword(handle, PCIBAR0 + i)) & ~1;
+				value = swpl(pci_read_config_longword(handle, PCIBAR0 + (i * 4))) & ~1;
 				
 				debug_printf("set PCIBAR%d on device 0x%02x to 0x%08x\r\n",
 						i, handle, value);
@@ -555,7 +549,7 @@ static void pci_device_config(uint16_t bus, uint16_t device, uint16_t function)
 				/* adjust memory adress for next turn */
 				mem_address += size;
 
-				command_register |= 2;
+				cr |= 2;
 
 				/* index to next unused resource descriptor */
 				barnum++;
@@ -566,8 +560,8 @@ static void pci_device_config(uint16_t bus, uint16_t device, uint16_t function)
 				debug_printf("device 0x%x: BAR[%d] requests %d bytes of I/O space\r\n", handle, i, size);
 
 				address = (io_address + size - 1) & ~(size - 1);
-				pci_write_config_longword(handle, PCIBAR0 + i, swpl(address));
-				value = swpl(pci_read_config_longword(handle, PCIBAR0 + i));
+				pci_write_config_longword(handle, PCIBAR0 + (i * 4), swpl(address | 1));
+				value = swpl(pci_read_config_longword(handle, PCIBAR0 + (i * 4)));
 
 				debug_printf("set PCIBAR%d on device 0x%02x to 0x%08x\r\n",
 					i, handle, value);
@@ -581,7 +575,7 @@ static void pci_device_config(uint16_t bus, uint16_t device, uint16_t function)
 
 				io_address += size;
 
-				command_register |= 1;
+				cr |= 1;
 
 				barnum++;
 			}
@@ -594,11 +588,7 @@ static void pci_device_config(uint16_t bus, uint16_t device, uint16_t function)
 	/*
 	 * enable device memory or I/O access
 	 */
-	debug_printf("PCICSR of card 0x%02x = 0x%04x\r\n", handle, swpw(pci_read_config_word(handle, PCICSR)));
-	pci_write_config_byte(handle, PCICSR, (uint8_t) command_register);
-	debug_printf("PCICSR of card 0x%02x = 0x%04x\r\n", handle, swpw(pci_read_config_word(handle, PCICSR)));
-	pci_print_device_abilities(handle);
-	pci_print_device_config(handle);
+	pci_write_config_word(handle, PCICSR, swpw(cr));
 }
 
 static void pci_bridge_config(uint16_t bus, uint16_t device, uint16_t function)
@@ -611,8 +601,7 @@ static void pci_bridge_config(uint16_t bus, uint16_t device, uint16_t function)
 		return;
 	}
 	handle = PCI_HANDLE(bus, device, function);
-	pci_print_device_abilities(handle);
-	pci_print_device_config(handle);
+
 	pci_write_config_longword(handle, PCIBAR0, 0x40000000);
 	pci_write_config_longword(handle, PCIBAR1, 0x0);
 	pci_write_config_longword(handle, PCICSR, 0x146);
@@ -830,8 +819,7 @@ void init_pci(void)
 
 	/* reset PCI devices */
 	MCF_PCI_PCIGSCR &= ~MCF_PCI_PCIGSCR_PR;
-	do ; while (MCF_PCI_PCIGSCR & MCF_PCI_PCIGSCR_PR); /* wait until reset finished */
-
+	do {;} while (MCF_PCI_PCIGSCR & MCF_PCI_PCIGSCR_PR); /* wait until reset finished */
 	xprintf("finished\r\n");
 
 	/* initialize resource descriptor table */
@@ -844,7 +832,38 @@ void init_pci(void)
 	 */
 	pci_scan();
 
-	debug_printf("PCIGSCR=0x%08x, PCISCR=0x%08x\r\n", MCF_PCI_PCIGSCR, MCF_PCI_PCISCR);
 
-	debug_printf("XARB_SR=0x%08x\r\n", MCF_XLB_XARB_SR);
+//o#ifdef DEBUG_PCI
+#ifdef _NOT_USED_
+	int index = 0;
+	int handle;
+	handle = pci_find_device(0x0, 0xFFFF, ++index);
+	while (handle > 0)
+	{
+		uint32_t value;
+		uint32_t addr;
+
+		value = pci_read_config_longword(handle, PCIIDR);
+		xprintf(" %02x | %02x | %02x |%04x|%04x|%04x| %s (0x%02x)\r\n",
+				PCI_BUS_FROM_HANDLE(handle),
+				PCI_DEVICE_FROM_HANDLE(handle),
+				PCI_FUNCTION_FROM_HANDLE(handle),
+				PCI_VENDOR_ID(value), PCI_DEVICE_ID(value),
+				handle,
+				device_class(pci_read_config_byte(handle, PCICCR)),
+				pci_read_config_byte(handle, PCICCR));
+
+		pci_print_device_abilities(handle);
+		pci_print_device_config(handle);
+
+		/* read some value from PCIBAR0 */
+		addr = swpl(pci_read_config_longword(handle, PCIBAR0)) & ~0x1f;
+		xprintf("%p = %08x\r\n", addr, * (uint32_t *) addr);
+
+		pci_print_device_abilities(handle);
+		pci_print_device_config(handle);
+
+		handle = pci_find_device(0x0, 0xFFFF, ++index);
+	}
+#endif /* DEBUG_PCI */
 }
