@@ -833,8 +833,7 @@ void init_pci(void)
 	pci_scan();
 
 
-//o#ifdef DEBUG_PCI
-#ifdef _NOT_USED_
+#ifdef DEBUG_PCI
 	int index = 0;
 	int handle;
 	handle = pci_find_device(0x0, 0xFFFF, ++index);
