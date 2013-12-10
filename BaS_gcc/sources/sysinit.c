@@ -640,7 +640,7 @@ void init_usb(void)
 		}
 	} while (handle >= 0);
 
-	xprintf("finished\r\n");
+	xprintf("finished (found %d USB controller(s))\r\n", usb_found);
 }
 
 static bool i2c_transfer_finished(void)

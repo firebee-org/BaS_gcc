@@ -33,7 +33,7 @@
 #include "interrupts.h"
 #include "wait.h"
 
-#define DEBUG_PCI
+//#define DEBUG_PCI
 #ifdef DEBUG_PCI
 #define debug_printf(format, arg...) do { xprintf("DEBUG: " format "", ##arg); } while (0)
 #else
