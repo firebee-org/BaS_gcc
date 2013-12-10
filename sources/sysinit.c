@@ -415,6 +415,7 @@ void init_fbcs()
 	MCF_FBCS0_CSCR = MCF_FBCS_CSCR_PS_16 |		/* 16 bit word access */
 			MCF_FBCS_CSCR_WS(6)|						/* 6 Waitstates */
 			MCF_FBCS_CSCR_AA |
+			MCF_FBCS_CSCR_ASET(1) |
 			MCF_FBCS_CSCR_RDAH(1);				/* chip errata SECF077 */
 	MCF_FBCS0_CSMR = BOOTFLASH_BAM |
 			MCF_FBCS_CSMR_V;							/* enable */
@@ -453,12 +454,13 @@ void init_fbcs()
 	MCF_FBCS3_CSMR = 0;
 	MCF_FBCS4_CSMR = 0;
 
-	MCF_FBCS5_CSAR = 0x70000000;
-	MCF_FBCS5_CSCR = MCF_FBCS_CSCR_PS_16	/* CPLD access */
+	MCF_FBCS5_CSAR = MCF_FBCS_CSAR_BA(0x60000000);
+	MCF_FBCS5_CSCR = MCF_FBCS_CSCR_PS_16 	/* CPLD access */
 		| MCF_FBCS_CSCR_WS(10)
-		| MCF_FBCS_CSCR_AA
-		| MCF_FBCS_CSCR_PS_16;
-	MCF_FBCS5_CSMR = MCF_FBCS_CSMR_BAM_1M | MCF_FBCS_CSMR_V;
+		| MCF_FBCS_CSCR_ASET(1)
+		| MCF_FBCS_CSCR_AA;
+	MCF_FBCS5_CSMR = MCF_FBCS_CSMR_BAM_256M 
+		| MCF_FBCS_CSMR_V;
 #endif /* MACHINE_FIREBEE */
 
 
@@ -469,7 +471,7 @@ void init_fbcs()
 		| MCF_FBCS_CSCR_BSTW
 		| MCF_FBCS_CSCR_RDAH(1);				/* chip errata SECF077 */
 	MCF_FBCS5_CSMR = MCF_FBCS_CSMR_BAM_1G;
-			/* | MCF_FBCS_CSMR_V; */		/* not enabled */
+		//| MCF_FBCS_CSMR_V;
 #endif /* MACHINE_M5484LITE */
 
 	xprintf("finished\r\n");
@@ -1103,6 +1105,7 @@ void initialize_hardware(void)
 	init_ac97();
 #endif /* MACHINE_FIREBEE */
 
+	//hexdump(0x6a000000, 8192);
 	xprintf("initialize and test DMA\r\n");
 	dma_init();
 
