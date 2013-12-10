@@ -556,7 +556,7 @@ static int ehci_submit_root(struct usb_device *dev, uint32_t pipe, void *buffer,
 	uint32_t *status_reg;
 	if (swpw(req->index) > CONFIG_SYS_USB_EHCI_MAX_ROOT_PORTS)
 	{
-		err("The request port(%d) is not configured", swpw(req->index) - 1);
+		err("The request port(%d) is not configured\r\n", swpw(req->index) - 1);
 		return -1;
 	}
 	status_reg = (uint32_t *)&gehci.hcor->or_portsc[swpw(req->index) - 1];
