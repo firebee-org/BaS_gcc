@@ -107,8 +107,8 @@ __attribute__((aligned(16))) void chip_errata_135(void)
 		"		.extern __MBAR\n\t"
 		"		clr.l	d0\n\t"
 		"		move.l	d0,__MBAR+0xF0C\n\t"		/* Must use direct addressing. write to EPORT module */
-											/* xlbus -> slavebus -> eport, writing '0' to register */
-											/* has no effect */
+													/* xlbus -> slavebus -> eport, writing '0' to register */
+													/* has no effect */
 		"		rts\n\t"
 		"		tpf.l	#0x0\n\t"
 		"		tpf.l	#0x0\n\t"
@@ -170,12 +170,12 @@ uint32_t pci_read_config_longword(int32_t handle, int offset)
 			MCF_PCI_PCICAR_FUNCNUM(PCI_FUNCTION_FROM_HANDLE(handle)) |	/* function number */
 			MCF_PCI_PCICAR_DWORD(offset / 4);
 	
-	__asm__ __volatile__("nop");				/* this is what the Linux BSP does */
+	__asm__ __volatile__("nop" ::: "memory");				/* this is what the Linux BSP does */
 
 	pci_config_wait();
 	value =  * (volatile uint32_t *) PCI_IO_OFFSET;	/* access device */
 
-	__asm__ __volatile__("tpf");				/* this is what the Linux BSP does */
+	__asm__ __volatile__("tpf" ::: "memory");				/* this is what the Linux BSP does */
 
 	/* finish PCI configuration access special cycle (allow regular PCI accesses) */
 	MCF_PCI_PCICAR &= ~MCF_PCI_PCICAR_E;
@@ -196,11 +196,11 @@ uint16_t pci_read_config_word(int32_t handle, int offset)
 			MCF_PCI_PCICAR_FUNCNUM(PCI_FUNCTION_FROM_HANDLE(handle)) |
 			MCF_PCI_PCICAR_DWORD(offset / 4);
 	
-	__asm__ __volatile("nop");			/* this is what Linux BSP does */
+	__asm__ __volatile("nop" ::: "memory");			/* this is what Linux BSP does */
 
 	value = * (volatile uint16_t *) PCI_IO_OFFSET + (offset & 2);
 
-	__asm__ __volatile("tpf");
+	__asm__ __volatile("tpf" ::: "memory");
 
 	/* finish PCI configuration access special cycle */
 	MCF_PCI_PCICAR &= ~MCF_PCI_PCICAR_E;
@@ -244,11 +244,11 @@ int32_t pci_write_config_longword(int32_t handle, int offset, uint32_t value)
 		MCF_PCI_PCICAR_FUNCNUM(PCI_FUNCTION_FROM_HANDLE(handle)) |	/* function number */
 		MCF_PCI_PCICAR_DWORD(offset / 4);
 
-	__asm__ __volatile__("nop");
+	__asm__ __volatile__("nop" ::: "memory");
 
 	* (volatile uint32_t *) PCI_IO_OFFSET = value;	/* access device */
 
-	__asm__ __volatile__("tpf");
+	__asm__ __volatile__("tpf" ::: "memory");
 
 	/* finish configuration space access cycle */
 	MCF_PCI_PCICAR &= ~MCF_PCI_PCICAR_E;
@@ -270,11 +270,11 @@ int32_t pci_write_config_word(int32_t handle, int offset, uint16_t value)
 			MCF_PCI_PCICAR_FUNCNUM(PCI_FUNCTION_FROM_HANDLE(handle)) |
 			MCF_PCI_PCICAR_DWORD(offset / 4);
 	
-	__asm__ __volatile__("tpf");
+	__asm__ __volatile__("tpf" ::: "memory");
 
 	* (volatile uint16_t *) (PCI_IO_OFFSET + (offset & 2)) = value;
 	
-	__asm__ __volatile__("tpf");
+	__asm__ __volatile__("tpf" ::: "memory");
 
 	/* finish configuration space access cycle */
 	MCF_PCI_PCICAR &= ~MCF_PCI_PCICAR_E;
@@ -295,11 +295,11 @@ int32_t pci_write_config_byte(int32_t handle, int offset, uint8_t value)
 			MCF_PCI_PCICAR_FUNCNUM(PCI_FUNCTION_FROM_HANDLE(handle)) |
 			MCF_PCI_PCICAR_DWORD(offset / 4);
 	
-	__asm__ __volatile__("tpf");
+	__asm__ __volatile__("tpf" ::: "memory");
 
 	* (volatile uint8_t *) (PCI_IO_OFFSET + (offset & 3)) = value;
 
-	__asm__ __volatile__("tpf");
+	__asm__ __volatile__("tpf" ::: "memory");
 
 	/* finish configuration space access cycle */
 	MCF_PCI_PCICAR &= ~MCF_PCI_PCICAR_E;
@@ -496,22 +496,22 @@ static void pci_device_config(uint16_t bus, uint16_t device, uint16_t function)
 	int barnum = 0;
 
 	descriptors = resource_descriptors[index];
-	for (i = 0; i < 6; i++)		/* for all bars */
+	for (i = 0; i < 6 * 4; i += 4)		/* for all bars */
 	{
 		/*
 		 * read BAR[i] value
 		 */
-		value = swpl(pci_read_config_longword(handle, PCIBAR0 + (i * 4)));
+		value = swpl(pci_read_config_longword(handle, PCIBAR0 + i));
 
 		/*
 		 * write all bits of BAR[i]
 		 */
-		pci_write_config_longword(handle, PCIBAR0 + (i * 4), 0xffffffff);
+		pci_write_config_longword(handle, PCIBAR0 + i, 0xffffffff);
 
 		/*
 		 * read back value to see which bits have been set
 		 */
-		address = swpl(pci_read_config_longword(handle, PCIBAR0 + (i * 4)));
+		address = swpl(pci_read_config_longword(handle, PCIBAR0 + i));
 
 		if (address)	/* is bar in use? */
 		{
@@ -524,19 +524,19 @@ static void pci_device_config(uint16_t bus, uint16_t device, uint16_t function)
 			{
 				/* adjust base address to card's alignment requirements */
 				int size = ~(address & 0xfffffff0) + 1;
-				debug_printf("device 0x%x: BAR[%d] requests %d bytes of memory\r\n", handle, i, size);
+				debug_printf("device 0x%x: BAR[%d] requests %d bytes of memory\r\n", handle, i / 4, size);
 
 				/* calculate a valid map adress with alignment requirements */
 				address = (mem_address + size - 1) & ~(size - 1);
 
 				/* write it to the BAR */
-				pci_write_config_longword(handle, PCIBAR0 + (i * 4), swpl(address));
+				pci_write_config_longword(handle, PCIBAR0 + i, swpl(address));
 
 				/* read it back, just to be sure */
-				value = swpl(pci_read_config_longword(handle, PCIBAR0 + (i * 4))) & ~1;
+				value = swpl(pci_read_config_longword(handle, PCIBAR0 + i)) & ~1;
 				
 				debug_printf("set PCIBAR%d on device 0x%02x to 0x%08x\r\n",
-						i, handle, value);
+						i / 4, handle, value);
 
 				/* fill resource descriptor */
 				rd->next = sizeof(struct pci_rd);
@@ -560,11 +560,11 @@ static void pci_device_config(uint16_t bus, uint16_t device, uint16_t function)
 				debug_printf("device 0x%x: BAR[%d] requests %d bytes of I/O space\r\n", handle, i, size);
 
 				address = (io_address + size - 1) & ~(size - 1);
-				pci_write_config_longword(handle, PCIBAR0 + (i * 4), swpl(address | 1));
-				value = swpl(pci_read_config_longword(handle, PCIBAR0 + (i * 4)));
+				pci_write_config_longword(handle, PCIBAR0 + i, swpl(address | 1));
+				value = swpl(pci_read_config_longword(handle, PCIBAR0 + i));
 
 				debug_printf("set PCIBAR%d on device 0x%02x to 0x%08x\r\n",
-					i, handle, value);
+					i / 4, handle, value);
 
 				rd->next = sizeof(struct pci_rd);
 				rd->flags = FLG_IO | FLG_8BIT | FLG_16BIT | FLG_32BIT | 2;
