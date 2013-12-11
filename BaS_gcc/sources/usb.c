@@ -56,7 +56,7 @@
 extern int usb_stor_curr_dev;
 extern uint32_t usb_1st_disk_drive;
 
-#define USB_DEBUG
+//#define USB_DEBUG
 
 #ifdef	USB_DEBUG
 #define	debug_printf(fmt, args...)	xprintf(fmt , ##args)
@@ -180,7 +180,7 @@ int usb_init(int32_t handle, const struct pci_device_id *ent)
 			usb_started = 0;
 			return -1; /* out of memoy */
 		}
-		debug_printf("Scanning bus for devices... ");
+		xprintf("Scanning bus for devices... ");
 		controller_priv[bus_index] = (struct hci *)priv;
 		controller_priv[bus_index]->usbnum = bus_index;
 		usb_scan_devices(priv);
@@ -1079,13 +1079,13 @@ void usb_scan_devices(void *priv)
 	dev = usb_alloc_new_device(bus_index, priv);
 	if (usb_new_device(dev))
 	{
-		debug_printf("No USB Device found\r\n");
+		xprintf("No USB Device found\r\n");
 		if (dev != NULL)
 			dev_index[bus_index]--;
 	}
 	else
 	{
-		debug_printf("%d USB Device(s) found\r\n", dev_index[bus_index]);
+		xprintf("%d USB Device(s) found\r\n", dev_index[bus_index]);
 	}
 	{
 		/* insert "driver" if possible */
@@ -1100,7 +1100,7 @@ void usb_scan_devices(void *priv)
 		else
 			debug_printf("USB HID mouse driver installed\r\n");
 	}
-	debug_printf("Scan end\r\n");
+	xprintf("Scan end\r\n");
 }
 
 /****************************************************************************
@@ -1108,7 +1108,7 @@ void usb_scan_devices(void *priv)
  * Probes device for being a hub and configurate it
  */
 
-#define USB_HUB_DEBUG
+//#define USB_HUB_DEBUG
 
 #ifdef USB_HUB_DEBUG
 #define	dbg_hub(fmt, args...)	xprintf(fmt , ##args)

@@ -40,7 +40,11 @@
 #define debug_printf(format, arg...) do { ; } while (0)
 #endif /* DEBUG_PCI */
 
+#if MACHINE_FIREBEE
 #define pci_config_wait()	wait(20000);	/* FireBee USB not properly detected otherwise */
+#elif MACHINE_M5484LITE
+#define pci_config_wait() do { ; } while (0)
+#endif
 
 /*
  * PCI device class descriptions displayed during PCI bus scan
