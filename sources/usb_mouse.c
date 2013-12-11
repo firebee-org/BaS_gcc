@@ -23,6 +23,7 @@
 #include <stdint.h>
 #include "bas_printf.h"
 #include "usb.h"
+#include "exceptions.h"
 
 #undef USB_MOUSE_DEBUG
 #ifdef	USB_MOUSE_DEBUG
@@ -34,7 +35,6 @@
 extern void ltoa(char *buf, long n, unsigned long base);
 extern void call_mousevec(unsigned char *data, void (**mousevec)(void *));
 //extern void call_ikbdvec(unsigned char code, _IOREC *iorec, void (**ikbdvec)());
-extern int asm_set_ipl(int level);
 
 static unsigned char *new;
 static unsigned char old[8];

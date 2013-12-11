@@ -1094,11 +1094,11 @@ void usb_scan_devices(void *priv)
 			debug_printf("No USB keyboard found\r\n");	
 		else
 			debug_printf("USB HID keyboard driver installed\r\n");
+#endif /* _NOT_USED */
 		if (drv_usb_mouse_init() < 0)
 			debug_printf("No USB mouse found\r\n");	
 		else
 			debug_printf("USB HID mouse driver installed\r\n");
-#endif /* _NOT_USED */
 	}
 	debug_printf("Scan end\r\n");
 }
