@@ -89,6 +89,7 @@ CSRCS= \
 	$(SRCDIR)/usb_mem.c \
 	$(SRCDIR)/ohci-hcd.c \
 	$(SRCDIR)/ehci-hcd.c \
+	$(SRCDIR)/usb_mouse.c \
 	\
 	$(SRCDIR)/ikbd.c \
 	\
