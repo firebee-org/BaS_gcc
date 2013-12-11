@@ -313,8 +313,8 @@ void mmu_init(void)
 
 #if MACHINE_FIREBEE
 	/*
-	 * Map FireBee I/O area (0xfff0'0000 - 0xffff'0000 physical) to the Falcon-compatible I/O
-	 * area (0x00f0'0000 - 0x00ff'0000 virtual) for the FireBee
+	 * Map FireBee I/O area (0xfff0'0000 - 0xffff'ffff physical) to the Falcon-compatible I/O
+	 * area (0x00f0'0000 - 0x00ff'ffff virtual) for the FireBee
 	 */
 
 	MCF_MMU_MMUTR = 0x00f00000 |			/* virtual address */
