@@ -1,4 +1,5 @@
 #include "mmu.h"
+#include "acia.h"
 
 /*
  * mmu.c
@@ -365,24 +366,40 @@ void mmutr_miss(void)
 	debug_print("MMU TLB MISS at 0x%08x\r\n", address);
 	flush_and_invalidate_caches();
 
-	/* add missed page to TLB */
-	MCF_MMU_MMUTR = (address & 0xfff00000) | /* virtual aligned to 1M */
-					MCF_MMU_MMUTR_SG |		/* shared global */
-					MCF_MMU_MMUTR_V;		/* valid */
+	switch (address)
+	{
+		case keyctl:
+		case keybd:
+			/* do something to emulate the IKBD access */
+			debug_print("IKBD access\r\n");
+			break;
 
-	MCF_MMU_MMUDR = (address & 0xfff00000) |	/* physical aligned to 1M */
-					MCF_MMU_MMUDR_SZ(0) |	/* 1 MB page size */
-					MCF_MMU_MMUDR_CM(0x1) |	/* cacheable copyback */
-					MCF_MMU_MMUDR_R |		/* read access enable */
-					MCF_MMU_MMUDR_W |		/* write access enable */
-					MCF_MMU_MMUDR_X;		/* execute access enable */
+		case midictl:
+		case midi:
+			/* do something to emulate MIDI access */
+			debug_print("MIDI ACIA access\r\n");
+			break;
 
-	MCF_MMU_MMUOR = MCF_MMU_MMUOR_ACC |		/* access TLB, data */
-					MCF_MMU_MMUOR_UAA;		/* update allocation address field */
+		default:
+			/* add missed page to TLB */
+			MCF_MMU_MMUTR = (address & 0xfff00000) | /* virtual aligned to 1M */
+							MCF_MMU_MMUTR_SG |		/* shared global */
+							MCF_MMU_MMUTR_V;		/* valid */
 
-	MCF_MMU_MMUOR = MCF_MMU_MMUOR_ITLB | 	/* instruction */
-					MCF_MMU_MMUOR_ACC |     /* access TLB */
-					MCF_MMU_MMUOR_UAA;      /* update allocation address field */
+			MCF_MMU_MMUDR = (address & 0xfff00000) |	/* physical aligned to 1M */
+							MCF_MMU_MMUDR_SZ(0) |	/* 1 MB page size */
+							MCF_MMU_MMUDR_CM(0x1) |	/* cacheable copyback */
+							MCF_MMU_MMUDR_R |		/* read access enable */
+							MCF_MMU_MMUDR_W |		/* write access enable */
+							MCF_MMU_MMUDR_X;		/* execute access enable */
+
+			MCF_MMU_MMUOR = MCF_MMU_MMUOR_ACC |		/* access TLB, data */
+							MCF_MMU_MMUOR_UAA;		/* update allocation address field */
+
+			MCF_MMU_MMUOR = MCF_MMU_MMUOR_ITLB | 	/* instruction */
+							MCF_MMU_MMUOR_ACC |     /* access TLB */
+							MCF_MMU_MMUOR_UAA;      /* update allocation address field */
+	}
 }
 
 
