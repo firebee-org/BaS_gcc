@@ -45,6 +45,7 @@ SECTIONS
 		OBJDIR/pci.o(.text)
 		OBJDIR/usb.o(.text)
 		OBJDIR/usb_mem.o(.text)
+		OBJDIR/usb_mouse.o(.text)
 		OBJDIR/ohci-hcd.o(.text)
 		OBJDIR/ehci-hcd.o(.text)
 		OBJDIR/wait.o(.text)
