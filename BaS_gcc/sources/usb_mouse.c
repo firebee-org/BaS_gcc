@@ -25,28 +25,20 @@
 #include "usb.h"
 
 #undef USB_MOUSE_DEBUG
-
-#if defined(CONFIG_USB_UHCI) || defined(CONFIG_USB_OHCI) || defined(CONFIG_USB_EHCI)
-#ifdef CONFIG_USB_MOUSE
-
 #ifdef	USB_MOUSE_DEBUG
-#define	USB_MOUSE_PRINTF(fmt,args...)	bas_printf(fmt ,##args)
+#define	mse_printf(fmt,args...)	bas_printf(fmt ,##args)
 #else
-#define USB_MOUSE_PRINTF(fmt,args...)
+#define mse_printf(fmt,args...)
 #endif
 
 extern void ltoa(char *buf, long n, unsigned long base);
 extern void call_mousevec(unsigned char *data, void (**mousevec)(void *));
-extern void call_ikbdvec(unsigned char code, _IOREC *iorec, void (**ikbdvec)());
+//extern void call_ikbdvec(unsigned char code, _IOREC *iorec, void (**ikbdvec)());
 extern int asm_set_ipl(int level);
 
 static unsigned char *new;
 static unsigned char old[8];
 static int mouse_installed;
-
-extern void (**mousevec)(void *);
-extern _IOREC *iorec;
-extern void (**ikbdvec)();
 
 /* forward declaration */
 static int usb_mouse_probe(struct usb_device *dev, unsigned int ifnum);
@@ -61,7 +53,7 @@ int usb_mouse_deregister(struct usb_device *dev)
 		new = NULL;
 	}
 	mouse_installed = 0;
-	USB_MOUSE_PRINTF("USB MOUSE deregister\r\n");
+	mse_printf("USB MOUSE deregister\r\n");
 	return 1;
 }
 
@@ -70,7 +62,7 @@ int usb_mouse_register(struct usb_device *dev)
 {
 	if(!mouse_installed && (dev->devnum != -1) && (usb_mouse_probe(dev, 0) == 1))
 	{ /* Ok, we found a mouse */
-		USB_MOUSE_PRINTF("USB MOUSE found (USB: %d, devnum: %d)\r\n", dev->usbnum, dev->devnum);
+		mse_printf("USB MOUSE found (USB: %d, devnum: %d)\r\n", dev->usbnum, dev->devnum);
 		mouse_installed = 1;
 		dev->deregister = usb_mouse_deregister;
 		return 1;
@@ -106,8 +98,7 @@ int drv_usb_mouse_init(void)
  */
 static void usb_kbd_send_code(unsigned char code)
 {
-	if((iorec != NULL) && (ikbdvec != NULL))
-		call_ikbdvec(code, iorec, ikbdvec);
+	mse_printf("FIXME: usb_kbd_send_code 0x%x not implemented\r\n", code);
 }
 
 /* Interrupt service routine */
@@ -119,7 +110,7 @@ static int usb_mouse_irq(struct usb_device *dev)
 	int i, change = 0;
 	if((dev->irq_status != 0) || (dev->irq_act_len < 3) || (dev->irq_act_len > 8))
 	{
-		USB_MOUSE_PRINTF("USB MOUSE error %lX, len %d\r\n", dev->irq_status, dev->irq_act_len);
+		mse_printf("USB MOUSE error %lX, len %d\r\n", dev->irq_status, dev->irq_act_len);
 		return 1;
 	}
 	for(i = 0; i < dev->irq_act_len; i++)
@@ -133,7 +124,7 @@ static int usb_mouse_irq(struct usb_device *dev)
 	if(change)
 	{
 		char wheel = 0, buttons, old_buttons;
-		USB_MOUSE_PRINTF("USB MOUSE len:%d %02X %02X %02X %02X %02X %02X\r\n", dev->irq_act_len, new[0], new[1], new[2], new[3], new[4], new[5]);
+		mse_printf("USB MOUSE len:%d %02X %02X %02X %02X %02X %02X\r\n", dev->irq_act_len, new[0], new[1], new[2], new[3], new[4], new[5]);
 #ifdef CONFIG_USB_INTERRUPT_POLLING
 		level = asm_set_ipl(7); /* mask interrupts */
 #endif
@@ -183,8 +174,9 @@ static int usb_mouse_irq(struct usb_device *dev)
 				}
 			}
 		}
-		if(mousevec != NULL)
-			call_mousevec(new, mousevec);
+		xprintf("FIXME: call_mousevec(new, mousevec) not implemented\r\n");
+		//if(mousevec != NULL)
+			//call_mousevec(new, mousevec);
 #ifdef CONFIG_USB_INTERRUPT_POLLING
 		asm_set_ipl(level);
 #endif
@@ -223,7 +215,7 @@ static int usb_mouse_probe(struct usb_device *dev, unsigned int ifnum)
 	new = (unsigned char *)usb_malloc(8);
 	if(new == NULL)
 		return 0;
-	USB_MOUSE_PRINTF("USB MOUSE found set protocol...\r\n");
+	mse_printf("USB MOUSE found set protocol...\r\n");
 	/* ok, we found a USB Mouse, install it */
 	pipe = usb_rcvintpipe(dev, ep->bEndpointAddress);
 	maxp = usb_maxpacket(dev, pipe);
@@ -231,15 +223,13 @@ static int usb_mouse_probe(struct usb_device *dev, unsigned int ifnum)
 //		usb_set_protocol(dev, iface->bInterfaceNumber, 0); /* boot */
 //	else
 	usb_set_protocol(dev, iface->bInterfaceNumber, 1); /* report */
-	USB_MOUSE_PRINTF("USB MOUSE found set idle...\r\n");
+	mse_printf("USB MOUSE found set idle...\r\n");
 	usb_set_idle(dev, iface->bInterfaceNumber, 0, 0); /* report infinite */
 	memset(&new[0], 0, 8);
 	memset(&old[0], 0, 8);
 	dev->irq_handle = usb_mouse_irq;
-	USB_MOUSE_PRINTF("USB MOUSE enable interrupt pipe (maxp: %d)...\r\n", maxp);
+	mse_printf("USB MOUSE enable interrupt pipe (maxp: %d)...\r\n", maxp);
 	usb_submit_int_msg(dev, pipe, &new[0], maxp > 8 ? 8 : maxp, ep->bInterval);
 	return 1;
 }
 
-#endif /* CONFIG_USB_MOUSE */
-#endif /* CONFIG_USB_UHCI || CONFIG_USB_OHCI || CONFIG_USB_EHCI */
