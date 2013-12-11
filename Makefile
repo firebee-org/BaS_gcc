@@ -90,6 +90,8 @@ CSRCS= \
 	$(SRCDIR)/ohci-hcd.c \
 	$(SRCDIR)/ehci-hcd.c \
 	\
+	$(SRCDIR)/ikbd.c \
+	\
 	$(SRCDIR)/basflash.c \
 	$(SRCDIR)/basflash_start.c 
 
