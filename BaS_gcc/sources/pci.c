@@ -312,48 +312,6 @@ int32_t pci_write_config_byte(int32_t handle, int offset, uint8_t value)
 
 	return PCI_SUCCESSFUL;
 }
-
-void pci_print_device_abilities(int32_t handle)
-{
-	uint16_t value;
-	uint16_t saved_value;
-
-	saved_value = pci_read_config_word(handle, PCICSR);
-	pci_write_config_word(handle, PCICSR, 0xffff);
-	value = swpw(pci_read_config_word(handle, PCICSR));
-	debug_printf("IO: %1d MEM: %1d MSTR:%1d SPCC: %1d MEMW: %1d VGAS: %1d PERR: %1d STEP: %1d SERR: %1d FBTB: %1d\r\n",
-			value & PCICSR_IO ? 1 : 0,
-			value & PCICSR_MEMORY ? 1 : 0,
-			value & PCICSR_MASTER ? 1 : 0,
-			value & PCICSR_SPECIAL ? 1 : 0,
-			value & PCICSR_MEMWI ? 1 : 0,
-			value & PCICSR_VGA_SNOOP ? 1 : 0,
-			value & PCICSR_PERR ? 1 : 0,
-			value & PCICSR_STEPPING ? 1 : 0,
-			value & PCICSR_SERR ? 1 : 0,
-			value & PCICSR_FAST_BTOB_E ? 1 : 0);
-	pci_write_config_word(handle, PCICSR, saved_value);
-}
-
-
-void pci_print_device_config(int32_t handle)
-{
-	uint16_t value;
-
-	value = swpw(pci_read_config_word(handle, PCICSR + 2));
-	debug_printf("66M: %1d UDF: %1d FB2B:%1d PERR: %1d TABR: %1d DABR: %1d SERR: %1d PPER: %1d\r\n",
-			value & PCICSR_66MHZ ? 1 : 0,
-			value & PCICSR_UDF ? 1 : 0,
-			value & PCICSR_FAST_BTOB ? 1 : 0,
-			value & PCICSR_DPARITY_ERROR ? 1 : 0,
-			value & PCICSR_T_ABORT_S ? 1 : 0,
-			value & PCICSR_T_ABORT_R ? 1 : 0,
-			value & PCICSR_M_ABORT_R ? 1 : 0,
-			value & PCICSR_S_ERROR_S ? 1 : 0,
-			value & PCICSR_PARITY_ERR ? 1 : 0);
-}
-
-	
 /*
  * pci_get_resource
  *
@@ -826,9 +784,9 @@ void init_pci(void)
 	do {;} while (MCF_PCI_PCIGSCR & MCF_PCI_PCIGSCR_PR); /* wait until reset finished */
 	xprintf("finished\r\n");
 
-	/* initialize resource descriptor table */
+	/* initialize/clear resource descriptor table */
 	memset(&resource_descriptors, 0, NUM_CARDS * NUM_RESOURCES * sizeof(struct pci_rd));
-	/* initialize handles array */
+	/* initialize/clear handles array */
 	memset(handles, 0, NUM_CARDS * sizeof(int32_t));
 
 	/*
@@ -838,6 +796,7 @@ void init_pci(void)
 
 
 #ifdef DEBUG_PCI
+
 	int index = 0;
 	int handle;
 	handle = pci_find_device(0x0, 0xFFFF, ++index);
@@ -870,3 +829,48 @@ void init_pci(void)
 	}
 #endif /* DEBUG_PCI */
 }
+
+
+#ifdef DEBUG_PCI
+void pci_print_device_abilities(int32_t handle)
+{
+	uint16_t value;
+	uint16_t saved_value;
+
+	saved_value = pci_read_config_word(handle, PCICSR);
+	pci_write_config_word(handle, PCICSR, 0xffff);
+	value = swpw(pci_read_config_word(handle, PCICSR));
+	debug_printf("IO: %1d MEM: %1d MSTR:%1d SPCC: %1d MEMW: %1d VGAS: %1d PERR: %1d STEP: %1d SERR: %1d FBTB: %1d\r\n",
+			value & PCICSR_IO ? 1 : 0,
+			value & PCICSR_MEMORY ? 1 : 0,
+			value & PCICSR_MASTER ? 1 : 0,
+			value & PCICSR_SPECIAL ? 1 : 0,
+			value & PCICSR_MEMWI ? 1 : 0,
+			value & PCICSR_VGA_SNOOP ? 1 : 0,
+			value & PCICSR_PERR ? 1 : 0,
+			value & PCICSR_STEPPING ? 1 : 0,
+			value & PCICSR_SERR ? 1 : 0,
+			value & PCICSR_FAST_BTOB_E ? 1 : 0);
+	pci_write_config_word(handle, PCICSR, saved_value);
+}
+
+
+void pci_print_device_config(int32_t handle)
+{
+	uint16_t value;
+
+	value = swpw(pci_read_config_word(handle, PCICSR + 2));
+	debug_printf("66M: %1d UDF: %1d FB2B:%1d PERR: %1d TABR: %1d DABR: %1d SERR: %1d PPER: %1d\r\n",
+			value & PCICSR_66MHZ ? 1 : 0,
+			value & PCICSR_UDF ? 1 : 0,
+			value & PCICSR_FAST_BTOB ? 1 : 0,
+			value & PCICSR_DPARITY_ERROR ? 1 : 0,
+			value & PCICSR_T_ABORT_S ? 1 : 0,
+			value & PCICSR_T_ABORT_R ? 1 : 0,
+			value & PCICSR_M_ABORT_R ? 1 : 0,
+			value & PCICSR_S_ERROR_S ? 1 : 0,
+			value & PCICSR_PARITY_ERR ? 1 : 0);
+}
+#endif /* DEBUG_PCI */
+
+	
