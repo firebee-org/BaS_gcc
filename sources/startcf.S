@@ -1,4 +1,5 @@
-/* This object file must be the first to be linked,
+/*
+ * This object file must be the first to be linked,
  * so it will be placed at the very beginning of the ROM.
  */
 
