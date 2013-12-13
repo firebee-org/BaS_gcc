@@ -124,6 +124,21 @@ __attribute__((aligned(16))) void chip_errata_135(void)
 
 
 
+__attribute__((interrupt)) void pci_arb_interrupt(void)
+{
+	debug_printf("XLBARB slave error interrupt\r\n");
+	MCF_XLB_XARB_SR |= ~MCF_XLB_XARB_SR_SEA;
+}
+
+__attribute__((interrupt)) void xlb_pci_interrupt(void)
+{
+	debug_printf("XLBPCI interrupt\r\n");
+}
+
+__attribute__((interrupt)) void pci_interrupt(void)
+{
+}
+
 /*
  * retrieve handle for i'th device
  */
@@ -675,18 +690,6 @@ void init_xlbus_arbiter(void)
 	MCF_XLB_XARB_PRI = MCF_XLB_XARB_PRI_M0P(7) |	/* Coldfire core gets lowest */
 					MCF_XLB_XARB_PRI_M2P(5) |		/* Multichannel DMA mid priority */
 					MCF_XLB_XARB_PRI_M3P(3);		/* PCI target interface is highest priority */
-}
-
-
-__attribute__((interrupt)) void pci_arb_interrupt(void)
-{
-	debug_printf("XLBARB slave error interrupt\r\n");
-	MCF_XLB_XARB_SR |= ~MCF_XLB_XARB_SR_SEA;
-}
-
-__attribute__((interrupt)) void xlb_pci_interrupt(void)
-{
-	debug_printf("XLBPCI interrupt\r\n");
 }
 
 void init_pci(void)
