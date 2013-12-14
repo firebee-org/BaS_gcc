@@ -43,7 +43,6 @@ flash 0xe0000000
 
 # Erase flash from 0xE0100000 to 0xE01FFFFF (reserved space for EmuTOS on the m5484lite)
 
-erase 0xe0000000 20
 erase 0xe0000000 21
 erase 0xe0000000 22
 erase 0xe0000000 23
