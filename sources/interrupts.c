@@ -25,6 +25,7 @@
 #include <stdint.h>
 #include "MCF5475.h"
 #include "bas_utils.h"
+#include "bas_printf.h"
 #include "exceptions.h"
 #include "interrupts.h"
 
@@ -39,7 +40,7 @@ int register_interrupt_handler(uint8_t source, uint8_t level, uint8_t priority, 
 {
 	int ipl;
 	int i;
-	uint8_t *ICR = &MCF_INTC_ICR01 - 1;
+	volatile uint8_t *ICR = &MCF_INTC_ICR01 - 1;
 	uint8_t lp;
 
 	source &= 63;
