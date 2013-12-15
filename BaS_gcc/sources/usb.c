@@ -326,7 +326,7 @@ int usb_control_msg(struct usb_device *dev, unsigned int pipe,
 		 * Let's wait a while for the timeout to elapse.
 		 * It has no real use, but it keeps the interface happy.
 		 */
-		wait(timeout * 1000);
+		wait(timeout);
 		return -1;
 	}
 	return dev->act_len;
@@ -1075,6 +1075,7 @@ void usb_scan_devices(void *priv)
 		usb_dev[(bus_index * USB_MAX_DEVICE) + i].devnum = -1;
 	}
 	dev_index[bus_index] = 0;
+	
 	/* device 0 is always present (root hub, so let it analyze) */
 	dev = usb_alloc_new_device(bus_index, priv);
 	if (usb_new_device(dev))
@@ -1108,7 +1109,7 @@ void usb_scan_devices(void *priv)
  * Probes device for being a hub and configurate it
  */
 
-//#define USB_HUB_DEBUG
+#define USB_HUB_DEBUG
 
 #ifdef USB_HUB_DEBUG
 #define	dbg_hub(fmt, args...)	xprintf(fmt , ##args)
@@ -1159,6 +1160,7 @@ static void usb_hub_power_on(struct usb_hub_device *hub)
 {
 	int i;
 	struct usb_device *dev;
+	
 	dev = hub->pusb_dev;
 	/* Enable power to the ports */
 	dbg_hub("enabling power on all ports\r\n");
@@ -1200,6 +1202,7 @@ static int hub_port_reset(struct usb_device *dev, int port, unsigned short *port
 	int tries;
 	struct usb_port_status portsts;
 	unsigned short portstatus, portchange;
+	
 	dbg_hub("hub_port_reset: resetting port %d...\r\n", port + 1);
 	for (tries = 0; tries < MAX_TRIES; tries++)
 	{
@@ -1209,7 +1212,7 @@ static int hub_port_reset(struct usb_device *dev, int port, unsigned short *port
 			vTaskDelay((200*configTICK_RATE_HZ)/1000);
 		else
 #endif
-			wait(200 * 1000);
+			wait(400);
 		if (usb_get_port_status(dev, port + 1, &portsts) < 0)
 		{
 			dbg_hub("get_port_status failed status %lX\r\n", dev->status);
@@ -1229,7 +1232,7 @@ static int hub_port_reset(struct usb_device *dev, int port, unsigned short *port
 			vTaskDelay((200*configTICK_RATE_HZ)/1000);
 		else
 #endif
-			wait(200 * 1000);
+			wait(200);
 	}
 	if (tries == MAX_TRIES)
 	{
@@ -1284,7 +1287,7 @@ void usb_hub_port_connect_change(struct usb_device *dev, int port)
 		vTaskDelay((200*configTICK_RATE_HZ)/1000);
 	else
 #endif
-		wait(200 * 1000);
+		wait(200);
 	/* Reset the port */
 	if (hub_port_reset(dev, port, &portstatus) < 0)
 	{
@@ -1296,7 +1299,7 @@ void usb_hub_port_connect_change(struct usb_device *dev, int port)
 		vTaskDelay((200*configTICK_RATE_HZ)/1000);
 	else
 #endif
-		wait(200 * 1000);
+		wait(200);
 	/* Allocate a new device struct for it */
 	usb = usb_alloc_new_device(dev->usbnum, dev->priv_hcd);
 	if (portstatus & USB_PORT_STAT_HIGH_SPEED)
@@ -1340,6 +1343,7 @@ static void usb_hub_events(struct usb_device *dev)
 	{
 		struct usb_port_status portsts;
 		unsigned short portstatus, portchange;
+		
 		if (usb_get_port_status(dev, i + 1, &portsts) < 0)
 		{
 			dbg_hub("get_port_status failed\r\n");

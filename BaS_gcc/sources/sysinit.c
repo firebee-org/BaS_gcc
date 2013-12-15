@@ -45,6 +45,7 @@
 #include "m5484l.h"
 #endif /* MACHINE_M5484LITE */
 
+#include "dma.h"
 #include "mod_devicetable.h"
 #include "pci_ids.h"
 #include "usb.h"

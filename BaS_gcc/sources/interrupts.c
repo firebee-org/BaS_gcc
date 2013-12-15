@@ -28,6 +28,7 @@
 #include "bas_printf.h"
 #include "exceptions.h"
 #include "interrupts.h"
+#include "bas_printf.h"
 
 extern void (*rt_vbr[])(void);
 #define VBR	rt_vbr
