@@ -56,7 +56,7 @@
 extern int usb_stor_curr_dev;
 extern uint32_t usb_1st_disk_drive;
 
-//#define USB_DEBUG
+#define USB_DEBUG
 
 #ifdef	USB_DEBUG
 #define	debug_printf(fmt, args...)	xprintf(fmt , ##args)
@@ -880,6 +880,7 @@ struct usb_device *usb_alloc_new_device(int bus_index, void *priv)
 {
 	int i, index = dev_index[bus_index];
 	struct usb_device *dev;
+	
 	debug_printf("USB %d new device %d\r\n", bus_index, index); 
 	if (index >= USB_MAX_DEVICE)
 	{
@@ -898,6 +899,7 @@ struct usb_device *usb_alloc_new_device(int bus_index, void *priv)
 	return dev;
 }
 
+#define CONFIG_LEGACY_USB_INIT_SEQ
 /*
  * By the time we get here, the device has gotten a new device ID
  * and is in the default state. We need to identify the thing and
@@ -909,23 +911,28 @@ int usb_new_device(struct usb_device *dev)
 {
 	int addr, err, tmp;
 	unsigned char *tmpbuf;
+	
 #ifndef CONFIG_LEGACY_USB_INIT_SEQ
 	struct usb_device_descriptor *desc;
 	int port = -1;
 	struct usb_device *parent = dev->parent;
 	unsigned short portstatus;
 #endif
+
 	if (dev == NULL)
 		return 1;
+
 	/* We still haven't set the Address yet */
 	addr = dev->devnum;
 	dev->devnum = 0;
-	tmpbuf = (unsigned char *)usb_malloc(USB_BUFSIZ);
+	
+	tmpbuf = (unsigned char *) usb_malloc(USB_BUFSIZ);
 	if (tmpbuf == NULL)
 	{
 		debug_printf("usb_new_device: malloc failure\r\n");
 		return 1;
 	}
+
 #ifdef CONFIG_LEGACY_USB_INIT_SEQ
 	/* this is the old and known way of initializing devices, it is
 	 * different than what Windows and Linux are doing. Windows and Linux
@@ -969,6 +976,7 @@ int usb_new_device(struct usb_device *dev)
 		return 1;
 	}
 	dev->descriptor.bMaxPacketSize0 = desc->bMaxPacketSize0;
+
 	/* find the port number we're at */
 	if (parent)
 	{
@@ -991,7 +999,7 @@ int usb_new_device(struct usb_device *dev)
 		err = hub_port_reset(dev->parent, port, &portstatus);
 		if (err < 0)
 		{
-			debug_printf("\r\nCouldn't reset port %i\r\n", port);
+			debug_printf("\r\nCouldn't reset port %d\r\n", port);
 			usb_free(tmpbuf);
 			return 1;
 		}
@@ -1204,6 +1212,7 @@ static int hub_port_reset(struct usb_device *dev, int port, unsigned short *port
 	unsigned short portstatus, portchange;
 	
 	dbg_hub("hub_port_reset: resetting port %d...\r\n", port + 1);
+	
 	for (tries = 0; tries < MAX_TRIES; tries++)
 	{
 		usb_set_port_feature(dev, port + 1, USB_PORT_FEAT_RESET);
@@ -1212,7 +1221,7 @@ static int hub_port_reset(struct usb_device *dev, int port, unsigned short *port
 			vTaskDelay((200*configTICK_RATE_HZ)/1000);
 		else
 #endif
-			wait(400);
+			wait(10000);
 		if (usb_get_port_status(dev, port + 1, &portsts) < 0)
 		{
 			dbg_hub("get_port_status failed status %lX\r\n", dev->status);
@@ -1220,23 +1229,28 @@ static int hub_port_reset(struct usb_device *dev, int port, unsigned short *port
 		}
 		portstatus = swpw(portsts.wPortStatus);
 		portchange = swpw(portsts.wPortChange);
-		dbg_hub("USB %d portstatus %x, change %x, %s\r\n", dev->usbnum, portstatus, portchange, portspeed(portstatus));
+		dbg_hub("USB %d portstatus 0x%x, change 0x%x, %s\r\n", dev->usbnum, portstatus, portchange, portspeed(portstatus));
 		dbg_hub("STAT_C_CONNECTION = %d STAT_CONNECTION = %d USB_PORT_STAT_ENABLE = %d\r\n",
-		 (portchange & USB_PORT_STAT_C_CONNECTION) ? 1 : 0, (portstatus & USB_PORT_STAT_CONNECTION) ? 1 : 0, (portstatus & USB_PORT_STAT_ENABLE) ? 1 : 0);
+				(portchange & USB_PORT_STAT_C_CONNECTION) ? 1 : 0,
+				(portstatus & USB_PORT_STAT_CONNECTION) ? 1 : 0,
+				(portstatus & USB_PORT_STAT_ENABLE) ? 1 : 0);
+		
 		if ((portchange & USB_PORT_STAT_C_CONNECTION) || !(portstatus & USB_PORT_STAT_CONNECTION))
 			return -1;
+		
 		if (portstatus & USB_PORT_STAT_ENABLE)
 			break;
+
 #ifdef USB_POLL_HUB
 		if (pxCurrentTCB != NULL)
 			vTaskDelay((200*configTICK_RATE_HZ)/1000);
 		else
 #endif
-			wait(200);
+			wait(20000);
 	}
 	if (tries == MAX_TRIES)
 	{
-		dbg_hub("USB %d, cannot enable port %i after %i retries, disabling port.\r\n", dev->usbnum, port + 1, MAX_TRIES);
+		dbg_hub("USB %d, cannot enable port %d after %d retries, disabling port.\r\n", dev->usbnum, port + 1, MAX_TRIES);
 		dbg_hub("Maybe the USB cable is bad?\r\n");
 		return -1;
 	}
@@ -1287,7 +1301,7 @@ void usb_hub_port_connect_change(struct usb_device *dev, int port)
 		vTaskDelay((200*configTICK_RATE_HZ)/1000);
 	else
 #endif
-		wait(200);
+		wait(2000);
 	/* Reset the port */
 	if (hub_port_reset(dev, port, &portstatus) < 0)
 	{
@@ -1299,17 +1313,21 @@ void usb_hub_port_connect_change(struct usb_device *dev, int port)
 		vTaskDelay((200*configTICK_RATE_HZ)/1000);
 	else
 #endif
-		wait(200);
+		wait(2000);
+	
 	/* Allocate a new device struct for it */
 	usb = usb_alloc_new_device(dev->usbnum, dev->priv_hcd);
+	
 	if (portstatus & USB_PORT_STAT_HIGH_SPEED)
 		usb->speed = USB_SPEED_HIGH;
 	else if (portstatus & USB_PORT_STAT_LOW_SPEED)
 		usb->speed = USB_SPEED_LOW;
 	else
 		usb->speed = USB_SPEED_FULL;
+	dbg_hub("%s: usb=%p\r\n", __FUNCTION__, usb);
 	dev->children[port] = usb;
 	usb->parent = dev;
+	
 	/* Run it through the hoops (find a driver, etc) */
 	if (usb_new_device(usb))
 	{
@@ -1317,6 +1335,7 @@ void usb_hub_port_connect_change(struct usb_device *dev, int port)
 		dbg_hub("USB %d hub: disabling port %d\r\n", dev->usbnum, port + 1);
 		usb_clear_port_feature(dev, port + 1, USB_PORT_FEAT_ENABLE);
 	}
+	
 #ifdef USB_POLL_HUB
 	else if (pxCurrentTCB != NULL)
 	{

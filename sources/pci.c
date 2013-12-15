@@ -556,19 +556,19 @@ static void pci_device_config(uint16_t bus, uint16_t device, uint16_t function)
 				cr |= 1;
 
 				barnum++;
-			}
-			
-			/* check if device requests an interrupt */
-			il = pci_read_config_byte(handle, PCIIPR);
-			xprintf("device requests interrupts on interrupt pin %d\r\n", il);
-			
-			/* if so, register interrupts */
+			}		
 		}
 	}
 	/* mark end of resource chain */
 	if (barnum > 0)
 		descriptors[barnum - 1].flags |= FLG_LAST;
 
+	/* check if device requests an interrupt */
+	il = pci_read_config_byte(handle, PCIIPR);
+	xprintf("device requests interrupts on interrupt pin %d\r\n", il);
+			
+	/* if so, register interrupts */
+	
 	/*
 	 * enable device memory or I/O access
 	 */
