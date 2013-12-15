@@ -44,7 +44,7 @@ sleep 10
 # use system sdram as flashlib scratch area.
 # TODO: plugin flashing seems to work o.k. now for smaller binaries, while it doesn't for larger ones (EmuTOS) yet.
 # This seems to be related to large flash buffers and PC-relative adressing of the plugin
-#flash-plugin 0x1000 0xf000 flash29.plugin
+flash-plugin 0x1000 0xf000 flash29.plugin
 # notify flashlib that we have flash at address 0xE0000000, length 0x7FFFFF, plugin is flash29
 flash 0xE0000000
 
@@ -55,9 +55,17 @@ flash 0xE0000000
 #
 # contrary to documentation, it seems we need to erase-wait after each sector
 
-erase 0xE0000000 0x000000
+erase 0xE0000000 0
+erase 0xE0000000 1
+erase 0xE0000000 2
+erase 0xE0000000 3
+erase 0xE0000000 4
+erase 0xE0000000 5
+erase 0xE0000000 7
+erase 0xE0000000 8
+erase 0xE0000000 9
+erase 0xE0000000 10
 erase-wait 0xE0000000
-erase 0xE0000000 0x100000
-erase-wait 0xE0000000
+
 load -v ../firebee/bas.elf
 wait
