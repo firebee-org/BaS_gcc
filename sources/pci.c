@@ -41,9 +41,9 @@
 #endif /* DEBUG_PCI */
 
 #if MACHINE_FIREBEE
-#define pci_config_wait()	wait(20000);	/* FireBee USB not properly detected otherwise */
+#define pci_config_wait()	wait(40000);	/* FireBee USB not properly detected otherwise !?? */
 #elif MACHINE_M5484LITE
-#define pci_config_wait() do { ; } while (0)
+#define pci_config_wait() do { __asm__ __volatile("tpf" :::); } while (0)
 #endif
 
 /*
@@ -443,6 +443,7 @@ static void pci_device_config(uint16_t bus, uint16_t device, uint16_t function)
 	uint32_t address;
 	int32_t handle;
 	int16_t index = - 1;
+	uint8_t il;
 	struct pci_rd *descriptors;
 	int i;
 	uint32_t value;
@@ -556,6 +557,12 @@ static void pci_device_config(uint16_t bus, uint16_t device, uint16_t function)
 
 				barnum++;
 			}
+			
+			/* check if device requests an interrupt */
+			il = pci_read_config_byte(handle, PCIIPR);
+			xprintf("device requests interrupts on interrupt pin %d\r\n", il);
+			
+			/* if so, register interrupts */
 		}
 	}
 	/* mark end of resource chain */

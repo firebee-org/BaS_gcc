@@ -105,8 +105,6 @@ void *dma_memcpy(void *dst, void *src, size_t n)
 int dma_init(void)
 {
 	int res;
-	int version;
-	char *long_version;
 
 	xprintf("MCD DMA API initialization: ");
 	res = MCD_initDma((dmaRegs *) &_MBAR[0x8000], SYS_SRAM, MCD_RELOC_TASKS | MCD_COMM_PREFETCH_EN);
@@ -115,8 +113,6 @@ int dma_init(void)
 		xprintf("DMA API initialization failed (0x%x)\r\n", res);
 		return 0;
 	}
-	version = MCD_getVersion(&long_version);
-	xprintf("DMA API version %d.%d initialized. Tasks are at %p\r\n", version / 0xff, version % 0xff, SYS_SRAM);
 
 	// test
 	dma_memcpy((void *) 0x10000, (void *) 0x03e00000, 0x00100000);	/* copy one megabyte of flash to RAM */
