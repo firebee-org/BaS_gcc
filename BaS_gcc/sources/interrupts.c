@@ -25,77 +25,55 @@
 #include <stdint.h>
 #include "MCF5475.h"
 #include "bas_utils.h"
+#include "exceptions.h"
 #include "interrupts.h"
 
-extern uint32_t rt_vbr[];
+extern void (*rt_vbr[])(void);
 #define VBR	rt_vbr
 
 /*
  * register an interrupt handler at the Coldfire interrupt controller and add the handler to
  * the interrupt vector table
  */
-int register_interrupt_handler(uint8_t priority, uint8_t source, void (*func)())
+int register_interrupt_handler(uint8_t source, uint8_t level, uint8_t priority, uint8_t intr, void (*handler)(void))
 {
+	int ipl;
 	int i;
-	uint8_t level = 0b01111111;
-	uint32_t **adr = &VBR[0];
+	uint8_t *ICR = &MCF_INTC_ICR01 - 1;
+	uint8_t lp;
 
 	source &= 63;
 	priority &= 7;
 
-	if (source <= 0)
+	if (source < 1 || source > 63)
+	{
+		xprintf("%s: interrupt source %d not defined\r\n", __FUNCTION__, source);
 		return -1;
+ 	}
 
+	lp = MCF_INTC_ICR_IL(level) | MCF_INTC_ICR_IP(priority);
+	
+	/* check if this combination is already set somewhere */
 	for (i = 1; i < 64; i++)
 	{
-		if (i != source)
+		if (ICR[i] == lp)
 		{
-			if ((MCF_INTC_ICR(i) & 7) == priority)
-				CLEAR_BIT_NO(level, (MCF_INTC_ICR(i) >> 3) & 7);
+			xprintf("%s: level %d and priority %d already used for interrupt source %d!\r\n", __FUNCTION__,
+					level, priority, i);
+			return -1;
 		}
 	}
 
-	for (i = 0; i <= 7; i++)
-		if (level & (1 << i))
-			break;
+	/* disable interrupts */
+	ipl = set_ipl(7);
 
-	if (i > 7)
-		return -1;
+	VBR[64 + source] = handler;	/* first 64 vectors are system exceptions */
 
-	/*
-	 * Make sure priority level is high, before changing registers
-	 */
-	__asm__ volatile (
-			"move.w sr,d0\n\t"
-			"move.w d0,srsave \n\t"
-			"move.w #0x2700,sr\n\t"
-			"	.bss\n\t"
-			"srsave:	ds.w	1\n\t"
-			"	.text\n\t"
-			:
-			:
-			: "d0","memory"
-	);
+	/* set level and priority in interrupt controller */
+	ICR[source] = lp;
 
-	if (source < 32)
-		CLEAR_BIT(MCF_INTC_IMRL, (1 << source));
-	else
-		CLEAR_BIT(MCF_INTC_IMRH, (1 << (source - 32)));
-
-	MCF_INTC_ICR(source) = MCF_INTC_ICR_IP(priority) | MCF_INTC_ICR_IL(i);
-
-	adr[64 + source] = (uint32_t *) func;	/* first 64 vectors are system exceptions */
-
-	/*
-	 * Return the saved priority level
-	 */
-	__asm__ volatile (
-			"move.w srsave,d2\n\t"
-			"move.w d2,sr\n\t"
-			:
-			:
-			: "d2","memory"
-	);
+	/* set interrupt mask to where it was before */
+	set_ipl(ipl);
 
 	return 0;
 }
