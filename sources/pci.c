@@ -698,6 +698,7 @@ void init_pci(void)
 
 	xprintf("initializing PCI bridge:\r\n");
 
+	(void) res; /* for now */
 	res = register_interrupt_handler(0, INT_SOURCE_PCIARB, pci_arb_interrupt);
 	debug_printf("registered interrupt handler for PCI arbiter: %s\r\n",
 			(res < 0 ? "failed" : "succeeded"));
