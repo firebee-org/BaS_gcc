@@ -30,6 +30,7 @@ static int cc_to_error[16] = {
 	/* Not Access */	       -1
 };
 
+#ifdef DEBUG
 static const char *cc_to_string[16] = {
 	"No Error",
 	"CRC: Last data packet from endpoint contained a CRC error.",
@@ -61,6 +62,7 @@ static const char *cc_to_string[16] = {
 	"NOT ACCESSED:\r\nThis code is set by software before the TD is placed\r\n" \
 		     "on a list to be processed by the HC.(2)",
 };
+#endif /* DEBUG */
 
 /* ED States */
 
