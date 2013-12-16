@@ -66,7 +66,7 @@ static inline bool pic_txready(void)
 	if (MCF_PSC3_PSCSR & MCF_PSC_PSCSR_TXRDY)
 		return true;
 
-	return true;
+	return false;
 }
 
 /*
