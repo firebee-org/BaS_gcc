@@ -637,17 +637,72 @@ irq3:
 irq4:				// vbl
 		irq		0x70,4,0x10
 
-irq5:							// irq5 is tied to PCI INTC# and PCI INTD# on the M5484LITE
-		irq		0x74,5,0x20
+#if MACHINE_M5484LITE				// handlers for M5484LITE
 
-#if MACHINE_M5484LITE			// install "standard" handlers for M5484LITE
+irq5:								// irq5 is tied to PCI INTC# and PCI INTD# on the M5484LITE
+		move.w	#0x2700,sr			// disable interrupts
+		lea		-8(sp),sp			// make room
+		movem.l	d0/a5,(sp)			// save registers
+
+		lea		MCF_EPORT_EPFR,a5
+		bset	#5,(a5)				// clear int5 from edge port
+
+		lea		-4*4(sp),sp			// save gcc scratch registers
+		movem.l	d0-d1/a0-a1,(sp)
+
+		pea		irq5text
+		jsr		_xprintf
+		addq.l	#4,sp				// fix stack
+
+		// jsr		_irq5_handler		// call C handler routine
+
+		movem.l	(sp),d0-d1/a0-a2	// restore registers
+		lea		4*4(sp),sp			
+
+		movem.l	(sp),d0/a5			// restore registers
+		lea		8(sp),sp			// adjust stack
+		rte							// return from exception
+
+irq5text:
+		.ascii	"IRQ5!"
+		.dc.b	13,10,0
+
 irq6:							
 		irq		0x74,5,0x20
 
-irq7:							// irq7 is tied to PCI INTA# and PCI INTB# on the M5484LITE
-		irq		0x74,5,0x20
+irq7:								// irq7 is tied to PCI INTA# and PCI INTB# on the M5484LITE
+
+		move.w	#0x2700,sr			// disable interrupts
+		lea		-8(sp),sp			// make room
+		movem.l	d0/a5,(sp)			// save registers
+
+		lea		MCF_EPORT_EPFR,a5
+		bset	#7,(a5)				// clear int5 from edge port
+
+		lea		-4*4(sp),sp			// save gcc scratch registers
+		movem.l	d0-d1/a0-a1,(sp)
+
+		pea		irq7text
+		jsr		_xprintf
+		addq.l	#4,sp				// fix stack
+
+		// jsr		_irq7_handler		// call C handler routine
+
+		movem.l	(sp),d0-d1/a0-a2	// restore registers
+		lea		4*4(sp),sp			
+
+		movem.l	(sp),d0/a5			// restore registers
+		lea		8(sp),sp			// adjust stack
+		rte							// return from exception
+
+irq7text:
+		.ascii	"IRQ7!"
+		.dc.b	13,10,0
 
 #elif MACHINE_FIREBEE			/* these handlers are only meaningful for the Firebee */
+irq5:							// irq5 is tied to PCI INTC# and PCI INTD# on the M5484LITE
+		irq		0x74,5,0x20
+
 irq6:	// MFP interrupt from FPGA
 		move.w	#0x2700,sr			// disable interrupt
 		subq.l	#8,a7
@@ -1001,9 +1056,9 @@ handler_gpt0:
 
 sca_other:
 		lsl.l	#8,d0				// build new screen start address from Atari register contents
-		move.b	0xffff8203,d0		// mid byt
+		move.b	0xffff8203,d0		// mid byte
 		lsl.l	#8,d0
-		move.b  0xffff820d,d0		// low byt
+		move.b  0xffff820d,d0		// low byte
 		move.l	d0,d3
 
 video_chg_1page:
