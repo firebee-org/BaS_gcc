@@ -204,7 +204,7 @@ void ikbd_handle_input(unsigned char cmd) {
 }
 
 void ikbd_poll(void) {
-  static mtimer = 0;
+  static int mtimer = 0;
   if(CheckTimer(mtimer)) {
     mtimer = GetTimer(10);
    
