@@ -46,6 +46,10 @@
 		.extern cpusha
 		.extern _xhdi_sd_install	/* trap #0 exception vector for installation of xhdi SD card driver */
 
+		/* PCI interrupt handlers */
+		.extern _irq5_handler
+		.extern _irq7_handler
+
 /* Register read/write macros */
 #define MCF_MMU_MMUCR            			__MMUBAR
 #define MCF_MMU_MMUOR                       __MMUBAR+0x04
@@ -640,26 +644,15 @@ irq4:				// vbl
 
 irq5:								// irq5 is tied to PCI INTC# and PCI INTD# on the M5484LITE
 		move.w	#0x2700,sr			// disable interrupts
-		lea		-8(sp),sp			// make room
-		movem.l	d0/a5,(sp)			// save registers
-
-		lea		MCF_EPORT_EPFR,a5
-		bset	#5,(a5)				// clear int5 from edge port
 
 		lea		-4*4(sp),sp			// save gcc scratch registers
 		movem.l	d0-d1/a0-a1,(sp)
 
-		pea		irq5text
-		jsr		_xprintf
-		addq.l	#4,sp				// fix stack
+		jsr		_irq5_handler		// call C handler routine
 
-		// jsr		_irq5_handler		// call C handler routine
-
-		movem.l	(sp),d0-d1/a0-a2	// restore registers
+		movem.l	(sp),d0-d1/a0-a1	// restore registers
 		lea		4*4(sp),sp			
 
-		movem.l	(sp),d0/a5			// restore registers
-		lea		8(sp),sp			// adjust stack
 		rte							// return from exception
 
 irq5text:
@@ -672,26 +665,15 @@ irq6:
 irq7:								// irq7 is tied to PCI INTA# and PCI INTB# on the M5484LITE
 
 		move.w	#0x2700,sr			// disable interrupts
-		lea		-8(sp),sp			// make room
-		movem.l	d0/a5,(sp)			// save registers
-
-		lea		MCF_EPORT_EPFR,a5
-		bset	#7,(a5)				// clear int5 from edge port
 
 		lea		-4*4(sp),sp			// save gcc scratch registers
 		movem.l	d0-d1/a0-a1,(sp)
 
-		pea		irq7text
-		jsr		_xprintf
-		addq.l	#4,sp				// fix stack
+		jsr		_irq7_handler		// call C handler routine
 
-		// jsr		_irq7_handler		// call C handler routine
-
-		movem.l	(sp),d0-d1/a0-a2	// restore registers
+		movem.l	(sp),d0-d1/a0-a1	// restore registers
 		lea		4*4(sp),sp			
 
-		movem.l	(sp),d0/a5			// restore registers
-		lea		8(sp),sp			// adjust stack
 		rte							// return from exception
 
 irq7text:
