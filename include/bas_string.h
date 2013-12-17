@@ -25,12 +25,12 @@
 
 #include <stddef.h>
 
-extern int strncmp(const char *s1, const char *s2, int max);
+extern int strncmp(const char *s1, const char *s2, size_t max);
 extern char *strcpy(char *dst, const char *src);
-char *strncpy(char *dst, const char *src, int max);
+char *strncpy(char *dst, const char *src, size_t max);
 extern size_t strlen(const char *str);
 extern char *strcat(char *dst, const char *src);
-extern char *strncat(char *dst, const char *src, int max);
+extern char *strncat(char *dst, const char *src, size_t max);
 extern int atoi(const char *c);
 extern void *memcpy(void *dst, const void *src, size_t n);
 extern void *memset(void *s, int c, size_t n);

@@ -203,7 +203,7 @@ void init_gpio(void)
 						MCF_PAD_PAR_TIMER_PAR_TIN2(MCF_PAD_PAR_TIMER_PAR_TIN2_IRQ2) |
 						MCF_PAD_PAR_TIMER_PAR_TOUT2;
 
-	// MCF_PAD_PAR_TIMER = 0b00101101;	/* TIN3..2=#IRQ3..2;TOUT3..2=NORMAL */
+	// MCF_PAD_PAR_TIMER = 0b00101101;	TIN3..2=#IRQ3..2;TOUT3..2=NORMAL 
 
 	// ALLE OUTPUTS NORMAL LOW
 
@@ -277,7 +277,9 @@ void init_serial(void)
 	MCF_PSC3_PSCCR = 0x05;
 #endif /* MACHINE_FIREBEE */
 
-	//MCF_INTC_ICR32 = 0x3F;	//MAXIMALE PRIORITY/**********/
+#ifdef _NOT_USED_
+	MCF_INTC_ICR32 = 0x3F;	//MAXIMALE PRIORITY/**********/
+#endif /* _NOT_USED_ */
 
 	xprintf("\r\nserial interfaces initialization: finished\r\n");
 }
@@ -709,7 +711,10 @@ void dvi_on(void) {
 		if (MCF_I2C_I2SR & MCF_I2C_I2SR_RXAK)		/* next try if no acknowledge */
 			continue;
 
-		MCF_I2C_I2CR &= 0xef; //~MCF_I2C_I2CR_MTX;	/* switch to receive mode */
+#ifdef _NOT_USED_
+		MCH_I2C_I2CR &= ~MCF_I2C_I2CR_MTX;			/* FIXME: not clear where this came from ... */
+#endif /* _NOT_USED_ */
+		MCF_I2C_I2CR &= 0xef; 						/* ... this actually disables the I2C module... */
 		dummyByte = MCF_I2C_I2DR; 					/* dummy read */
 
 		wait_i2c_transfer_finished();
@@ -969,7 +974,6 @@ void initialize_hardware(void)
 	init_serial();
 
 	xprintf("\n\n");
-//#ifdef _NOT_USED_
 	xprintf("%s BASIS system (BaS) v %d.%d (%s, %s)\r\n\r\n", 
 #if MACHINE_FIREBEE
 	"Firebee"
@@ -979,7 +983,6 @@ void initialize_hardware(void)
 	"unknown platform"
 #endif
 	, MAJOR_VERSION, MINOR_VERSION, __DATE__, __TIME__);
-//#endif /* _NOT_USED_ */
 
 	/*
 	 * Determine cause(s) of Reset
@@ -1059,8 +1062,11 @@ void initialize_hardware(void)
 	 * install (preliminary) exception vectors
 	 */
 	setup_vectors();
+
+#ifdef _NOT_USED_
 	/* make sure the handlers are called */
-	// __asm__ __volatile__("dc.w 0xafff");  /* should trigger a line-A exception */
+	__asm__ __volatile__("dc.w 0xafff");  /* should trigger a line-A exception */
+#endif /* _NOT_USED_ */
 
 
 	/*

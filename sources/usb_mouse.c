@@ -126,7 +126,7 @@ static int usb_mouse_irq(struct usb_device *dev)
 		char wheel = 0, buttons, old_buttons;
 		mse_printf("USB MOUSE len:%d %02X %02X %02X %02X %02X %02X\r\n", dev->irq_act_len, new[0], new[1], new[2], new[3], new[4], new[5]);
 #ifdef CONFIG_USB_INTERRUPT_POLLING
-		level = asm_set_ipl(7); /* mask interrupts */
+		level = set_ipl(7); /* mask interrupts */
 #endif
 		if((dev->irq_act_len >= 6) && (new[0] == 1)) /* report-ID */
 		{
@@ -178,7 +178,7 @@ static int usb_mouse_irq(struct usb_device *dev)
 		//if(mousevec != NULL)
 			//call_mousevec(new, mousevec);
 #ifdef CONFIG_USB_INTERRUPT_POLLING
-		asm_set_ipl(level);
+		set_ipl(level);
 #endif
 		old[0] = new[0];
 		old[1] = new[1];
