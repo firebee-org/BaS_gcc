@@ -81,6 +81,17 @@ static int num_pci_classes = sizeof(pci_classes) / sizeof(struct pci_class);
 #define NUM_RESOURCES	6
 /* holds the handle of a card at position = array index */
 static int32_t handles[NUM_CARDS];	
+
+/* holds the interrupt handler addresses (see pci_hook_interrupt() and pci_unhook_interrupt()) of the PCI cards */
+struct pci_interrupt
+{
+	void (*handler)(void);
+	int32_t parameter;
+	struct pci_interrupt *next;
+};
+#define MAX_INTERRUPTS	(NUM_CARDS * 3)
+static struct pci_interrupt interrupts[MAX_INTERRUPTS];
+
 /* holds the card's resource descriptors; filled in pci_device_config() */
 static struct pci_rd resource_descriptors[NUM_CARDS][NUM_RESOURCES]; 
 
@@ -137,6 +148,57 @@ __attribute__((interrupt)) void xlb_pci_interrupt(void)
 
 __attribute__((interrupt)) void pci_interrupt(void)
 {
+}
+
+int32_t pci_get_interrupt_cause(int32_t *handles)
+{
+	int32_t handle;
+
+	while ((handle = *handles++) != -1)
+	{
+		uint32_t csr = swpl(pci_read_config_longword(handle, PCICSR)); 
+
+		if ((csr & (1 << 3)) && (csr & !(csr & (1 << 10))))
+		{
+			/* device has interrupts enabled and has an active interrupt, so its probably ours */
+
+			return handle;
+		}
+	}
+	debug_printf("%s: no interrupt cause found\r\n", __FUNCTION__);
+	return -1;
+}
+
+/*
+ * This gets called from irq5 in exceptions.S
+ * Once we arrive here, the SR has been set to disable interrupts and the gcc scratch registers have been saved
+ */
+void irq5_handler(void)
+{
+	int32_t handle;
+
+	MCF_EPORT_EPFR |= (1 << 5);		/* clear interrupt from edge port */
+	xprintf("IRQ5!\r\n");
+	if ((handle = pci_get_interrupt_cause(handles)) > 0)
+	{
+		;
+	}
+}
+
+/*
+ * This gets called from irq7 in exceptions.S
+ * Once we arrive here, the SR has been set to disable interrupts and the gcc scratch registers have been saved
+ */
+void irq7_handler(void)
+{
+	int32_t handle;
+
+	MCF_EPORT_EPFR |= (1 << 7);
+	debug_printf("IRQ7!\r\n");
+	if ((handle = pci_get_interrupt_cause(handles)) > 0)
+	{
+		;
+	}
 }
 
 /*
@@ -569,6 +631,8 @@ static void pci_device_config(uint16_t bus, uint16_t device, uint16_t function)
 			
 	/* if so, register interrupts */
 	
+	/* TODO: register interrupts here */
+	
 	/*
 	 * enable device memory or I/O access
 	 */
@@ -799,6 +863,8 @@ void init_pci(void)
 	memset(&resource_descriptors, 0, NUM_CARDS * NUM_RESOURCES * sizeof(struct pci_rd));
 	/* initialize/clear handles array */
 	memset(handles, 0, NUM_CARDS * sizeof(int32_t));
+	/* initialize/clear interrupts array */
+	memset(interrupts, 0, MAX_INTERRUPTS * sizeof(struct pci_interrupt));
 
 	/*
 	 * do normal initialization
