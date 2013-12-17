@@ -28,12 +28,11 @@
 #define _WAIT_H_
 
 #include <bas_types.h>
+
 #if MACHINE_FIREBEE
 #include "firebee.h"
 #elif MACHINE_M5484LITE
 #include "m5484l.h"
-#else
-//#error unknown machine
 #endif /* MACHINE_FIREBEE */
 
 #include "MCF5475.h"
@@ -60,7 +59,7 @@ extern __inline__ void wait(uint32_t us)
 extern __inline__ bool waitfor(uint32_t us, checker_func condition)
 {
 	int32_t target = MCF_SLT_SCNT(0) - (us * (SYSCLK / 1000));
-	uint32_t res;
+	bool res;
 
 	do
 	{

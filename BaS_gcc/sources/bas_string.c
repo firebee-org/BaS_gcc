@@ -55,7 +55,7 @@ void *memset(void *s, int c, size_t n)
 }
 
 
-int strncmp(const char *s1, const char *s2, int max)
+int strncmp(const char *s1, const char *s2, size_t max)
 {
 	int i;
 	int cmp;
@@ -76,13 +76,14 @@ char *strcpy(char *dst, const char *src)
 	return ptr;
 }
 
-char *strncpy(char *dst, const char *src, int max)
+char *strncpy(char *dst, const char *src, size_t max)
 {
 	char *ptr = dst;
 
 	while ((*dst++ = *src++) != '\0' && max-- >= 0);
 	return ptr;
 }
+
 int atoi(const char *c)
 {
 	int value = 0;
@@ -113,9 +114,9 @@ char *strcat(char *dst, const char *src)
 	return ret;
 }
 
-char *strncat(char *dst, const char *src, int max)
+char *strncat(char *dst, const char *src, size_t max)
 {
-	int i;
+	size_t i;
 	char *ret = dst;
 
 	dst = &dst[strlen(dst)];
