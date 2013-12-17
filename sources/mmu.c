@@ -58,9 +58,9 @@
 
 #define DEBUG_MMU
 #ifdef DEBUG_MMU
-#define debug_print(format, arg...) do { xprintf("DEBUG: " format "\r\n", ##arg);} while(0)
+#define dbg_mmu(format, arg...) do { xprintf("DEBUG: " format "\r\n", ##arg);} while(0)
 #else
-#define debug_print(format, arg...) do {;} while (0)
+#define dbg_mmu(format, arg...) do {;} while (0)
 #endif /* DEBUG_MMU */
 
 /*
@@ -363,7 +363,7 @@ void mmutr_miss(void)
 {
 	register uint32_t address asm("d0");
 
-	debug_print("MMU TLB MISS at 0x%08x\r\n", address);
+	dbg_mmu("MMU TLB MISS at 0x%08x\r\n", address);
 	flush_and_invalidate_caches();
 
 	switch (address)
@@ -371,13 +371,13 @@ void mmutr_miss(void)
 		case keyctl:
 		case keybd:
 			/* do something to emulate the IKBD access */
-			debug_print("IKBD access\r\n");
+			dbg_mmu("IKBD access\r\n");
 			break;
 
 		case midictl:
 		case midi:
 			/* do something to emulate MIDI access */
-			debug_print("MIDI ACIA access\r\n");
+			dbg_mmu("MIDI ACIA access\r\n");
 			break;
 
 		default:
