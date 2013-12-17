@@ -150,7 +150,7 @@ __attribute__((interrupt)) void pci_interrupt(void)
 {
 }
 
-int32_t pci_get_interrupt_cause(int32_t *handles)
+static int32_t pci_get_interrupt_cause(int32_t *handles)
 {
 	int32_t handle;
 
@@ -169,6 +169,12 @@ int32_t pci_get_interrupt_cause(int32_t *handles)
 	return -1;
 }
 
+static int32_t pci_call_interrupt_chain(int32_t handle, int32_t data)
+{
+	return data;	/* unmodified - means: not handled */
+}
+
+#ifdef MACHINE_M5484LITE
 /*
  * This gets called from irq5 in exceptions.S
  * Once we arrive here, the SR has been set to disable interrupts and the gcc scratch registers have been saved
@@ -176,12 +182,18 @@ int32_t pci_get_interrupt_cause(int32_t *handles)
 void irq5_handler(void)
 {
 	int32_t handle;
+	int32_t value;
+	int32_t newvalue;
 
 	MCF_EPORT_EPFR |= (1 << 5);		/* clear interrupt from edge port */
 	xprintf("IRQ5!\r\n");
 	if ((handle = pci_get_interrupt_cause(handles)) > 0)
 	{
-		;
+		newvalue = pci_call_interrupt_chain(handle, value);
+		if (newvalue == value)
+		{
+			debug_printf("%s: interrupt not handled!\r\n", __FUNCTION__);
+		}
 	}
 }
 
@@ -192,14 +204,21 @@ void irq5_handler(void)
 void irq7_handler(void)
 {
 	int32_t handle;
+	int32_t value;
+	int32_t newvalue;
 
 	MCF_EPORT_EPFR |= (1 << 7);
 	debug_printf("IRQ7!\r\n");
 	if ((handle = pci_get_interrupt_cause(handles)) > 0)
 	{
-		;
+		newvalue = pci_call_interrupt_chain(handle, value);
+		if (newvalue == value)
+		{
+			debug_printf("%s: interrupt not handled!\r\n", __FUNCTION__);
+		}
 	}
 }
+#endif /* MACHINE_M548X */
 
 /*
  * retrieve handle for i'th device
