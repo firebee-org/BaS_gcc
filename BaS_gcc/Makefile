@@ -104,6 +104,7 @@ ASRCS= \
 	illegal_instruction.S \
 	xhdi_vec.S
 	
+SRCS=$(ASRCS) $(CSRCS)
 COBJS=$(patsubst %.c,%.o,$(CSRCS))
 AOBJS=$(patsubst %.S,%.o,$(ASRCS))
 
@@ -122,9 +123,8 @@ lib: $(LIBS)
 .PHONY: clean
 clean:
 	for d in $(TRGTDIRS);\
-		do rm -f $$d/*.map $$d/*.s19 $$d/*.elf $$d/*.lk $$d/*.a $$d/objs/* ;\
+		do rm -f $$d/*.map $$d/*.s19 $$d/*.elf $$d/*.lk $$d/*.a $$d/objs/* $$d/depend;\
 	done
-	rm -f depend
 	rm -f tags
 
 
@@ -152,6 +152,23 @@ $(1)/objs/%.o:%.S
 	$(CC) $$(CFLAGS) -Wa,--bitwise-or -D$$(MACHINE) $(INCLUDE) -c $$< -o $$@
 endef
 $(foreach DIR,$(TRGTDIRS),$(eval $(call CC_TEMPLATE,$(DIR))))
+
+# rules for depend
+define DEP_TEMPLATE
+ifneq (clean,$(MAKECMDGOALS))
+-include $(1)/depend
+endif
+
+ifeq (firebee,$(1))
+	MACHINE=MACHINE_FIREBEE
+else
+	MACHINE=MACHINE_M5484LITE
+endif
+$(1)/depend:$(SRCS)
+		$(CC) $$(CFLAGS) -D$$(MACHINE) $(INCLUDE) -M $$^ | sed -e "s#^\(.*\).o:#$$d/objs/\1.o:#" > $$@
+endef
+$(foreach DIR,$(TRGTDIRS),$(eval $(call DEP_TEMPLATE,$(DIR))))
+
 
 #
 # generate pattern rules for libraries
@@ -204,12 +221,6 @@ endef
 $(foreach DIR,$(TRGTDIRS),$(eval $(call EX_TEMPLATE,$(DIR))))
 
 
-depend: $(ASRCS) $(CSRCS)
-	- rm -f depend
-	for d in $(TRGTDIRS);\
-		do $(CC) $(CFLAGS) $(INCLUDE) -M $(ASRCS) $(CSRCS) | sed -e "s#^\(.*\).o:#$$d/objs/\1.o:#" >> depend; \
-	done
-
 indent: $(CSRCS)
 	indent $<
 	
@@ -217,10 +228,6 @@ indent: $(CSRCS)
 tags:
 	ctags sources/* include/*
 	
-ifneq (clean,$(MAKECMDGOALS))
--include depend
-endif
-
 .PHONY: printvars
 printvars:
 	@$(foreach V,$(.VARIABLES), $(if $(filter-out environment% default automatic, $(origin $V)),$(warning $V=$($V))))
