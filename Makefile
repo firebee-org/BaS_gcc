@@ -1,5 +1,4 @@
-#
-# Makefile for Firebee BaS
+# # Makefile for Firebee BaS
 #
 # This Makefile is meant for cross compiling the BaS with Vincent Riviere's cross compilers.
 # If you want to compile native on an Atari (you will need at least GCC 4.6.3), set
@@ -40,10 +39,11 @@ CFLAGS=-mcpu=5474 \
 		-fleading-underscore \
 		-Wa,--register-prefix-optional
 
-SRCDIR=sources
 TRGTDIRS= ./firebee ./m5484lite
 OBJDIRS=$(patsubst %, %/objs,$(TRGTDIRS))
 TOOLDIR=util
+
+VPATH=dma:exe:flash:fs:if:kbd:pci:spi:sys:usb:util:xhdi
 
 # Linker control file. The final $(LDCFILE) is intermediate only (preprocessed  version of $(LDCSRC)
 LDCFILE=bas.lk
@@ -59,53 +59,53 @@ RAM_EXEC=ram.$(EXE)
 BASFLASH_EXEC=basflash.$(EXE)
 
 CSRCS= \
-	$(SRCDIR)/sysinit.c \
-	$(SRCDIR)/init_fpga.c \
-	$(SRCDIR)/mmu.c \
-	$(SRCDIR)/fault_vectors.c \
-	$(SRCDIR)/interrupts.c \
-	$(SRCDIR)/bas_printf.c \
-	$(SRCDIR)/bas_string.c \
-	$(SRCDIR)/BaS.c \
-	$(SRCDIR)/cache.c \
-	$(SRCDIR)/mmc.c \
-	$(SRCDIR)/unicode.c \
-	$(SRCDIR)/ff.c \
-	$(SRCDIR)/sd_card.c \
-	$(SRCDIR)/wait.c \
-	$(SRCDIR)/s19reader.c \
-	$(SRCDIR)/flash.c \
-	$(SRCDIR)/dma.c \
-	$(SRCDIR)/xhdi_sd.c \
-	$(SRCDIR)/xhdi_interface.c \
-	$(SRCDIR)/pci.c \
-	$(SRCDIR)/dspi.c \
-	$(SRCDIR)/driver_vec.c \
-	$(SRCDIR)/MCD_dmaApi.c \
-	$(SRCDIR)/MCD_tasks.c \
-	$(SRCDIR)/MCD_tasksInit.c \
+	sysinit.c \
+	init_fpga.c \
+	mmu.c \
+	fault_vectors.c \
+	interrupts.c \
+	bas_printf.c \
+	bas_string.c \
+	BaS.c \
+	cache.c \
+	mmc.c \
+	unicode.c \
+	ff.c \
+	sd_card.c \
+	wait.c \
+	s19reader.c \
+	flash.c \
+	dma.c \
+	xhdi_sd.c \
+	xhdi_interface.c \
+	pci.c \
+	dspi.c \
+	driver_vec.c \
+	MCD_dmaApi.c \
+	MCD_tasks.c \
+	MCD_tasksInit.c \
 	\
-	$(SRCDIR)/usb.c \
-	$(SRCDIR)/usb_mem.c \
-	$(SRCDIR)/ohci-hcd.c \
-	$(SRCDIR)/ehci-hcd.c \
-	$(SRCDIR)/usb_mouse.c \
+	usb.c \
+	usb_mem.c \
+	ohci-hcd.c \
+	ehci-hcd.c \
+	usb_mouse.c \
 	\
-	$(SRCDIR)/ikbd.c \
+	ikbd.c \
 	\
-	$(SRCDIR)/basflash.c \
-	$(SRCDIR)/basflash_start.c 
+	basflash.c \
+	basflash_start.c 
 
 ASRCS= \
-	$(SRCDIR)/startcf.S \
-	$(SRCDIR)/printf_helper.S \
-	$(SRCDIR)/exceptions.S \
-	$(SRCDIR)/supervisor.S \
-	$(SRCDIR)/illegal_instruction.S \
-	$(SRCDIR)/xhdi_vec.S
+	startcf.S \
+	printf_helper.S \
+	exceptions.S \
+	supervisor.S \
+	illegal_instruction.S \
+	xhdi_vec.S
 	
-COBJS=$(patsubst $(SRCDIR)/%.o,%.o,$(patsubst %.c,%.o,$(CSRCS)))
-AOBJS=$(patsubst $(SRCDIR)/%.o,%.o,$(patsubst %.S,%.o,$(ASRCS)))
+COBJS=$(patsubst %.c,%.o,$(CSRCS))
+AOBJS=$(patsubst %.S,%.o,$(ASRCS))
 
 OBJS=$(COBJS) $(AOBJS)
 LIBBAS=libbas.a
@@ -145,10 +145,10 @@ ifeq (firebee,$(1))
 else
 	MACHINE=MACHINE_M5484LITE
 endif
-$(1)/objs/%.o:$(SRCDIR)/%.c
+$(1)/objs/%.o:%.c
 	$(CC) $$(CFLAGS) -D$$(MACHINE) $(INCLUDE) -c $$< -o $$@
 
-$(1)/objs/%.o:$(SRCDIR)/%.S
+$(1)/objs/%.o:%.S
 	$(CC) $$(CFLAGS) -Wa,--bitwise-or -D$$(MACHINE) $(INCLUDE) -c $$< -o $$@
 endef
 $(foreach DIR,$(TRGTDIRS),$(eval $(call CC_TEMPLATE,$(DIR))))
