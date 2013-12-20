@@ -28,10 +28,7 @@
 #ifndef BAS_TYPES_H_
 #define BAS_TYPES_H_
 
-#ifndef __cplusplus
+#include <stdint.h>
 #include <stdbool.h>
-#endif /* __cplusplus */
-
-
 
 #endif /* BAS_TYPES_H_ */
