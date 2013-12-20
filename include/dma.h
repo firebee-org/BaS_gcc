@@ -20,12 +20,21 @@
  *      Author: Markus Fröschle
  */
 
-#ifndef _SPIDMA_H_
-#define _SPIDMA_H_
+#ifndef _DMA_H_
+#define _DMA_H_
 
 #include <MCF5475.h>
 
+#define DMA_INTC_LVL        6
+#define DMA_INTC_PRI        0
+
 extern int dma_init(void);
+extern int dma_get_channel(int requestor);
+extern int dma_set_channel(int, void (*)(void));
+extern void dma_free_channel(int requestor);
+extern uint32_t dma_get_initiator(int requestor);
+extern int dma_set_initiator(int initiator);
+extern void dma_free_initiator(int initiator);
 
 
-#endif /* _SPIDMA_H_ */
+#endif /* _DMA_H_ */

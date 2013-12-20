@@ -37,12 +37,61 @@
 extern char _SYS_SRAM[];
 #define SYS_SRAM &_SYS_SRAM[0]
 
-void print_sp(void)
+struct dma_channel
 {
-	register char *sp asm("sp");
-	xprintf("sp=%x\r\n", sp);
+	int req;
+	void (*handler)(void);
+};
+
+static struct dma_channel dma_channel[NCHANNELS] =
+{
+	{-1,NULL}, {-1,NULL}, {-1,NULL}, {-1,NULL},
+	{-1,NULL}, {-1,NULL}, {-1,NULL}, {-1,NULL},
+	{-1,NULL}, {-1,NULL}, {-1,NULL}, {-1,NULL},
+	{-1,NULL}, {-1,NULL}, {-1,NULL}, {-1,NULL},
+};
+
+/*
+ * return the channel being initiated by the given requestor
+ */
+int dma_get_channel(int requestor)
+{
+	int i;
+
+	for (i = 0; i < NCHANNELS; i++)
+	{
+		if (dma_channel[i].req == requestor)
+		{
+			return i;
+		}
+	}
+	return -1;
 }
 
+int dma_set_channel(int requestor, void (*handler)(void))
+{
+	int i;
+
+	/* check to see if requestor is already assigned to a channel */
+	if ((i = dma_get_channel(requestor)) != -1)
+	{
+		return i;
+	}
+
+	for (i = 0; i < NCHANNELS; i++)
+	{
+		if (dma_channel[i].req == -1)
+		{
+			dma_channel[i].req = requestor;
+			dma_channel[i].handler = handler;
+
+			return i;
+		}
+	}
+
+	/* all channels taken */
+	return -1;
+}
 
 void *dma_memcpy(void *dst, void *src, size_t n)
 {

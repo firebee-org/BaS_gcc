@@ -7,6 +7,8 @@
 #ifndef _MCD_API_H
 #define _MCD_API_H
 
+#include "bas_types.h"
+
 /*
  * Turn Execution Unit tasks ON (#define) or OFF (#undef)
  */
@@ -47,39 +49,33 @@
 /*
  * Portability typedefs
  */
-typedef int s32;
-typedef unsigned int u32;
-typedef short s16;
-typedef unsigned short u16;
-typedef char s8;
-typedef unsigned char u8;
 
 /*
  * These structures represent the internal registers of the
  * multi-channel DMA
  */
 struct dmaRegs_s {
-   u32 taskbar;         /* task table base address register */
-   u32 currPtr;
-   u32 endPtr;
-   u32 varTablePtr;
-   u16 dma_rsvd0;
-   u16 ptdControl;      /* ptd control */
-   u32 intPending;      /* interrupt pending register */
-   u32 intMask;         /* interrupt mask register */
-   u16 taskControl[16]; /* task control registers */
-   u8  priority[32];    /* priority registers */
-   u32 initiatorMux;    /* initiator mux control */
-   u32 taskSize0;       /* task size control register 0. */
-   u32 taskSize1;       /* task size control register 1. */
-   u32 dma_rsvd1;       /* reserved */
-   u32 dma_rsvd2;       /* reserved */
-   u32 debugComp1;      /* debug comparator 1 */
-   u32 debugComp2;      /* debug comparator 2 */
-   u32 debugControl;    /* debug control */
-   u32 debugStatus;     /* debug status */
-   u32 ptdDebug;        /* priority task decode debug */
-   u32 dma_rsvd3[31];   /* reserved */
+   uint32_t taskbar;         /* task table base address register */
+   uint32_t currPtr;
+   uint32_t endPtr;
+   uint32_t varTablePtr;
+   uint16_t dma_rsvd0;
+   uint16_t ptdControl;      /* ptd control */
+   uint32_t intPending;      /* interrupt pending register */
+   uint32_t intMask;         /* interrupt mask register */
+   uint16_t taskControl[16]; /* task control registers */
+   uint8_t  priority[32];    /* priority registers */
+   uint32_t initiatorMux;    /* initiator mux control */
+   uint32_t taskSize0;       /* task size control register 0. */
+   uint32_t taskSize1;       /* task size control register 1. */
+   uint32_t dma_rsvd1;       /* reserved */
+   uint32_t dma_rsvd2;       /* reserved */
+   uint32_t debugComp1;      /* debug comparator 1 */
+   uint32_t debugComp2;      /* debug comparator 2 */
+   uint32_t debugControl;    /* debug control */
+   uint32_t debugStatus;     /* debug status */
+   uint32_t ptdDebug;        /* priority task decode debug */
+   uint32_t dma_rsvd3[31];   /* reserved */
 };
 typedef volatile struct dmaRegs_s dmaRegs;
 
@@ -165,7 +161,7 @@ typedef volatile struct dmaRegs_s dmaRegs;
  */
 /* Byte swapping: */
 #define MCD_NO_BYTE_SWAP    0x00045670  /* to disable byte swapping. */
-#define MCD_BYTE_REVERSE    0x00076540  /* to reverse the bytes of each u32 of the DMAed data. */
+#define MCD_BYTE_REVERSE    0x00076540  /* to reverse the bytes of each uint32_t of the DMAed data. */
 #define MCD_U16_REVERSE     0x00067450  /* to reverse the 16-bit halves of
                                            each 32-bit data value being DMAed.*/
 #define MCD_U16_BYTE_REVERSE    0x00054760 /* to reverse the byte halves of each
@@ -232,44 +228,44 @@ typedef volatile struct dmaRegs_s dmaRegs;
 
 /* Task Table Entry struct*/
 typedef struct {
-    u32 TDTstart;   /* task descriptor table start */
-    u32 TDTend;     /* task descriptor table end */
-    u32 varTab;     /* variable table start */
-    u32 FDTandFlags;    /* function descriptor table start and flags */
-    volatile u32 descAddrAndStatus;
-    volatile u32 modifiedVarTab;
-    u32 contextSaveSpace;   /* context save space start */
-    u32 literalBases;
+    uint32_t TDTstart;   /* task descriptor table start */
+    uint32_t TDTend;     /* task descriptor table end */
+    uint32_t varTab;     /* variable table start */
+    uint32_t FDTandFlags;    /* function descriptor table start and flags */
+    volatile uint32_t descAddrAndStatus;
+    volatile uint32_t modifiedVarTab;
+    uint32_t contextSaveSpace;   /* context save space start */
+    uint32_t literalBases;
 } TaskTableEntry;
 
 
 /* Chained buffer descriptor */
 typedef volatile struct MCD_bufDesc_struct MCD_bufDesc;
 struct MCD_bufDesc_struct {
-   u32 flags;         /* flags describing the DMA */
-   u32 csumResult;    /* checksum from checksumming performed since last checksum reset */
-   s8  *srcAddr;      /* the address to move data from */
-   s8  *destAddr;     /* the address to move data to */
-   s8  *lastDestAddr; /* the last address written to */
-   u32 dmaSize;       /* the number of bytes to transfer independent of the transfer size */
+   uint32_t flags;         /* flags describing the DMA */
+   uint32_t csumResult;    /* checksum from checksumming performed since last checksum reset */
+   int8_t  *srcAddr;      /* the address to move data from */
+   int8_t  *destAddr;     /* the address to move data to */
+   int8_t  *lastDestAddr; /* the last address written to */
+   uint32_t dmaSize;       /* the number of bytes to transfer independent of the transfer size */
    MCD_bufDesc *next; /* next buffer descriptor in chain */
-   u32 info;          /* private information about this descriptor;  DMA does not affect it */
+   uint32_t info;          /* private information about this descriptor;  DMA does not affect it */
 };
 
 /* Progress Query struct */
 typedef volatile struct MCD_XferProg_struct {
-   s8 *lastSrcAddr;         /* the most-recent or last, post-increment source address */
-   s8 *lastDestAddr;        /* the most-recent or last, post-increment destination address */
-   u32  dmaSize;            /* the amount of data transferred for the current buffer */
+   int8_t *lastSrcAddr;         /* the most-recent or last, post-increment source address */
+   int8_t *lastDestAddr;        /* the most-recent or last, post-increment destination address */
+   uint32_t  dmaSize;            /* the amount of data transferred for the current buffer */
    MCD_bufDesc *currBufDesc;/* pointer to the current buffer descriptor being DMAed */
 } MCD_XferProg;
 
 
 /* FEC buffer descriptor */
 typedef volatile struct MCD_bufDescFec_struct {
-    u16 statCtrl;
-    u16 length;
-    u32 dataPointer;
+    uint16_t statCtrl;
+    uint16_t length;
+    uint32_t dataPointer;
 } MCD_bufDescFec;
 
 
@@ -283,16 +279,16 @@ typedef volatile struct MCD_bufDescFec_struct {
  */
 int MCD_startDma (
    int channel,   /* the channel on which to run the DMA */
-   s8  *srcAddr,  /* the address to move data from, or buffer-descriptor address */
-   s16 srcIncr,   /* the amount to increment the source address per transfer */
-   s8  *destAddr, /* the address to move data to */
-   s16 destIncr,  /* the amount to increment the destination address per transfer */
-   u32 dmaSize,   /* the number of bytes to transfer independent of the transfer size */
-   u32 xferSize,  /* the number bytes in of each data movement (1, 2, or 4) */
-   u32 initiator, /* what device initiates the DMA */
+   int8_t  *srcAddr,  /* the address to move data from, or buffer-descriptor address */
+   int16_t srcIncr,   /* the amount to increment the source address per transfer */
+   int8_t  *destAddr, /* the address to move data to */
+   int16_t destIncr,  /* the amount to increment the destination address per transfer */
+   uint32_t dmaSize,   /* the number of bytes to transfer independent of the transfer size */
+   uint32_t xferSize,  /* the number bytes in of each data movement (1, 2, or 4) */
+   uint32_t initiator, /* what device initiates the DMA */
    int priority,  /* priority of the DMA */
-   u32 flags,     /* flags describing the DMA */
-   u32 funcDesc   /* a description of byte swapping, bit swapping, and CRC actions */
+   uint32_t flags,     /* flags describing the DMA */
+   uint32_t funcDesc   /* a description of byte swapping, bit swapping, and CRC actions */
 );
 
 /* 
@@ -300,7 +296,7 @@ int MCD_startDma (
  * registers, relocating and creating the appropriate task structures, and 
  * setting up some global settings
  */
-int MCD_initDma (dmaRegs *sDmaBarAddr, void *taskTableDest, u32 flags);
+int MCD_initDma (dmaRegs *sDmaBarAddr, void *taskTableDest, uint32_t flags);
 
 /* 
  * MCD_dmaStatus() returns the status of the DMA on the requested channel.
@@ -339,7 +335,7 @@ int MCD_resumeDma (int channel);
 /* 
  * MCD_csumQuery provides the checksum/CRC after performing a non-chained DMA
  */
-int MCD_csumQuery (int channel, u32 *csum);
+int MCD_csumQuery (int channel, uint32_t *csum);
 
 /* 
  * MCD_getCodeSize provides the packed size required by the microcoded task
@@ -354,7 +350,7 @@ int MCD_getCodeSize(void);
 int MCD_getVersion(char **longVersion);
 
 /* macro for setting a location in the variable table */
-#define MCD_SET_VAR(taskTab,idx,value) ((u32 *)(taskTab)->varTab)[idx] = value
+#define MCD_SET_VAR(taskTab,idx,value) ((uint32_t *)(taskTab)->varTab)[idx] = value
    /* Note that MCD_SET_VAR() is invoked many times in firing up a DMA function,
       so I'm avoiding surrounding it with "do {} while(0)" */
 
