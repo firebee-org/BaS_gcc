@@ -27,6 +27,8 @@
 
 #include <stdint.h>
 
+#define NOP() __asm__ __volatile__("nop\n\t" : : : "memory")
+
 /*
  * uint16_t swpw(uint16_t val);
  *   swap endianess of val, 16 bits only.
