@@ -265,7 +265,6 @@ void __attribute__((flatten)) mmu_init(void)
 					MCF_MMU_MMUOR_ACC |     /* access TLB */
 					MCF_MMU_MMUOR_UAA;      /* update allocation address field */
 
-#if MACHINE_FIREBEE		/* map FPGA video memory for FireBee only */
 	/*
 	 * 0x00d0'0000 - 0x00df'ffff (last megabyte of ST RAM = Falcon video memory) locked ID = 6
 	 * mapped to physical address 0x60d0'0000 (FPGA video memory)
@@ -273,10 +272,17 @@ void __attribute__((flatten)) mmu_init(void)
 	 */
 	
 	MCF_MMU_MMUTR = 0x00d00000 |			/* virtual address */
+#if defined(MACHINE_FIREBEE)
 					MCF_MMU_MMUTR_ID(SCA_PAGE_ID) |
+#endif /* MACHINE_FIREBEE */
 					MCF_MMU_MMUTR_SG |		/* shared global */
 					MCF_MMU_MMUTR_V;		/* valid */
+#if defined(MACHINE_FIREBEE)
+					/* map FPGA video memory for FireBee only */
 	MCF_MMU_MMUDR = 0x60d00000 |			/* physical address */
+#elif defined(MACHINE_M5484LITE)
+	MCF_MMU_MMUDR = 0x00d00000 |			/* physical address */
+#endif /* MACHINE_FIREBEE */
 					MCF_MMU_MMUDR_SZ(0) |	/* 1 MB page size */
 					MCF_MMU_MMUDR_CM(0x0) |	/* cachable writethrough */
 					/* caveat: can't be supervisor protected since TOS puts the application stack there! */
@@ -291,6 +297,7 @@ void __attribute__((flatten)) mmu_init(void)
 					MCF_MMU_MMUOR_ACC |     /* access TLB */
 					MCF_MMU_MMUOR_UAA;      /* update allocation address field */
 
+#if defined(MACHINE_FIREBEE)
 	video_tlb = 0x2000;						/* set page as video page */
 	video_sbt = 0x0;						/* clear time */
 #endif /* MACHINE_FIREBEE */
