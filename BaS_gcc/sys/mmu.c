@@ -50,6 +50,7 @@
 #include "MCF5475.h"
 #include "pci.h"
 #include "cache.h"
+#include "util.h"
 #if MACHINE_FIREBEE
 #include "firebee.h"
 #elif MACHINE_M5484LITE
@@ -178,11 +179,12 @@ inline uint32_t set_mmubar(uint32_t value)
 		: /* no clobber */
 	);
 	rt_mmubar = value;
+	NOP();
 
 	return ret;
 }
 
-void mmu_init(void)
+void __attribute__((flatten)) mmu_init(void)
 {
 	extern uint8_t _MMUBAR[];
 	uint32_t MMUBAR = (uint32_t) &_MMUBAR[0];
@@ -237,7 +239,7 @@ void mmu_init(void)
 	/* disable ACR3 */
 	set_acr3(0x0);
 
-	set_mmubar(MMUBAR | 1);		/* set and enable MMUBAR */
+	set_mmubar(MMUBAR + 1);		/* set and enable MMUBAR */
 
 	/* clear all MMU TLB entries */
 	MCF_MMU_MMUOR = MCF_MMU_MMUOR_CA;
@@ -277,7 +279,8 @@ void mmu_init(void)
 	MCF_MMU_MMUDR = 0x60d00000 |			/* physical address */
 					MCF_MMU_MMUDR_SZ(0) |	/* 1 MB page size */
 					MCF_MMU_MMUDR_CM(0x0) |	/* cachable writethrough */
-					MCF_MMU_MMUDR_SP |		/* supervisor protect */
+					/* caveat: can't be supervisor protected since TOS puts the application stack there! */
+					//MCF_MMU_MMUDR_SP |		/* supervisor protect */
 					MCF_MMU_MMUDR_R |		/* read access enable */
 					MCF_MMU_MMUDR_W |		/* write access enable */
 					MCF_MMU_MMUDR_X |		/* execute access enable */
@@ -359,10 +362,8 @@ void mmu_init(void)
 					MCF_MMU_MMUOR_UAA;      /* update allocation address field */
 }
 
-void mmutr_miss(void)
+void mmutr_miss(uint32_t address)
 {
-	register uint32_t address asm("d0");
-
 	dbg_mmu("MMU TLB MISS at 0x%08x\r\n", address);
 	flush_and_invalidate_caches();
 
