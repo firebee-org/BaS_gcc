@@ -24,6 +24,8 @@
 #ifndef _MMU_H_
 #define _MMU_H_
 
+#include "bas_types.h"
+
 #define SCA_PAGE_ID		6	/* indicates video memory page */
 
 /*
@@ -33,6 +35,6 @@ extern long video_tlb;
 extern long video_sbt;
 
 extern void mmu_init(void);
-extern void mmutr_miss(void);
+extern void mmutr_miss(uint32_t addresss);
 
 #endif /* _MMU_H_ */

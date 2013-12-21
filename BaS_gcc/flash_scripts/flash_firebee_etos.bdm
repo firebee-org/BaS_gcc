@@ -78,4 +78,4 @@ erase-wait 0xe0000000
 erase 0xe0000000 0x378000
 erase-wait 0xe0000000
 
-load -v emutos.elf
+load -v emutos-firebee.elf

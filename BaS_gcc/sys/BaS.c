@@ -254,7 +254,7 @@ void BaS(void)
 	xprintf("finished\r\n");
 
 	xprintf("enable MMU: ");
-	MCF_MMU_MMUCR = MCF_MMU_MMUCR_EN;	/* MMU on */
+	MCF_MMU_MMUCR = MCF_MMU_MMUCR_EN;			/* MMU on */
 	NOP();										/* force pipeline sync */
 	xprintf("finished\r\n");
 
