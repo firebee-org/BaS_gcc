@@ -544,8 +544,6 @@ void init_pll(void)
  * INIT VIDEO DDR RAM
  */
 
-#define NOP() __asm__ __volatile__("nop\n\t" : : : "memory")
-
 void init_video_ddr(void) {
 	xprintf("init video RAM: ");
 
