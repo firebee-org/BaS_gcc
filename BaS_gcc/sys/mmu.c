@@ -313,7 +313,7 @@ void __attribute__((flatten)) mmu_init(void)
 					MCF_MMU_MMUDR_SZ(0) |	/* 1 MB page size */
 					MCF_MMU_MMUDR_CM(0x1) |	/* cachable copyback */
 					MCF_MMU_MMUDR_R |		/* read access enable */
-					MCF_MMU_MMUDR_W |		/* write access enable (FIXME: for now) */
+					//MCF_MMU_MMUDR_W |		/* write access enable (FIXME: for now) */
 					MCF_MMU_MMUDR_X |		/* execute access enable */
 					MCF_MMU_MMUDR_LK;		/* lock entry */
 	MCF_MMU_MMUOR = MCF_MMU_MMUOR_ACC |		/* access TLB, data */
@@ -347,8 +347,30 @@ void __attribute__((flatten)) mmu_init(void)
 #endif /* MACHINE_FIREBEE */
 
 	/*
-	 * Map (locked) the last MB of physical SDRAM (this is where BaS .data and .bss reside) to the same
+	 * Map (locked) the second last MB of physical SDRAM (this is where BaS .data and .bss reside) to the same
 	 * virtual address. This is also used when BaS is in RAM
+	 */
+
+	MCF_MMU_MMUTR = (SDRAM_START + SDRAM_SIZE - 0x00200000) |	/* virtual address */
+					MCF_MMU_MMUTR_SG |		/* shared global */
+					MCF_MMU_MMUTR_V;		/* valid */
+	MCF_MMU_MMUDR = (SDRAM_START + SDRAM_SIZE - 0x00200000) |	/* physical address */
+					MCF_MMU_MMUDR_SZ(0) |	/* 1 MB page size */
+					MCF_MMU_MMUDR_CM(0x0) |	/* cacheable writethrough */
+					MCF_MMU_MMUDR_SP |		/* supervisor protect */
+					MCF_MMU_MMUDR_R |		/* read access enable */
+					MCF_MMU_MMUDR_W |		/* write access enable */
+					MCF_MMU_MMUDR_X |		/* execute access enable */
+					MCF_MMU_MMUDR_LK;		/* lock entry */
+	MCF_MMU_MMUOR = MCF_MMU_MMUOR_ACC |		/* access TLB, data */
+					MCF_MMU_MMUOR_UAA;		/* update allocation address field */
+	MCF_MMU_MMUOR = MCF_MMU_MMUOR_ITLB | 	/* instruction */
+					MCF_MMU_MMUOR_ACC |     /* access TLB */
+					MCF_MMU_MMUOR_UAA;      /* update allocation address field */
+					
+	/*
+	 * Map (locked) the very last MB of physical SDRAM (this is where the driver buffers reside) to the same
+	 * virtual address. Used uncached for drivers.
 	 */
 
 	MCF_MMU_MMUTR = (SDRAM_START + SDRAM_SIZE - 0x00100000) |	/* virtual address */
@@ -356,7 +378,7 @@ void __attribute__((flatten)) mmu_init(void)
 					MCF_MMU_MMUTR_V;		/* valid */
 	MCF_MMU_MMUDR = (SDRAM_START + SDRAM_SIZE - 0x00100000) |	/* physical address */
 					MCF_MMU_MMUDR_SZ(0) |	/* 1 MB page size */
-					MCF_MMU_MMUDR_CM(0x0) |	/* cacheable writethrough */
+					MCF_MMU_MMUDR_CM(0x2) |	/* nocache precise */
 					MCF_MMU_MMUDR_SP |		/* supervisor protect */
 					MCF_MMU_MMUDR_R |		/* read access enable */
 					MCF_MMU_MMUDR_W |		/* write access enable */
