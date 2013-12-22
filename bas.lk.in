@@ -19,7 +19,8 @@ MEMORY
    /*
 	* target to copy BaS data segment to. 1M should be enough for now
 	*/
-   bas_ram (WX) : ORIGIN = SDRAM_START + SDRAM_SIZE - 0x00100000, LENGTH = 0x00100000
+   bas_ram (WX) : ORIGIN = SDRAM_START + SDRAM_SIZE - 0x00200000, LENGTH = 0x00100000
+   driver_ram (WX) : ORIGIN = SDRAM_START + SDRAM_SIZE - 0x00100000, LENGTH = 0x00100000
 }
 
 SECTIONS
@@ -78,15 +79,11 @@ SECTIONS
 		*(.bss)	
 		__BAS_BSS_END = .;
 #endif /* COMPILE_RAM */
+
 #if (FORMAT == elf32-m68k)
 		*(.rodata)
 		*(.rodata.*)
 #endif
-#ifdef COMPILE_RAM
-		. = ALIGN(16);
-		_driver_mem_buffer = .;
-		// . = . + DRIVER_MEM_BUFFER_SIZE
-#endif /* COMPILE_RAM */
 	} > bas_rom
 
 #if (TARGET_ADDRESS == BOOTFLASH_BASE_ADDRESS)
@@ -108,11 +105,15 @@ SECTIONS
 		__BAS_BSS_END = .;
 
 		. = ALIGN(16);
-		_driver_mem_buffer = .;
-		//. = . + DRIVER_MEM_BUFFER_SIZE;
 	} > bas_ram
 #endif
 
+	.driver_memory :
+	{
+		_driver_mem_buffer = .;
+		//. = . + DRIVER_MEM_BUFFER_SIZE;
+	} > driver_ram
+	
 	/*
 	 * Global memory map
 	 */
