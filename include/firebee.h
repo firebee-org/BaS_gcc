@@ -43,7 +43,7 @@
 
 #endif /* COMPILE_RAM */
 
-#define USB_BUFFER_SIZE   	0x80000
+#define DRIVER_MEM_BUFFER_SIZE   	0x80000
 
 #define EMUTOS_BASE_ADDRESS	0xe0600000
 

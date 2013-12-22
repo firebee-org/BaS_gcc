@@ -80,12 +80,12 @@ CSRCS= \
 	pci.c \
 	dspi.c \
 	driver_vec.c \
+	driver_mem.c \
 	MCD_dmaApi.c \
 	MCD_tasks.c \
 	MCD_tasksInit.c \
 	\
 	usb.c \
-	usb_mem.c \
 	ohci-hcd.c \
 	ehci-hcd.c \
 	usb_mouse.c \

@@ -148,6 +148,7 @@ __attribute__((interrupt)) void xlb_pci_interrupt(void)
 
 __attribute__((interrupt)) void pci_interrupt(void)
 {
+	debug_printf("PCI interrupt\r\n");
 }
 
 static int32_t pci_get_interrupt_cause(int32_t *handles)
@@ -646,7 +647,7 @@ static void pci_device_config(uint16_t bus, uint16_t device, uint16_t function)
 
 	/* check if device requests an interrupt */
 	il = pci_read_config_byte(handle, PCIIPR);
-	xprintf("device requests interrupts on interrupt pin %d\r\n", il);
+	debug_printf("device requests interrupts on interrupt pin %d\r\n", il);
 			
 	/* if so, register interrupts */
 	

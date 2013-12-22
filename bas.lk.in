@@ -36,13 +36,14 @@ SECTIONS
 #endif /* MACHINE_FIREBEE */
 		OBJDIR/wait.o(.text)
 		OBJDIR/exceptions.o(.text)
+		OBJDIR/driver_vec.o(.text)
 		OBJDIR/interrupts.o(.text)
 		OBJDIR/mmu.o(.text)		
 		
 		OBJDIR/BaS.o(.text)
 		OBJDIR/pci.o(.text)
 		OBJDIR/usb.o(.text)
-		OBJDIR/usb_mem.o(.text)
+		OBJDIR/driver_mem.o(.text)
 		OBJDIR/usb_mouse.o(.text)
 		OBJDIR/ohci-hcd.o(.text)
 		OBJDIR/ehci-hcd.o(.text)
@@ -83,7 +84,8 @@ SECTIONS
 #endif
 #ifdef COMPILE_RAM
 		. = ALIGN(16);
-		_usb_buffer = .;
+		_driver_mem_buffer = .;
+		// . = . + DRIVER_MEM_BUFFER_SIZE
 #endif /* COMPILE_RAM */
 	} > bas_rom
 
@@ -105,12 +107,9 @@ SECTIONS
 		*(.bss)	
 		__BAS_BSS_END = .;
 
-		/* The BaS copy routine assumes that tha BaS size
-	 	 * is a multiple of the following value.
-	 	 */
 		. = ALIGN(16);
-		_usb_buffer = .;
-		//. = . + USB_BUFFER_SIZE;
+		_driver_mem_buffer = .;
+		//. = . + DRIVER_MEM_BUFFER_SIZE;
 	} > bas_ram
 #endif
 

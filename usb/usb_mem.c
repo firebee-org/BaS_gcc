@@ -1,5 +1,5 @@
 /*
- *	usb_mem.c
+ *	driver_mem.c
  *
  * based from Emutos / BDOS
  * 
@@ -30,18 +30,18 @@
 #define TRUE 1
 #endif
 
-#undef USB_MEM_DEBUG
+#undef DRIVER_MEM_DEBUG
 
-#ifdef	USB_MEM_DEBUG
-#define	USB_MEM_PRINTF(fmt, args...)	xprintf(fmt, ##args)
+#ifdef	DRIVER_MEM_DEBUG
+#define	dbg(fmt, args...)	xprintf(fmt, ##args)
 #else
-#define USB_MEM_PRINTF(fmt, args...)
+#define dbg(fmt, args...)
 #endif
 
 extern void *info_fvdi;
 extern long offscren_reserved(void);
 
-extern uint8_t usb_buffer[USB_BUFFER_SIZE];	/* defined in linker control file */
+extern uint8_t driver_mem[DRIVER_MEM_SIZE];	/* defined in linker control file */
 
 /* MD - Memory Descriptor */
 
@@ -74,7 +74,8 @@ static MPB pmd;
 static void *xmgetblk(void)
 {
 	int i;
-	for(i = 0; i < MAXMD; i++)
+	
+	for (i = 0; i < MAXMD; i++)
 	{
 		if (tab_md[i].m_own == NULL)
 		{
@@ -82,14 +83,16 @@ static void *xmgetblk(void)
 			return(&tab_md[i]);
 		}
 	}			   
-	return(NULL);
+	return NULL;
 }
 
 static void xmfreblk(void *m)
 {
-	int i = (int)(((long)m - (long)tab_md) / sizeof(MD));
+	int i = (int)(((long) m - (long) tab_md) / sizeof(MD));
 	if ((i > 0) && (i < MAXMD))
+	{
 		tab_md[i].m_own = NULL;
+	}
 }
 
 static MD *ffit(long amount, MPB *mp)
@@ -97,13 +100,18 @@ static MD *ffit(long amount, MPB *mp)
 	MD *p, *q, *p1;                    /* free list is composed of MD's */
 	int maxflg;
 	long maxval;
+	
 	if (amount != -1)
 	{
 		amount += 15;                  /* 16 bytes alignment */
 		amount &= 0xFFFFFFF0;
 	}
+	
 	if ((q = mp->mp_rover) == 0)      /* get rotating pointer */
-		return(0) ;
+	{
+		return 0;
+	}
+	
 	maxval = 0;
 	maxflg = ((amount == -1) ? TRUE : FALSE) ;
 	p = q->m_link;                   /* start with next MD */
@@ -119,14 +127,21 @@ static MD *ffit(long amount, MPB *mp)
 		{
 			/*  big enough */
 			if (p->m_length == amount)
+			{
 				q->m_link = p->m_link;     /* take the whole thing */
+			}
 			else
 			{
-				/* break it up - 1st allocate a new
-				   MD to describe the remainder */
+				/*
+				 * break it up - 1st allocate a new
+				 * MD to describe the remainder
+				 */
 				p1 = xmgetblk();
 				if (p1 == NULL)
+				{
 					return(NULL);
+				}
+				
 				/* init new MD */
 				p1->m_length = p->m_length - amount;
 				p1->m_start = p->m_start + amount;
@@ -144,16 +159,22 @@ static MD *ffit(long amount, MPB *mp)
 		else if (p->m_length > maxval)
 			maxval = p->m_length;
 		p = ( q=p )->m_link;
-	}
-	while(q != mp->mp_rover);
-	/*  return either the max, or 0 (error)  */
+	} while(q != mp->mp_rover);
+	
+	/*
+	 * return either the max, or 0 (error)
+	 */
 	if (maxflg)
 	{
-		maxval -= 15; /* 16 bytes alignment */
+		maxval -= 15;		/* 16 bytes alignment */
 		if (maxval < 0)
+		{
 			maxval = 0;
+		}
 		else
+		{
 			maxval &= 0xFFFFFFF0;
+		}
 	}
 	return(maxflg ? (MD *) maxval : 0);
 }
@@ -161,84 +182,123 @@ static MD *ffit(long amount, MPB *mp)
 static void freeit(MD *m, MPB *mp)
 {
 	MD *p, *q;
+	
 	q = 0;
-	for(p = mp->mp_mfl; p ; p = (q=p) -> m_link)
+	for (p = mp->mp_mfl; p ; p = (q = p) -> m_link)
 	{
 		if (m->m_start <= p->m_start)
+		{
 			break;
+		}
 	}
 	m->m_link = p;
+	
 	if (q)
+	{
 		q->m_link = m;
+	}
 	else
+	{
 		mp->mp_mfl = m;
+	}
+	
 	if (!mp->mp_rover)
+	{
 		mp->mp_rover = m;
+	}
+	
 	if (p)
 	{
 		if (m->m_start + m->m_length == p->m_start)
-		{ /* join to higher neighbor */
+		{
+			/* join to higher neighbor */
 			m->m_length += p->m_length;
 			m->m_link = p->m_link;
 			if (p == mp->mp_rover)
+			{
 				mp->mp_rover = m;
+			}
 			xmfreblk(p);
 		}
 	}
 	if (q)
 	{
 		if (q->m_start + q->m_length == m->m_start)
-		{ /* join to lower neighbor */
+		{
+			/* join to lower neighbor */
 			q->m_length += m->m_length;
 			q->m_link = m->m_link;
 			if (m == mp->mp_rover)
+			{
 				mp->mp_rover = q;
+			}
 			xmfreblk(m);
 		}
 	}
 }
 
-int usb_free(void *addr)
+int driver_mem_free(void *addr)
 {
 	int level;
 	MD *p, **q;
 	MPB *mpb;
 	mpb = &pmd;
 	level = set_ipl(7);
+	
 	for(p = *(q = &mpb->mp_mal); p; p = *(q = &p->m_link))
 	{
-		if ((long)addr == p->m_start)
+		if ((long) addr == p->m_start)
+		{
 			break;
+		}
 	}
+	
 	if (!p)
 	{
 		set_ipl(level);
 		return(-1);
 	}
+	
 	*q = p->m_link;
 	freeit(p, mpb);
 	set_ipl(level);
-	USB_MEM_PRINTF("usb_free(0x%08X)\r\n", addr);
+	
+	dbg("driver_mem_free(0x%08X)\r\n", addr);
+	
 	return(0);
 }
 
-void *usb_malloc(long amount)
+void *driver_mem_alloc(long amount)
 {
 	void *ret = NULL;
 	int level;
 	MD *m;
+	
 	if (amount == -1L)
+	{
 		return((void *)ffit(-1L, &pmd));
+	}
+	
 	if (amount <= 0 )
+	{
 		return(0);
+	}
+	
 	if ((amount & 1))
+	{
 		amount++;
+	}
+	
 	level = set_ipl(7);
 	m = ffit(amount, &pmd);
+	
 	if (m != NULL)
+	{
 		ret = (void *)m->m_start;
+	}
 	set_ipl(level);
-	USB_MEM_PRINTF("usb_malloc(%d) = 0x%08X\r\n", amount, ret);
+	dbg("driver_mem_alloc(%d) = 0x%08X\r\n", amount, ret);
+	
 	return(ret);
 }
 
@@ -247,21 +307,25 @@ void *usb_malloc(long amount)
 int usb_mem_init(void)
 {
 #ifdef USE_RADEON_MEMORY
-	usb_buffer = (void *)offscren_reserved();
-	if (usb_buffer == NULL)
+	driver_mem_buffer = (void *) offscren_reserved();
+	if (driver_mem_buffer == NULL)
 #endif
-	memset(usb_buffer, 0, USB_BUFFER_SIZE);
+	memset(driver_mem_buffer, 0, DRIVER_MEM_BUFFER_SIZE);
 
-	if (usb_buffer == NULL)
+	if (driver_mem_buffer == NULL)
+	{
 		return(-1);
+	}
+	
 	pmd.mp_mfl = pmd.mp_rover = &tab_md[0];
-	tab_md[0].m_link = (MD *)NULL;
-	tab_md[0].m_start = ((long)usb_buffer + 15) & ~15;
-	tab_md[0].m_length = USB_BUFFER_SIZE;	
-	tab_md[0].m_own = (void *)1L;
-	pmd.mp_mal = (MD *)NULL;
-	memset(usb_buffer, 0, tab_md[0].m_length);
-	USB_MEM_PRINTF("USB malloc buffer at 0x%08X size %d\r\n", tab_md[0].m_start, tab_md[0].m_length);
+	tab_md[0].m_link = (MD *) NULL;
+	tab_md[0].m_start = ((long) driver_mem_buffer + 15) & ~15;
+	tab_md[0].m_length = DRIVER_MEM_BUFFER_SIZE;	
+	tab_md[0].m_own = (void *) 1L;
+	pmd.mp_mal = (MD *) NULL;
+	memset(driver_mem_buffer, 0, tab_md[0].m_length);
+	dbg("driver memory buffer at 0x%08X size %d\r\n", tab_md[0].m_start, tab_md[0].m_length);
+	
 	return(0);
 }
 
@@ -269,7 +333,7 @@ void usb_mem_stop(void)
 {
 #ifndef CONFIG_USB_MEM_NO_CACHE
 #ifdef USE_RADEON_MEMORY
-	if (usb_buffer == (void *)offscren_reserved())
+	if (driver_mem_buffer == (void *) offscren_reserved())
 		return;
 #endif
 #endif

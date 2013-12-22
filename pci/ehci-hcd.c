@@ -908,7 +908,7 @@ static void hc_free_buffers(struct ehci *ehci)
 
 	if (ehci->descriptor != NULL)
 	{
-		usb_free(ehci->descriptor);
+		driver_mem_free(ehci->descriptor);
 		ehci->descriptor = NULL;
 	}
 
@@ -916,20 +916,20 @@ static void hc_free_buffers(struct ehci *ehci)
 	{
 		if (ehci->td_unaligned[i] != NULL)
 		{
-			usb_free(ehci->td_unaligned[i]);
+			driver_mem_free(ehci->td_unaligned[i]);
 			ehci->td_unaligned[i] = NULL;
 		}
 	}
 
 	if (ehci->qh_unaligned != NULL)
 	{
-		usb_free(ehci->qh_unaligned);
+		driver_mem_free(ehci->qh_unaligned);
 		ehci->qh_unaligned = NULL;
 	}
 
 	if (ehci->qh_list_unaligned != NULL)
 	{
-		usb_free(ehci->qh_list_unaligned);
+		driver_mem_free(ehci->qh_list_unaligned);
 		ehci->qh_list_unaligned = NULL;
 	}
 }
@@ -952,7 +952,7 @@ int ehci_usb_lowlevel_init(long handle, const struct pci_device_id *ent, void **
 	else if (!gehci.handle) /* for restart USB cmd */
 		return(-1);	
 
-	gehci.qh_list_unaligned = (struct QH *)usb_malloc(sizeof(struct QH) + 32);
+	gehci.qh_list_unaligned = (struct QH *)driver_mem_alloc(sizeof(struct QH) + 32);
 	if (gehci.qh_list_unaligned == NULL)
 	{
 		debug("QHs malloc failed");
@@ -962,7 +962,7 @@ int ehci_usb_lowlevel_init(long handle, const struct pci_device_id *ent, void **
 
 	gehci.qh_list = (struct QH *)(((uint32_t)gehci.qh_list_unaligned + 31) & ~31);
 	memset(gehci.qh_list, 0, sizeof(struct QH));
-	gehci.qh_unaligned = (struct QH *)usb_malloc(sizeof(struct QH) + 32);
+	gehci.qh_unaligned = (struct QH *)driver_mem_alloc(sizeof(struct QH) + 32);
 
 	if (gehci.qh_unaligned == NULL)
 	{
@@ -975,7 +975,7 @@ int ehci_usb_lowlevel_init(long handle, const struct pci_device_id *ent, void **
 
 	for (i = 0; i < 3; i++)
 	{
-		gehci.td_unaligned[i] = (struct qTD *)usb_malloc(sizeof(struct qTD) + 32);
+		gehci.td_unaligned[i] = (struct qTD *)driver_mem_alloc(sizeof(struct qTD) + 32);
 		if (gehci.td_unaligned[i] == NULL)
 		{
 			debug("TDs malloc failed");
@@ -986,7 +986,7 @@ int ehci_usb_lowlevel_init(long handle, const struct pci_device_id *ent, void **
 		memset(gehci.td[i], 0, sizeof(struct qTD));	
 	}
 
-	gehci.descriptor = (struct descriptor *)usb_malloc(sizeof(struct descriptor));
+	gehci.descriptor = (struct descriptor *)driver_mem_alloc(sizeof(struct descriptor));
 	if (gehci.descriptor == NULL)
 	{
 		debug("decriptor malloc failed");

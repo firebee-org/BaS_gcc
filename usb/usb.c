@@ -56,7 +56,7 @@
 extern int usb_stor_curr_dev;
 extern uint32_t usb_1st_disk_drive;
 
-#define USB_DEBUG
+//#define USB_DEBUG
 
 #ifdef	USB_DEBUG
 #define	debug_printf(fmt, args...)	xprintf(fmt , ##args)
@@ -121,13 +121,13 @@ int usb_init(int32_t handle, const struct pci_device_id *ent)
 	asynch_allowed = 1;
 	if (handle && (ent != NULL))
 	{
-		if (usb_mem_init())
+		if (driver_mem_init())
 		{
 			usb_started = 0;
 			return -1; /* out of memoy */
 		}
 		if (usb_dev == NULL)
-			usb_dev = (struct usb_device *)usb_malloc(sizeof(struct usb_device) * USB_MAX_BUS * USB_MAX_DEVICE);
+			usb_dev = (struct usb_device *) driver_mem_alloc(sizeof(struct usb_device) * USB_MAX_BUS * USB_MAX_DEVICE);
 		if (usb_dev == NULL)
 		{
 			usb_started = 0;
@@ -174,7 +174,7 @@ int usb_init(int32_t handle, const struct pci_device_id *ent)
 		/* if lowlevel init is OK, scan the bus for devices
 		 * i.e. search HUBs and configure them */
 		if (setup_packet == NULL)
-			setup_packet = (void *)usb_malloc(sizeof(struct devrequest));
+			setup_packet = (void *)driver_mem_alloc(sizeof(struct devrequest));
 		if (setup_packet == NULL)
 		{
 			usb_started = 0;
@@ -207,7 +207,7 @@ int usb_stop(void)
 		asynch_allowed = 1;
 		usb_started = 0;
 		usb_hub_reset(bus_index);
-		usb_free(setup_packet);
+		driver_mem_free(setup_packet);
 		for (i = 0; i < USB_MAX_BUS; i++)
 		{
 			struct hci *priv = controller_priv[i];
@@ -234,7 +234,7 @@ int usb_stop(void)
 			}
 		}
 		bus_index = 0;
-		usb_mem_stop();
+		driver_mem_stop();
 	}
 	return res;
 }
@@ -767,7 +767,7 @@ int usb_string(struct usb_device *dev, int index, char *buf, size_t size)
 	if (size <= 0 || !buf || !index)
 		return -1;
 	buf[0] = 0;
-	tbuf = (unsigned char *)usb_malloc(USB_BUFSIZ);
+	tbuf = (unsigned char *)driver_mem_alloc(USB_BUFSIZ);
 	if (tbuf == NULL)
 	{
 		debug_printf("usb_string: malloc failure\r\n");
@@ -780,13 +780,13 @@ int usb_string(struct usb_device *dev, int index, char *buf, size_t size)
 		if (err < 0)
 		{
 			debug_printf("error getting string descriptor 0 (error=%lx)\r\n", dev->status);
-			usb_free(tbuf);
+			driver_mem_free(tbuf);
 			return -1;
 		}
 		else if (tbuf[0] < 4)
 		{
 			debug_printf("string descriptor 0 too short\r\n");
-			usb_free(tbuf);
+			driver_mem_free(tbuf);
 			return -1;
 		}
 		else
@@ -800,7 +800,7 @@ int usb_string(struct usb_device *dev, int index, char *buf, size_t size)
 	err = usb_string_sub(dev, dev->string_langid, index, tbuf);
 	if (err < 0)
 	{
-		usb_free(tbuf);
+		driver_mem_free(tbuf);
 		return err;
 	}
 	size--;		/* leave room for trailing NULL char in output buffer */
@@ -815,7 +815,7 @@ int usb_string(struct usb_device *dev, int index, char *buf, size_t size)
 	}
 	buf[idx] = 0;
 	err = idx;
-	usb_free(tbuf);
+	driver_mem_free(tbuf);
 	return err;
 }
 
@@ -926,7 +926,7 @@ int usb_new_device(struct usb_device *dev)
 	addr = dev->devnum;
 	dev->devnum = 0;
 	
-	tmpbuf = (unsigned char *) usb_malloc(USB_BUFSIZ);
+	tmpbuf = (unsigned char *) driver_mem_alloc(USB_BUFSIZ);
 	if (tmpbuf == NULL)
 	{
 		debug_printf("usb_new_device: malloc failure\r\n");
@@ -947,7 +947,7 @@ int usb_new_device(struct usb_device *dev)
 	if (err < 8)
 	{
 		debug_printf("\r\nUSB device not responding, giving up (status=%lX)\r\n", dev->status);
-		usb_free(tmpbuf);
+		driver_mem_free(tmpbuf);
 		return 1;
 	}
 #else
@@ -972,7 +972,7 @@ int usb_new_device(struct usb_device *dev)
 	if (err < 0)
 	{
 		debug_printf("usb_new_device: usb_get_descriptor() failed\r\n");
-		usb_free(tmpbuf);
+		driver_mem_free(tmpbuf);
 		return 1;
 	}
 	dev->descriptor.bMaxPacketSize0 = desc->bMaxPacketSize0;
@@ -992,7 +992,7 @@ int usb_new_device(struct usb_device *dev)
 		if (port < 0)
 		{
 			debug_printf("usb_new_device: cannot locate device's port.\r\n");
-			usb_free(tmpbuf);
+			driver_mem_free(tmpbuf);
 			return 1;
 		}
 		/* reset the port for the second time */
@@ -1000,7 +1000,7 @@ int usb_new_device(struct usb_device *dev)
 		if (err < 0)
 		{
 			debug_printf("\r\nCouldn't reset port %d\r\n", port);
-			usb_free(tmpbuf);
+			driver_mem_free(tmpbuf);
 			return 1;
 		}
 	}
@@ -1019,7 +1019,7 @@ int usb_new_device(struct usb_device *dev)
 	if (err < 0)
 	{
 		debug_printf("\r\nUSB device not accepting new address (error=%lX)\r\n", dev->status);
-		usb_free(tmpbuf);
+		driver_mem_free(tmpbuf);
 		return 1;
 	}
 	wait(10 * 1000);	/* Let the SET_ADDRESS settle */
@@ -1031,7 +1031,7 @@ int usb_new_device(struct usb_device *dev)
 			debug_printf("unable to get device descriptor (error=%d)\r\n", err);
 		else
 			debug_printf("USB device descriptor short read (expected %i, got %i)\r\n", tmp, err);
-		usb_free(tmpbuf);
+		driver_mem_free(tmpbuf);
 		return 1;
 	}
 	/* correct le values */
@@ -1047,7 +1047,7 @@ int usb_new_device(struct usb_device *dev)
 	if (usb_set_configuration(dev, dev->config.bConfigurationValue))
 	{
 		debug_printf("failed to set default configuration len %d, status %lX\r\n", dev->act_len, dev->status);
-		usb_free(tmpbuf);
+		driver_mem_free(tmpbuf);
 		return -1;
 	}
 	debug_printf("new device strings: Mfr=%d, Product=%d, SerialNumber=%d\r\n",
@@ -1067,7 +1067,7 @@ int usb_new_device(struct usb_device *dev)
 	debug_printf("SerialNumber %s\r\n", dev->serial);
 	/* now prode if the device is a hub */
 	usb_hub_probe(dev, 0);
-	usb_free(tmpbuf);
+	driver_mem_free(tmpbuf);
 	return 0;
 }
 
@@ -1117,7 +1117,7 @@ void usb_scan_devices(void *priv)
  * Probes device for being a hub and configurate it
  */
 
-#define USB_HUB_DEBUG
+//#define USB_HUB_DEBUG
 
 #ifdef USB_HUB_DEBUG
 #define	dbg_hub(fmt, args...)	xprintf(fmt , ##args)
@@ -1462,7 +1462,7 @@ int usb_hub_configure(struct usb_device *dev)
 	if (hub == NULL)
 		return -1;
 	hub->pusb_dev = dev;
-	buffer = (unsigned char *)usb_malloc(USB_BUFSIZ);
+	buffer = (unsigned char *)driver_mem_alloc(USB_BUFSIZ);
 	if (buffer == NULL)
 	{
 		dbg_hub("usb_hub_configure: malloc failure\r\n");
@@ -1472,7 +1472,7 @@ int usb_hub_configure(struct usb_device *dev)
 	if (usb_get_hub_descriptor(dev, buffer, 4) < 0)
 	{
 		dbg_hub("usb_hub_configure: failed to get hub descriptor, giving up %lX\r\n", dev->status);
-		usb_free(buffer);
+		driver_mem_free(buffer);
 		return -1;
 	}
 	dbg_hub("bLength:%02X bDescriptorType:%02X bNbrPorts:%02X\r\n", buffer[0], buffer[1], buffer[2]); 
@@ -1482,13 +1482,13 @@ int usb_hub_configure(struct usb_device *dev)
 	if (i > USB_BUFSIZ)
 	{
 		dbg_hub("usb_hub_configure: failed to get hub descriptor - too long: %d\r\n", descriptor->bLength);
-		usb_free(buffer);
+		driver_mem_free(buffer);
 		return -1;
 	}
 	if (usb_get_hub_descriptor(dev, buffer, descriptor->bLength) < 0)
 	{
 		dbg_hub("usb_hub_configure: failed to get hub descriptor 2nd giving up %lX\r\n", dev->status);
-		usb_free(buffer);
+		driver_mem_free(buffer);
 		return -1;
 	}
 	memcpy((unsigned char *)&hub->desc, buffer, descriptor->bLength);
@@ -1539,13 +1539,13 @@ int usb_hub_configure(struct usb_device *dev)
 	if (sizeof(struct usb_hub_status) > USB_BUFSIZ)
 	{
 		dbg_hub("usb_hub_configure: failed to get Status - too long: %d\r\n", descriptor->bLength);
-		usb_free(buffer);
+		driver_mem_free(buffer);
 		return -1;
 	}
 	if (usb_get_hub_status(dev, buffer) < 0)
 	{
 		dbg_hub("usb_hub_configure: failed to get Status %lX\r\n", dev->status);
-		usb_free(buffer);
+		driver_mem_free(buffer);
 		return -1;
 	}
 
@@ -1583,7 +1583,7 @@ int usb_hub_configure(struct usb_device *dev)
 	if (queue_poll_hub == NULL)
 #endif
 		usb_hub_events(dev);
-	usb_free(buffer);
+	driver_mem_free(buffer);
 	return 0;
 }
 

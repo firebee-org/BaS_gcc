@@ -25,9 +25,9 @@
 #include <stdbool.h>
 
 #include "MCF5475.h"
-#include "MCF5475_SLT.h"
 #include "startcf.h"
 #include "sysinit.h"
+#include "util.h"
 #include "cache.h"
 #include "bas_printf.h"
 #include "bas_string.h"
@@ -55,8 +55,6 @@ extern uint8_t _EMUTOS[];
 #define EMUTOS ((uint32_t)_EMUTOS) /* where EmuTOS is stored in flash */
 extern uint8_t _EMUTOS_SIZE[];
 #define EMUTOS_SIZE ((uint32_t)_EMUTOS_SIZE) /* size of EmuTOS, in bytes */
-
-#define NOP() __asm__ __volatile__("nop\n\t" : : : "memory")	/* need this to force pipeline sync after MMUCR write */
 
 /*
  * check if it is possible to transfer data to PIC

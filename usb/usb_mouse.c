@@ -24,6 +24,7 @@
 #include "bas_printf.h"
 #include "usb.h"
 #include "exceptions.h"
+#include "driver_mem.h"
 
 #undef USB_MOUSE_DEBUG
 #ifdef	USB_MOUSE_DEBUG
@@ -49,7 +50,7 @@ int usb_mouse_deregister(struct usb_device *dev)
 	dev->irq_handle = NULL;
 	if(new != NULL)
 	{
-		usb_free(new);
+		driver_mem_free(new);
 		new = NULL;
 	}
 	mouse_installed = 0;
@@ -83,9 +84,9 @@ int drv_usb_mouse_init(void)
 		for(i = 0; i < USB_MAX_DEVICE; i++)
 		{
 			struct usb_device *dev = usb_get_dev_index(i, j); /* get device */
-			if(dev == NULL)
+			if (dev == NULL)
 				break;
-			if(usb_mouse_register(dev) > 0)
+			if (usb_mouse_register(dev) > 0)
 				return 1;
 		}
 	}
@@ -212,7 +213,7 @@ static int usb_mouse_probe(struct usb_device *dev, unsigned int ifnum)
 		return 0;
 	if((ep->bmAttributes & 3) != 3)
 		return 0;
-	new = (unsigned char *)usb_malloc(8);
+	new = (unsigned char *)driver_mem_alloc(8);
 	if(new == NULL)
 		return 0;
 	mse_printf("USB MOUSE found set protocol...\r\n");
