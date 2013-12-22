@@ -27,6 +27,7 @@
 #include "bas_printf.h"
 #include "bas_string.h"
 #include "cache.h"
+#include "exceptions.h"
 
 #if MACHINE_FIREBEE
 #include "firebee.h"
@@ -43,6 +44,8 @@ struct dma_channel
 	void (*handler)(void);
 };
 
+static char used_reqs[32];
+
 static struct dma_channel dma_channel[NCHANNELS] =
 {
 	{-1,NULL}, {-1,NULL}, {-1,NULL}, {-1,NULL},
@@ -51,48 +54,402 @@ static struct dma_channel dma_channel[NCHANNELS] =
 	{-1,NULL}, {-1,NULL}, {-1,NULL}, {-1,NULL},
 };
 
+int dma_set_initiator(int initiator)
+{
+	switch (initiator)
+	{
+		/* these initiators are always active */
+		case DMA_ALWAYS:
+		case DMA_DSPI_RXFIFO:
+		case DMA_DSPI_TXFIFO:
+		case DMA_DREQ0:
+		case DMA_PSC0_RX:
+		case DMA_PSC0_TX:
+		case DMA_USB_EP0:
+		case DMA_USB_EP1:
+		case DMA_USB_EP2:
+		case DMA_USB_EP3:
+		case DMA_PCI_TX:
+		case DMA_PCI_RX:
+		case DMA_PSC1_RX:
+		case DMA_I2C_RX:
+		case DMA_I2C_TX:
+			break;
+
+		case DMA_FEC0_RX:
+            MCF_DMA_IMCR = (MCF_DMA_IMCR & ~MCF_DMA_IMCR_IMC16(3))
+                            | MCF_DMA_IMCR_IMC16_FEC0RX;
+            used_reqs[16] = DMA_FEC0_RX;
+            break;
+        case DMA_FEC0_TX:
+            MCF_DMA_IMCR = (MCF_DMA_IMCR & ~MCF_DMA_IMCR_IMC17(3))
+                            | MCF_DMA_IMCR_IMC17_FEC0TX;
+            used_reqs[17] = DMA_FEC0_TX;
+            break;
+        case DMA_FEC1_RX:
+            MCF_DMA_IMCR = (MCF_DMA_IMCR & ~MCF_DMA_IMCR_IMC20(3))
+                            | MCF_DMA_IMCR_IMC20_FEC1RX;
+            used_reqs[20] = DMA_FEC1_RX;
+            break;
+        case DMA_FEC1_TX:
+            if (used_reqs[21] == 0)
+            {
+                MCF_DMA_IMCR = (MCF_DMA_IMCR & ~MCF_DMA_IMCR_IMC21(3))
+                                | MCF_DMA_IMCR_IMC21_FEC1TX;
+                used_reqs[21] = DMA_FEC1_TX;
+            }
+            else if (used_reqs[25] == 0)
+            {
+                MCF_DMA_IMCR = (MCF_DMA_IMCR & ~MCF_DMA_IMCR_IMC25(3))
+                                | MCF_DMA_IMCR_IMC25_FEC1TX;
+                used_reqs[25] = DMA_FEC1_TX;
+            }
+            else if (used_reqs[31] == 0)
+            {
+                MCF_DMA_IMCR = (MCF_DMA_IMCR & ~MCF_DMA_IMCR_IMC31(3))
+                                | MCF_DMA_IMCR_IMC31_FEC1TX;
+                used_reqs[31] = DMA_FEC1_TX;
+            }
+            else /* No empty slots */
+                return 1;
+            break;
+        case DMA_DREQ1:
+            if (used_reqs[29] == 0)
+            {
+                MCF_DMA_IMCR = (MCF_DMA_IMCR & ~MCF_DMA_IMCR_IMC29(3))
+                                | MCF_DMA_IMCR_IMC29_DREQ1;
+                used_reqs[29] = DMA_DREQ1;
+            }
+            else if (used_reqs[21] == 0)
+            {
+                MCF_DMA_IMCR = (MCF_DMA_IMCR & ~MCF_DMA_IMCR_IMC21(3))
+                                | MCF_DMA_IMCR_IMC21_DREQ1;
+                used_reqs[21] = DMA_DREQ1;
+            }
+            else /* No empty slots */
+                return 1;
+            break;
+        case DMA_CTM0:
+            if (used_reqs[24] == 0)
+            {
+                MCF_DMA_IMCR = (MCF_DMA_IMCR & ~MCF_DMA_IMCR_IMC24(3))
+                                | MCF_DMA_IMCR_IMC24_CTM0;
+                used_reqs[24] = DMA_CTM0;
+            }
+            else /* No empty slots */
+                return 1;
+            break;
+        case DMA_CTM1:
+            if (used_reqs[25] == 0)
+            {
+                MCF_DMA_IMCR = (MCF_DMA_IMCR & ~MCF_DMA_IMCR_IMC25(3))
+                                | MCF_DMA_IMCR_IMC25_CTM1;
+                used_reqs[25] = DMA_CTM1;
+            }
+            else /* No empty slots */
+                return 1;
+            break;
+        case DMA_CTM2:
+            if (used_reqs[26] == 0)
+            {
+                MCF_DMA_IMCR = (MCF_DMA_IMCR & ~MCF_DMA_IMCR_IMC26(3))
+                                | MCF_DMA_IMCR_IMC26_CTM2;
+                used_reqs[26] = DMA_CTM2;
+            }
+            else /* No empty slots */
+                return 1;
+            break;
+        case DMA_CTM3:
+            if (used_reqs[27] == 0)
+            {
+                MCF_DMA_IMCR = (MCF_DMA_IMCR & ~MCF_DMA_IMCR_IMC27(3))
+                                | MCF_DMA_IMCR_IMC27_CTM3;
+                used_reqs[27] = DMA_CTM3;
+            }
+            else /* No empty slots */
+                return 1;
+            break;
+        case DMA_CTM4:
+            if (used_reqs[28] == 0)
+            {
+                MCF_DMA_IMCR = (MCF_DMA_IMCR & ~MCF_DMA_IMCR_IMC28(3))
+                                | MCF_DMA_IMCR_IMC28_CTM4;
+                used_reqs[28] = DMA_CTM4;
+            }
+            else /* No empty slots */
+                return 1;
+            break;
+        case DMA_CTM5:
+            if (used_reqs[29] == 0)
+            {
+                MCF_DMA_IMCR = (MCF_DMA_IMCR & ~MCF_DMA_IMCR_IMC29(3))
+                                | MCF_DMA_IMCR_IMC29_CTM5;
+                used_reqs[29] = DMA_CTM5;
+            }
+            else /* No empty slots */
+                return 1;
+            break;
+        case DMA_CTM6:
+            if (used_reqs[30] == 0)
+            {
+                MCF_DMA_IMCR = (MCF_DMA_IMCR & ~MCF_DMA_IMCR_IMC30(3))
+                                | MCF_DMA_IMCR_IMC30_CTM6;
+                used_reqs[30] = DMA_CTM6;
+            }
+            else /* No empty slots */
+                return 1;
+            break;
+        case DMA_CTM7:
+            if (used_reqs[31] == 0)
+            {
+                MCF_DMA_IMCR = (MCF_DMA_IMCR & ~MCF_DMA_IMCR_IMC31(3))
+                                | MCF_DMA_IMCR_IMC31_CTM7;
+                used_reqs[31] = DMA_CTM7;
+            }
+            else /* No empty slots */
+                return 1;
+            break;
+        case DMA_USBEP4:
+            if (used_reqs[26] == 0)
+            {
+                MCF_DMA_IMCR = (MCF_DMA_IMCR & ~MCF_DMA_IMCR_IMC26(3))
+                                | MCF_DMA_IMCR_IMC26_USBEP4;
+                used_reqs[26] = DMA_USBEP4;
+            }
+            else /* No empty slots */
+                return 1;
+            break;
+        case DMA_USBEP5:
+            if (used_reqs[27] == 0)
+            {
+                MCF_DMA_IMCR = (MCF_DMA_IMCR & ~MCF_DMA_IMCR_IMC27(3))
+                                | MCF_DMA_IMCR_IMC27_USBEP5;
+                used_reqs[27] = DMA_USBEP5;
+            }
+            else /* No empty slots */
+                return 1;
+            break;
+        case DMA_USBEP6:
+            if (used_reqs[28] == 0)
+            {
+                MCF_DMA_IMCR = (MCF_DMA_IMCR & ~MCF_DMA_IMCR_IMC28(3))
+                                | MCF_DMA_IMCR_IMC28_USBEP6;
+                used_reqs[28] = DMA_USBEP6;
+            }
+            else /* No empty slots */
+                return 1;
+            break;
+        case DMA_PSC2_RX:
+            if (used_reqs[28] == 0)
+            {
+                MCF_DMA_IMCR = (MCF_DMA_IMCR & ~MCF_DMA_IMCR_IMC28(3))
+                                | MCF_DMA_IMCR_IMC28_PSC2RX;
+                used_reqs[28] = DMA_PSC2_RX;            }
+            else /* No empty slots */
+                return 1;
+            break;
+        case DMA_PSC2_TX:
+            if (used_reqs[29] == 0)
+            {
+                MCF_DMA_IMCR = (MCF_DMA_IMCR & ~MCF_DMA_IMCR_IMC29(3))
+                                | MCF_DMA_IMCR_IMC29_PSC2TX;
+                used_reqs[29] = DMA_PSC2_TX;
+            }
+            else /* No empty slots */
+                return 1;
+            break;
+        case DMA_PSC3_RX:
+            if (used_reqs[30] == 0)
+            {
+                MCF_DMA_IMCR = (MCF_DMA_IMCR & ~MCF_DMA_IMCR_IMC30(3))
+                                | MCF_DMA_IMCR_IMC30_PSC3RX;
+                used_reqs[30] = DMA_PSC3_RX;
+            }
+            else /* No empty slots */
+                return 1;
+            break;
+        case DMA_PSC3_TX:
+            if (used_reqs[31] == 0)
+            {
+                MCF_DMA_IMCR = (MCF_DMA_IMCR & ~MCF_DMA_IMCR_IMC31(3))
+                                | MCF_DMA_IMCR_IMC31_PSC3TX;
+                used_reqs[31] = DMA_PSC3_TX;
+            }
+            else /* No empty slots */
+                return 1;
+            break;
+        default:
+            return 1;
+    }
+    return 0;
+}
+
 /*
- * return the channel being initiated by the given requestor
+ * Return the initiator number for the given requestor
+ *
+ * Parameters:
+ *  requestor   Initiator/Requestor identifier
+ *
+ * Return Value:
+ *  The initiator number (0-31) if initiator has been assigned
+ *  0 (always initiator) otherwise
+ */
+uint32_t dma_get_initiator(int requestor)
+{
+    uint32_t i;
+
+    for (i = 0; i < sizeof(used_reqs); ++i)
+    {
+        if (used_reqs[i] == requestor)
+            return i;
+    }
+    return 0;
+}
+
+/*
+ * Remove the given initiator from the active list
+ *
+ * Parameters:
+ *  requestor   Initiator/Requestor identifier
+ */
+void dma_free_initiator(int requestor)
+{
+    uint32_t i;
+
+    for (i = 16; i < sizeof(used_reqs); ++i)
+    {
+        if (used_reqs[i] == requestor)
+        {
+            used_reqs[i] = 0;
+            break;
+        }
+    }
+}
+
+/*
+ * Attempt to find an available channel and mark it as used
+ *
+ * Parameters:
+ *  requestor   Initiator/Requestor identifier
+ *
+ * Return Value:
+ *  First available channel or -1 if they are all occupied
+ */
+int dma_set_channel(int requestor, void (*handler)(void))
+{
+    int i;
+
+    /* Check to see if this requestor is already assigned to a channel */
+    if ((i = dma_get_channel(requestor)) != -1)
+        return i;
+
+    for (i=0; i<NCHANNELS; ++i)
+    {
+        if (dma_channel[i].req == -1)
+        {
+            dma_channel[i].req = requestor;
+            dma_channel[i].handler = handler;
+            return i;
+        }
+    }
+
+    /* All channels taken */
+    return -1;
+}
+
+void dma_clear_channel(int channel)
+{
+  if(channel >= 0 && channel < NCHANNELS)
+  {
+    dma_channel[channel].req = -1;
+    dma_channel[channel].handler = NULL;
+  }
+}
+/*
+ * Return the channel being initiated by the given requestor
+ *
+ * Parameters:
+ *  requestor   Initiator/Requestor identifier
+ *
+ * Return Value:
+ *  Channel that the requestor is controlling or -1 if hasn't been
+ *  activated
  */
 int dma_get_channel(int requestor)
 {
-	int i;
+    uint32_t i;
 
-	for (i = 0; i < NCHANNELS; i++)
-	{
-		if (dma_channel[i].req == requestor)
-		{
-			return i;
-		}
-	}
-	return -1;
+    for (i=0; i<NCHANNELS; ++i)
+    {
+        if (dma_channel[i].req == requestor)
+            return i;
+    }
+    return -1;
 }
 
-int dma_set_channel(int requestor, void (*handler)(void))
+/*
+ * Remove the channel being initiated by the given requestor from 
+ * the active list
+ *
+ * Parameters:
+ *  requestor   Initiator/Requestor identifier
+ */
+void dma_free_channel(int requestor)
 {
-	int i;
+    uint32_t i;
 
-	/* check to see if requestor is already assigned to a channel */
-	if ((i = dma_get_channel(requestor)) != -1)
-	{
-		return i;
-	}
-
-	for (i = 0; i < NCHANNELS; i++)
-	{
-		if (dma_channel[i].req == -1)
-		{
-			dma_channel[i].req = requestor;
-			dma_channel[i].handler = handler;
-
-			return i;
-		}
-	}
-
-	/* all channels taken */
-	return -1;
+    for (i=0; i<NCHANNELS; ++i)
+    {
+        if (dma_channel[i].req == requestor)
+        {
+            dma_channel[i].req = -1;
+            dma_channel[i].handler = NULL;
+            break;
+        }
+    }
 }
 
+/* 
+ * This is the catch-all interrupt handler for the mult-channel DMA 
+ */
+int dma_interrupt_handler(void *arg1, void *arg2)
+{
+    uint32_t i, interrupts;
+    uint32_t ipl;
+    
+    (void)arg1;
+    (void)arg2;
+
+    ipl = set_ipl(0x2700);
+
+    /* 
+     * Determine which interrupt(s) triggered by AND'ing the 
+     * pending interrupts with those that aren't masked.
+     */
+    interrupts = MCF_DMA_DIPR & ~MCF_DMA_DIMR;
+
+    /* Make sure we are here for a reason */
+    if (interrupts == 0)
+		return 0;
+
+    /* Clear the interrupt in the pending register */
+    MCF_DMA_DIPR = interrupts;
+
+    for (i = 0; i < 16; ++i, interrupts>>=1)
+    {
+        if (interrupts & 0x1)
+        {
+           /* If there is a handler, call it */
+            if (dma_channel[i].handler != NULL)
+                dma_channel[i].handler();
+        }
+    }
+
+    set_ipl(ipl);
+    return 1;
+}
+/********************************************************************/
+                                                                               
 void *dma_memcpy(void *dst, void *src, size_t n)
 {
 	int ret;

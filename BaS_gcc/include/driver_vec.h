@@ -26,6 +26,7 @@
 #define _DRIVER_VEC_H_
 
 #include "xhdi_sd.h"
+#include "MCD_dma.h"
 
 enum driver_type
 {
@@ -34,6 +35,7 @@ enum driver_type
 	CHARDEV_DRIVER,
 	VIDEO_DRIVER,
 	XHDI_DRIVER,
+	MCD_DRIVER,
 };
 
 struct generic_driver_interface
@@ -44,6 +46,31 @@ struct generic_driver_interface
 	uint32_t (*ioctl)(uint32_t request, ...);
 };
 
+struct dma_driver_interface
+{
+	int32_t version;
+	int32_t magic;
+	int32_t (*dma_set_initiator)(int initiator);
+	uint32_t (*dma_get_initiator)(int requestor);
+	void (*dma_free_initiator)(int requestor);
+	int32_t (*dma_set_channel)(int requestor, void (*handler)(void));
+	int (*dma_get_channel)(int requestor);
+	void (*dma_free_channel)(int requestor);
+	void (*dma_clear_channel)(int channel);
+	int (*MCD_startDma)(int channel, int8_t *srcAddr, int16_t srcIncr, int8_t *destAddr, int16_t destIncr,
+						uint32_t dmaSize, uint32_t xferSize, uint32_t initiator, int32_t priority, uint32_t flags,
+						uint32_t funcDesc);
+	int (*MCD_dmaStatus)(int channel);
+	int (*MCD_XferProgrQuery)(int channel, MCD_XferProg *progRep);
+	int (*MCD_killDma)(int channel);
+	int (*MCD_continDma)(int channel);
+	int (*MCD_pauseDma)(int channel);
+	int (*MCD_resumeDma)(int channel);
+	int (*MCD_csumQuery)(int channel, uint32_t *csum);
+	void *(*dma_malloc)(long amount);
+	int (*dma_free)(void *addr);
+};
+	
 struct xhdi_driver_interface
 {
 	uint32_t (*xhdivec)();
@@ -51,8 +78,9 @@ struct xhdi_driver_interface
 
 union interface
 {
-	struct generic_driver_interface gdi;
-	struct xhdi_driver_interface xhdi;
+	struct generic_driver_interface *gdi;
+	struct xhdi_driver_interface *xhdi;
+	struct dma_driver_interface *dma;
 };
 
 struct generic_interface

@@ -40,7 +40,6 @@
 		.extern _video_tlb
 		.extern _video_sbt
 		.extern _flush_and_invalidate_caches
-		.extern _xhdi_sd_install	/* trap #0 exception vector for installation of xhdi SD card driver */
 
 		/* PCI interrupt handlers */
 		.extern _irq5_handler
@@ -270,9 +269,9 @@ init_vec_loop:
 		lea		access(pc),a1		// set illegal access exception handler
 		move.l	a1,0x08(a0)
 		
-// trap #0 (without any parameters for now) is used to provide BaS' XHDI
-// routine address to EmuTOS.
-		lea		_xhdi_sd_install,a1
+		.extern	_get_bas_drivers
+// trap #0 (without any parameters for now) is used to provide BaS' driver addresses to the OS
+		lea		_get_bas_drivers(pc),a1
 		move.l	a1,0x80(a0)				// trap #0 exception vector
 
 #ifdef MACHINE_FIREBEE
@@ -439,7 +438,7 @@ zd_end:
 		move.l	(a7)+,d0
 		move.l	(a7)+,a0		
 		rte
-
+		
 #ifdef _NOT_USED_	
 linea:	
 		move.w	#0x2700,sr			// disable interrupt

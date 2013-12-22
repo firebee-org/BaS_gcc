@@ -28,6 +28,44 @@
 #include "driver_vec.h"
 #include "version.h"
 #include "xhdi_sd.h"
+#include "dma.h"
+#include "driver_mem.h"
+
+/*
+ * driver interface struct for the SD card BaS driver
+ */
+static struct xhdi_driver_interface xhdi_call_interface = 
+{
+	xhdi_call
+};
+
+/*
+ * driver interface struct for the BaS multichannel DMA driver
+ * This is exactly the same thing FireTOS provides and the MiNT FEC drivers expect.
+ * It can be directly used in TOS to register the corresponding cookie ("DMAC").
+ */
+static struct dma_driver_interface dma_interface =
+{
+	.version = 0x0101,
+	.magic = 'DMAC',
+	.dma_set_initiator = &dma_set_initiator,
+	.dma_get_initiator = dma_get_initiator,
+	.dma_free_initiator = dma_free_initiator,
+	.dma_set_channel = dma_set_channel,
+	.dma_get_channel = dma_get_channel,
+	.dma_free_channel = dma_free_channel,
+	.dma_clear_channel = dma_clear_channel,
+	.MCD_startDma = MCD_startDma,
+	.MCD_dmaStatus = MCD_dmaStatus,
+	.MCD_XferProgrQuery = MCD_XferProgrQuery,
+	.MCD_killDma = MCD_killDma,
+	.MCD_continDma = MCD_continDma,
+	.MCD_pauseDma = MCD_pauseDma,
+	.MCD_resumeDma = MCD_resumeDma,
+	.MCD_csumQuery = MCD_csumQuery,
+	.dma_malloc = driver_mem_alloc,
+	.dma_free = driver_mem_free
+};
 
 static struct generic_interface interfaces[] =
 {
@@ -39,7 +77,15 @@ static struct generic_interface interfaces[] =
 		.description = "BaS SD Card driver",
 		.version = 0,
 		.revision = 1,
-		.interface.xhdi = { xhdi_call }
+		.interface.xhdi = &xhdi_call_interface 
+	},
+	{
+		.type = MCD_DRIVER,
+		.name = "MCDDMA",
+		.description = "BaS Multichannel DMA driver",
+		.version = 0,
+		.revision = 1,
+		.interface.dma = &dma_interface,
 	},
 
 	/* insert new drivers here */
@@ -52,7 +98,7 @@ static struct generic_interface interfaces[] =
 /*
  * this is the driver table we expose to the OS
  */
-static struct driver_table drivers =
+static struct driver_table bas_drivers =
 {
 	.bas_version = MAJOR_VERSION,
 	.bas_revision = MINOR_VERSION,
@@ -60,3 +106,12 @@ static struct driver_table drivers =
 	.interfaces = { interfaces }
 };
 
+void __attribute__((interrupt)) get_bas_drivers(void)
+{
+	__asm__ __volatile__(
+		"move.l	#%[drivers],d0\n\t"
+		:	                            /* no output */
+		:	[drivers] "o" (bas_drivers)		/* input */
+		:									/* clobber */
+	);
+}

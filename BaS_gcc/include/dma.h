@@ -23,15 +23,20 @@
 #ifndef _DMA_H_
 #define _DMA_H_
 
-#include <MCF5475.h>
+#include "MCF5475.h"
+#include "MCD_dma.h"
+#include "bas_string.h"
 
 #define DMA_INTC_LVL        6
 #define DMA_INTC_PRI        0
 
+
+void *dma_memcpy(void *dst, void *src, size_t n);
 extern int dma_init(void);
 extern int dma_get_channel(int requestor);
 extern int dma_set_channel(int, void (*)(void));
 extern void dma_free_channel(int requestor);
+extern void dma_clear_channel(int channel);
 extern uint32_t dma_get_initiator(int requestor);
 extern int dma_set_initiator(int initiator);
 extern void dma_free_initiator(int initiator);

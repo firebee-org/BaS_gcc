@@ -1105,13 +1105,15 @@ void initialize_hardware(void)
 	dvi_on();
 #endif /* MACHINE_FIREBEE */
 	init_pci();
+	
+	/* do not try to init USB for now on the Firebee, it hangs the machine */
+#ifndef MACHINE_FIREBEE
 	init_usb();
+#endif
+
 #if MACHINE_FIREBEE
 	init_ac97();
 #endif /* MACHINE_FIREBEE */
-
-	//hexdump(0x6a000000, 8192);
-	xprintf("initialize and test DMA\r\n");
 	dma_init();
 
 	/* jump into the BaS */

@@ -28,6 +28,7 @@
 
 //#include <stdlib.h>
 #include <bas_string.h>
+#include "driver_mem.h"
 #include "pci.h"
 #include "mod_devicetable.h"
 #include "pci_ids.h"

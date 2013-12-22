@@ -9,7 +9,7 @@
 #define DMA_DSPI_TXFIFO	(2)
 #define	DMA_DREQ0		(3)
 #define DMA_PSC0_RX		(4)
-#define	DMA_PSCO_TX		(5)
+#define	DMA_PSC0_TX		(5)
 #define	DMA_USB_EP0		(6)
 #define	DMA_USB_EP1		(7)
 #define DMA_USB_EP2		(8)
