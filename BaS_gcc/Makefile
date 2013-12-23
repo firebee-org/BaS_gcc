@@ -67,6 +67,7 @@ CSRCS= \
 	bas_string.c \
 	BaS.c \
 	cache.c \
+	mmu.c \
 	mmc.c \
 	unicode.c \
 	ff.c \
@@ -84,15 +85,18 @@ CSRCS= \
 	MCD_dmaApi.c \
 	MCD_tasks.c \
 	MCD_tasksInit.c \
-	\
 	usb.c \
 	ohci-hcd.c \
 	ehci-hcd.c \
 	usb_mouse.c \
-	\
 	ikbd.c \
 	\
-	fec.c\
+	nbuf.c \
+	queue.c \
+	nif.c \
+	fecbd.c \
+	fec.c \
+	udp.c \
 	\
 	basflash.c \
 	basflash_start.c 
@@ -101,9 +105,8 @@ ASRCS= \
 	startcf.S \
 	printf_helper.S \
 	exceptions.S \
-	mmu.S \
 	xhdi_vec.S
-	
+
 SRCS=$(ASRCS) $(CSRCS)
 COBJS=$(patsubst %.c,%.o,$(CSRCS))
 AOBJS=$(patsubst %.S,%.o,$(ASRCS))
@@ -155,8 +158,8 @@ $(foreach DIR,$(TRGTDIRS),$(eval $(call CC_TEMPLATE,$(DIR))))
 
 # rules for depend
 define DEP_TEMPLATE
-ifneq (clean,$(MAKECMDGOALS))
--include $(1)/depend
+ifneq (clean,$$(MAKECMDGOALS))
+include $(1)/depend
 endif
 
 ifeq (firebee,$(1))

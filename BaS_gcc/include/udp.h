@@ -35,26 +35,13 @@ typedef struct
 
 /********************************************************************/
 
-void
-udp_init (void);
-
-void
-udp_prime_port (uint16_t);
-
-uint16_t
-udp_obtain_free_port (void);
-
-void
-udp_bind_port ( uint16_t, void (*)(NIF *,NBUF *));
-
-void
-udp_free_port (uint16_t);
-
-int
-udp_send (NIF *, uint8_t *, int, int, NBUF *);
-
-void
-udp_handler (NIF *, NBUF *);
+extern void udp_init(void);
+extern void udp_prime_port(uint16_t);
+extern uint16_t udp_obtain_free_port(void);
+extern void udp_bind_port( uint16_t, void (*)(NIF *,NBUF *));
+extern void udp_free_port(uint16_t);
+extern int udp_send(NIF *, uint8_t *, int, int, NBUF *);
+extern void udp_handler(NIF *, NBUF *);
 
 /********************************************************************/
 

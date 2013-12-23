@@ -16,6 +16,7 @@
 #include "dma.h"
 #include "bas_string.h"
 #include "bas_printf.h"
+#include "util.h"
 #include <stdbool.h>
 
 #if defined(MACHINE_FIREBEE)
@@ -412,8 +413,8 @@ void fec_reset (uint8_t ch)
     MCF_FEC_ECR(ch) = MCF_FEC_ECR_RESET;
 
     /* Wait at least 8 clock cycles */
-    for (i=0; i<10; ++i)
-        nop();
+    for (i = 0; i < 10; ++i)
+        NOP();
 }
 
 /********************************************************************/

@@ -4,13 +4,12 @@
  *
  * Notes:   
  */
-#include "src/include/dbug.h"
-#include "src/uif/net/queue.h"
-#include "src/uif/net/net.h"
-
-#ifdef DBUG_NETWORK
-
-/********************************************************************/
+#include "queue.h"
+#include "net.h"
+#include "driver_mem.h"
+#include "exceptions.h"
+#include "bas_types.h"
+#include "bas_printf.h"
 /*
  * Queues used for network buffer storage
  */
@@ -21,9 +20,8 @@ QUEUE nbuf_queue[NBUF_MAXQ];
  * this, the nbuf data is over-allocated and adjusted.  The following
  * array keeps track of the original data pointer returned by malloc
  */
-ADDRESS unaligned_buffers[NBUF_MAX];
+uint8_t *unaligned_buffers[NBUF_MAX];
 
-/********************************************************************/
 /*
  * Initialize all the network buffer queues
  *
@@ -31,8 +29,7 @@ ADDRESS unaligned_buffers[NBUF_MAX];
  *  0 success
  *  1 failure
  */
-int
-nbuf_init(void)
+int nbuf_init(void)
 {
     int i;
     NBUF *nbuf;
@@ -47,23 +44,21 @@ nbuf_init(void)
         printf("Creating %d net buffers of %d bytes\n",NBUF_MAX,NBUF_SZ);
     #endif
 
-    for (i=0; i<NBUF_MAX; ++i)
+    for (i = 0; i < NBUF_MAX; ++i)
     {
         /* Allocate memory for the network buffer structure */
-        nbuf = (NBUF *)malloc(sizeof(NBUF));
+        nbuf = (NBUF *) driver_mem_alloc(sizeof(NBUF));
         if (!nbuf)
         {
-            ASSERT(nbuf);
             return 1;
         }
 
         /* Allocate memory for the actual data */
-        unaligned_buffers[i] = (ADDRESS)malloc(NBUF_SZ + 16);
-        nbuf->data = (uint8 *)((uint32)(unaligned_buffers[i] + 15) & 0xFFFFFFF0);
-        if (!nbuf->data)
+        unaligned_buffers[i] = driver_mem_alloc(NBUF_SZ + 16);
+        nbuf->data = (uint8_t *)((uint32_t)(unaligned_buffers[i] + 15) & 0xFFFFFFF0);
+		if (!nbuf->data)
         {
-            ASSERT(nbuf->data);
-            return 1;
+			return 1;
         }
 
         /* Initialize the network buffer */
@@ -81,32 +76,30 @@ nbuf_init(void)
     
     return 0;
 }
-/********************************************************************/
+
 /* 
  * Return all the allocated memory to the heap
  */
-void
-nbuf_flush(void)
+void nbuf_flush(void)
 {
     NBUF *nbuf;
-    int i, level = asm_set_ipl(7);
+    int i, level = set_ipl(7);
     int n = 0;
 
-    for (i=0; i<NBUF_MAX; ++i)
-        free((uint8*)unaligned_buffers[i]);
+    for (i = 0; i < NBUF_MAX; ++i)
+        driver_mem_free((uint8_t *) unaligned_buffers[i]);
 
-    for (i=0; i<NBUF_MAXQ; ++i)
+    for (i = 0; i < NBUF_MAXQ; ++i)
     {
-        while ((nbuf = (NBUF *)queue_remove(&nbuf_queue[i])) != NULL)
+        while ((nbuf = (NBUF *) queue_remove(&nbuf_queue[i])) != NULL)
         {
-            free(nbuf);
+            driver_mem_free(nbuf);
             ++n;
         }
     }
-    ASSERT(n == NBUF_MAX);
-    asm_set_ipl(level);
+    set_ipl(level);
 }
-/********************************************************************/
+
 /* 
  * Allocate a network buffer from the free list
  *
@@ -114,96 +107,92 @@ nbuf_flush(void)
  *  Pointer to a free network buffer
  *  NULL if none are available
  */
-NBUF *
-nbuf_alloc(void)
+NBUF *nbuf_alloc(void)
 {
     NBUF *nbuf;
-    int level = asm_set_ipl(7);
+    int level = set_ipl(7);
 
-    nbuf = (NBUF *)queue_remove(&nbuf_queue[NBUF_FREE]);
-    asm_set_ipl(level);
+    nbuf = (NBUF *) queue_remove(&nbuf_queue[NBUF_FREE]);
+    set_ipl(level);
+    
     return nbuf;
 }
-/********************************************************************/
+
 /*
  * Add the specified network buffer back to the free list
  *
  * Parameters:
  *  nbuf    Buffer to add back to the free list
  */
-void
-nbuf_free(NBUF *nbuf)
+void nbuf_free(NBUF *nbuf)
 {
-    int level = asm_set_ipl(7);
+    int level = set_ipl(7);
 
     nbuf->offset = 0;
     nbuf->length = NBUF_SZ;
     queue_add(&nbuf_queue[NBUF_FREE],(QNODE *)nbuf);
 
-    asm_set_ipl(level);
+    set_ipl(level);
 }
-/********************************************************************/
+
 /*
  * Remove a network buffer from the specified queue
  *
  * Parameters:
  *  q   The index that identifies the queue to pull the buffer from
  */
-NBUF *
-nbuf_remove(int q)
+NBUF *nbuf_remove(int q)
 {
     NBUF *nbuf;
-    int level = asm_set_ipl(7);
+    int level = set_ipl(7);
 
-    nbuf = (NBUF *)queue_remove(&nbuf_queue[q]);
-    asm_set_ipl(level);
+    nbuf = (NBUF *) queue_remove(&nbuf_queue[q]);
+    set_ipl(level);
+    
     return nbuf;
 }
-/********************************************************************/
+
 /*
  * Add a network buffer to the specified queue
  *
  * Parameters:
  *  q   The index that identifies the queue to add the buffer to
  */
-void
-nbuf_add(int q, NBUF *nbuf)
+void nbuf_add(int q, NBUF *nbuf)
 {
-    int level = asm_set_ipl(7);
+    int level = set_ipl(7);
     queue_add(&nbuf_queue[q],(QNODE *)nbuf);
-    asm_set_ipl(level);
+    set_ipl(level);
 }
-/********************************************************************/
+
 /*
  * Put all the network buffers back into the free list 
  */
-void
-nbuf_reset(void)
+void nbuf_reset(void)
 {
     NBUF *nbuf;
-    int i, level = asm_set_ipl(7);
+    int i, level = set_ipl(7);
 
-    for (i=1; i<NBUF_MAXQ; ++i)
+    for (i = 1; i < NBUF_MAXQ; ++i)
     {
         while ((nbuf = nbuf_remove(i)) != NULL)
             nbuf_free(nbuf);
     }
-    asm_set_ipl(level);
+    set_ipl(level);
 }
-/********************************************************************/
+
 /*
  * Display all the nbuf queues
  */
-void
-nbuf_debug_dump(void)
+void nbuf_debug_dump(void)
 {
 #ifdef DEBUG
     NBUF *nbuf;
     int i, j, level;
     
-    level = asm_set_ipl(7);
+    level = set_ipl(7);
 
-    for (i=0; i<NBUF_MAXQ; ++i)
+    for (i = 0; i < NBUF_MAXQ; ++i)
     {
         printf("\n\nQueue #%d\n\n",i);
         printf("\tBuffer Location\tOffset\tLength\n");
@@ -219,9 +208,6 @@ nbuf_debug_dump(void)
         }
     }
 
-    asm_set_ipl(level);
+    set_ipl(level);
 #endif
 }
-/********************************************************************/
-
-#endif /* #ifdef DBUG_NETWORK */
