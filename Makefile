@@ -93,10 +93,13 @@ CSRCS= \
 	\
 	nbuf.c \
 	queue.c \
+	net_timer.c \
 	nif.c \
 	fecbd.c \
 	fec.c \
+	ip.c \
 	udp.c \
+	arp.c \
 	\
 	basflash.c \
 	basflash_start.c 

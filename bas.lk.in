@@ -51,11 +51,14 @@ SECTIONS
 		OBJDIR/wait.o(.text)
 
 		OBJDIR/nbuf.o(.text)
+		OBJDIR/net_timer.o(.text)
 		OBJDIR/queue.o(.text)
 		OBJDIR/nif.o(.text)
 		OBJDIR/fecbd.o(.text)
 		OBJDIR/fec.o(.text)
+		OBJDIR/ip.o(.text)
 		OBJDIR/udp.o(text)
+		OBJDIR/arp.o(text)
 
 		OBJDIR/unicode.o(.text)
 		OBJDIR/mmc.o(.text)
