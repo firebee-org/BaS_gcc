@@ -39,6 +39,9 @@
 #include "ff.h"
 #include "s19reader.h"
 #include "dma.h"
+#include "eth.h"
+#include "nbuf.h"
+#include "nif.h"
 
 /* imported routines */
 extern int mmu_init();
@@ -55,6 +58,11 @@ extern uint8_t _EMUTOS[];
 #define EMUTOS ((uint32_t)_EMUTOS) /* where EmuTOS is stored in flash */
 extern uint8_t _EMUTOS_SIZE[];
 #define EMUTOS_SIZE ((uint32_t)_EMUTOS_SIZE) /* size of EmuTOS, in bytes */
+
+NIF nif1;
+#ifdef MACHINE_M5484LITE
+NIF nif2;
+#endif
 
 /*
  * check if it is possible to transfer data to PIC
