@@ -24,6 +24,8 @@
 #ifndef _INTERRUPTS_H_
 #define _INTERRUPTS_H_
 
+#include <stdbool.h>
+
 /* interrupt sources */
 #define INT_SOURCE_EPORT_EPF1		1	// edge port flag 1
 #define	INT_SOURCE_EPORT_EPF2		2	// edge port flag 2
