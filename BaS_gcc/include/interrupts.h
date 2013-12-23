@@ -97,4 +97,11 @@
 
 extern int register_interrupt_handler(uint8_t source, uint8_t level, uint8_t priority, uint8_t intr, void (*handler)(void));
 
+#define ISR_DBUG_ISR	0x01
+#define ISR_USER_ISR 	0x02
+
+extern void isr_init(void);
+extern int isr_register_handler(int type, int vector, int (*handler)(void *, void *), void *hdev, void *harg);
+extern void isr_remove_handler(int type ,int (*handler)(void *, void *));
+extern bool isr_execute_handler(int vector);
 #endif /* _INTERRUPTS_H_ */
