@@ -223,7 +223,9 @@ void enable_coldfire_interrupts()
 
 void disable_coldfire_interrupts()
 {
+#ifdef MACHINE_FIREBEE
 	*FPGA_INTR_ENABLE = 0;		/* disable all interrupts */
+#endif /* MACHINE_FIREBEE */
 	MCF_EPORT_EPIER = 0x0;
 	MCF_EPORT_EPFR = 0x0;
 	MCF_INTC_IMRL = 0xfffffffe;
@@ -326,13 +328,6 @@ void BaS(void)
 
 #ifdef MACHINE_FIREBEE /* m5484lite has no ACIA and no dip switch... */
 	acia_init();
-
-	/* Test for pseudo-supervisor mode: DIP switch #6 down */
-	if (DIP_SWITCH & (1 << 7)) {
-		/* In this mode, the OS actually runs in user mode
-		 * and all the supervisor instructions are emulated. */
-		__asm__ __volatile__("move.w #0x0700,sr	\n\t" : : : "memory");
-	}
 #endif /* MACHINE_FIREBEE */
 
 	srec_execute("BASFLASH.S19");
