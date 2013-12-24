@@ -39,6 +39,7 @@
 #include "ff.h"
 #include "s19reader.h"
 #include "dma.h"
+#include "net.h"
 #include "eth.h"
 #include "nbuf.h"
 #include "nif.h"
@@ -233,6 +234,29 @@ void disable_coldfire_interrupts()
 	MCF_INTC_IMRH = 0xffffffff;
 }
 
+
+
+void network_init(void)
+{
+	uint8_t mac[6] = {0x00, 0x04, 0x9f, 0x01, 0x01, 0x01}; /* this is a Freescale MAC address */
+	uint8_t bc[6] = {0xff, 0xff, 0xff, 0xff, 0xff, 0xff}; /* this is our broadcast MAC address */
+	IP_ADDR myip = {0, 0, 0, 0};
+	IP_ADDR gateway = {0, 0, 0, 0};
+	IP_ADDR netmask = {0, 0, 0, 0};
+	IP_INFO info;
+
+	fec_eth_setup(0, FEC_MODE_MII, FEC_MII_100BASE_TX, FEC_MII_FULL_DUPLEX, mac);
+	nif_init(&nif1);
+	nif1.mtu = ETH_MTU;
+	nif1.send = fec0_send;
+	memcpy(nif1.hwa, mac, 6);
+	memcpy(nif1.broadcast, bc, 6);
+
+	ip_init(&info, myip, gateway, netmask);
+	udp_init();
+	bootp_request(&nif1, 0);
+}
+
 void BaS(void)
 {
 	uint8_t *src;
@@ -261,21 +285,20 @@ void BaS(void)
 	xprintf("flush caches: ");
 	flush_and_invalidate_caches();
 	xprintf("finished\r\n");
-
 	xprintf("enable MMU: ");
 	MCF_MMU_MMUCR = MCF_MMU_MMUCR_EN;			/* MMU on */
 	NOP();										/* force pipeline sync */
 	xprintf("finished\r\n");
-
-#ifdef MACHINE_FIREBEE
+	
+	#ifdef MACHINE_FIREBEE
 	xprintf("IDE reset: ");
 	/* IDE reset */
 	* (volatile uint8_t *) (0xffff8802 - 2) = 14;
 	* (volatile uint8_t *) (0xffff8802 - 0) = 0x80;
 	wait(1);
-
+	
 	* (volatile uint8_t *) (0xffff8802 - 0) = 0;
-
+	
 	xprintf("finished\r\n");
 	xprintf("enable video: ");
 	/*
@@ -300,6 +323,7 @@ void BaS(void)
 	xprintf("finished\r\n");
 
 	enable_coldfire_interrupts();
+
 	screen_init();
 
 	    /* experimental */
@@ -315,6 +339,7 @@ void BaS(void)
             {
 				*p = 0xffffffff;
 		    }
+
 			for (p = scradr; p < scradr + 1024 * 150L; p++)
 		    {
 				*p = 0x0;
@@ -367,18 +392,7 @@ void BaS(void)
 	xprintf("BaS initialization finished, enable interrupts\r\n");
 	enable_coldfire_interrupts();
 
-	nbuf_init();
-	uint8_t mac[6] = {0x00, 0x04, 0x9f, 0x01, 0x01, 0x01}; /* this is a Freescale MAC address */
-	uint8_t bc[6] = {0xff, 0xff, 0xff, 0xff, 0xff, 0xff}; /* this is a Freescale MAC address */
-	fec_eth_setup(0, FEC_MODE_MII, FEC_MII_100BASE_TX, FEC_MII_FULL_DUPLEX, mac);
-	nif_init(&nif1);
-	nif1.mtu = ETH_MTU;
-	nif1.send = fec0_send;
-	memcpy(nif1.hwa, mac, 6);
-	memcpy(nif1.broadcast, bc, 6);
-	bootp_request(&nif1, 0);
-
-
+	// network_init();
 
 	xprintf("call EmuTOS\r\n");
 	ROM_HEADER* os_header = (ROM_HEADER*)TOS;
