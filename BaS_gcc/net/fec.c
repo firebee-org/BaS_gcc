@@ -1025,7 +1025,7 @@ void fec1_tx_frame(void)
  *  1       success
  *  0       otherwise
  */
-int fec_send (uint8_t ch, NIF *nif, uint8_t *dst, uint8_t *src, uint16_t type, NBUF *nbuf)
+int fec_send(uint8_t ch, NIF *nif, uint8_t *dst, uint8_t *src, uint16_t type, NBUF *nbuf)
 {
     FECBD *pTxBD;
     
