@@ -1103,6 +1103,28 @@ void initialize_hardware(void)
 	init_pll();
 	init_video_ddr();
 	dvi_on();
+	screen_init();
+
+	/* experimental */
+	{
+		int i;
+		uint32_t *scradr = 0xd00000;
+
+		for (i = 0; i < 100; i++)
+		{
+			uint32_t *p = scradr;
+
+			for (p = scradr; p < scradr + 1024 * 150L; p++)
+			{
+				*p = 0xffffffff;
+			}
+			for (p = scradr; p < scradr + 1024 * 150L; p++)
+			{
+				*p = 0x0;
+			}
+		}
+	}
+
 #endif /* MACHINE_FIREBEE */
 	init_pci();
 	
