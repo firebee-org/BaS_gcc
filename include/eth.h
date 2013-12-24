@@ -40,16 +40,16 @@ typedef uint16_t ETH_FRM_TYPE;
 /* Ethernet Frame Header definition */
 typedef struct
 {
-    ETH_ADDR     dest;
-    ETH_ADDR     src;
-    ETH_FRM_TYPE type;
+	ETH_ADDR     dest;
+	ETH_ADDR     src;
+	ETH_FRM_TYPE type;
 } ETH_HDR;
 
 /* Ethernet Frame definition */
 typedef struct
 {
-    ETH_HDR head;
-    uint8_t*  data;
+	ETH_HDR head;
+	uint8_t*  data;
 } ETH_FRAME;
 
 /*******************************************************************/

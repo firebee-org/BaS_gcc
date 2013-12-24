@@ -48,6 +48,7 @@
 #include "dma.h"
 #include "mod_devicetable.h"
 #include "pci_ids.h"
+#include "driver_mem.h"
 #include "usb.h"
 
 #define UNUSED(x) (void)(x)               /* Unused variable         */
@@ -1126,6 +1127,7 @@ void initialize_hardware(void)
 	}
 
 #endif /* MACHINE_FIREBEE */
+	driver_mem_init();
 	init_pci();
 	
 	/* do not try to init USB for now on the Firebee, it hangs the machine */

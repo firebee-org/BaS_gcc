@@ -307,7 +307,7 @@ static int init_count = 0;
 
 int driver_mem_init(void)
 {
-	if (! init_count == 0)
+	if (init_count == 0)
 	{
 #ifdef USE_RADEON_MEMORY
 		driver_mem_buffer = (void *) offscreen_reserved();

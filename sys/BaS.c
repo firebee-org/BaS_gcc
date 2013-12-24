@@ -42,6 +42,7 @@
 #include "eth.h"
 #include "nbuf.h"
 #include "nif.h"
+#include "fec.h"
 
 /* imported routines */
 extern int mmu_init();
@@ -365,6 +366,19 @@ void BaS(void)
 
 	xprintf("BaS initialization finished, enable interrupts\r\n");
 	enable_coldfire_interrupts();
+
+	nbuf_init();
+	uint8_t mac[6] = {0x00, 0x04, 0x9f, 0x01, 0x01, 0x01}; /* this is a Freescale MAC address */
+	uint8_t bc[6] = {0xff, 0xff, 0xff, 0xff, 0xff, 0xff}; /* this is a Freescale MAC address */
+	fec_eth_setup(0, FEC_MODE_MII, FEC_MII_100BASE_TX, FEC_MII_FULL_DUPLEX, mac);
+	nif_init(&nif1);
+	nif1.mtu = ETH_MTU;
+	nif1.send = fec0_send;
+	memcpy(nif1.hwa, mac, 6);
+	memcpy(nif1.broadcast, bc, 6);
+	bootp_request(&nif1, 0);
+
+
 
 	xprintf("call EmuTOS\r\n");
 	ROM_HEADER* os_header = (ROM_HEADER*)TOS;

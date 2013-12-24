@@ -147,20 +147,21 @@ int ip_send(NIF *nif, uint8_t *dest, uint8_t *src, uint8_t protocol, NBUF *pNbuf
     /*
      * Determine the hardware address of the recipient
      */
-    route = ip_resolve_route(nif, dest);
-    if (route == NULL)
-    {
-        xprintf("Unable to locate %d.%d.%d.%d\n",
-            dest[0], dest[1], dest[2], dest[3]);
-        return 0;
-    }
+	IP_ADDR bc = { 255, 255, 255, 255};
+	if (memcmp(bc, dest, 4) != 0)
+	{
+		route = ip_resolve_route(nif, dest);
+		if (route == NULL)
+		{
+			xprintf("Unable to locate %d.%d.%d.%d\n",
+				dest[0], dest[1], dest[2], dest[3]);
+			return 0;
+		}
+	}
+	else
+		route = bc;
 
-    return nif->send(nif,
-                     route,
-                     &nif->hwa[0],
-                     ETH_FRM_IP,
-                     pNbuf
-                     );
+    return nif->send(nif, route, &nif->hwa[0], ETH_FRM_IP, pNbuf);
 }
 
 #if defined(DEBUG_PRINT)

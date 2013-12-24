@@ -56,14 +56,21 @@ void bootp_request(NIF *nif, uint8_t *pa)
 
 	nbuf->length = BOOTP_PACKET_LEN;
 
+	/* setup reply handler */
+	udp_bind_port(BOOTP_CLIENT_PORT, bootp_handler);
+
 	for (i = 0; i < MAX_TRIES; i++)
 	{
 		/* Send the BOOTP request */
 		result = udp_send(connection.nif, broadcast, BOOTP_CLIENT_PORT,
 							BOOTP_SERVER_PORT, nbuf);
+		xprintf("sent bootp request\r\n");
 		if (result == true)
 			break;
 	}
+
+	/* release handler */
+	udp_free_port(BOOTP_CLIENT_PORT);
 
 	if (result == 0)
 		nbuf_free(nbuf);
@@ -85,6 +92,7 @@ void bootp_handler(NIF *nif, NBUF *nbuf)
 
 	if (rx_p->type == BOOTP_TYPE_BOOTREPLY && rx_p->xid == XID)
 	{
+		xprintf("received bootp reply\r\n");
 		/* seems to be valid */
 	
 	}
