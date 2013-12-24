@@ -20,17 +20,17 @@ typedef uint8_t IP_ADDR_P[];
 /* Definition of an IP packet header */
 typedef struct
 {
-    uint8_t       version_ihl;
-    uint8_t       service_type;
-    uint16_t      total_length;
-    uint16_t      identification;
-    uint16_t      flags_frag_offset;
-    uint8_t       ttl;
-    uint8_t       protocol;
-    uint16_t      checksum;
-    IP_ADDR     source_addr;
-    IP_ADDR     dest_addr;
-    uint8_t       options;    /* actually an array of undetermined length */
+	uint8_t       version_ihl;
+	uint8_t       service_type;
+	uint16_t      total_length;
+	uint16_t      identification;
+	uint16_t      flags_frag_offset;
+	uint8_t       ttl;
+	uint8_t       protocol;
+	uint16_t      checksum;
+	IP_ADDR     source_addr;
+	IP_ADDR     dest_addr;
+	uint8_t       options;    /* actually an array of undetermined length */
 } ip_frame_hdr;
 
 /* Macros for accessing an IP datagram.  */
@@ -61,40 +61,23 @@ typedef struct
 
 typedef struct
 {
-    IP_ADDR         myip;
-    IP_ADDR         gateway;
-    IP_ADDR         netmask;
-    IP_ADDR         broadcast;
-    unsigned int    rx;
-    unsigned int    rx_unsup;
-    unsigned int    tx;
-    unsigned int    err;
+	IP_ADDR         myip;
+	IP_ADDR         gateway;
+	IP_ADDR         netmask;
+	IP_ADDR         broadcast;
+	unsigned int    rx;
+	unsigned int    rx_unsup;
+	unsigned int    tx;
+	unsigned int    err;
 } IP_INFO;
 
 /********************************************************************/
 
-void
-ip_handler (NIF *, NBUF *);
-
-uint16_t
-ip_chksum (uint16_t *, int);
-
-int
-ip_send (NIF *, 
-        uint8_t *,    /* destination IP */
-        uint8_t *,    /* source IP */
-        uint8_t,      /* protocol */
-        NBUF *      /* buffer descriptor */);
-
-void
-ip_init (IP_INFO *, IP_ADDR_P, IP_ADDR_P, IP_ADDR_P);
-
-uint8_t *
-ip_get_myip (IP_INFO *);
-
-uint8_t *
-ip_resolve_route (NIF *, IP_ADDR_P);
-
-/********************************************************************/
+extern void ip_handler(NIF *nif, NBUF *nbf);
+uint16_t ip_chksum(uint16_t *data, int num);
+extern int ip_send(NIF *nif, uint8_t *dest_addr, uint8_t *src_addr, uint8_t protocol, NBUF *nbf);
+extern void ip_init(IP_INFO *, IP_ADDR_P, IP_ADDR_P, IP_ADDR_P);
+extern uint8_t *ip_get_myip(IP_INFO *);
+extern uint8_t *ip_resolve_route(NIF *, IP_ADDR_P);
 
 #endif  /* _IP_H */
