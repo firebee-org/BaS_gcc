@@ -47,39 +47,23 @@
  */
 typedef struct
 {
-    QNODE node;
-    uint8_t *data;   
-    uint16_t offset;
-    uint16_t length;
+	QNODE node;
+	uint8_t *data;   
+	uint16_t offset;
+	uint16_t length;
 } NBUF;
 
 /*
  * Functions to manipulate the network buffers.
  */
-int
-nbuf_init(void);
+extern int nbuf_init(void);
+extern void nbuf_flush(void);
+extern NBUF *nbuf_alloc (void);
+extern void nbuf_free(NBUF *);
+extern NBUF *nbuf_remove(int);
+extern void nbuf_add(int, NBUF *);
+extern void nbuf_reset(void);
+extern void nbuf_debug_dump(void);
 
-void
-nbuf_flush(void);
-
-NBUF *
-nbuf_alloc (void);
-
-void
-nbuf_free(NBUF *);
-
-NBUF *
-nbuf_remove(int);
-
-void
-nbuf_add(int, NBUF *);
-
-void
-nbuf_reset(void);
-
-void
-nbuf_debug_dump(void);
-
-/********************************************************************/
 
 #endif  /* _NBUF_H_ */
