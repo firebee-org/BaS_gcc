@@ -50,6 +50,7 @@ void bootp_request(NIF *nif, uint8_t *pa)
 	p->yi_addr = 0x0;
 	p->gi_addr = 0x0;
 
+	connection.nif = nif;
 	addr = &nif->hwa[0];
 	for (i = 0; i < 6; i++)
 		p->ch_addr[i] = addr[i];

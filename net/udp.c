@@ -11,6 +11,13 @@
 #include "net.h"
 #include <stddef.h>
 
+#define UDP_DEBUG
+#if defined(UDP_DEBUG)
+#define dbg(format, arg...) do { xprintf("DEBUG: " format "\r\n", ##arg); } while (0)
+#else
+#define dbg(format, arg...) do { ; } while (0)
+#endif
+
 typedef struct
 {
 	uint16_t port;
@@ -99,6 +106,12 @@ uint16_t udp_obtain_free_port(void)
 
 int udp_send(NIF *nif, uint8_t *dest, int sport, int dport, NBUF *pNbuf)
 {
+	if (nif == NULL)
+	{
+		dbg("%s: nif is NULL\r\n", __FUNCTION__);
+		return 0;
+	}
+
 	/*
 	 * This function takes data and creates a UDP frame and
 	 * passes it onto the IP layer
