@@ -16,15 +16,16 @@
 #include "bas_printf.h"
 #include "bas_string.h"
 #include "net.h"
+#include "net_timer.h"
 
 #define TIMER_NETWORK	0
 
 /* The one and only TFTP connection */
-TFTP_Connection tcxn;
+static TFTP_Connection tcxn;
 
 /* Progress Indicators */
-char hash[] = {'-','\\','|','/'};
-int ihash = 0;
+static char hash[] = {'-','\\','|','/'};
+static int ihash = 0;
 
 static int tftp_rwrq(void)
 {
