@@ -58,6 +58,8 @@ SECTIONS
 		OBJDIR/fec.o(.text)
 		OBJDIR/ip.o(.text)
 		OBJDIR/udp.o(text)
+		OBJDIR/bootp.o(text)
+		OBJDIR/tftp.o(text)
 		OBJDIR/arp.o(text)
 
 		OBJDIR/unicode.o(.text)
@@ -73,6 +75,10 @@ SECTIONS
 		OBJDIR/MCD_dmaApi.o(.text)
 		OBJDIR/MCD_tasks.o(.text)
 		OBJDIR/MCD_tasksInit.o(.text)
+
+		OBJDIR/video.o
+		OBJDIR/videl.o
+
 		OBJDIR/xhdi_sd.o(.text)
 		OBJDIR/xhdi_interface.o(.text)
 		OBJDIR/xhdi_vec.o(.text)
