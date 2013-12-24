@@ -5,8 +5,8 @@
  * Notes:
  */
 
-#ifndef _TFTP_H
-#define _TFTP_H
+#ifndef _TFTP_H_
+#define _TFTP_H_
 
 /********************************************************************/
 
@@ -45,102 +45,102 @@
 /* Data Buffer Pointer Structure */
 typedef struct
 {
-    uint8_t   data[TFTP_PKTSIZE];
-    uint16_t  bytes;
+	uint8_t   data[TFTP_PKTSIZE];
+	uint16_t  bytes;
 } DATA_BUF;
 
 /* TFTP RRQ/WRQ Packet */
 typedef struct
 {
-    uint16_t  opcode;
-    char    filename_mode[TFTP_PKTSIZE - 2];
+	uint16_t  opcode;
+	char    filename_mode[TFTP_PKTSIZE - 2];
 } RWRQ;
 
 /* TFTP DATA Packet */
 typedef struct 
 {
-    uint16_t  opcode;
-    uint16_t  blocknum;
-    uint8_t   data[TFTP_PKTSIZE - 4];
+	uint16_t  opcode;
+	uint16_t  blocknum;
+	uint8_t   data[TFTP_PKTSIZE - 4];
 } DATA;
 
 /* TFTP Acknowledge Packet */
 typedef struct
 {
-    uint16_t  opcode;
-    uint16_t  blocknum;
+	uint16_t  opcode;
+	uint16_t  blocknum;
 } ACK;
 
 /* TFTP Error Packet */
 typedef struct
 {
-    uint16_t  opcode;
-    uint16_t  code;
-    char    msg[TFTP_PKTSIZE - 4];
+	uint16_t  opcode;
+	uint16_t  code;
+	char    msg[TFTP_PKTSIZE - 4];
 } ERROR;
 
 /* TFTP Generic Packet */
 typedef struct
 {
-    uint16_t opcode;
+	uint16_t opcode;
 } GEN;
 
 union TFTPpacket
 {
-    RWRQ    rwrq;
-    DATA    data;
-    ACK     ack;
-    ERROR   error;
-    GEN     generic;
+	RWRQ    rwrq;
+	DATA    data;
+	ACK     ack;
+	ERROR   error;
+	GEN     generic;
 };
 
 /* TFTP Connection Status */
 typedef struct
 {
-    /* Pointer to next character in buffer ring */
-    uint8_t *next_char;
+	/* Pointer to next character in buffer ring */
+	uint8_t *next_char;
 
-    /* Direction of current connection, read or write */
-    uint8_t dir;
+	/* Direction of current connection, read or write */
+	uint8_t dir;
 
-    /* Connection established flag */
-    uint8_t open;
+	/* Connection established flag */
+	uint8_t open;
 
-    /* Pointer to our Network InterFace */
-    NIF *nif;
+	/* Pointer to our Network InterFace */
+	NIF *nif;
 
-    /* File being transferred */
-    char *file;
-    
-    /* Server IP address */
-    IP_ADDR server_ip;
+	/* File being transferred */
+	char *file;
 
-    /* Queue to hold the TFTP packets */
-    QUEUE queue;
+	/* Server IP address */
+	IP_ADDR server_ip;
 
-    /* Bytes received counter */
-    uint32_t bytes_recv;
+	/* Queue to hold the TFTP packets */
+	QUEUE queue;
 
-    /* Bytes sent counter */
-    uint32_t bytes_sent;
+	/* Bytes received counter */
+	uint32_t bytes_recv;
 
-    /* Bytes remaining in current Rx buffer */
-    uint32_t rem_bytes;
+	/* Bytes sent counter */
+	uint32_t bytes_sent;
 
-    /* Server UDP port */
-    uint16_t  server_port;
-    
-    /* My UDP port */
-    uint16_t  my_port;
-    
-    /* Expected TFTP block number */
-    uint16_t exp_blocknum;
+	/* Bytes remaining in current Rx buffer */
+	uint32_t rem_bytes;
 
-    /* Keep track of the last packet acknowledged */
-    uint16_t last_ack;
+	/* Server UDP port */
+	uint16_t  server_port;
 
-    /* Error Flag */
-    uint8_t error;
+	/* My UDP port */
+	uint16_t  my_port;
+
+	/* Expected TFTP block number */
+	uint16_t exp_blocknum;
+
+	/* Keep track of the last packet acknowledged */
+	uint16_t last_ack;
+
+	/* Error Flag */
+	uint8_t error;
 
 } TFTP_Connection;
 
@@ -155,4 +155,4 @@ int     tftp_in_char(void);
 
 /********************************************************************/
 
-#endif  /* _TFTP_H */
+#endif  /* _TFTP_H_ */
