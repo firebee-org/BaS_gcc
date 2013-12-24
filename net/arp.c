@@ -134,7 +134,7 @@ void arp_merge(ARP_INFO *arptab, uint16_t protocol, int hwa_size, uint8_t *hwa,
 
     /* if after all this, still no slot found, add in last slot */
     if (slot == -1)
-        slot = (MAX_ARP_ENTRY -1);
+        slot = (MAX_ARP_ENTRY - 1);
 
     /* add the entry into the slot */
     arptab->table[slot].protocol = protocol;

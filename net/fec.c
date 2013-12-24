@@ -28,8 +28,6 @@
 #endif
 
 
-/********************************************************************/
-
 FEC_EVENT_LOG fec_log[2];
 
 /********************************************************************/
@@ -184,7 +182,7 @@ void fec_mii_init(uint8_t ch, uint32_t sys_clk)
      * MII Speed Setting = System_Clock / (2.5MHz * 2)
      * (plus 1 to make sure we round up)
      */
-    MCF_FEC_MSCR(ch) = MCF_FEC_MSCR_MII_SPEED((sys_clk/5)+1);
+    MCF_FEC_MSCR(ch) = MCF_FEC_MSCR_MII_SPEED((sys_clk / 5) + 1);
 }
 
 /********************************************************************/
@@ -217,7 +215,7 @@ void fec_mib_dump(uint8_t ch)
  */
 void fec_log_init(uint8_t ch)
 {
-    memset(&fec_log[ch],0,sizeof(FEC_EVENT_LOG));
+    memset(&fec_log[ch], 0, sizeof(FEC_EVENT_LOG));
 }
 
 /********************************************************************/
@@ -229,30 +227,30 @@ void fec_log_init(uint8_t ch)
 void fec_log_dump(uint8_t ch)
 {
     xprintf("\n   FEC%d Log\n---------------\n",ch);
-    xprintf("Total: %4d\n",fec_log[ch].total);
-    xprintf("hberr: %4d\n",fec_log[ch].hberr);
-    xprintf("babr:  %4d\n",fec_log[ch].babr);
-    xprintf("babt:  %4d\n",fec_log[ch].babt);
-    xprintf("gra:   %4d\n",fec_log[ch].gra);
-    xprintf("txf:   %4d\n",fec_log[ch].txf);
-    xprintf("mii:   %4d\n",fec_log[ch].mii);
-    xprintf("lc:    %4d\n",fec_log[ch].lc);
-    xprintf("rl:    %4d\n",fec_log[ch].rl);
-    xprintf("xfun:  %4d\n",fec_log[ch].xfun);
-    xprintf("xferr: %4d\n",fec_log[ch].xferr);
-    xprintf("rferr: %4d\n",fec_log[ch].rferr);
-    xprintf("dtxf:  %4d\n",fec_log[ch].dtxf);
-    xprintf("drxf:  %4d\n",fec_log[ch].drxf);
+    xprintf("Total: %4d\n", fec_log[ch].total);
+    xprintf("hberr: %4d\n", fec_log[ch].hberr);
+    xprintf("babr:  %4d\n", fec_log[ch].babr);
+    xprintf("babt:  %4d\n", fec_log[ch].babt);
+    xprintf("gra:   %4d\n", fec_log[ch].gra);
+    xprintf("txf:   %4d\n", fec_log[ch].txf);
+    xprintf("mii:   %4d\n", fec_log[ch].mii);
+    xprintf("lc:    %4d\n", fec_log[ch].lc);
+    xprintf("rl:    %4d\n", fec_log[ch].rl);
+    xprintf("xfun:  %4d\n", fec_log[ch].xfun);
+    xprintf("xferr: %4d\n", fec_log[ch].xferr);
+    xprintf("rferr: %4d\n", fec_log[ch].rferr);
+    xprintf("dtxf:  %4d\n", fec_log[ch].dtxf);
+    xprintf("drxf:  %4d\n", fec_log[ch].drxf);
     xprintf("\nRFSW:\n");
-    xprintf("inv:   %4d\n",fec_log[ch].rfsw_inv);
-    xprintf("m:     %4d\n",fec_log[ch].rfsw_m);
-    xprintf("bc:    %4d\n",fec_log[ch].rfsw_bc);
-    xprintf("mc:    %4d\n",fec_log[ch].rfsw_mc);
-    xprintf("lg:    %4d\n",fec_log[ch].rfsw_lg);
-    xprintf("no:    %4d\n",fec_log[ch].rfsw_no);
-    xprintf("cr:    %4d\n",fec_log[ch].rfsw_cr);
-    xprintf("ov:    %4d\n",fec_log[ch].rfsw_ov);
-    xprintf("tr:    %4d\n",fec_log[ch].rfsw_tr);
+    xprintf("inv:   %4d\n", fec_log[ch].rfsw_inv);
+    xprintf("m:     %4d\n", fec_log[ch].rfsw_m);
+    xprintf("bc:    %4d\n", fec_log[ch].rfsw_bc);
+    xprintf("mc:    %4d\n", fec_log[ch].rfsw_mc);
+    xprintf("lg:    %4d\n", fec_log[ch].rfsw_lg);
+    xprintf("no:    %4d\n", fec_log[ch].rfsw_no);
+    xprintf("cr:    %4d\n", fec_log[ch].rfsw_cr);
+    xprintf("ov:    %4d\n", fec_log[ch].rfsw_ov);
+    xprintf("tr:    %4d\n", fec_log[ch].rfsw_tr);
     xprintf("---------------\n\n");
 }
 
@@ -266,28 +264,28 @@ void fec_log_dump(uint8_t ch)
 void fec_debug_dump(uint8_t ch)
 {
     xprintf("\n------------- FEC%d -------------\n",ch);
-    xprintf("EIR      %08x        \n",MCF_FEC_EIR(ch));
-    xprintf("EIMR     %08x        \n",MCF_FEC_EIMR(ch));
-    xprintf("ECR      %08x        \n",MCF_FEC_ECR(ch));
-    xprintf("RCR      %08x        \n",MCF_FEC_RCR(ch));
-    xprintf("R_HASH   %08x        \n",MCF_FEC_RHR_HASH(ch));
-    xprintf("TCR      %08x        \n",MCF_FEC_TCR(ch));
-    xprintf("FECTFWR  %08x        \n",MCF_FEC_FECTFWR(ch));
-    xprintf("FECRFSR  %08x        \n",MCF_FEC_FECRFSR(ch));
-    xprintf("FECRFCR  %08x        \n",MCF_FEC_FECRFCR(ch));
-    xprintf("FECRLRFP %08x        \n",MCF_FEC_FECRLRFP(ch));
-    xprintf("FECRLWFP %08x        \n",MCF_FEC_FECRLWFP(ch));
-    xprintf("FECRFAR  %08x        \n",MCF_FEC_FECRFAR(ch));
-    xprintf("FECRFRP  %08x        \n",MCF_FEC_FECRFRP(ch));
-    xprintf("FECRFWP  %08x        \n",MCF_FEC_FECRFWP(ch));
-    xprintf("FECTFSR  %08x        \n",MCF_FEC_FECTFSR(ch));
-    xprintf("FECTFCR  %08x        \n",MCF_FEC_FECTFCR(ch));
-    xprintf("FECTLRFP %08x        \n",MCF_FEC_FECTLRFP(ch));
-    xprintf("FECTLWFP %08x        \n",MCF_FEC_FECTLWFP(ch));
-    xprintf("FECTFAR  %08x        \n",MCF_FEC_FECTFAR(ch));
-    xprintf("FECTFRP  %08x        \n",MCF_FEC_FECTFRP(ch));
-    xprintf("FECTFWP  %08x        \n",MCF_FEC_FECTFWP(ch));
-    xprintf("FRST     %08x        \n",MCF_FEC_FECFRST(ch));
+    xprintf("EIR      %08x        \n", MCF_FEC_EIR(ch));
+    xprintf("EIMR     %08x        \n", MCF_FEC_EIMR(ch));
+    xprintf("ECR      %08x        \n", MCF_FEC_ECR(ch));
+    xprintf("RCR      %08x        \n", MCF_FEC_RCR(ch));
+    xprintf("R_HASH   %08x        \n", MCF_FEC_RHR_HASH(ch));
+    xprintf("TCR      %08x        \n", MCF_FEC_TCR(ch));
+    xprintf("FECTFWR  %08x        \n", MCF_FEC_FECTFWR(ch));
+    xprintf("FECRFSR  %08x        \n", MCF_FEC_FECRFSR(ch));
+    xprintf("FECRFCR  %08x        \n", MCF_FEC_FECRFCR(ch));
+    xprintf("FECRLRFP %08x        \n", MCF_FEC_FECRLRFP(ch));
+    xprintf("FECRLWFP %08x        \n", MCF_FEC_FECRLWFP(ch));
+    xprintf("FECRFAR  %08x        \n", MCF_FEC_FECRFAR(ch));
+    xprintf("FECRFRP  %08x        \n", MCF_FEC_FECRFRP(ch));
+    xprintf("FECRFWP  %08x        \n", MCF_FEC_FECRFWP(ch));
+    xprintf("FECTFSR  %08x        \n", MCF_FEC_FECTFSR(ch));
+    xprintf("FECTFCR  %08x        \n", MCF_FEC_FECTFCR(ch));
+    xprintf("FECTLRFP %08x        \n", MCF_FEC_FECTLRFP(ch));
+    xprintf("FECTLWFP %08x        \n", MCF_FEC_FECTLWFP(ch));
+    xprintf("FECTFAR  %08x        \n", MCF_FEC_FECTFAR(ch));
+    xprintf("FECTFRP  %08x        \n", MCF_FEC_FECTFRP(ch));
+    xprintf("FECTFWP  %08x        \n", MCF_FEC_FECTFWP(ch));
+    xprintf("FRST     %08x        \n", MCF_FEC_FECFRST(ch));
     xprintf("--------------------------------\n\n");
 }
 
@@ -305,11 +303,11 @@ void fec_duplex (uint8_t ch, uint8_t duplex)
     {
         case FEC_MII_HALF_DUPLEX:
             MCF_FEC_RCR(ch) |= MCF_FEC_RCR_DRT;
-            MCF_FEC_TCR(ch) &= (uint32_t)~MCF_FEC_TCR_FDEN;
+            MCF_FEC_TCR(ch) &= (uint32_t) ~MCF_FEC_TCR_FDEN;
             break;
         case FEC_MII_FULL_DUPLEX:
         default:
-            MCF_FEC_RCR(ch) &= (uint32_t)~MCF_FEC_RCR_DRT;
+            MCF_FEC_RCR(ch) &= (uint32_t) ~MCF_FEC_RCR_DRT;
             MCF_FEC_TCR(ch) |= MCF_FEC_TCR_FDEN;
             break;
     }
@@ -332,12 +330,12 @@ uint8_t fec_hash_address(const uint8_t *addr)
     int i, j;
 
     crc = 0xFFFFFFFF;
-    for(i=0; i<6; ++i)
+    for (i = 0; i < 6; ++i)
     {
         byte = addr[i];
-        for(j=0; j<8; ++j)
+        for (j = 0; j < 8; ++j)
         {
-            if((byte & 0x01)^(crc & 0x01))
+            if ((byte & 0x01)^(crc & 0x01))
             {
                 crc >>= 1;
                 crc = crc ^ 0xEDB88320;
@@ -366,8 +364,8 @@ void fec_set_address (uint8_t ch, const uint8_t *pa)
     /*
      * Set the Physical Address
      */
-    MCF_FEC_PALR(ch) = (uint32_t)((pa[0]<<24) | (pa[1]<<16) | (pa[2]<<8) | pa[3]);
-    MCF_FEC_PAHR(ch) = (uint32_t)((pa[4]<<24) | (pa[5]<<16));
+    MCF_FEC_PALR(ch) = (uint32_t)((pa[0] << 24) | (pa[1] << 16) | (pa[2] << 8) | pa[3]);
+    MCF_FEC_PAHR(ch) = (uint32_t)((pa[4] << 24) | (pa[5] << 16));
 
     /*
      * Calculate and set the hash for given Physical Address
@@ -558,9 +556,6 @@ void fec_rx_start(uint8_t ch, int8_t *rxbd)
     /*
      * Start the Rx DMA task
      */
-    /*
-     * Start the Rx DMA task
-     */
     MCD_startDma(channel,
                  (int8_t *) rxbd,
                  0,
@@ -729,6 +724,7 @@ void fec_rx_frame(uint8_t ch, NIF *nif)
                 #ifdef DEBUG_PRINT
                     xprintf("nbuf_alloc() failed\n");
                 #endif
+
                 /*
                  * Can't allocate a new network buffer, so we
                  * have to trash the received data and reuse the buffer
@@ -811,12 +807,14 @@ void fec_rx_frame(uint8_t ch, NIF *nif)
 void fec0_rx_frame(void)
 {
     extern NIF nif1;
+
     fec_rx_frame(0, &nif1);
 }
 
 void fec1_rx_frame(void)
 {
     extern NIF nif1;
+
     fec_rx_frame(1, &nif1);
 }
 
@@ -1078,6 +1076,7 @@ int fec1_send(NIF *nif, uint8_t *dst, uint8_t *src, uint16_t type, NBUF *nbuf)
 {
     return fec_send(1, nif, dst, src, type, nbuf);
 }
+
 /********************************************************************/
 /*
  * Enable interrupts on the selected FEC
@@ -1163,7 +1162,7 @@ static void fec_irq_handler(uint8_t ch)
 
     #ifdef DEBUG
     if (event != eir)
-        xprintf("Pending but not enabled: 0x%08X\n",(event ^ eir));
+        xprintf("Pending but not enabled: 0x%08X\n", (event ^ eir));
     #endif
 
     /*
@@ -1177,7 +1176,7 @@ static void fec_irq_handler(uint8_t ch)
         fec_log[ch].rferr++;
         #ifdef DEBUG
         xprintf("RFERR\n");
-        xprintf("FECRFSR%d = 0x%08x\n",ch,MCF_FEC_FECRFSR(ch));
+        xprintf("FECRFSR%d = 0x%08x\n", ch, MCF_FEC_FECRFSR(ch));
         fec_eth_stop(ch);
         #endif
     }
@@ -1319,8 +1318,8 @@ void fec_eth_setup(uint8_t ch, uint8_t trcvr, uint8_t speed, uint8_t duplex, con
     /*
      * Enable the multi-channel DMA tasks
      */
-    fec_rx_start(ch, (int8_t*) fecbd_get_start(ch,Rx));
-    fec_tx_start(ch, (int8_t*) fecbd_get_start(ch,Tx));
+    fec_rx_start(ch, (int8_t*) fecbd_get_start(ch, Rx));
+    fec_tx_start(ch, (int8_t*) fecbd_get_start(ch, Tx));
 
     /*
      * Enable the FEC channel
@@ -1337,7 +1336,7 @@ void fec_eth_setup(uint8_t ch, uint8_t trcvr, uint8_t speed, uint8_t duplex, con
  */
 void fec_eth_reset(uint8_t ch)
 {
-// To do
+	// To do
 }
 
 /********************************************************************/
@@ -1387,5 +1386,4 @@ void fec_eth_stop(uint8_t ch)
      */
     set_ipl(level);
 }
-/********************************************************************/
 

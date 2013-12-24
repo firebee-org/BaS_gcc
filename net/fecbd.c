@@ -61,8 +61,8 @@ void fecbd_init(uint8_t ch)
     /* 
      * Align Buffer Descriptors to 4-byte boundary 
      */
-    RxBD = (FECBD *)(((int)unaligned_bds + 3) & 0xFFFFFFFC);
-    TxBD = (FECBD *)((int)RxBD + (sizeof(FECBD) * 2 * NRXBD));
+    RxBD = (FECBD *)(((int) unaligned_bds + 3) & 0xFFFFFFFC);
+    TxBD = (FECBD *)((int) RxBD + (sizeof(FECBD) * 2 * NRXBD));
 
     /* 
      * Initialize the Rx Buffer Descriptor ring 
@@ -96,9 +96,9 @@ void fecbd_init(uint8_t ch)
      */
     for (i = 0; i < NTXBD; ++i)
     {
-        TxBD(ch,i).status = TX_BD_INTERRUPT;
-        TxBD(ch,i).length = 0;
-        TxBD(ch,i).data = NULL;
+        TxBD(ch, i).status = TX_BD_INTERRUPT;
+        TxBD(ch, i).length = 0;
+        TxBD(ch, i).data = NULL;
     }
 
     /*
@@ -119,22 +119,22 @@ void fecbd_dump(uint8_t ch)
 
     printf("\n------------ FEC%d BDs -----------\n",ch);
     printf("RxBD Ring\n");
-    for (i=0; i<NRXBD; i++)
+    for (i = 0; i < NRXBD; i++)
     {
         printf("%02d: BD Addr=0x%08x, Ctrl=0x%04x, Lgth=%04d, DataPtr=0x%08x\n",
-            i, &RxBD(ch,i), 
-            RxBD(ch,i).status, 
-            RxBD(ch,i).length, 
-            RxBD(ch,i).data);
+            i, &RxBD(ch, i), 
+            RxBD(ch, i).status, 
+            RxBD(ch, i).length, 
+            RxBD(ch, i).data);
     }
     printf("TxBD Ring\n");
-    for (i=0; i<NTXBD; i++)
+    for (i = 0; i < NTXBD; i++)
     {
         printf("%02d: BD Addr=0x%08x, Ctrl=0x%04x, Lgth=%04d, DataPtr=0x%08x\n",
-            i, &TxBD(ch,i), 
-            TxBD(ch,i).status, 
-            TxBD(ch,i).length, 
-            TxBD(ch,i).data);
+            i, &TxBD(ch, i), 
+            TxBD(ch, i).status, 
+            TxBD(ch, i).length, 
+            TxBD(ch, i).data);
     }
     printf("--------------------------------\n\n");
     #endif
@@ -167,13 +167,13 @@ FECBD *fecbd_rx_alloc(uint8_t ch)
     int i = iRxbd;
 
     /* Check to see if the ring of BDs is full */
-    if (RxBD(ch,i).status & RX_BD_E)
+    if (RxBD(ch, i).status & RX_BD_E)
         return NULL;
 
     /* Increment the circular index */
     iRxbd = (uint8_t)((iRxbd + 1) % NRXBD);
 
-    return &RxBD(ch,i);
+    return &RxBD(ch, i);
 }
 
 /*
@@ -191,13 +191,13 @@ FECBD *fecbd_tx_alloc(uint8_t ch)
     int i = iTxbd_new;
 
     /* Check to see if the ring of BDs is full */
-    if (TxBD(ch,i).status & TX_BD_R)
+    if (TxBD(ch, i).status & TX_BD_R)
         return NULL;
 
     /* Increment the circular index */
     iTxbd_new = (uint8_t)((iTxbd_new + 1) % NTXBD);
 
-    return &TxBD(ch,i);
+    return &TxBD(ch, i);
 }
 
 /*
@@ -216,11 +216,11 @@ FECBD *fecbd_tx_free(uint8_t ch)
     int i = iTxbd_old;
 
     /* Check to see if the ring of BDs is empty */
-    if ((TxBD(ch,i).data == NULL) || (TxBD(ch,i).status & TX_BD_R))
+    if ((TxBD(ch, i).data == NULL) || (TxBD(ch, i).status & TX_BD_R))
         return NULL;
 
     /* Increment the circular index */
     iTxbd_old = (uint8_t)((iTxbd_old + 1) % NTXBD);
 
-    return &TxBD(ch,i);
+    return &TxBD(ch, i);
 }
