@@ -8,8 +8,6 @@
 #ifndef _TFTP_H_
 #define _TFTP_H_
 
-/********************************************************************/
-
 #define TFTP_RRQ            (1)
 #define TFTP_WRQ            (2)
 #define TFTP_DATA           (3)

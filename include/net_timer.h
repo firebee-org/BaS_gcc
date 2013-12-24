@@ -1,9 +1,8 @@
 /*
  * File:        net_timer.h
- * Purpose:     Provide a timer use by the dBUG network as a timeout
+ * Purpose:     Provide a timer use by the BaS network as a timeout
  *              indicator
  *
- * Notes:
  */
 
 #ifndef _TIMER_H_

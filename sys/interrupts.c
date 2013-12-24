@@ -52,10 +52,10 @@ int register_interrupt_handler(uint8_t source, uint8_t level, uint8_t priority, 
 	{
 		xprintf("%s: interrupt source %d not defined\r\n", __FUNCTION__, source);
 		return -1;
- 	}
+	}
 
 	lp = MCF_INTC_ICR_IL(level) | MCF_INTC_ICR_IP(priority);
-	
+
 	/* check if this combination is already set somewhere */
 	for (i = 1; i < 64; i++)
 	{
@@ -88,11 +88,11 @@ int register_interrupt_handler(uint8_t source, uint8_t level, uint8_t priority, 
 
 typedef struct
 {
-    int     vector;
-    int     type;
-    int     (*handler)(void *, void *);
-    void    *hdev;
-    void    *harg;
+	int     vector;
+	int     type;
+	int     (*handler)(void *, void *);
+	void    *hdev;
+	void    *harg;
 } ISRENTRY;
 
 ISRENTRY isrtab[UIF_MAX_ISR_ENTRY];
@@ -100,126 +100,126 @@ ISRENTRY isrtab[UIF_MAX_ISR_ENTRY];
 
 void isr_init(void)
 {
-    int index;
-    
-    for (index = 0; index < UIF_MAX_ISR_ENTRY; index++)
-    {
-        isrtab[index].vector = 0;
-        isrtab[index].type = 0;
-        isrtab[index].handler = 0;
-        isrtab[index].hdev = 0;
-        isrtab[index].harg = 0;
-    }
+	int index;
+
+	for (index = 0; index < UIF_MAX_ISR_ENTRY; index++)
+	{
+		isrtab[index].vector = 0;
+		isrtab[index].type = 0;
+		isrtab[index].handler = 0;
+		isrtab[index].hdev = 0;
+		isrtab[index].harg = 0;
+	}
 }
 
 
 int isr_register_handler (
-    int type, int vector, 
-    int (*handler)(void *, void *), void *hdev, void *harg)
+		int type, int vector, 
+		int (*handler)(void *, void *), void *hdev, void *harg)
 {
-    /*
-     * This function places an interrupt handler in the ISR table,
-     * thereby registering it so that the low-level handler may call it.
-     *
-     * The two parameters are intended for the first arg to be a 
-     * pointer to the device itself, and the second a pointer to a data 
-     * structure used by the device driver for that particular device.
-     */
-    int index;
+	/*
+	 * This function places an interrupt handler in the ISR table,
+	 * thereby registering it so that the low-level handler may call it.
+	 *
+	 * The two parameters are intended for the first arg to be a 
+	 * pointer to the device itself, and the second a pointer to a data 
+	 * structure used by the device driver for that particular device.
+	 */
+	int index;
 
-    if ((vector == 0) || 
-        ((type != ISR_DBUG_ISR) && (type != ISR_USER_ISR)) ||
-        (handler == NULL))
-    {
-        return true;
-    }
+	if ((vector == 0) || 
+			((type != ISR_DBUG_ISR) && (type != ISR_USER_ISR)) ||
+			(handler == NULL))
+	{
+		return true;
+	}
 
-    for (index = 0; index < UIF_MAX_ISR_ENTRY; index++)
-    {
-        if ((isrtab[index].vector == vector) &&
-            (isrtab[index].type == type))
-        {
-            /* only one entry of each type per vector */
-            return 0;
-        }
+	for (index = 0; index < UIF_MAX_ISR_ENTRY; index++)
+	{
+		if ((isrtab[index].vector == vector) &&
+				(isrtab[index].type == type))
+		{
+			/* only one entry of each type per vector */
+			return 0;
+		}
 
-        if (isrtab[index].vector == 0)
-        {
-            isrtab[index].vector = vector;
-            isrtab[index].type = type;
-            isrtab[index].handler = handler;
-            isrtab[index].hdev = hdev;
-            isrtab[index].harg = harg;
-            return 1;
-        }
-    }
-    return false;   /* no available slots */
+		if (isrtab[index].vector == 0)
+		{
+			isrtab[index].vector = vector;
+			isrtab[index].type = type;
+			isrtab[index].handler = handler;
+			isrtab[index].hdev = hdev;
+			isrtab[index].harg = harg;
+			return 1;
+		}
+	}
+	return false;   /* no available slots */
 }
 
 void isr_remove_handler(int type, int (*handler)(void *, void *))
 {
-    /*
-     * This routine removes from the ISR table all
-     * entries that matches 'type' and 'handler'.
-     */
-    int index;
+	/*
+	 * This routine removes from the ISR table all
+	 * entries that matches 'type' and 'handler'.
+	 */
+	int index;
 
-    for (index = 0; index < UIF_MAX_ISR_ENTRY; index++)
-    {
-        if ((isrtab[index].handler == handler) && 
-            (isrtab[index].type == type))
-        {
-            isrtab[index].vector = 0;
-            isrtab[index].type = 0;
-            isrtab[index].handler = 0;
-            isrtab[index].hdev = 0;
-            isrtab[index].harg = 0;
-        }
-    }
+	for (index = 0; index < UIF_MAX_ISR_ENTRY; index++)
+	{
+		if ((isrtab[index].handler == handler) && 
+				(isrtab[index].type == type))
+		{
+			isrtab[index].vector = 0;
+			isrtab[index].type = 0;
+			isrtab[index].handler = 0;
+			isrtab[index].hdev = 0;
+			isrtab[index].harg = 0;
+		}
+	}
 }
 
 
 bool isr_execute_handler(int vector)
 {
-    /*
-     * This routine searches the ISR table for an entry that matches
-     * 'vector'.  If one is found, then 'handler' is executed.
-     */
-    int index;
-    bool retval = false;
+	/*
+	 * This routine searches the ISR table for an entry that matches
+	 * 'vector'.  If one is found, then 'handler' is executed.
+	 */
+	int index;
+	bool retval = false;
 
-    /*
-     * First locate a dBUG Interrupt Service Routine handler.
-     */
-    for (index = 0; index < UIF_MAX_ISR_ENTRY; index++)
-    {
-        if ((isrtab[index].vector == vector) &&
-            (isrtab[index].type == ISR_DBUG_ISR))
-        {
-            if (isrtab[index].handler(isrtab[index].hdev,isrtab[index].harg))
-            {
-                retval = true;
-                break;
-            }
-        }
-    }
+	/*
+	 * First locate a BaS Interrupt Service Routine handler.
+	 */
+	for (index = 0; index < UIF_MAX_ISR_ENTRY; index++)
+	{
+		if ((isrtab[index].vector == vector) &&
+				(isrtab[index].type == ISR_DBUG_ISR))
+		{
+			if (isrtab[index].handler(isrtab[index].hdev,isrtab[index].harg))
+			{
+				retval = true;
+				break;
+			}
+		}
+	}
 
-    /*
-     * Try to locate a user-registered Interrupt Service Routine handler.
-     */
-    for (index = 0; index < UIF_MAX_ISR_ENTRY; index++)
-    {
-        if ((isrtab[index].vector == vector) &&
-            (isrtab[index].type == ISR_USER_ISR))
-        {
-            if (isrtab[index].handler(isrtab[index].hdev,isrtab[index].harg))
-            {
-                retval = true;
-                break;
-            }
-        }
-    }
+	/*
+	 * Try to locate a user-registered Interrupt Service Routine handler.
+	 */
+	for (index = 0; index < UIF_MAX_ISR_ENTRY; index++)
+	{
+		if ((isrtab[index].vector == vector) &&
+				(isrtab[index].type == ISR_USER_ISR))
+		{
+			if (isrtab[index].handler(isrtab[index].hdev,isrtab[index].harg))
+			{
+				retval = true;
+				break;
+			}
+		}
+	}
 
-    return retval;
+	return retval;
 }
 

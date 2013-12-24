@@ -1,6 +1,6 @@
 /*
  * File:        net.h
- * Purpose:     Network definitions and prototypes for dBUG.
+ * Purpose:     Network definitions and prototypes for BaS.
  *
  * Notes:
  */
@@ -24,7 +24,7 @@
 
 /********************************************************************/
 
-int net_init(void);
+extern int net_init(void);
 
 /********************************************************************/
 
