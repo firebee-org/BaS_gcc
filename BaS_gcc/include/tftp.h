@@ -40,7 +40,6 @@
 /* Number of TFTP Data Buffers */
 #define NUM_TFTPBD          6
 
-/********************************************************************/
 
 /* Data Buffer Pointer Structure */
 typedef struct
@@ -145,14 +144,11 @@ typedef struct
 } TFTP_Connection;
 
 
-/********************************************************************/
+extern void tftp_handler(NIF *, NBUF *) ;
+extern int tftp_write (NIF *, char *, IP_ADDR_P, uint32_t, uint32_t);
+extern int tftp_read(NIF *, char *, IP_ADDR_P);
+extern void tftp_end(int);
+extern int tftp_in_char(void);
 
-void    tftp_handler(NIF *, NBUF *) ;
-int     tftp_write (NIF *, char *, IP_ADDR_P, uint32_t, uint32_t);
-int     tftp_read(NIF *, char *, IP_ADDR_P);
-void    tftp_end(int);
-int     tftp_in_char(void);
-
-/********************************************************************/
 
 #endif  /* _TFTP_H_ */
