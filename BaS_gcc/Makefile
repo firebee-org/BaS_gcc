@@ -100,6 +100,7 @@ CSRCS= \
 	ip.c \
 	udp.c \
 	arp.c \
+	bootp.c \
 	\
 	basflash.c \
 	basflash_start.c 

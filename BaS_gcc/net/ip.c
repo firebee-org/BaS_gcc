@@ -58,10 +58,10 @@ uint8_t *ip_resolve_route(NIF *nif, IP_ADDR_P destip)
      * to the router for transmission.
      */
     IP_INFO *info;
-    IP_ADDR mask,result;
+    IP_ADDR mask, result;
     int i;
 
-    info = nif_get_protocol_info(nif,ETH_FRM_IP);
+    info = nif_get_protocol_info(nif, ETH_FRM_IP);
 
     /* create mask for local IP */
     for (i = 0; i < sizeof(IP_ADDR); i++)
@@ -76,15 +76,15 @@ uint8_t *ip_resolve_route(NIF *nif, IP_ADDR_P destip)
     }
 
     /* See if destination IP is local or not */
-    if (ip_addr_compare(mask,result))
+    if (ip_addr_compare(mask, result))
     {
         /* The destination IP is on the local net */
-        return arp_resolve(nif,ETH_FRM_IP,destip);
+        return arp_resolve(nif, ETH_FRM_IP, destip);
     }
     else
     {
         /* The destination IP is not on the local net */
-        return arp_resolve(nif,ETH_FRM_IP,info->gateway);
+        return arp_resolve(nif, ETH_FRM_IP, info->gateway);
     }
 }
 
@@ -151,7 +151,7 @@ int ip_send(NIF *nif, uint8_t *dest, uint8_t *src, uint8_t protocol, NBUF *pNbuf
     if (route == NULL)
     {
         xprintf("Unable to locate %d.%d.%d.%d\n",
-            dest[0],dest[1],dest[2],dest[3]);
+            dest[0], dest[1], dest[2], dest[3]);
         return 0;
     }
 
@@ -245,7 +245,7 @@ static int validate_ip_hdr(NIF *nif, ip_frame_hdr *ipframe)
     chksum = (int)((uint16_t) IP_CHKSUM(ipframe));
     IP_CHKSUM(ipframe) = 0;
 
-    if (ip_chksum((uint16_t *) ipframe,IP_IHL(ipframe)*4) != chksum)
+    if (ip_chksum((uint16_t *) ipframe, IP_IHL(ipframe) * 4) != chksum)
         return 0;
 
     IP_CHKSUM(ipframe) = (uint16_t) chksum;
@@ -265,7 +265,7 @@ void ip_handler(NIF *nif, NBUF *pNbuf)
     /*
      * Verify valid IP header and destination IP
      */
-    if (!validate_ip_hdr(nif,ipframe))
+    if (!validate_ip_hdr(nif, ipframe))
     {
         nbuf_free(pNbuf);
         return;
