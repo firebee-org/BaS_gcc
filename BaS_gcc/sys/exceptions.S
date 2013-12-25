@@ -972,3 +972,33 @@ video_chg_end:
 		lea		7 * 4(sp),a7
 		rte
 #endif /* MACHINE_FIREBEE */
+
+/*
+ * low-level interrupt service routine for routines registered with
+ * isr_register_handler()
+ */
+ 		.global	_asm_isr_handler
+		.extern	_isr_execute_handler
+
+_asm_isr_handler:
+		link	a6,#-4*4
+		movem.l	d0-d1/a0-a1,(sp)
+
+		move.w	4(a6),d0
+		lsr.l	#2,d0
+		andi.l	#0x0000ff,d0
+		move.l	d0,-(sp)
+		jsr		_isr_execute_handler
+		lea		4(sp),sp
+		cmp.l	#1,d0
+		//beq		handled
+#ifdef _NOT_USED_
+nothandled:
+		movem.l	(sp),d0-d1/a0-a1
+		unlk	a6
+		jmp		asm_exception_handler
+#endif /* _NOT_USED_ */
+handled:
+		movem.l	(sp),d0-d1/a0-a1
+		unlk	a6
+		rte
