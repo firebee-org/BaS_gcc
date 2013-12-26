@@ -36,9 +36,12 @@ TaskTableEntry *MCD_modelTaskTable;
  * status, etc.
  */
 static int MCD_chStatus[NCHANNELS] =
-{ MCD_NO_DMA, MCD_NO_DMA, MCD_NO_DMA, MCD_NO_DMA, MCD_NO_DMA, MCD_NO_DMA,
-		MCD_NO_DMA, MCD_NO_DMA, MCD_NO_DMA, MCD_NO_DMA, MCD_NO_DMA, MCD_NO_DMA,
-		MCD_NO_DMA, MCD_NO_DMA, MCD_NO_DMA, MCD_NO_DMA };
+{
+	MCD_NO_DMA, MCD_NO_DMA, MCD_NO_DMA, MCD_NO_DMA,
+	MCD_NO_DMA, MCD_NO_DMA, MCD_NO_DMA, MCD_NO_DMA,
+	MCD_NO_DMA, MCD_NO_DMA, MCD_NO_DMA, MCD_NO_DMA,
+	MCD_NO_DMA, MCD_NO_DMA, MCD_NO_DMA, MCD_NO_DMA
+};
 
 /*
  * Prototypes for local functions
@@ -349,17 +352,17 @@ int MCD_dmaStatus(int channel)
  * Returns:     MCD_CHANNEL_INVALID if channel is invalid, else MCD_OK
  */
 
-int MCD_startDma(int channel, /* the channel on which to run the DMA */
-int8_t *srcAddr, /* the address to move data from, or physical buffer-descriptor address */
-int16_t srcIncr, /* the amount to increment the source address per transfer */
-int8_t *destAddr, /* the address to move data to */
-int16_t destIncr, /* the amount to increment the destination address per transfer */
-uint32_t dmaSize, /* the number of bytes to transfer independent of the transfer size */
-uint32_t xferSize, /* the number bytes in of each data movement (1, 2, or 4) */
-uint32_t initiator, /* what device initiates the DMA */
-int priority, /* priority of the DMA */
-uint32_t flags, /* flags describing the DMA */
-uint32_t funcDesc /* a description of byte swapping, bit swapping, and CRC actions */
+int __attribute__((flatten)) MCD_startDma(int channel, /* the channel on which to run the DMA */
+		int8_t *srcAddr, /* the address to move data from, or physical buffer-descriptor address */
+		int16_t srcIncr, /* the amount to increment the source address per transfer */
+		int8_t *destAddr, /* the address to move data to */
+		int16_t destIncr, /* the amount to increment the destination address per transfer */
+		uint32_t dmaSize, /* the number of bytes to transfer independent of the transfer size */
+		uint32_t xferSize, /* the number bytes in of each data movement (1, 2, or 4) */
+		uint32_t initiator, /* what device initiates the DMA */
+		int priority, /* priority of the DMA */
+		uint32_t flags, /* flags describing the DMA */
+		uint32_t funcDesc /* a description of byte swapping, bit swapping, and CRC actions */
 #ifdef MCD_NEED_ADDR_TRANS
 		int8_t *srcAddrVirt /* virtual buffer descriptor address TBD*/
 #endif
@@ -412,15 +415,15 @@ uint32_t funcDesc /* a description of byte swapping, bit swapping, and CRC actio
 #ifdef MCD_INCLUDE_EU /* may move this to EU specific calls */
 	realFuncArray = (uint32_t *) (MCD_taskTable[channel].FDTandFlags & 0xffffff00);
 	/* Modify the LURC's normal and byte-residue-loop functions according to parameter. */
-	realFuncArray[(LURC*16)] = xferSize == 4 ?
-	funcDesc : xferSize == 2 ?
-	funcDesc & 0xfffff00f : funcDesc & 0xffff000f;
+	realFuncArray[(LURC*16)] = xferSize == 4 ? funcDesc : xferSize == 2 ? funcDesc & 0xfffff00f : funcDesc & 0xffff000f;
 	realFuncArray[(LURC*16+1)] = (funcDesc & MCD_BYTE_SWAP_KILLER) | MCD_NO_BYTE_SWAP_ATALL;
 #endif
-	/* Write the initiator field in the TCR, and also set the initiator-hold
-	 bit.  Note that,due to a hardware quirk, this could collide with an
-	 MDE access to the initiator-register file, so we have to verify that the write
-	 reads back correctly. */
+	/*
+	 * Write the initiator field in the TCR, and also set the initiator-hold
+	 * bit.  Note that,due to a hardware quirk, this could collide with an
+	 * MDE access to the initiator-register file, so we have to verify that the write
+	 * reads back correctly.
+	 */
 
 	MCD_dmaBar->taskControl[channel] = (initiator << 8) | TASK_CTL_HIPRITSKEN
 			| TASK_CTL_HLDINITNUM;
@@ -436,6 +439,7 @@ uint32_t funcDesc /* a description of byte swapping, bit swapping, and CRC actio
 	}
 
 	MCD_dmaBar->priority[channel] = (uint8_t) priority & PRIORITY_PRI_MASK;
+
 	/* should be albe to handle this stuff with only one write to ts reg - tbd */
 	if (channel < 8 && channel >= 0)
 	{
@@ -460,8 +464,7 @@ uint32_t funcDesc /* a description of byte swapping, bit swapping, and CRC actio
 		MCD_taskTable[channel].TDTstart =
 				MCD_modelTaskTable[TASK_FECTX].TDTstart;
 		MCD_taskTable[channel].TDTend = MCD_modelTaskTable[TASK_FECTX].TDTend;
-		MCD_startDmaENetXmit(srcAddr, srcAddr, destAddr, MCD_taskTable,
-				channel);
+		MCD_startDmaENetXmit(srcAddr, srcAddr, destAddr, MCD_taskTable, channel);
 	}
 	else if (flags & MCD_FECRX_DMA)
 	{
@@ -473,10 +476,12 @@ uint32_t funcDesc /* a description of byte swapping, bit swapping, and CRC actio
 	}
 	else if (flags & MCD_SINGLE_DMA)
 	{
-		/* this buffer descriptor is used for storing off initial parameters for later
-		 progress query calculation and for the DMA to write the resulting checksum
-		 The DMA does not use this to determine how to operate, that info is passed
-		 with the init routine*/
+		/*
+		 * this buffer descriptor is used for storing off initial parameters for later
+		 * progress query calculation and for the DMA to write the resulting checksum
+		 * The DMA does not use this to determine how to operate, that info is passed
+		 * with the init routine
+		 */
 		MCD_relocBuffDesc[channel].srcAddr = srcAddr;
 		MCD_relocBuffDesc[channel].destAddr = destAddr;
 		MCD_relocBuffDesc[channel].lastDestAddr = destAddr; /* definitely not its final value */
@@ -529,6 +534,7 @@ uint32_t funcDesc /* a description of byte swapping, bit swapping, and CRC actio
 		((volatile int *) MCD_taskTable[channel].contextSaveSpace)[DESTPTR
 				+ CSAVE_OFFSET] = (int) ((MCD_bufDesc*) srcAddr)->destAddr;
 #else /* if using address translation, need the virtual addr of the first buffdesc */
+
 		((volatile int *)MCD_taskTable[channel].contextSaveSpace)[SRCPTR + CSAVE_OFFSET]
 		= (int)((MCD_bufDesc*) srcAddrVirt)->srcAddr;
 		((volatile int *)MCD_taskTable[channel].contextSaveSpace)[DESTPTR + CSAVE_OFFSET]

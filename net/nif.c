@@ -50,7 +50,7 @@ void nif_protocol_handler(NIF *nif, uint16_t protocol, NBUF *pNbuf)
 	}
 }
 
-void *nif_get_protocol_info (NIF *nif, uint16_t protocol)
+void *nif_get_protocol_info(NIF *nif, uint16_t protocol)
 {
 	/*
 	 * This function searches the list of supported protocols
@@ -67,9 +67,8 @@ void *nif_get_protocol_info (NIF *nif, uint16_t protocol)
 	return (void *)0;
 }
 
-int nif_bind_protocol (NIF *nif, uint16_t protocol,
-		void (*handler)(NIF *,NBUF *),
-		void *info)
+int nif_bind_protocol(NIF *nif, uint16_t protocol, void (*handler)(NIF *,NBUF *),
+					void *info)
 {
 	/*
 	 * This function registers 'protocol' as a supported

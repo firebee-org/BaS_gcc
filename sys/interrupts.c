@@ -34,6 +34,13 @@
 extern void (*rt_vbr[])(void);
 #define VBR	rt_vbr
 
+#define IRQ_DEBUG
+#if defined(IRQ_DEBUG)
+#define dbg(format, arg...) do { xprintf("DEBUG: " format "\r\n", ##arg); } while (0)
+#else
+#define dbg(format, arg...) do { ; } while (0)
+#endif
+
 /*
  * register an interrupt handler at the Coldfire interrupt controller and add the handler to
  * the interrupt vector table
@@ -113,8 +120,7 @@ void isr_init(void)
 }
 
 
-int isr_register_handler (
-		int type, int vector, 
+int isr_register_handler(int type, int vector, 
 		int (*handler)(void *, void *), void *hdev, void *harg)
 {
 	/*
@@ -131,7 +137,8 @@ int isr_register_handler (
 			((type != ISR_DBUG_ISR) && (type != ISR_USER_ISR)) ||
 			(handler == NULL))
 	{
-		return true;
+		dbg("%s: illegal type, vector or handler!\r\n", __FUNCTION__);
+		return false;
 	}
 
 	for (index = 0; index < UIF_MAX_ISR_ENTRY; index++)
@@ -140,7 +147,8 @@ int isr_register_handler (
 				(isrtab[index].type == type))
 		{
 			/* only one entry of each type per vector */
-			return 0;
+			dbg("%s: already set handler with this type and vector (%d, %d)\r\n", __FUNCTION__, type, vector);
+			return false;
 		}
 
 		if (isrtab[index].vector == 0)
@@ -150,9 +158,10 @@ int isr_register_handler (
 			isrtab[index].handler = handler;
 			isrtab[index].hdev = hdev;
 			isrtab[index].harg = harg;
-			return 1;
+			return true;
 		}
 	}
+	dbg("%s: no available slots\n\t", __FUNCTION__);
 	return false;   /* no available slots */
 }
 

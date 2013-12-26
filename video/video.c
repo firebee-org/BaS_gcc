@@ -226,20 +226,20 @@ void screen_init(void)
  * resolution / video mode appropriately
  */
 	monitor_type = MON_COLOR;
-	xprintf("monitor_type = %d\n", monitor_type);
+	xprintf("monitor_type = %d\r\n", monitor_type);
 
 	/* reset VIDEL on boot-up */
 	/* first set the physbase to a safe memory */
-	setphys(0xd00000,0);
+	setphys(0xd00000, 0);
 
 	if (!lookup_videl_mode(boot_resolution, monitor_type)) { /* mode isn't in table */
-	    xprintf("Invalid video mode 0x%04x changed to 0x%04x\n",
+	    xprintf("Invalid video mode 0x%04x changed to 0x%04x\r\n",
 	            boot_resolution, FALCON_DEFAULT_BOOT);
 	    boot_resolution = FALCON_DEFAULT_BOOT;  /* so pick one that is */
 	}
 
 	if (!VALID_VDI_BPP(boot_resolution)) {      /* mustn't confuse VDI */
-	    xprintf("VDI doesn't support video mode 0x%04x, changed to 0x%04x\n",
+	    xprintf("VDI doesn't support video mode 0x%04x, changed to 0x%04x\r\n",
 	            boot_resolution, FALCON_DEFAULT_BOOT);
 	    boot_resolution = FALCON_DEFAULT_BOOT;  /* so use default */
 	}

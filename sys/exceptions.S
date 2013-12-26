@@ -295,11 +295,18 @@ init_vec_loop:
 		lea		handler_psc3(pc),a1
 		// PSC3 interrupt source = 32
 		move.l	a1,(INT_SOURCE_PSC3 + 64) * 4(a0)
-// timer vectors (used for video page copy on the FireBee)
+// timer vectors (triggers when vbashi gets changed, used for video page copy)
 		lea		handler_gpt0(pc),a1
 		// GPT0 interrupt source = 62
 		move.l	a1,(INT_SOURCE_GPT0 + 64) * 4(a0)
 #endif /* MACHINE_FIREBEE */
+
+		lea		_lowlevel_isr_handler,a1
+		move.l	a1,(INT_SOURCE_GPT1 + 64) * 4(a0)
+		move.l	a1,(INT_SOURCE_GPT2 + 64) * 4(a0)
+		move.l	a1,(INT_SOURCE_GPT3 + 64) * 4(a0)
+		move.l	a1,(INT_SOURCE_FEC0 + 64) * 4(a0)
+		move.l	a1,(INT_SOURCE_FEC1 + 64) * 4(a0)
 
 		move.l	(sp)+,a2			// Restore registers
 		rts
@@ -462,7 +469,6 @@ flpoow:
 		halt
 		nop
 		nop
-
 #endif /* _NOT_USED */
 
 irq1:
@@ -977,10 +983,10 @@ video_chg_end:
  * low-level interrupt service routine for routines registered with
  * isr_register_handler()
  */
- 		.global	_asm_isr_handler
+ 		.global	_lowlevel_isr_handler
 		.extern	_isr_execute_handler
 
-_asm_isr_handler:
+_lowlevel_isr_handler:
 		link	a6,#-4*4
 		movem.l	d0-d1/a0-a1,(sp)
 
@@ -991,13 +997,11 @@ _asm_isr_handler:
 		jsr		_isr_execute_handler
 		lea		4(sp),sp
 		cmp.l	#1,d0
-		//beq		handled
-#ifdef _NOT_USED_
+		beq		handled
 nothandled:
 		movem.l	(sp),d0-d1/a0-a1
 		unlk	a6
-		jmp		asm_exception_handler
-#endif /* _NOT_USED_ */
+		jmp		std_exc_vec
 handled:
 		movem.l	(sp),d0-d1/a0-a1
 		unlk	a6

@@ -43,7 +43,7 @@ TRGTDIRS= ./firebee ./m5484lite
 OBJDIRS=$(patsubst %, %/objs,$(TRGTDIRS))
 TOOLDIR=util
 
-VPATH=dma exe flash fs if kbd pci spi sys usb net util video xhdi
+VPATH=dma exe flash fs if kbd pci spi sys usb net util video radeon xhdi
 
 # Linker control file. The final $(LDCFILE) is intermediate only (preprocessed  version of $(LDCSRC)
 LDCFILE=bas.lk
@@ -105,6 +105,8 @@ CSRCS= \
 	\
 	videl.c \
 	video.c \
+	\
+	radeon_base.c \
 	\
 	basflash.c \
 	basflash_start.c 
