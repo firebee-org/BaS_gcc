@@ -18,7 +18,7 @@
 #include "net.h"
 #include "net_timer.h"
 
-#define TIMER_NETWORK	0
+#define TIMER_NETWORK	3
 
 /* The one and only TFTP connection */
 static TFTP_Connection tcxn;

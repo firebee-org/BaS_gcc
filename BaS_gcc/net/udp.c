@@ -135,10 +135,8 @@ int udp_send(NIF *nif, uint8_t *dest, int sport, int dport, NBUF *pNbuf)
 	/* Add the length of the UDP packet to the total length of the packet */
 	pNbuf->length += 8;
 
-	return (ip_send(nif, dest,
-				ip_get_myip(nif_get_protocol_info(nif, ETH_FRM_IP)),
-				IP_PROTO_UDP,
-				pNbuf));
+	return (ip_send(nif, dest, ip_get_myip(nif_get_protocol_info(nif, ETH_FRM_IP)),
+				IP_PROTO_UDP, pNbuf));
 }
 
 void udp_handler(NIF *nif, NBUF *pNbuf)

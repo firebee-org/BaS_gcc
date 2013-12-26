@@ -44,6 +44,15 @@
 #include "nbuf.h"
 #include "nif.h"
 #include "fec.h"
+#include "interrupts.h"
+#include "exceptions.h"
+
+#define BAS_DEBUG
+#if defined(BAS_DEBUG)
+#define dbg(format, arg...) do { xprintf("DEBUG: " format "\r\n", ##arg); } while (0)
+#else
+#define dbg(format, arg...) do { ; } while (0)
+#endif
 
 /* imported routines */
 extern int mmu_init();
@@ -60,11 +69,6 @@ extern uint8_t _EMUTOS[];
 #define EMUTOS ((uint32_t)_EMUTOS) /* where EmuTOS is stored in flash */
 extern uint8_t _EMUTOS_SIZE[];
 #define EMUTOS_SIZE ((uint32_t)_EMUTOS_SIZE) /* size of EmuTOS, in bytes */
-
-NIF nif1;
-#ifdef MACHINE_M5484LITE
-NIF nif2;
-#endif
 
 /*
  * check if it is possible to transfer data to PIC
@@ -126,7 +130,7 @@ void pic_init(void)
 
 	if (answer[0] != 'O' || answer[1] != 'K' || answer[2] != '!')
 	{
-		xprintf("PIC initialization failed. Already initialized?\r\n");
+		dbg("%s: PIC initialization failed. Already initialized?\r\n", __FUNCTION__);
 	}
 	else
 	{
@@ -236,24 +240,47 @@ void disable_coldfire_interrupts()
 
 
 
+NIF nif1;
+#ifdef MACHINE_M5484LITE
+NIF nif2;
+#endif
+static IP_INFO ip_info;
+static ARP_INFO	arp_info;
+
+
 void network_init(void)
 {
 	uint8_t mac[6] = {0x00, 0x04, 0x9f, 0x01, 0x01, 0x01}; /* this is a Freescale MAC address */
 	uint8_t bc[6] = {0xff, 0xff, 0xff, 0xff, 0xff, 0xff}; /* this is our broadcast MAC address */
-	IP_ADDR myip = {0, 0, 0, 0};
-	IP_ADDR gateway = {0, 0, 0, 0};
-	IP_ADDR netmask = {0, 0, 0, 0};
-	IP_INFO info;
+	IP_ADDR myip = {192, 168, 1, 100};
+	IP_ADDR gateway = {192, 168, 1, 1};
+	IP_ADDR netmask = {255, 255, 255, 0};
+	int vector;
+	int (*handler)(void *, void *);
 
-	fec_eth_setup(0, FEC_MODE_MII, FEC_MII_100BASE_TX, FEC_MII_FULL_DUPLEX, mac);
+	handler = fec0_interrupt_handler;
+	vector = 103;
+
+	if (!isr_register_handler(ISR_DBUG_ISR, vector, handler, NULL, (void *) &nif1))
+	{
+		dbg("%s: unable to register handler\r\n", __FUNCTION__);
+		return;
+	}
+
 	nif_init(&nif1);
 	nif1.mtu = ETH_MTU;
 	nif1.send = fec0_send;
+	fec_eth_setup(0, FEC_MODE_MII, FEC_MII_100BASE_TX, FEC_MII_FULL_DUPLEX, mac);
+	fec_eth_setup(1, FEC_MODE_MII, FEC_MII_100BASE_TX, FEC_MII_FULL_DUPLEX, mac);
 	memcpy(nif1.hwa, mac, 6);
 	memcpy(nif1.broadcast, bc, 6);
 
-	ip_init(&info, myip, gateway, netmask);
-	udp_init();
+	arp_init(&arp_info);
+	nif_bind_protocol(&nif1, ETH_FRM_ARP, arp_handler, (void *) &arp_info);
+
+	ip_init(&ip_info, myip, gateway, netmask);
+	nif_bind_protocol(&nif1, ETH_FRM_IP, ip_handler, (void *) &ip_info);
+
 	bootp_request(&nif1, 0);
 }
 
@@ -324,6 +351,7 @@ void BaS(void)
 
 	enable_coldfire_interrupts();
 
+#ifdef _NOT_USED_
 	screen_init();
 
 	    /* experimental */
@@ -346,6 +374,7 @@ void BaS(void)
 			}
 		}
 	}
+#endif /* _NOT_USED_ */
 
 #endif /* MACHINE_FIREBEE */
 
@@ -392,7 +421,8 @@ void BaS(void)
 	xprintf("BaS initialization finished, enable interrupts\r\n");
 	enable_coldfire_interrupts();
 
-	// network_init();
+	set_ipl(0);
+	network_init();
 
 	xprintf("call EmuTOS\r\n");
 	ROM_HEADER* os_header = (ROM_HEADER*)TOS;

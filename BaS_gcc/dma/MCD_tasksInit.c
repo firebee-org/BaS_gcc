@@ -57,7 +57,7 @@ void  MCD_startDmaChainNoEu(int *currBD, short srcIncr, short destIncr, int xfer
  * Task 1
  */
  
-void  MCD_startDmaSingleNoEu(char *srcAddr, short srcIncr, char *destAddr, short destIncr, int dmaSize, short xferSizeIncr, int flags, int *currBD, int *cSave, volatile TaskTableEntry *taskTable, int channel)
+void  MCD_startDmaSingleNoEu(int8_t *srcAddr, short srcIncr, int8_t *destAddr, short destIncr, int dmaSize, short xferSizeIncr, int flags, int *currBD, int *cSave, volatile TaskTableEntry *taskTable, int channel)
 {
 
     MCD_SET_VAR(taskTable+channel, 7, (uint32_t)srcAddr);    /* var[7] */
@@ -127,7 +127,7 @@ void  MCD_startDmaChainEu(int *currBD, short srcIncr, short destIncr, int xferSi
  * Task 3
  */
  
-void  MCD_startDmaSingleEu(char *srcAddr, short srcIncr, char *destAddr, short destIncr, int dmaSize, short xferSizeIncr, int flags, int *currBD, int *cSave, volatile TaskTableEntry *taskTable, int channel)
+void  MCD_startDmaSingleEu(int8_t *srcAddr, short srcIncr, int8_t *destAddr, short destIncr, int dmaSize, short xferSizeIncr, int flags, int *currBD, int *cSave, volatile TaskTableEntry *taskTable, int channel)
 {
 
     MCD_SET_VAR(taskTable+channel, 8, (uint32_t)srcAddr);    /* var[8] */
@@ -161,7 +161,7 @@ void  MCD_startDmaSingleEu(char *srcAddr, short srcIncr, char *destAddr, short d
  * Task 4
  */
  
-void  MCD_startDmaENetRcv(char *bDBase, char *currBD, char *rcvFifoPtr, volatile TaskTableEntry *taskTable, int channel)
+void  MCD_startDmaENetRcv(int8_t *bDBase, int8_t *currBD, int8_t *rcvFifoPtr, volatile TaskTableEntry *taskTable, int channel)
 {
 
     MCD_SET_VAR(taskTable+channel, 0, (uint32_t)bDBase); /* var[0] */
@@ -191,7 +191,7 @@ void  MCD_startDmaENetRcv(char *bDBase, char *currBD, char *rcvFifoPtr, volatile
  * Task 5
  */
  
-void  MCD_startDmaENetXmit(char *bDBase, char *currBD, char *xmitFifoPtr, volatile TaskTableEntry *taskTable, int channel)
+void  MCD_startDmaENetXmit(int8_t *bDBase, int8_t *currBD, int8_t *xmitFifoPtr, volatile TaskTableEntry *taskTable, int channel)
 {
 
     MCD_SET_VAR(taskTable+channel, 0, (uint32_t)bDBase); /* var[0] */

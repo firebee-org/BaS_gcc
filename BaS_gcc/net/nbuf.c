@@ -41,7 +41,7 @@ int nbuf_init(void)
 	}
 
 #ifdef DEBUG_PRINT
-	printf("Creating %d net buffers of %d bytes\n",NBUF_MAX,NBUF_SZ);
+	printf("Creating %d net buffers of %d bytes\r\n",NBUF_MAX,NBUF_SZ);
 #endif
 
 	for (i = 0; i < NBUF_MAX; ++i)
@@ -70,7 +70,7 @@ int nbuf_init(void)
 		queue_add(&nbuf_queue[NBUF_FREE], (QNODE *)nbuf);
 	}
 
-	xprintf("NBUF allocation complete\n");
+	xprintf("NBUF allocation complete\r\n");
 
 	return 0;
 }

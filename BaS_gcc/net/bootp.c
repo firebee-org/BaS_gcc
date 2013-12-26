@@ -11,7 +11,7 @@
 #include <stddef.h>
 #include "bas_printf.h"
 
-#define TIMER_NETWORK 0
+#define TIMER_NETWORK 3
 
 static struct bootp_connection connection;
 #define XID			0x1234		/* this is arbitrary */

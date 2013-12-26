@@ -9,7 +9,7 @@
 #include <stdbool.h>
 #include <stddef.h>
 
-#define TIMER_NETWORK 0
+#define TIMER_NETWORK 3
 
 static uint8_t *arp_find_pair(ARP_INFO *arptab, uint16_t protocol, uint8_t *hwa, uint8_t *pa)
 {

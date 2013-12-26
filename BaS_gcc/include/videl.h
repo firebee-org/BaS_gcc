@@ -75,23 +75,23 @@ typedef struct {
     uint16_t vss;          /* V SS */
 } VMODE_ENTRY;
 
-void initialise_falcon_palette(int16_t mode);
-const VMODE_ENTRY *lookup_videl_mode(int16_t mode,int16_t monitor);
+extern void initialise_falcon_palette(int16_t mode);
+extern const VMODE_ENTRY *lookup_videl_mode(int16_t mode,int16_t monitor);
 
 /* Public XBIOS functions */
-int16_t vsetmode(int16_t mode);
-int16_t vmontype(void);
-int16_t vsetsync(int16_t external);
-int32_t vgetsize(int16_t mode);
-int16_t vsetrgb(int16_t index,int16_t count,int32_t *rgb);
-int16_t vgetrgb(int16_t index,int16_t count,int32_t *rgb);
+extern int16_t vsetmode(int16_t mode);
+extern int16_t vmontype(void);
+extern int16_t vsetsync(int16_t external);
+extern int32_t vgetsize(int16_t mode);
+extern int16_t vsetrgb(int16_t index,int16_t count,int32_t *rgb);
+extern int16_t vgetrgb(int16_t index,int16_t count,int32_t *rgb);
 
 /* misc routines */
-int16_t get_videl_mode(void);
-int16_t vfixmode(int16_t mode);
-int16_t videl_check_moderez(int16_t moderez);
-uint32_t videl_vram_size(void);
-void videl_get_current_mode_info(uint16_t *planes, uint16_t *hz_rez, uint16_t *vt_rez);
+extern int16_t get_videl_mode(void);
+extern int16_t vfixmode(int16_t mode);
+extern int16_t videl_check_moderez(int16_t moderez);
+extern uint32_t videl_vram_size(void);
+extern void videl_get_current_mode_info(uint16_t *planes, uint16_t *hz_rez, uint16_t *vt_rez);
 
 extern int16_t current_video_mode;
 
