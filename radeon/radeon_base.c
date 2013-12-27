@@ -1303,7 +1303,7 @@ static void radeon_timer_func(void)
 		info->fbops->SubsequentScanlineCPUToScreenColorExpandFill(info,(int)dst_x,0,w,h,skipleft);
 		while(--h >= 0)
 		{
-			info->fbops->SubsequentScanline(info, (uint32_t *)src_buf);
+			info->fbops->SubsequentScanline(info, (unsigned long *) src_buf);
 			src_buf += (info->var.xres_virtual >> 3);
 		}
 //		info->fbops->DisableClipping(info);
@@ -2000,7 +2000,6 @@ int32_t radeonfb_pci_register(int32_t handle, const struct pci_device_id *ent)
 	rinfo = info->par;
 	rinfo->info = info;
 	rinfo->handle = handle;
-	Funcs_copy("ATI Radeon XX ", rinfo->name);
 	rinfo->name[11] = (char)(ent->device >> 8);
 	rinfo->name[12] = (char)ent->device;
 	rinfo->family = ent->driver_data & CHIP_FAMILY_MASK;
@@ -2016,7 +2015,7 @@ int32_t radeonfb_pci_register(int32_t handle, const struct pci_device_id *ent)
 	rinfo->mmio_base = rinfo->io_base = NULL;
 	rinfo->bios_seg = NULL;
 
-	pci_rsc_desc = (struct pci_rd *) get_resource(handle);
+	pci_rsc_desc = (struct pci_rd *) pci_get_resource(handle);
 	if ((int32_t)pci_rsc_desc >= 0)
 	{
 		uint16_t flags;

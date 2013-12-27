@@ -71,7 +71,7 @@
 void radeon_set_cursor_colors(struct fb_info *info, int bg, int fg)
 {
 	struct radeonfb_info *rinfo = info->par;
-	unsigned long *pixels = (unsigned long *)(pointer)((unsigned long)rinfo->fb_base+rinfo->cursor_start);
+	unsigned long *pixels = (unsigned long *)((unsigned long) rinfo->fb_base+rinfo->cursor_start);
 	int pixel, i;
 	CURSOR_SWAPPING_DECL_MMIO
 	CURSOR_SWAPPING_DECL
@@ -130,7 +130,7 @@ void radeon_set_cursor_position(struct fb_info *info, int x, int y)
 void radeon_load_cursor_image(struct fb_info *info, unsigned short *mask, unsigned short *data, int zoom)
 {
 	struct radeonfb_info *rinfo = info->par;
-	unsigned long *d = (unsigned long *)(pointer)((unsigned long)rinfo->fb_base+rinfo->cursor_start);
+	unsigned long *d = (unsigned long *)((unsigned long)rinfo->fb_base+rinfo->cursor_start);
 	unsigned long save = 0;
 	unsigned short chunk, mchunk;
 	unsigned long i, j, k;
@@ -304,7 +304,7 @@ long radeon_cursor_init(struct fb_info *info)
 		memset(mask, 0, sizeof(data));		
 		rinfo->cursor_start = RADEON_ALIGN(fbarea - (unsigned long)rinfo->fb_base, 256);
 		rinfo->cursor_end = rinfo->cursor_start + size_bytes;
-		RADEONLoadCursorImage(info, mask, data, 1);
+		radeon_load_cursor_image(info, mask, data, 1);
 	}
 //	DPRINTVALHEX(" cursor_start ",rinfo->cursor_start);
 //	DPRINT("\r\n");
