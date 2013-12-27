@@ -9,6 +9,7 @@
 #include "fb.h"
 #include "i2c.h"
 #include "i2c-algo-bit.h"
+#include "util.h"			/* for swpX() */
 //#include "radeon_theatre.h"
 #include "radeon_reg.h"
 
@@ -470,7 +471,7 @@ struct radeonfb_info
 /* Note about this function: we have some rare cases where we must not schedule,
  * this typically happen with our special "wake up early" hook which allows us to
  * wake up the graphic chip (and thus get the console back) before everything else
- * on some machines that support that mecanism. At this point32_t, int32_terrupts are off
+ * on some machines that support that mecanism. At this point, intterrupts are off
  * and scheduling is not permitted
  */
 static inline void _radeon_msleep(struct radeonfb_info *rinfo, uint32_t ms)
@@ -487,15 +488,12 @@ extern uint32_t __INPLL(struct radeonfb_info *rinfo, uint32_t addr);
 extern void __OUTPLL(struct radeonfb_info *rinfo, uint32_t index, uint32_t val);
 extern void __OUTPLLP(struct radeonfb_info *rinfo, uint32_t index, uint32_t val, uint32_t mask);
 
-extern uint16_t _swap_int16_t(uint16_t val);
-extern uint32_t _swap_int32_t(uint32_t val);
-
 #define INREG8(addr)		*((uint8_t *)(rinfo->mmio_base+addr))
-#define INREG16(addr)		_swap_int16_t(*(uint16_t *)(rinfo->mmio_base+addr))
-#define INREG(addr)			_swap_int32_t(*(uint32_t *)(rinfo->mmio_base+addr))
+#define INREG16(addr)		swpw(*(uint16_t *)(rinfo->mmio_base+addr))
+#define INREG(addr)			swpl(*(uint32_t *)(rinfo->mmio_base+addr))
 #define OUTREG8(addr,val)	(*((uint8_t *)(rinfo->mmio_base+addr)) = val)
-#define OUTREG16(addr,val)	(*((uint16_t *)(rinfo->mmio_base+addr)) = _swap_int16_t(val))
-#define OUTREG(addr,val)	(*((uint32_t *)(rinfo->mmio_base+addr)) = _swap_int32_t(val))
+#define OUTREG16(addr,val)	(*((uint16_t *)(rinfo->mmio_base+addr)) = swpw(val))
+#define OUTREG(addr,val)	(*((uint32_t *)(rinfo->mmio_base+addr)) = swpl(val))
 
 extern int32_t *tab_funcs_pci;
 #define BIOS_IN8(v)		(* ((uint8_t *) rinfo->bios_seg_phys + v))
@@ -591,7 +589,6 @@ do {									\
 	rinfo->fifo_slots -= entries;					\
 } while(0)
 
-#define radeon_fifo_wait(entries) RADEONWaitForFifo(rinfo, entries)
 #define radeon_engine_flush(rinfo) RADEONEngineFlush(rinfo)
 #define radeonfb_engine_reset(rinfo) RADEONEngineReset(rinfo)
 #define radeonfb_engine_init(rinfo) RADEONEngineInit(rinfo)
