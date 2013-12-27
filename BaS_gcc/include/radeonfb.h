@@ -629,7 +629,7 @@ extern void radeon_setup_for_scanline_cpu_to_screen_color_expand_fill_mmio(struc
             				int fg, int bg, int rop, unsigned int planemask);
 extern void radeon_subsequent_scanline_cpu_to_screen_color_expand_fill_mmio(struct fb_info *info,
             				int x, int y, int w, int h, int skipleft);
-extern void radeon_subsequent_scanline_mmio(struct fb_info *info, int *buf);
+extern void radeon_subsequent_scanline_mmio(struct fb_info *info, unsigned long *buf);
 extern void radeon_setup_for_scanline_image_write_mmio(struct fb_info *info,
             							int rop, unsigned int planemask, int trans_color, int bpp);
 extern void radeon_subsequent_scanline_image_write_rect_mmio(struct fb_info *info,
@@ -652,11 +652,11 @@ extern void radeon_subsequent_cpu_to_screen_texture_mmio(struct fb_info *info,
 							int32_t srcx, int32_t srcy,
 							int32_t width, int32_t height);
 /* Cursor functions */
-extern void radeon_set_cursor_colors(struct fb_info *info, int32_t bg, int32_t fg);
-extern void radeon_set_cursor_position(struct fb_info *info, int32_t x, int32_t y);
-extern void radeon_load_cursor_image(struct fb_info *info, uint16_t *mask, uint16_t *data, int32_t zoom);
+extern void radeon_set_cursor_colors(struct fb_info *info, int bg, int fg);
+extern void radeon_set_cursor_position(struct fb_info *info, int x, int y);
+extern void radeon_load_cursor_image(struct fb_info *info, unsigned short *mask, unsigned short *data, int zoom);
 extern void radeon_hide_cursor(struct fb_info *info);
-extern void radeon_show_corsor(struct fb_info *info);
+extern void radeon_show_cursor(struct fb_info *info);
 extern int32_t radeon_cursor_init(struct fb_info *info);
 
 /* Other functions */
