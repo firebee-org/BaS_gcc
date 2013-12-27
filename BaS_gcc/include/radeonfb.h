@@ -498,14 +498,9 @@ extern uint32_t _swap_int32_t(uint32_t val);
 #define OUTREG(addr,val)	(*((uint32_t *)(rinfo->mmio_base+addr)) = _swap_int32_t(val))
 
 extern int32_t *tab_funcs_pci;
-
-#define BIOS_IN8(v)  	(Fast_read_mem_byte(rinfo->handle,rinfo->bios_seg_phys+v))
-#define BIOS_IN16(v) 	((uint16_t)Fast_read_mem_byte(rinfo->handle,rinfo->bios_seg_phys+v) | \
-			  ((uint16_t)Fast_read_mem_byte(rinfo->handle,rinfo->bios_seg_phys+v+1) << 8))
-#define BIOS_IN32(v) 	((uint32_t)Fast_read_mem_byte(rinfo->handle,rinfo->bios_seg_phys+v) | \
-			  ((uint32_t)Fast_read_mem_byte(rinfo->handle,rinfo->bios_seg_phys+v+1) << 8) | \
-			  ((uint32_t)Fast_read_mem_byte(rinfo->handle,rinfo->bios_seg_phys+v+2) << 16) | \
-			  ((uint32_t)Fast_read_mem_byte(rinfo->handle,rinfo->bios_seg_phys+v+3) << 24))
+#define BIOS_IN8(v)		(* ((uint8_t *) rinfo->bios_seg_phys + v))
+#define BIOS_IN16(v)	(swpw(*(uint16_t *) ((uint8_t *) rinfo->bios_seg_phys + v)))
+#define BIOS_IN32(v)	(swpl(*(uint32_t *) ((uint8_t *) rinfo->bios_seg_phys + v)))
 
 #define ADDRREG(addr)			((volatile uint32_t *)(rinfo->mmio_base + (addr)))
 #define OUTREGP(addr,val,mask)	_OUTREGP(rinfo, addr, val, mask)
@@ -602,79 +597,73 @@ do {									\
 #define radeonfb_engine_init(rinfo) RADEONEngineInit(rinfo)
 #define radeon_engine_idle() RADEONWaitForIdleMMIO(rinfo)
 
-static inline int32_t radeonfb_sync(struct fb_info *info)
+static inline int radeonfb_sync(struct fb_info *info)
 {
 	struct radeonfb_info *rinfo = info->par;
 	radeon_engine_idle();
 	return 0;
 }
 
-extern void RADEONRestoreAccelStateMMIO(struct fb_info *info);
-extern void RADEONSetupForSolidFillMMIO(struct fb_info *info, int32_t color, int32_t rop, int32_t planemask);
-extern void RADEONSubsequentSolidFillRectMMIO(struct fb_info *info, int32_t x, int32_t y, int32_t w, int32_t h);
-extern void RADEONSetupForSolidLineMMIO(struct fb_info *info, int32_t color, int32_t rop, int32_t planemask);
-extern void RADEONSubsequentSolidHorVertLineMMIO(struct fb_info *info, int32_t x, int32_t y, int32_t len, int32_t dir);   
+extern void radeon_restore_accel_state_mmio(struct fb_info *info);
+extern void radeon_setup_for_solid_fill(struct fb_info *info, int color, int rop, unsigned int planemask);
+extern void radeon_subsequent_solid_fill_rect_mmio(struct fb_info *info, int x, int y, int w, int h);
+extern void radeon_setup_for_solid_line_mmio(struct fb_info *info, int color, int rop, unsigned int planemask);
+extern void radeon_subsequent_solid_hor_vert_line_mmio(struct fb_info *info, int x, int y, int len, int dir);   
+extern void radeon_subsequent_solid_two_point_line_mmio(struct fb_info *info, int xa, int ya, int xb,
+														int yb, int flags);  
+extern void radeon_setup_for_dashed_line_mmio(struct fb_info *info, int fg, int bg,
+												int rop, unsigned int planemask, int length, unsigned char *pattern);
+extern void radeon_subsequent_dashed_two_point_line_mmio(struct fb_info *info,
+            				int xa, int ya, int xb, int yb, int flags, int phase);  
+extern void radeon_setup_for_screen_to_screen_copy_mmio(struct fb_info *info,
+            				int xdir, int ydir, int rop, unsigned int planemask, int trans_color);
+extern void radeon_subsequent_screen_to_screen_copy_mmio(struct fb_info *info,
+            				int xa, int ya, int xb, int yb, int w, int h);   
+extern void radeon_screen_to_screen_copy_mmio(struct fb_info *info,
+            				int xa, int ya, int xb, int yb, int w, int h, int rop);
+extern void radeon_setup_for_mono_8x8_pattern_fill_mmio(struct fb_info *info,
+            			int patternx, int patterny, int fg, int bg, int rop, unsigned int planemask);
+extern void radeon_subsequent_mono_8x8_pattern_fill_rect_mmio(struct fb_info *info,
+            				int patternx, int patterny, int x, int y, int w, int h);
+extern void radeon_setup_for_scanline_cpu_to_screen_color_expand_fill_mmio(struct fb_info *info, 
+            				int fg, int bg, int rop, unsigned int planemask);
+extern void radeon_subsequent_scanline_cpu_to_screen_color_expand_fill_mmio(struct fb_info *info,
+            				int x, int y, int w, int h, int skipleft);
+extern void radeon_subsequent_scanline_mmio(struct fb_info *info, int *buf);
+extern void radeon_setup_for_scanline_image_write_mmio(struct fb_info *info,
+            							int rop, unsigned int planemask, int trans_color, int bpp);
+extern void radeon_subsequent_scanline_image_write_rect_mmio(struct fb_info *info,
+            				int x, int y, int w, int h, int skipleft);  
+extern void radeon_set_clipping_rectangle_mmio(struct fb_info *info,
+            				int xa, int ya, int xb, int yb);
+extern void radeon_disable_clipping_mmio(struct fb_info *info);
 
-extern void RADEONSubsequentSolidTwoPointLineMMIO(struct fb_info *info, int32_t xa, int32_t ya, int32_t xb,
-						int32_t yb, int32_t flags);  
-extern void RADEONSetupForDashedLineMMIO(struct fb_info *info, int32_t fg, int32_t bg,
-							int32_t rop, int32_t planemask, int32_t length, uint8_t *pattern);
-extern void RADEONSubsequentDashedTwoPointLineMMIO(struct fb_info *info,
-            int32_t xa, int32_t ya, int32_t xb, int32_t yb, int32_t flags, int32_t phase);  
-extern void RADEONSetupForScreenToScreenCopyMMIO(struct fb_info *info,
-            int32_t xdir, int32_t ydir, int32_t rop, int32_t planemask, int32_t trans_color);
-extern void RADEONSubsequentScreenToScreenCopyMMIO(struct fb_info *info,
-            int32_t xa, int32_t ya, int32_t xb, int32_t yb, int32_t w, int32_t h);   
-extern void RADEONScreenToScreenCopyMMIO(struct fb_info *info,
-            int32_t xa, int32_t ya, int32_t xb, int32_t yb, int32_t w, int32_t h, int32_t rop);
-extern void RADEONSetupForMono8x8PatternFillMMIO(struct fb_info *info,
-            int32_t patternx, int32_t patterny, int32_t fg, int32_t bg, int32_t rop, int32_t planemask);
-extern void RADEONSubsequentMono8x8PatternFillRectMMIO(struct fb_info *info,
-            int32_t patternx, int32_t patterny, int32_t x, int32_t y, int32_t w, int32_t h);
-extern void RADEONSetupForScanlineCPUToScreenColorExpandFillMMIO(struct fb_info *info, 
-            int32_t fg, int32_t bg, int32_t rop, int32_t planemask);
-extern void RADEONSubsequentScanlineCPUToScreenColorExpandFillMMIO(struct fb_info *info,
-            int32_t x, int32_t y, int32_t w, int32_t h, int32_t skipleft);
-extern void RADEONSubsequentScanlineMMIO(struct fb_info *info, uint32_t *buf);
-extern void RADEONSetupForScanlineImageWriteMMIO(struct fb_info *info,
-            int32_t rop, int32_t planemask, int32_t trans_color, int32_t bpp);
-extern void RADEONSubsequentScanlineImageWriteRectMMIO(struct fb_info *info,
-            int32_t x, int32_t y, int32_t w, int32_t h, int32_t skipleft);  
-extern void RADEONSetClippingRectangleMMIO(struct fb_info *info,
-            int32_t xa, int32_t ya, int32_t xb, int32_t yb);
-extern void RADEONDisableClippingMMIO(struct fb_info *info);
-
-#ifndef MCF5445X
-extern int32_t RADEONSetupForCPUToScreenAlphaTextureMMIO(struct fb_info *info, 
-           int32_t op, uint16_t red, uint16_t green, uint16_t blue, uint16_t alpha, uint32_t maskFormat, uint32_t dstFormat, uint8_t *alphaPtr, int32_t alphaPitch, int32_t width, int32_t height, int32_t flags);
-extern int32_t RADEONSetupForCPUToScreenTextureMMIO(struct fb_info *info,
-           int32_t op, uint32_t srcFormat, uint32_t dstFormat, uint8_t *texPtr, int32_t texPitch, int32_t width, int32_t height, int32_t flags);
-extern void RADEONSubsequentCPUToScreenTextureMMIO(struct fb_info *info,
-            int32_t dstx, int32_t dsty, int32_t srcx, int32_t srcy, int32_t width, int32_t height);
-#else
-static __inline__ int32_t RADEONSetupForCPUToScreenAlphaTextureMMIO(struct fb_info *info, 
- int32_t op, uint16_t red, uint16_t green, uint16_t blue, uint16_t alpha, uint32_t maskFormat, uint32_t dstFormat, uint8_t *alphaPtr, int32_t alphaPitch, int32_t width, int32_t height, int32_t flags)
-{ return FALSE; }
-static __inline__ int32_t RADEONSetupForCPUToScreenTextureMMIO(struct fb_info *info,
- int32_t op, uint32_t srcFormat, uint32_t dstFormat, uint8_t *texPtr, int32_t texPitch, int32_t width, int32_t height, int32_t flags)
-{ return FALSE; }
-static __inline__ void RADEONSubsequentCPUToScreenTextureMMIO(struct fb_info *info,
- int32_t dstx, int32_t dsty, int32_t srcx, int32_t srcy, int32_t width, int32_t height) { }
-#endif /* MCF5445X */
-
+extern int32_t radeon_setup_for_cpu_to_screen_alpha_texture_mmio(struct fb_info *info, 
+           					int op, int red, int green, int blue,
+							int alpha, int maskFormat, int dstFormat,
+							uint8_t *alphaPtr, int alphaPitch,
+							int width, int height, int32_t flags);
+extern int32_t radeon_setup_for_cpu_to_screen_texture_mmio(struct fb_info *info, int32_t op,
+							uint32_t srcFormat, uint32_t dstFormat,
+							uint8_t *texPtr, int32_t texPitch,
+							int32_t width, int32_t height, int32_t flags);
+extern void radeon_subsequent_cpu_to_screen_texture_mmio(struct fb_info *info,
+            				int32_t dstx, int32_t dsty,
+							int32_t srcx, int32_t srcy,
+							int32_t width, int32_t height);
 /* Cursor functions */
-extern void RADEONSetCursorColors(struct fb_info *info, int32_t bg, int32_t fg);
-extern void RADEONSetCursorPosition(struct fb_info *info, int32_t x, int32_t y);
-extern void RADEONLoadCursorImage(struct fb_info *info, uint16_t *mask, uint16_t *data, int32_t zoom);
-extern void RADEONHideCursor(struct fb_info *info);
-extern void RADEONShowCursor(struct fb_info *info);
-extern int32_t RADEONCursorInit(struct fb_info *info);
+extern void radeon_set_cursor_colors(struct fb_info *info, int32_t bg, int32_t fg);
+extern void radeon_set_cursor_position(struct fb_info *info, int32_t x, int32_t y);
+extern void radeon_load_cursor_image(struct fb_info *info, uint16_t *mask, uint16_t *data, int32_t zoom);
+extern void radeon_hide_cursor(struct fb_info *info);
+extern void radeon_show_corsor(struct fb_info *info);
+extern int32_t radeon_cursor_init(struct fb_info *info);
 
 /* Other functions */
 extern int32_t radeon_screen_blank(struct radeonfb_info *rinfo, int32_t blank, int32_t mode_switch);
-extern void radeon_write_mode (struct radeonfb_info *rinfo, struct radeon_regs *mode, int32_t reg_only);
-int32_t radeonfb_setcolreg(uint32_t regno, uint32_t red, uint32_t green,
-    uint32_t blue, uint32_t transp, struct fb_info *info);
+extern void radeon_write_mode(struct radeonfb_info *rinfo, struct radeon_regs *mode, int32_t reg_only);
+int radeonfb_setcolreg(unsigned regno, unsigned red, unsigned green,
+    					unsigned blue, unsigned transp, struct fb_info *info);
 extern int32_t radeonfb_pci_register(int32_t handle, const struct pci_device_id *ent);
 extern void radeonfb_pci_unregister(void);
 

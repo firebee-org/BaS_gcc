@@ -57,6 +57,7 @@
 #include "radeonfb.h"
 #include "edid.h"
 #include "ati_ids.h"
+#include "exceptions.h"		/* for set_ipl() */
 
 #ifdef DRIVER_IN_ROM
 extern void run_bios(struct radeonfb_info *rinfo);
@@ -894,7 +895,7 @@ int radeonfb_pan_display(struct fb_var_screeninfo *var, struct fb_info *info)
   return 0;
 }
 
-int radeonfb_ioctl(uint32_t cmd, uint32_t arg, struct fb_info *info)
+int radeonfb_ioctl(unsigned int cmd, unsigned long arg, struct fb_info *info)
 {
 	struct radeonfb_info *rinfo = info->par;
 	uint32_t tmp;
@@ -1067,8 +1068,9 @@ int radeonfb_blank(int blank, struct fb_info *info)
 }
 
 static int radeon_setcolreg(unsigned regno, unsigned red, unsigned green,
-                            unsigned blue, unsigned transp, struct radeonfb_info *rinfo)
+                            unsigned blue, unsigned transp, struct fb_info *info)
 {
+	struct radeonfb_info *rinfo = info->par;
 	uint32_t pindex;
 	if (regno > 255)
 		return 1;
@@ -1110,8 +1112,8 @@ static int radeon_setcolreg(unsigned regno, unsigned red, unsigned green,
 	return 0;
 }
 
-int32_t radeonfb_setcolreg(uint32_t regno, uint32_t red, uint32_t green,
-    uint32_t blue, uint32_t transp, struct fb_info *info)
+int radeonfb_setcolreg(unsigned regno, unsigned red, unsigned green,
+    						unsigned blue, unsigned transp, struct fb_info *info)
 {
 	struct radeonfb_info *rinfo = info->par;
 	uint32_t dac_cntl2, vclk_cntl = 0;
@@ -1131,7 +1133,7 @@ int32_t radeonfb_setcolreg(uint32_t regno, uint32_t red, uint32_t green,
 			OUTREG(DAC_CNTL2, dac_cntl2);
 		}
 	}
-	rc = radeon_setcolreg(regno, red, green, blue, transp, rinfo);
+	rc = radeon_setcolreg(regno, red, green, blue, transp, info);
 	if (!rinfo->asleep && rinfo->is_mobility)
 		OUTPLL(VCLK_ECP_CNTL, vclk_cntl);
 	return rc;
@@ -1260,15 +1262,15 @@ static void radeon_timer_func(void)
 {
 	struct fb_info *info = info_fvdi;
 	struct radeonfb_info *rinfo = info->par;
-	static int32_t start_timer;
 	struct fb_var_screeninfo var;
 	uint32_t x, y;
 	int chg, disp;
 
+#ifdef FIXME_LATER
+	static int32_t start_timer;
 	/* delayed LVDS panel power up/down */
 	if (rinfo->lvds_timer)
 	{
-#ifdef FIXME_LATER
 		if (!start_timer)
 			start_timer = *_hz_200;
 
@@ -1278,10 +1280,10 @@ static void radeon_timer_func(void)
 			radeon_engine_idle();
 			OUTREG(LVDS_GEN_CNTL, rinfo->pending_lvds_gen_cntl);
 		}
-#endif
 	}
 	else
 		start_timer = 0;
+#endif
 
 	if (rinfo->RenderCallback != NULL)
 		rinfo->RenderCallback(rinfo);
@@ -1311,25 +1313,14 @@ static void radeon_timer_func(void)
 	if ((info->var.xres_virtual != info->var.xres)
 	 || (info->var.yres_virtual != info->var.yres))
 	{
-#ifdef __mcoldfire__
-		asm volatile (
-			" clr.l -(SP)\n\t"
-			" move.l D0,-(SP)\n\t"
-			" move.w SR,D0\n\t"
-			" move.l D0,4(SP)\n\t"
-			" or.l #0x700,D0\n\t"   /* disable interrupts */
-			" move.w D0,SR\n\t"
-			" move.l (SP)+,D0\n\t" );
-#else
-		asm volatile (
-			" move.w SR,-(SP)\n\t"
-			" or.w #0x700,SR\n\t" ); /* disable interrupts */
-#endif
+		int ipl;
+		ipl = set_ipl(0);
+
 		chg = 0;
 		x = info->var.xoffset;
 		y = info->var.yoffset;
-		if (((x + info->var.xres) < info->var.xres_virtual)
-		 && (rinfo->cursor_x >= (info->var.xres - 8)))
+
+		if (((x + info->var.xres) < info->var.xres_virtual) && (rinfo->cursor_x >= (info->var.xres - 8)))
 		{
 			x += 8;
 			chg = 1;
@@ -1339,8 +1330,7 @@ static void radeon_timer_func(void)
 			x -= 8;
 			chg = 1;
 		}
-		if (((y + info->var.yres) < info->var.yres_virtual)
-		 && (rinfo->cursor_y >= (info->var.yres - 8)))
+		if (((y + info->var.yres) < info->var.yres_virtual) && (rinfo->cursor_y >= (info->var.yres - 8)))
 		{
 			y += 8;
 			chg = 1;
@@ -1350,6 +1340,7 @@ static void radeon_timer_func(void)
 			y -= 8;
 			chg = 1;
 		}
+
 		if (chg)
 		{
 			memcpy(&var, &info->var, sizeof(struct fb_var_screeninfo));
@@ -1357,22 +1348,12 @@ static void radeon_timer_func(void)
 			var.yoffset = y;
 			disp = rinfo->cursor_show;
 			if (disp)
-				RADEONHideCursor(info);
+				info->fbops->HideCursor(info);
 			fb_pan_display(info,&var);
 			if (disp)
-				RADEONShowCursor(info);
+				info->fbops->ShowCursor(info);
 		}
-#ifdef __mcoldfire__
-		asm volatile (
-			" move.l D0,-(SP)\n\t"
-			" move.l 4(SP),D0\n\t"
-			" move.w D0,SR\n\t"
-			" move.l (SP)+,D0\n\t"
-			" addq.l #4,SP\n\t" );		
-#else
-			asm volatile (
-				" move.w (SP)+,SR\n\r" );
-#endif
+		set_ipl(ipl);
 	}
 }
 
@@ -1553,14 +1534,20 @@ int radeonfb_set_par(struct fb_info *info)
 	struct radeonfb_info *rinfo = info->par;
 	struct fb_var_screeninfo *mode = &info->var;
 	struct radeon_regs *newmode;
-	int hTotal, vTotal, hSyncStart, hSyncEnd, hSyncPol, vSyncStart, vSyncEnd, vSyncPol, cSync;
+	int hTotal, vTotal, hSyncStart, hSyncEnd, vSyncStart, vSyncEnd;
+	// FIXME: int hSyncPol; this is not used anywhere
+	// FIXME: int vSyncPol; this is not used anywhere
+	// FIXME: int cSync;	this is not used anywhere
 	static uint8_t hsync_adj_tab[] = {0, 0x12, 9, 9, 6, 5};
 	static uint8_t hsync_fudge_fp[] = {2, 2, 0, 0, 5, 5};
 	uint32_t sync, h_sync_pol, v_sync_pol, dotClock, pixClock;
 	int i, freq;
 	int format = 0;
 	int nopllcalc = 0;
-	int hsync_start, hsync_fudge, bytpp, hsync_wid, vsync_wid;
+	int hsync_start;
+	int hsync_fudge;
+	// int bytpp; FIXME: this doesn't seem to be used anywhere
+	int hsync_wid, vsync_wid;
 	int primary_mon = PRIMARY_MONITOR(rinfo);
 	int depth = var_to_depth(mode);
 	int use_rmx = 0;
@@ -1632,17 +1619,20 @@ int radeonfb_set_par(struct fb_info *info)
 		vsync_wid = 1;
 	else if (vsync_wid > 0x1f)	/* max */
 		vsync_wid = 0x1f;
-	hSyncPol = mode->sync & FB_SYNC_HOR_HIGH_ACT ? 0 : 1;
-	vSyncPol = mode->sync & FB_SYNC_VERT_HIGH_ACT ? 0 : 1;
-	cSync = mode->sync & FB_SYNC_COMP_HIGH_ACT ? (1 << 4) : 0;
+	// FIXME: this doesn't seem to be used anywhere hSyncPol = mode->sync & FB_SYNC_HOR_HIGH_ACT ? 0 : 1;
+	// FIXME: this doesn't seem to be used anywhere vSyncPol = mode->sync & FB_SYNC_VERT_HIGH_ACT ? 0 : 1;
+	// FIXME: this doesn't seem to be used anywhere cSync = mode->sync & FB_SYNC_COMP_HIGH_ACT ? (1 << 4) : 0;
 	format = radeon_get_dstbpp(depth);
-	bytpp = mode->bits_per_pixel >> 3;
+	// FIXME: this doesn't seem to be used anywhere bytpp = mode->bits_per_pixel >> 3;
+
 	if ((primary_mon == MT_DFP) || (primary_mon == MT_LCD))
 		hsync_fudge = hsync_fudge_fp[format-1];
 	else
 		hsync_fudge = hsync_adj_tab[format-1];
+
 	if (mode->vmode & FB_VMODE_DOUBLE)
 		hsync_fudge = 0; /* todo: need adjust */		
+
 	hsync_start = hSyncStart - 8 + hsync_fudge;
 	newmode->crtc_gen_cntl = CRTC_EXT_DISP_EN | CRTC_EN | (format << 8);
 	if (mode->vmode & FB_VMODE_DOUBLE)
@@ -1815,47 +1805,47 @@ static void radeonfb_check_modes(struct fb_info *info, struct mode_option *resol
 static struct fb_ops radeonfb_ops =
 {
 	.fb_check_var = radeonfb_check_var,
-	.fb_setcolreg = radeonfb_setcolreg,
 	.fb_set_par = radeonfb_set_par,
+	.fb_setcolreg = radeonfb_setcolreg,
 	.fb_pan_display = radeonfb_pan_display,
 	.fb_blank = radeonfb_blank,
 	.fb_sync = radeonfb_sync,
 	.fb_ioctl = radeonfb_ioctl,
 	.fb_check_modes = radeonfb_check_modes,
-	.SetupForSolidFill = RADEONSetupForSolidFillMMIO,
-	.SubsequentSolidFillRect = RADEONSubsequentSolidFillRectMMIO,
-	.SetupForSolidLine = RADEONSetupForSolidLineMMIO,
-	.SubsequentSolidHorVertLine = RADEONSubsequentSolidHorVertLineMMIO,
-	.SubsequentSolidTwoPointLine = RADEONSubsequentSolidTwoPointLineMMIO,
-	.SetupForDashedLine = RADEONSetupForDashedLineMMIO,
-	.SubsequentDashedTwoPointLine = RADEONSubsequentDashedTwoPointLineMMIO,
-	.SetupForScreenToScreenCopy = RADEONSetupForScreenToScreenCopyMMIO,
-	.SubsequentScreenToScreenCopy = RADEONSubsequentScreenToScreenCopyMMIO,
-	.ScreenToScreenCopy = RADEONScreenToScreenCopyMMIO,
-	.SetupForMono8x8PatternFill = RADEONSetupForMono8x8PatternFillMMIO,
-	.SubsequentMono8x8PatternFillRect = RADEONSubsequentMono8x8PatternFillRectMMIO,
-	.SetupForScanlineCPUToScreenColorExpandFill = RADEONSetupForScanlineCPUToScreenColorExpandFillMMIO,
-	.SubsequentScanlineCPUToScreenColorExpandFill = RADEONSubsequentScanlineCPUToScreenColorExpandFillMMIO,
-	.SubsequentScanline = RADEONSubsequentScanlineMMIO,	
-	.SetupForScanlineImageWrite = RADEONSetupForScanlineImageWriteMMIO,
-	.SubsequentScanlineImageWriteRect = RADEONSubsequentScanlineImageWriteRectMMIO,
-	.SetClippingRectangle = RADEONSetClippingRectangleMMIO,
-	.DisableClipping = RADEONDisableClippingMMIO,
+	.SetupForSolidFill = radeon_setup_for_solid_fill,
+	.SubsequentSolidFillRect = radeon_subsequent_solid_fill_rect_mmio,
+	.SetupForSolidLine = radeon_setup_for_solid_line_mmio,
+	.SubsequentSolidHorVertLine = radeon_subsequent_solid_hor_vert_line_mmio,
+	.SubsequentSolidTwoPointLine = radeon_subsequent_solid_two_point_line_mmio,
+	.SetupForDashedLine = radeon_setup_for_dashed_line_mmio,
+	.SubsequentDashedTwoPointLine = radeon_subsequent_dashed_two_point_line_mmio,
+	.SetupForScreenToScreenCopy = radeon_setup_for_screen_to_screen_copy_mmio,
+	.SubsequentScreenToScreenCopy = radeon_subsequent_screen_to_screen_copy_mmio,
+	.ScreenToScreenCopy = radeon_screen_to_screen_copy_mmio,
+	.SetupForMono8x8PatternFill = radeon_setup_for_mono_8x8_pattern_fill_mmio,
+	.SubsequentMono8x8PatternFillRect = radeon_subsequent_mono_8x8_pattern_fill_rect_mmio,
+	.SetupForScanlineCPUToScreenColorExpandFill = radeon_setup_for_scanline_cpu_to_screen_color_expand_fill_mmio,
+	.SubsequentScanlineCPUToScreenColorExpandFill = radeon_subsequent_scanline_cpu_to_screen_color_expand_fill_mmio,
+	.SubsequentScanline = radeon_subsequent_scanline_mmio,
+	.SetupForScanlineImageWrite = radeon_setup_for_scanline_image_write_mmio,
+	.SubsequentScanlineImageWriteRect = radeon_subsequent_scanline_image_write_rect_mmio,
+	.SetClippingRectangle = radeon_set_clipping_rectangle_mmio,
+	.DisableClipping = radeon_disable_clipping_mmio,
 #ifdef RADEON_RENDER
-	.SetupForCPUToScreenAlphaTexture = RADEONSetupForCPUToScreenAlphaTextureMMIO,
-	.SetupForCPUToScreenTexture = RADEONSetupForCPUToScreenTextureMMIO,
-	.SubsequentCPUToScreenTexture = RADEONSubsequentCPUToScreenTextureMMIO,
+	.SetupForCPUToScreenAlphaTexture = radeon_setup_for_cpu_to_screen_alpha_texture_mmio,
+	.SetupForCPUToScreenTexture = radeon_setup_for_cpu_to_screen_texture_mmio,
+	.SubsequentCPUToScreenTexture = radeon_subsequent_cpu_to_screen_texture_mmio,
 #else
 	.SetupForCPUToScreenAlphaTexture = NULL,
 	.SetupForCPUToScreenTexture = NULL,
 	.SubsequentCPUToScreenTexture = NULL,
 #endif /* RADEON_RENDER */
-	.SetCursorColors = RADEONSetCursorColors,
-	.SetCursorPosition = RADEONSetCursorPosition,
-	.LoadCursorImage = RADEONLoadCursorImage,
-	.HideCursor = RADEONHideCursor,
-	.ShowCursor = RADEONShowCursor,
-	.CursorInit = RADEONCursorInit,
+	.SetCursorColors = radeon_set_cursor_colors,
+	.SetCursorPosition = radeon_set_cursor_position,
+	.LoadCursorImage = radeon_load_cursor_image,
+	.HideCursor = radeon_hide_cursor,
+	.ShowCursor = radeon_show_cursor,
+	.CursorInit = radeon_cursor_init,
 	.WaitVbl = radeon_wait_vbl,
 };
 
