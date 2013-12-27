@@ -8,5 +8,6 @@
 extern int driver_mem_init(void);
 extern void *driver_mem_alloc(long amount);
 extern int driver_mem_free(void *addr);
+extern void driver_mem_release(void);
 
 #endif /* _DRIVER_MEM_H_ */

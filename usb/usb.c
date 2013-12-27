@@ -234,7 +234,7 @@ int usb_stop(void)
 			}
 		}
 		bus_index = 0;
-		driver_mem_stop();
+		driver_mem_release();	/* release all driver mem */
 	}
 	return res;
 }
