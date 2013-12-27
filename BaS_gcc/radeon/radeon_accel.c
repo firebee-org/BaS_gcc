@@ -853,7 +853,7 @@ void RADEONChangeSurfaces(struct fb_info *info)
 /* The FIFO has 64 slots.  This routines waits until at least `entries'
  * of these slots are empty.
  */
-void radeon_wait_for_fifo_function(struct radeonfb_info *rinfo, int entries)
+void radeon_wait_for_fifo_(struct radeonfb_info *rinfo, int entries)
 {
 	int i;
 	while(1)
@@ -864,8 +864,8 @@ void radeon_wait_for_fifo_function(struct radeonfb_info *rinfo, int entries)
 			if (rinfo->fifo_slots >= entries)
 				return;
 		}
-		RADEONEngineReset(rinfo);
-		RADEONEngineRestore(rinfo);
+		radeon_engine_reset(rinfo);
+		radeon_engine_restore(rinfo);
 	}
 }
 
