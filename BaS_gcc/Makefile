@@ -178,7 +178,7 @@ else
 	MACHINE=MACHINE_M5484LITE
 endif
 $(1)/depend:$(SRCS)
-		$(CC) $$(CFLAGS) -D$$(MACHINE) $(INCLUDE) -M $$^ | sed -e "s#^\(.*\).o:#$$d/objs/\1.o:#" > $$@
+	$(CC) $$(CFLAGS) -D$$(MACHINE) $(INCLUDE) -M $$^ | sed -e "s#^\(.*\).o:#"$(1)"/objs/\1.o:#" > $$@
 endef
 $(foreach DIR,$(TRGTDIRS),$(eval $(call DEP_TEMPLATE,$(DIR))))
 
