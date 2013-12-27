@@ -819,13 +819,9 @@ handler_psc3:
 
 		lea	MCF_PSC0_PSCTB_8BIT,a0		// ++ vr
 		mchar	move.l,'\P,'\I,'C,' ,(a0)
-		// move.l	#'PIC ',(a0)
 		mchar	move.l,'I,'N,'T,'\ ,(a0)
-		// move.l	#'INT ',(a0)
 		mchar	move.l,'R,'T,'C,'!,(a0)
-		// move.l	#'RTC!',(a0)
 		mchar 	move.l,0x0d,0x0a,0,0,(a0)
-		//move.l	#0x0d0a,(a0)
 
 		lea		0xffff8961,a0
 		lea		MCF_PSC3_PSCTB_8BIT,a3

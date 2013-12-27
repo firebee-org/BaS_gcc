@@ -336,7 +336,7 @@ int driver_mem_init(void)
 	return(0);
 }
 
-void driver_mem_stop(void)
+void driver_mem_release(void)
 {
 	if (init_count-- == 0)
 	{
