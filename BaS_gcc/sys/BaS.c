@@ -402,7 +402,6 @@ void BaS(void)
 	/* TT-RAM */
 
 	* (uint32_t *) 0x5a4 = FASTRAM_END;	/* ramtop TOS system variable */
-	* (uint32_t *) 0x5a4 = 0x1d000000;
 	* (uint32_t *) 0x5a8 = 0x1357bd13;	/* ramvalid TOS system variable */
 
 #ifdef MACHINE_FIREBEE /* m5484lite has no ACIA and no dip switch... */
