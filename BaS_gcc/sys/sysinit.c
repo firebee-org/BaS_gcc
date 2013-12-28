@@ -1132,7 +1132,7 @@ void initialize_hardware(void)
 	
 	/* do not try to init USB for now on the Firebee, it hangs the machine */
 #ifndef MACHINE_FIREBEE
-	init_usb();
+	//init_usb();
 #endif
 
 #if MACHINE_FIREBEE

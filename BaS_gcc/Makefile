@@ -106,13 +106,14 @@ CSRCS= \
 	videl.c \
 	video.c \
 	\
-	radeon_base.c \
-	radeon_vid.c \
-	radeon_accel.c \
-	radeon_cursor.c \
 	\
 	basflash.c \
 	basflash_start.c 
+
+#radeon_base.c \
+#radeon_vid.c \
+#radeon_accel.c \
+#radeon_cursor.c \
 
 ASRCS= \
 	startcf.S \

@@ -20,6 +20,9 @@ MEMORY
 	* target to copy BaS data segment to. 1M should be enough for now
 	*/
    bas_ram (WX) : ORIGIN = SDRAM_START + SDRAM_SIZE - 0x00200000, LENGTH = 0x00100000
+   /*
+    * driver_ram is an uncached, reserved memory area for drivers (e.g. USB) that need this type of memory
+	*/
    driver_ram (WX) : ORIGIN = SDRAM_START + SDRAM_SIZE - 0x00100000, LENGTH = 0x00100000
 }
 
@@ -79,9 +82,9 @@ SECTIONS
 		OBJDIR/video.o
 		OBJDIR/videl.o
 
-		OBJDIR/radeon_base.o
-		OBJDIR/radeon_accel.o
-		OBJDIR/radeon_cursor.o
+		//OBJDIR/radeon_base.o
+		//OBJDIR/radeon_accel.o
+		//OBJDIR/radeon_cursor.o
 
 		OBJDIR/xhdi_sd.o(.text)
 		OBJDIR/xhdi_interface.o(.text)

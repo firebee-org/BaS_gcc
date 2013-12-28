@@ -390,8 +390,8 @@ access:
 
 access_mmu:
 		move.l	MCF_MMU_MMUSR,d0	// did the last fault hit in TLB?
-		btst	#1,d0				// no
-		bne		bus_error			// bus error handler
+		btst	#1,d0				// yes, it did. So we already mapped that page
+		bne		bus_error			// and this must be a real bus error
 
 		move.l	MCF_MMU_MMUAR,d0
 		cmp.l	#__FASTRAM_END,d0	// above max User RAM area?
