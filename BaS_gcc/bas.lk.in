@@ -81,10 +81,12 @@ SECTIONS
 
 		OBJDIR/video.o
 		OBJDIR/videl.o
+		OBJDIR/fbmem.o
 
-		//OBJDIR/radeon_base.o
-		//OBJDIR/radeon_accel.o
-		//OBJDIR/radeon_cursor.o
+		OBJDIR/radeon_base.o
+		OBJDIR/radeon_accel.o
+		OBJDIR/radeon_cursor.o
+		OBJDIR/radeon_monitor.o
 
 		OBJDIR/xhdi_sd.o(.text)
 		OBJDIR/xhdi_interface.o(.text)

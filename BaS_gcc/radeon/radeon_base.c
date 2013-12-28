@@ -214,7 +214,8 @@ typedef struct
 /* these common regs are cleared before mode setting so they do not
  * interfere with anything
  */
-static reg_val common_regs[] = {
+static reg_val common_regs[] =
+{
 	{ OVR_CLR, 0 },	
 	{ OVR_WID_LEFT_RIGHT, 0 },
 	{ OVR_WID_TOP_BOTTOM, 0 },
@@ -227,7 +228,8 @@ static reg_val common_regs[] = {
 	{ CAP1_TRIG_CNTL, 0 },
 };
 
-
+extern struct fb_info *info_fb;
+#define rinfo ((struct radeonfb_info *) info_fb->par)
 static uint32_t inreg(uint32_t addr)
 {
 	return(INREG(addr));
@@ -235,7 +237,7 @@ static uint32_t inreg(uint32_t addr)
 
 static void outreg(uint32_t addr, uint32_t val)
 {
-	OUTREG(addr,val);
+	OUTREG(addr, val);
 }
 
 #undef rinfo
@@ -1231,7 +1233,7 @@ static void radeon_wait_vbl(struct fb_info *info)
 
 static void radeon_timer_func(void)
 {
-	struct fb_info *info = info_fvdi;
+	struct fb_info *info = info_fb;
 	struct radeonfb_info *rinfo = info->par;
 	struct fb_var_screeninfo var;
 	uint32_t x, y;
@@ -2179,7 +2181,7 @@ int32_t radeonfb_pci_register(int32_t handle, const struct pci_device_id *ent)
 
 void radeonfb_pci_unregister(void)
 {
-	struct fb_info *info = info_fvdi;
+	struct fb_info *info = info_fb;
 	struct radeonfb_info *rinfo = info->par;
 //	radeonfb_pm_exit(rinfo);
 	uninstall_vbl_timer(radeon_timer_func);
