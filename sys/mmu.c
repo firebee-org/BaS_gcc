@@ -51,10 +51,13 @@
 #include "pci.h"
 #include "cache.h"
 #include "util.h"
-#if MACHINE_FIREBEE
+
+#if defined(MACHINE_FIREBEE)
 #include "firebee.h"
-#elif MACHINE_M5484LITE
+#elif defined(MACHINE_M5484LITE)
 #include "m5484l.h"
+#else
+#error "unknown machine!"
 #endif /* MACHINE_FIREBEE */
 
 #define DEBUG_MMU
@@ -184,7 +187,7 @@ inline uint32_t set_mmubar(uint32_t value)
 	return ret;
 }
 
-void __attribute__((flatten)) mmu_init(void)
+void mmu_init(void)
 {
 	extern uint8_t _MMUBAR[];
 	uint32_t MMUBAR = (uint32_t) &_MMUBAR[0];
@@ -204,7 +207,7 @@ void __attribute__((flatten)) mmu_init(void)
 			ACR_ADMSK(0x3f) |						/* cover 1GB area from 0xc0000000 to 0xffffffff */
 			ACR_BA(0xc0000000));					/* (equals area from 3 to 4 GB */
 #elif MACHINE_M5484LITE
-			ACR_ADMSK(0xff) |						/* cover 2 GB area from 0x80000000 to 0xffffffff */
+			ACR_ADMSK(0x7f) |						/* cover 2 GB area from 0x80000000 to 0xffffffff */
 			ACR_BA(0x80000000));
 #endif /* MACHINE_FIREBEE */
 	

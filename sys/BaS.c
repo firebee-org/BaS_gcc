@@ -38,6 +38,7 @@
 #include "diskio.h"
 #include "ff.h"
 #include "s19reader.h"
+#include "mmu.h"
 #include "dma.h"
 #include "net.h"
 #include "eth.h"
@@ -55,7 +56,6 @@
 #endif
 
 /* imported routines */
-extern int mmu_init();
 extern int vec_init();
 
 /* Symbols from the linker script */
@@ -218,11 +218,11 @@ void enable_coldfire_interrupts()
 	MCF_INTC_ICR62 = 0x3f;				/* interrupt level 7, interrupt priority 7 */
 
 	*FPGA_INTR_ENABLE  = 0xfe;	/* enable int 1-7 */
-#endif /* MACHINE_FIREBEE */
 	MCF_EPORT_EPIER = 0xfe;				/* int 1-7 on */
 	MCF_EPORT_EPFR = 0xff;				/* clear all pending interrupts */
 	MCF_INTC_IMRL = 0xffffff00;			/* int 1-7 on */
 	MCF_INTC_IMRH = 0xbffffffe;			/* psc3 and timer 0 int on */
+#endif
 
 	xprintf("finished\r\n");
 }
@@ -420,8 +420,8 @@ void BaS(void)
 	xprintf("BaS initialization finished, enable interrupts\r\n");
 	enable_coldfire_interrupts();
 
-	set_ipl(0);
-	network_init();
+	//set_ipl(0);
+	//network_init();
 
 	xprintf("call EmuTOS\r\n");
 	ROM_HEADER* os_header = (ROM_HEADER*)TOS;
