@@ -273,15 +273,16 @@ struct radeonfb_info;
 #ifdef CONFIG_FB_RADEON_I2C
 struct radeon_i2c_chan
 {
-	struct radeonfb_info		*rinfo;
+	struct radeonfb_info *rinfo;
 	uint32_t ddc_reg;
-	struct i2c_adapter		adapter;
-	struct i2c_algo_bit_data	algo;
+	struct i2c_adapter adapter;
+	struct i2c_algo_bit_data algo;
 };
 #endif
 
-enum radeon_pm_mode {
-	radeon_pm_none	= 0,		/* Nothing supported */
+enum radeon_pm_mode
+{
+	radeon_pm_none	= 0,			/* Nothing supported */
 	radeon_pm_d2	= 0x00000001,	/* Can do D2 state */
 	radeon_pm_off	= 0x00000002,	/* Can resume from D3 cold */
 };
@@ -358,7 +359,10 @@ struct radeonfb_info
 
 	struct
 	{
-		uint8_t red, green, blue, pad;
+		uint8_t red;
+		uint8_t green;
+		uint8_t blue;
+		uint8_t pad;
 	} palette[256];
 
 	int32_t	chipset;
@@ -398,7 +402,7 @@ struct radeonfb_info
 	enum radeon_pm_mode	pm_mode;
 
 	/* Timer used for delayed LVDS operations */
-  int32_t lvds_timer;
+	int32_t lvds_timer;
 	uint32_t pending_lvds_gen_cntl;
 
 #ifdef CONFIG_FB_RADEON_I2C
@@ -425,7 +429,7 @@ struct radeonfb_info
 	int32_t MM_TABLE_valid;
 	_MM_TABLE MM_TABLE;
 
-  int32_t RageTheatreCrystal;
+	int32_t RageTheatreCrystal;
 	int32_t RageTheatreTunerPort;
 	int32_t RageTheatreCompositePort;
 	int32_t RageTheatreSVideoPort;
@@ -457,7 +461,8 @@ struct radeonfb_info
  * IO macros
  */
 
-/* Note about this function: we have some rare cases where we must not schedule,
+/*
+ * Note about this function: we have some rare cases where we must not schedule,
  * this typically happen with our special "wake up early" hook which allows us to
  * wake up the graphic chip (and thus get the console back) before everything else
  * on some machines that support that mecanism. At this point, intterrupts are off
@@ -465,7 +470,7 @@ struct radeonfb_info
  */
 static inline void _radeon_msleep(struct radeonfb_info *rinfo, uint32_t ms)
 {
-		mdelay(ms);
+	mdelay(ms);
 }
 
 #define radeon_msleep(ms)		_radeon_msleep(rinfo,ms)
@@ -480,9 +485,9 @@ extern void __OUTPLLP(struct radeonfb_info *rinfo, uint32_t index, uint32_t val,
 #define INREG8(addr)		*((uint8_t *)(rinfo->mmio_base + addr))
 #define INREG16(addr)		swpw(*(uint16_t *)(rinfo->mmio_base + addr))
 #define INREG(addr)			swpl(*(uint32_t *)(rinfo->mmio_base + addr))
-#define OUTREG8(addr,val)	(*((uint8_t *)(rinfo->mmio_base + addr)) = val)
-#define OUTREG16(addr,val)	(*((uint16_t *)(rinfo->mmio_base + addr)) = swpw(val))
-#define OUTREG(addr,val)	(*((uint32_t *)(rinfo->mmio_base + addr)) = swpl(val))
+#define OUTREG8(addr, val)	(*((uint8_t *)(rinfo->mmio_base + addr)) = val)
+#define OUTREG16(addr, val)	(*((uint16_t *)(rinfo->mmio_base + addr)) = swpw(val))
+#define OUTREG(addr, val)	(*((uint32_t *)(rinfo->mmio_base + addr)) = swpl(val))
 
 extern int32_t *tab_funcs_pci;
 #define BIOS_IN8(v)		(* ((uint8_t *) rinfo->bios_seg_phys + v))
@@ -490,10 +495,10 @@ extern int32_t *tab_funcs_pci;
 #define BIOS_IN32(v)	(swpl(*(uint32_t *) ((uint8_t *) rinfo->bios_seg_phys + v)))
 
 #define ADDRREG(addr)			((volatile uint32_t *)(rinfo->mmio_base + (addr)))
-#define OUTREGP(addr,val,mask)	_OUTREGP(rinfo, addr, val, mask)
-#define INPLL(addr)				__INPLL(rinfo, addr)
-#define OUTPLL(index,val)		__OUTPLL(rinfo, index, val)
-#define OUTPLLP(index,val,mask)	__OUTPLLP(rinfo, index, val, mask)
+#define OUTREGP(addr, val, mask)	_OUTREGP(rinfo, addr, val, mask)
+#define INPLL(addr)					__INPLL(rinfo, addr)
+#define OUTPLL(index, val)			__OUTPLL(rinfo, index, val)
+#define OUTPLLP(index, val, mask)	__OUTPLLP(rinfo, index, val, mask)
 
 /*
  * Inline utilities
@@ -524,11 +529,11 @@ extern void radeonfb_pm_exit(struct radeonfb_info *rinfo);
 
 /* Monitor probe functions */
 extern void radeon_probe_screens(struct radeonfb_info *rinfo,
-				 const uint8_t *monitor_layout, int32_t ignore_edid);
+									const char *monitor_layout, int ignore_edid);
 extern void radeon_check_modes(struct radeonfb_info *rinfo, struct mode_option *resolution);
-extern int32_t radeon_match_mode(struct radeonfb_info *rinfo,
-			     struct fb_var_screeninfo *dest,
-			     const struct fb_var_screeninfo *src);
+extern int radeon_match_mode(struct radeonfb_info *rinfo,
+									struct fb_var_screeninfo *dest,
+									const struct fb_var_screeninfo *src);
 
 /* Video functions */
 void RADEONResetVideo(struct radeonfb_info *rinfo);

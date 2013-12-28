@@ -103,17 +103,19 @@ CSRCS= \
 	bootp.c \
 	tftp.c \
 	\
+	fbmem.c \
+	\
 	videl.c \
 	video.c \
 	\
+	radeon_base.c \
+	radeon_accel.c \
+	radeon_cursor.c \
+	radeon_monitor.c \
 	\
 	basflash.c \
 	basflash_start.c 
 
-#radeon_base.c \
-#radeon_vid.c \
-#radeon_accel.c \
-#radeon_cursor.c \
 
 ASRCS= \
 	startcf.S \
