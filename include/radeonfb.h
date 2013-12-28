@@ -1,7 +1,6 @@
 #ifndef __RADEONFB_H__
 #define __RADEONFB_H__
 
-//#include "config.h"
 #include <bas_string.h>
 #include "pci.h"
 #include "mod_devicetable.h"
@@ -12,16 +11,6 @@
 #include "util.h"			/* for swpX() */
 //#include "radeon_theatre.h"
 #include "radeon_reg.h"
-
-#ifndef point32_ter
-#define point32_ter void*
-#endif
-#ifndef FALSE
-#define FALSE 0
-#endif
-#ifndef TRUE
-#define TRUE 1
-#endif
 
 /* Buffer are aligned on 4096 byte boundaries */
 #define RADEON_BUFFER_ALIGN           0x00000fff
@@ -488,12 +477,12 @@ extern uint32_t __INPLL(struct radeonfb_info *rinfo, uint32_t addr);
 extern void __OUTPLL(struct radeonfb_info *rinfo, uint32_t index, uint32_t val);
 extern void __OUTPLLP(struct radeonfb_info *rinfo, uint32_t index, uint32_t val, uint32_t mask);
 
-#define INREG8(addr)		*((uint8_t *)(rinfo->mmio_base+addr))
-#define INREG16(addr)		swpw(*(uint16_t *)(rinfo->mmio_base+addr))
-#define INREG(addr)			swpl(*(uint32_t *)(rinfo->mmio_base+addr))
-#define OUTREG8(addr,val)	(*((uint8_t *)(rinfo->mmio_base+addr)) = val)
-#define OUTREG16(addr,val)	(*((uint16_t *)(rinfo->mmio_base+addr)) = swpw(val))
-#define OUTREG(addr,val)	(*((uint32_t *)(rinfo->mmio_base+addr)) = swpl(val))
+#define INREG8(addr)		*((uint8_t *)(rinfo->mmio_base + addr))
+#define INREG16(addr)		swpw(*(uint16_t *)(rinfo->mmio_base + addr))
+#define INREG(addr)			swpl(*(uint32_t *)(rinfo->mmio_base + addr))
+#define OUTREG8(addr,val)	(*((uint8_t *)(rinfo->mmio_base + addr)) = val)
+#define OUTREG16(addr,val)	(*((uint16_t *)(rinfo->mmio_base + addr)) = swpw(val))
+#define OUTREG(addr,val)	(*((uint32_t *)(rinfo->mmio_base + addr)) = swpl(val))
 
 extern int32_t *tab_funcs_pci;
 #define BIOS_IN8(v)		(* ((uint8_t *) rinfo->bios_seg_phys + v))
@@ -575,24 +564,22 @@ extern void RADEONVIP_reset(struct radeonfb_info *rinfo);
 
 /* Accel functions */
 
-extern void RADEONWaitForFifoFunction(struct radeonfb_info *rinfo, int32_t entries);
-extern void RADEONEngineFlush(struct radeonfb_info *rinfo);
-extern void RADEONEngineReset(struct radeonfb_info *rinfo);
-extern void RADEONEngineRestore(struct radeonfb_info *rinfo);
-extern void RADEONEngineInit(struct radeonfb_info *rinfo);
-extern void RADEONWaitForIdleMMIO(struct radeonfb_info *rinfo);
+extern void radeon_wait_for_fifo_function(struct radeonfb_info *rinfo, int entries);
+extern void radeon_engine_flush(struct radeonfb_info *rinfo);
+extern void radeon_engine_reset(struct radeonfb_info *rinfo);
+extern void radeon_engine_restore(struct radeonfb_info *rinfo);
+extern void radeon_engine_init(struct radeonfb_info *rinfo);
+extern void radeon_wait_for_idle_mmio(struct radeonfb_info *rinfo);
 
-#define RADEONWaitForFifo(rinfo, entries)				\
-do {									\
-	if(rinfo->fifo_slots < entries)					\
-		RADEONWaitForFifoFunction(rinfo, entries);			\
-	rinfo->fifo_slots -= entries;					\
-} while(0)
+#define radeon_engine_idle() radeon_wait_for_idle_mmio(rinfo)
 
-#define radeon_engine_flush(rinfo) RADEONEngineFlush(rinfo)
-#define radeonfb_engine_reset(rinfo) RADEONEngineReset(rinfo)
-#define radeonfb_engine_init(rinfo) RADEONEngineInit(rinfo)
-#define radeon_engine_idle() RADEONWaitForIdleMMIO(rinfo)
+#define radeon_wait_for_fifo(rinfo, entries)				\
+do															\
+{															\
+	if (rinfo->fifo_slots < entries)						\
+		radeon_wait_for_fifo_function(rinfo, entries);		\
+	rinfo->fifo_slots -= entries;							\
+} while (0)
 
 static inline int radeonfb_sync(struct fb_info *info)
 {

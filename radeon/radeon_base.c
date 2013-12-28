@@ -227,7 +227,6 @@ static reg_val common_regs[] = {
 	{ CAP1_TRIG_CNTL, 0 },
 };
 
-#define rinfo ((struct radeonfb_info *)info_fvdi->par)
 
 static uint32_t inreg(uint32_t addr)
 {
@@ -515,12 +514,12 @@ static int radeon_probe_pll_params(struct radeonfb_info *rinfo)
 	dbg("radeonfb: radeon_probe_pll_params hz 0x%x\r\n", (int32_t) hz);
 	hTotal = ((INREG(CRTC_H_TOTAL_DISP) & 0x1ff) + 1) * 8;
 	vTotal = ((INREG(CRTC_V_TOTAL_DISP) & 0x3ff) + 1);
-	DPRINTVAL(" hTotal ",hTotal);
-	DPRINTVAL(" vTotal ",vTotal);
-  vclk = (double)hTotal * (double)vTotal * hz;
-  DPRINTVAL(" vclk ", (int32_t)vclk);
-	DPRINT("\r\n");
-	switch((INPLL(PPLL_REF_DIV) & 0x30000) >> 16)
+	dbg("hTotal=0x%x\r\n", hTotal);
+	dbg("vTotal=0x%x\r\n", vTotal);
+	vclk = (double) hTotal * (double) vTotal * hz;
+	dbg("vclk=0x%x\r\n", (int) vclk);
+
+	switch ((INPLL(PPLL_REF_DIV) & 0x30000) >> 16)
 	{
 		case 1:
 			n = ((INPLL(M_SPLL_REF_FB_DIV) >> 16) & 0xff);
@@ -578,8 +577,7 @@ static int radeon_probe_pll_params(struct radeonfb_info *rinfo)
 		xtal = 2950;
 	else
 	{
-		DPRINTVAL("radeonfb: xtal calculation failed: ",xtal);
-		DPRINT("\r\n");
+		dbg("radeonfb: xtal calculation failed: %0x%x\r\n", xtal);
 		return -1; /* error */
 	}
 	tmp = INPLL(M_SPLL_REF_FB_DIV);
@@ -608,7 +606,8 @@ static void radeon_get_pllinfo(struct radeonfb_info *rinfo)
 	 * incomplete, however.  It does provide ppll_max and _min values
 	 * even for most other methods, however.
 	 */
-	DPRINT("radeonfb: radeon_get_pllinfo\r\n");
+	dbg("radeonfb: radeon_get_pllinfo\r\n");
+
 	switch(rinfo->chipset)
 	{
 		case PCI_DEVICE_ID_ATI_RADEON_QW:
@@ -685,7 +684,7 @@ static void radeon_get_pllinfo(struct radeonfb_info *rinfo)
 		rinfo->pll.ppll_min	= BIOS_IN32(pll_info_block + 0x12);
 		rinfo->pll.ppll_max	= BIOS_IN32(pll_info_block + 0x16);
 #endif
-		DPRINT("radeonfb: Retreived PLL infos from BIOS\r\n");
+		dbg("radeonfb: Retreived PLL infos from BIOS\r\n");
 		goto found;
 	}
 	/*
@@ -694,13 +693,13 @@ static void radeon_get_pllinfo(struct radeonfb_info *rinfo)
 	 */
 	if (radeon_probe_pll_params(rinfo) == 0)
 	{
-		DPRINT("radeonfb: Retreived PLL infos from registers\r\n");
+		dbg("radeonfb: Retreived PLL infos from registers\r\n");
 		goto found;
 	}
 	/*
 	 * Fall back to already-set defaults...
 	 */
-	DPRINT("radeonfb: Used default PLL infos\r\n");
+	dbg("radeonfb: Used default PLL infos\r\n");
 found:
 	/*
 	 * Some methods fail to retreive SCLK and MCLK values, we apply default
@@ -711,14 +710,10 @@ found:
 		rinfo->pll.mclk = 20000;
 	if (rinfo->pll.sclk == 0)
 		rinfo->pll.sclk = 20000;
-	DPRINTVAL("radeonfb: Reference=",rinfo->pll.ref_clk / 100);
-	DPRINTVAL(" MHz (RefDiv=",rinfo->pll.ref_div);
-	DPRINTVAL(") Memory=",rinfo->pll.mclk / 100);
-	DPRINTVAL(" Mhz, System=",rinfo->pll.sclk / 100);
-	DPRINT(" MHz\r\n");
-	DPRINTVAL("radeonfb: PLL min ",rinfo->pll.ppll_min);
-	DPRINTVAL(" max ", rinfo->pll.ppll_max);
-	DPRINT("\r\n");
+	dbg("radeonfb: Reference=0x%x\r\n", rinfo->pll.ref_clk / 100);
+	dbg("MHz (RefDiv=0x%x) Memory=0x%x MHz\r\n", rinfo->pll.ref_div, rinfo->pll.mclk / 100);
+	dbg("System=0x%x MHz\r\n", rinfo->pll.sclk / 100);
+	dbg("radeonfb: PLL min 0x%x, max 0x%x\r\n", rinfo->pll.ppll_min, rinfo->pll.ppll_max);
 }
 
 static int var_to_depth(const struct fb_var_screeninfo *var)
@@ -734,14 +729,12 @@ int radeonfb_check_var(struct fb_var_screeninfo *var, struct fb_info *info)
 	struct fb_var_screeninfo v;
 	int nom, den;
 	uint32_t pitch;
-//	DPRINT("radeonfb: radeonfb_check_var\r\n");
+	dbg("radeonfb: radeonfb_check_var\r\n");
 	/* clocks over 135 MHz have heat isues with DVI on RV100 */
 	if ((rinfo->mon1_type == MT_DFP) && (rinfo->family == CHIP_FAMILY_RV100) && ((100000000 / var->pixclock) > 13500))
 	{
-		DPRINTVAL("radeonfb: mode ",var->xres);
-		DPRINTVAL("x",var->yres);
-		DPRINTVAL("x",var->bits_per_pixel);
-		DPRINT(" rejected, RV100 DVI clock over 135 MHz\r\n");
+		dbg("radeonfb: mode %d x %d x %d",var->xres, var->yres, var->bits_per_pixel);
+		dbg(" rejected, RV100 DVI clock over 135 MHz\r\n");
 
 		return -1; //-EINVAL;
 	}
@@ -817,10 +810,8 @@ int radeonfb_check_var(struct fb_var_screeninfo *var, struct fb_info *info)
 			v.transp.length = 8;
 			break;
     default:
-			DPRINTVAL("radeonfb: mode ",var->xres);
-			DPRINTVAL("x",var->yres);
-			DPRINTVAL("x",var->bits_per_pixel);
-			DPRINT(" rejected, color depth invalid\r\n");
+			dbg("radeonfb: mode %d x %d x %d rejected, color depth invalid\r\n ",
+					var->xres, var->yres, var->bits_per_pixel);
 			return -1; //-EINVAL;
 	}
 
@@ -872,6 +863,8 @@ int radeonfb_pan_display(struct fb_var_screeninfo *var, struct fb_info *info)
   return 0;
 }
 
+short mirror;
+
 int radeonfb_ioctl(unsigned int cmd, unsigned long arg, struct fb_info *info)
 {
 	struct radeonfb_info *rinfo = info->par;
@@ -888,6 +881,7 @@ int radeonfb_ioctl(unsigned int cmd, unsigned long arg, struct fb_info *info)
 			if (!rinfo->is_mobility)
 				return -1; //-EINVAL;
 			radeon_fifo_wait(rinfo, 2);
+
 			if (value & 0x01)
 			{
 				tmp = INREG(LVDS_GEN_CNTL);
@@ -896,7 +890,7 @@ int radeonfb_ioctl(unsigned int cmd, unsigned long arg, struct fb_info *info)
 			else
 			{
 				tmp = INREG(LVDS_GEN_CNTL);
-      	tmp &= ~(LVDS_ON | LVDS_BLON);
+				tmp &= ~(LVDS_ON | LVDS_BLON);
 			}
 			OUTREG(LVDS_GEN_CNTL, tmp);
 			if (value & 0x02)
@@ -937,7 +931,7 @@ int32_t radeon_screen_blank(struct radeonfb_info *rinfo, int32_t blank, int32_t 
 
 	if (rinfo->lock_blank)
 		return 0;
-	DPRINT("radeonfb: radeon_screen_blank\r\n");
+	dbg("radeonfb: radeon_screen_blank\r\n");
 	radeon_engine_idle();
 	val = INREG(CRTC_EXT_CNTL);
 	val &= ~(CRTC_DISPLAY_DIS | CRTC_HSYNC_DIS | CRTC_VSYNC_DIS);
@@ -1152,7 +1146,7 @@ static void radeon_save_state(struct radeonfb_info *rinfo, struct radeon_regs *s
 static void radeon_write_pll_regs(struct radeonfb_info *rinfo, struct radeon_regs *mode)
 {
 	int i;
-	DPRINT("radeonfb: radeon_write_pll_regs\r\n");
+	dbg("radeonfb: radeon_write_pll_regs\r\n");
 	radeon_fifo_wait(rinfo, 20);
 #if 0
 	/* Workaround from XFree */
@@ -1342,7 +1336,7 @@ void radeon_write_mode(struct radeonfb_info *rinfo, struct radeon_regs *mode, in
 {
 	int i;
 	int primary_mon = PRIMARY_MONITOR(rinfo);
-	DPRINT("radeonfb: radeon_write_mode\r\n");
+	dbg("radeonfb: radeon_write_mode\r\n");
 	if (!regs_only)
 		radeon_screen_blank(rinfo, FB_BLANK_NORMAL, 0);
 	radeon_fifo_wait(rinfo, 31);
@@ -1535,7 +1529,7 @@ int radeonfb_set_par(struct fb_info *info)
 	/* We always want engine to be idle on a mode switch, even
 	 * if we won't actually change the mode
 	 */
-	DPRINT("radeonfb: radeonfb_set_par\r\n");
+	dbg("radeonfb: radeonfb_set_par\r\n");
 	radeon_engine_idle();
 	hSyncStart = mode->xres + mode->right_margin;
 	hSyncEnd = hSyncStart + mode->hsync_len;
@@ -1763,7 +1757,7 @@ int radeonfb_set_par(struct fb_info *info)
 #if 0
 		if (debug)
 		{
-			DPRINT("Press a key for write the video mode...\r\n");
+			dbg("Press a key for write the video mode...\r\n");
 			Bconin(2);
 		}
 #endif
@@ -1847,8 +1841,7 @@ static int radeon_set_fbinfo(struct radeonfb_info *rinfo)
 		info->screen_size = MAX_MAPPED_VRAM;
 	else if (info->screen_size > MIN_MAPPED_VRAM)
 		info->screen_size = MIN_MAPPED_VRAM;
-	DPRINTVALHEX("radeonfb: radeon_set_fbinfo: screen_size ",info->screen_size);
-	DPRINT("\r\n");
+	dbg("radeonfb: radeon_set_fbinfo: screen_size %lx\r\n", info->screen_size);
 	/* Fill fix common fields */
 	memcpy(info->fix.id, rinfo->name, sizeof(info->fix.id));
 	info->fix.smem_start = rinfo->fb_base_phys;
@@ -1945,30 +1938,28 @@ static void radeon_identify_vram(struct radeonfb_info *rinfo)
 	/* This may not be correct, as some cards can have half of channel disabled
 	 * ToDo: identify these cases
 	 */
-	DPRINT("radeonfb: ");
+	dbg("radeonfb:");
 	switch(rinfo->family)
 	{
-		case CHIP_FAMILY_LEGACY: DPRINT("LEGACY"); break;	
-		case CHIP_FAMILY_RADEON: DPRINT("RADEON"); break;	
-		case CHIP_FAMILY_RV100: DPRINT("RV100"); break;	
-		case CHIP_FAMILY_RS100: DPRINT("RS100"); break;	
-		case CHIP_FAMILY_RV200: DPRINT("RV200"); break;	
-		case CHIP_FAMILY_RS200: DPRINT("RS200"); break;	
-		case CHIP_FAMILY_R200: DPRINT("R200"); break;	
-		case CHIP_FAMILY_RV250: DPRINT("RV250"); break;	
-		case CHIP_FAMILY_RS300: DPRINT("RS300"); break;	
-		case CHIP_FAMILY_RV280: DPRINT("RV280"); break;	
-		case CHIP_FAMILY_R300: DPRINT("R300"); break;	
-		case CHIP_FAMILY_R350: DPRINT("R350"); break;	
-		case CHIP_FAMILY_RV350: DPRINT("RV350"); break;	
-		case CHIP_FAMILY_RV380: DPRINT("RV380"); break;	
-		case CHIP_FAMILY_R420: DPRINT("R420"); break;	
-		default: DPRINT("UNKNOW"); break;
+		case CHIP_FAMILY_LEGACY: dbg("LEGACY"); break;	
+		case CHIP_FAMILY_RADEON: dbg("RADEON"); break;	
+		case CHIP_FAMILY_RV100: dbg("RV100"); break;	
+		case CHIP_FAMILY_RS100: dbg("RS100"); break;	
+		case CHIP_FAMILY_RV200: dbg("RV200"); break;	
+		case CHIP_FAMILY_RS200: dbg("RS200"); break;	
+		case CHIP_FAMILY_R200: dbg("R200"); break;	
+		case CHIP_FAMILY_RV250: dbg("RV250"); break;	
+		case CHIP_FAMILY_RS300: dbg("RS300"); break;	
+		case CHIP_FAMILY_RV280: dbg("RV280"); break;	
+		case CHIP_FAMILY_R300: dbg("R300"); break;	
+		case CHIP_FAMILY_R350: dbg("R350"); break;	
+		case CHIP_FAMILY_RV350: dbg("RV350"); break;	
+		case CHIP_FAMILY_RV380: dbg("RV380"); break;	
+		case CHIP_FAMILY_R420: dbg("R420"); break;	
+		default: dbg("UNKNOW"); break;
 	}	
-	DPRINTVAL(" found ",rinfo->video_ram / 1024);
-	DPRINT("KB of ");
-	DPRINTVAL(rinfo->vram_ddr ? "DDR " : "SDRAM ",rinfo->vram_width);
-	DPRINT(" bits wide videoram\r\n");
+	dbg(" found %d", rinfo->video_ram / 1024);
+	dbg("KB of %s %d bits wide video RAM\r\n", rinfo->vram_ddr ? "DDR " : "SDRAM ", rinfo->vram_width);
 }
 
 int32_t radeonfb_pci_register(int32_t handle, const struct pci_device_id *ent)
@@ -1977,7 +1968,7 @@ int32_t radeonfb_pci_register(int32_t handle, const struct pci_device_id *ent)
 	struct radeonfb_info *rinfo;
 	struct pci_rd *pci_rsc_desc;
 
-	info_fvdi = info = framebuffer_alloc(sizeof(struct radeonfb_info));
+	info = framebuffer_alloc(sizeof(struct radeonfb_info));
 	if (!info)
 		return -1; // -ENOMEM;
 	rinfo = info->par;
@@ -1992,7 +1983,7 @@ int32_t radeonfb_pci_register(int32_t handle, const struct pci_device_id *ent)
 	rinfo->is_IGP = (ent->driver_data & CHIP_IS_IGP) != 0;
 
 	/* Set base addrs */
-	DPRINT("radeonfb: radeonfb_pci_register: Set base addrs\r\n");
+	dbg("radeonfb: radeonfb_pci_register: Set base addrs\r\n");
 	rinfo->fb_base_phys = rinfo->mmio_base_phys = rinfo->io_base_phys = 0xFFFFFFFF;
 	rinfo->mapped_vram = 0;
 	rinfo->mmio_base = rinfo->io_base = NULL;
@@ -2004,11 +1995,10 @@ int32_t radeonfb_pci_register(int32_t handle, const struct pci_device_id *ent)
 		uint16_t flags;
 		do
 		{
-			DPRINTVALHEX("radeonfb: flags ", pci_rsc_desc->flags);
-			DPRINTVALHEX(" start ", pci_rsc_desc->start);
-			DPRINTVALHEX(" offset ", pci_rsc_desc->offset);
-			DPRINTVALHEX(" length ", pci_rsc_desc->length);
-			DPRINT("\r\n");
+			dbg("radeonfb: flags %x", pci_rsc_desc->flags);
+			dbg(" start %x", pci_rsc_desc->start);
+			dbg(" offset %x", pci_rsc_desc->offset);
+			dbg(" length %x\r\n", pci_rsc_desc->length);
 			if (!(pci_rsc_desc->flags & FLG_IO))
 			{
 				if ((rinfo->fb_base_phys == 0xFFFFFFFF) && (pci_rsc_desc->length >= 0x100000))
@@ -2020,12 +2010,12 @@ int32_t radeonfb_pci_register(int32_t handle, const struct pci_device_id *ent)
 					if ((pci_rsc_desc->flags & FLG_ENDMASK) == ORD_MOTOROLA)
 					{
 						rinfo->big_endian = 0; /* host bridge make swapping intel -> motorola */
-						DPRINT("radeonfb: host bridge is big endian\r\n");
+						dbg("radeonfb: host bridge is big endian\r\n");
 					}
 					else
 					{
 						rinfo->big_endian = 1; /* radeon make swapping intel -> motorola */
-						DPRINT("radeonfb: host bridge is little endian\r\n");
+						dbg("radeonfb: host bridge is little endian\r\n");
 					}
 				}
 				else if ((pci_rsc_desc->length >= RADEON_REGSIZE)
@@ -2063,16 +2053,16 @@ int32_t radeonfb_pci_register(int32_t handle, const struct pci_device_id *ent)
 			flags = pci_rsc_desc->flags;
 			pci_rsc_desc = (struct pci_rd *)((uint32_t)pci_rsc_desc->next + (uint32_t)pci_rsc_desc);
 		}
-		while(!(flags & FLG_LAST));
+		while (!(flags & FLG_LAST));
 	}
 	else
-		DPRINT("radeonfb: radeonfb_pci_register: get_resource error\r\n");
+		dbg("radeonfb: radeonfb_pci_register: get_resource error\r\n");
 
 	/* map the regions */
-	DPRINT("radeonfb: radeonfb_pci_register: map the regions\r\n");
+	dbg("radeonfb: radeonfb_pci_register: map the regions\r\n");
 	if (rinfo->mmio_base == NULL)
 	{
-		DPRINT("radeonfb: cannot map MMIO\r\n");
+		dbg("radeonfb: cannot map MMIO\r\n");
 		framebuffer_release(info);
 		return -2; //(-EIO);	
 	}

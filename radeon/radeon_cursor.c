@@ -46,6 +46,14 @@
 
 #include "radeonfb.h"
 
+#define DBG_RADEON
+#ifdef DBG_RADEON
+#define dbg(format, arg...) do { xprintf("DEBUG: " format, ##arg); } while (0)
+#else
+#define dbg(format, arg...) do { ; } while (0)
+#endif /* DBG_RADEON */
+
+
 #define CURSOR_WIDTH	64
 #define CURSOR_HEIGHT	64
 
@@ -293,20 +301,23 @@ long radeon_cursor_init(struct fb_info *info)
 {
 	struct radeonfb_info *rinfo = info->par;
 	int size_bytes = CURSOR_WIDTH * 4 * CURSOR_HEIGHT;
-	unsigned long fbarea = offscreen_alloc(rinfo->info, size_bytes+256);
-//	DPRINTVALHEX("radeonfb: RADEONCursorInit: fbarea ",fbarea);
+	unsigned long fbarea = offscreen_alloc(rinfo->info, size_bytes + 256);
+
+	dbg("radeonfb: %s: fbarea: %p\r\n", __FUNCTION__, fbarea);
+
 	if(!fbarea)
 		rinfo->cursor_start = 0;
 	else
 	{
 		unsigned short data[16], mask[16];
+
 		memset(data, 0, sizeof(data));
 		memset(mask, 0, sizeof(data));		
-		rinfo->cursor_start = RADEON_ALIGN(fbarea - (unsigned long)rinfo->fb_base, 256);
+		rinfo->cursor_start = RADEON_ALIGN(fbarea - (unsigned long) rinfo->fb_base, 256);
 		rinfo->cursor_end = rinfo->cursor_start + size_bytes;
 		radeon_load_cursor_image(info, mask, data, 1);
 	}
-//	DPRINTVALHEX(" cursor_start ",rinfo->cursor_start);
-//	DPRINT("\r\n");
-	return(rinfo->cursor_start ? fbarea : 0);
+	dbg("radeonfb: %s cursor_start: %p\r\n", rinfo->cursor_start);
+
+	return (rinfo->cursor_start ? fbarea : 0);
 }

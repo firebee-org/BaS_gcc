@@ -107,6 +107,7 @@ CSRCS= \
 	video.c \
 	\
 	radeon_base.c \
+	radeon_vid.c \
 	radeon_accel.c \
 	radeon_cursor.c \
 	\

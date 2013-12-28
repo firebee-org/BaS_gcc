@@ -91,7 +91,7 @@ static struct {
 
 #define ACCEL_MMIO
 #define ACCEL_PREAMBLE()       
-#define BEGIN_ACCEL(n)          RADEONWaitForFifo(rinfo, (n))
+#define BEGIN_ACCEL(n)          radeon_wait_for_fifo(rinfo, (n))
 #define OUT_ACCEL_REG(reg, val) OUTREG(reg, val)
 #define FINISH_ACCEL()
 
@@ -101,23 +101,23 @@ static struct {
  * drained, the Pixel Cache is flushed, and the engine is idle.  This is
  * a standard "sync" function that will make the hardware "quiescent".
  */
-void RADEONWaitForIdleMMIO(struct radeonfb_info *rinfo)
+void radeon_wait_for_idle_mmio(struct radeonfb_info *rinfo)
 {
 	int i = 0;
 	/* Wait for the engine to go idle */
-	RADEONWaitForFifoFunction(rinfo, 64);
+	radeon_wait_for_fifo_function(rinfo, 64);
 	while(1)
 	{
 		for(i = 0; i < RADEON_TIMEOUT; i++)
 		{
 			if (!(INREG(RBBM_STATUS) & RBBM_ACTIVE))
 			{
-				RADEONEngineFlush(rinfo);
+				radeon_engine_flush(rinfo);
 				return;
 			}
 		}
-		RADEONEngineReset(rinfo);
-		RADEONEngineRestore(rinfo);
+		radeon_engine_reset(rinfo);
+		radeon_engine_restore(rinfo);
 	}
 }
 
@@ -223,7 +223,7 @@ void radeon_subsequent_solid_two_point_line_mmio(struct fb_info *info,
 
 	/* TODO: Check bounds -- RADEON only has 14 bits */
 	if (!(flags & OMIT_LAST))
-		RADEONSubsequentSolidHorVertLineMMIO(info, xb, yb, 1, DEGREES_0);
+		radeon_subsequent_solid_hor_vert_line_mmio(info, xb, yb, 1, DEGREES_0);
 #ifdef RADEON_TILING
 	BEGIN_ACCEL(3);
 	OUT_ACCEL_REG(DST_PITCH_OFFSET, rinfo->dst_pitch_offset
@@ -405,7 +405,7 @@ void radeon_setup_for_screen_to_screen_copy_mmio(struct fb_info *info,
 }
 
 /* Subsequent XAA screen-to-screen copy */
-void radeon_subsequent_screen_to_screen_copy(struct fb_info *info, int xa, int ya, int xb, int yb, int w, int h)
+void radeon_subsequent_screen_to_screen_copy_mmio(struct fb_info *info, int xa, int ya, int xb, int yb, int w, int h)
 {
 	struct radeonfb_info *rinfo = info->par;
 
@@ -853,7 +853,7 @@ void RADEONChangeSurfaces(struct fb_info *info)
 /* The FIFO has 64 slots.  This routines waits until at least `entries'
  * of these slots are empty.
  */
-void radeon_wait_for_fifo_(struct radeonfb_info *rinfo, int entries)
+void radeon_wait_for_fifo_function(struct radeonfb_info *rinfo, int entries)
 {
 	int i;
 	while(1)
@@ -888,7 +888,8 @@ void radeon_engine_reset(struct radeonfb_info *rinfo)
 	unsigned long mclk_cntl;
 	unsigned long rbbm_soft_reset;
 	unsigned long host_path_cntl;
-	RADEONEngineFlush(rinfo);
+
+	radeon_engine_flush(rinfo);
 	clock_cntl_index = INREG(CLOCK_CNTL_INDEX);
 	/* Some ASICs have bugs with dynamic-on feature, which are
 	 * ASIC-version dependent, so we force all blocks on for now
@@ -986,7 +987,7 @@ void radeon_engine_restore(struct radeonfb_info *rinfo)
 	OUTREG(DP_SRC_FRGD_CLR, 0xffffffff);
 	OUTREG(DP_SRC_BKGD_CLR, 0x00000000);
 	OUTREG(DP_WRITE_MSK, 0xffffffff);
-	RADEONWaitForIdleMMIO(rinfo);
+	radeon_wait_for_idle_mmio(rinfo);
 }
 
 /* Initialize the acceleration hardware */
@@ -994,13 +995,13 @@ void radeon_engine_init(struct radeonfb_info *rinfo)
 {
 	unsigned long temp;
 	OUTREG(RB3D_CNTL, 0);
-	RADEONEngineReset(rinfo);
+	radeon_engine_reset(rinfo);
 	temp = radeon_get_dstbpp(rinfo->depth);
 #ifdef RADEON_TILING
 	rinfo->dp_gui_master_cntl = ((temp << GMC_DST_DATATYPE_SHIFT) | GMC_CLR_CMP_CNTL_DIS | GMC_DST_PITCH_OFFSET_CNTL);
 #else
 	rinfo->dp_gui_master_cntl = ((temp << GMC_DST_DATATYPE_SHIFT) | GMC_CLR_CMP_CNTL_DIS);
 #endif
-	RADEONEngineRestore(rinfo);
+	radeon_engine_restore(rinfo);
 }
 
