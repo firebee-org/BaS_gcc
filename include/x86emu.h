@@ -42,17 +42,12 @@
 #ifndef __X86EMU_X86EMU_H
 #define __X86EMU_X86EMU_H
 
-#ifdef SCITECH
-#include "scitech.h"
-#define	X86API	_ASMAPI
-#define	X86APIP	_ASMAPIP
-typedef int X86EMU_pioAddr;
-#else
 #include "bas_types.h"
 #define	X86API
 #define	X86APIP	*
-#endif
 #include "x86regs.h"
+
+typedef uint16_t X86EMU_pioAddr;
 
 /*---------------------- Macros and type definitions ----------------------*/
 
