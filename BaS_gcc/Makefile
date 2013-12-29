@@ -104,6 +104,8 @@ CSRCS= \
 	tftp.c \
 	\
 	fbmem.c \
+	fbmon.c \
+	fbmodedb.c \
 	\
 	videl.c \
 	video.c \
