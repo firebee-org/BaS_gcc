@@ -576,20 +576,11 @@ void run_bios(struct radeonfb_info *rinfo)
 	unsigned long addr;
 	unsigned short initialcs;
 	unsigned short initialip;
-	unsigned short devfn = (unsigned short)( ((rinfo->handle & 0xFF) << 3) + ((((rinfo->handle >> 16) / PCI_MAX_FUNCTION) & 0xFF) <<  8)); // was dev->bus->secondary << 8 | dev->path.u.pci.devfn;
+	unsigned short devfn = (unsigned short) rinfo->handle;
 	X86EMU_intrFuncs intFuncs[256];
 
 	if ((rinfo->mmio_base == NULL) || (rinfo->io_base == NULL))
 		return;
-#ifndef COLDFIRE
-	/* try to not init the board with the X86 VGA BIOS, too long on CT60 (more than 20 seconds, 2 seconds on Coldfire) */
-	if (os_magic)
-		return;
-	if (restart /* CTRL-ALT-DEL else 0 if reset */
-	 && (*memvalid == MEMVALID_MAGIC) && (*memval2 == MEMVAL2_MAGIC)
-	 && (*((unsigned long *) 0x51AL) == 0x5555AAAA)) /* memval3 */
-		return;
-#endif
 	rinfo_biosemu = rinfo;
 	config_address_reg = 0;
 	offset_port = 0x300;
@@ -721,9 +712,9 @@ void run_bios(struct radeonfb_info *rinfo)
   X86EMU_set_debug(DEBUG_DECODE_F | DEBUG_TRACE_F);
 #endif
 	DPRINT("X86EMU entering emulator\r\n");
-	*vblsem = 0;
+	//*vblsem = 0;
 	X86EMU_exec();
-	*vblsem = 1;
+	//*vblsem = 1;
 	DPRINT("X86EMU halted\r\n");
 //	biosfn_set_video_mode(0x13); /* 320 x 200 x 256 colors */
 #ifdef USE_SDRAM
