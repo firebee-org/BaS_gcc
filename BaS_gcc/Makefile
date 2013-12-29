@@ -117,6 +117,9 @@ CSRCS= \
 	radeon_monitor.c \
 	\
 	biosemu.c \
+	decode.c \
+	sys.c \
+	debug.c \
 	\
 	basflash.c \
 	basflash_start.c 
