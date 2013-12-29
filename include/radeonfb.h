@@ -647,7 +647,7 @@ extern void radeon_set_cursor_position(struct fb_info *info, int x, int y);
 extern void radeon_load_cursor_image(struct fb_info *info, unsigned short *mask, unsigned short *data, int zoom);
 extern void radeon_hide_cursor(struct fb_info *info);
 extern void radeon_show_cursor(struct fb_info *info);
-extern int32_t radeon_cursor_init(struct fb_info *info);
+extern long radeon_cursor_init(struct fb_info *info);
 
 /* Other functions */
 extern int32_t radeon_screen_blank(struct radeonfb_info *rinfo, int32_t blank, int32_t mode_switch);
