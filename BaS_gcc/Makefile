@@ -116,13 +116,14 @@ CSRCS= \
 	radeon_cursor.c \
 	radeon_monitor.c \
 	\
-	biosemu.c \
 	decode.c \
 	sys.c \
 	debug.c \
 	prim_ops.c \
 	ops.c \
 	ops2.c \
+	fpu.c \
+	biosemu.c \
 	x86pcibios.c \
 	\
 	basflash.c \

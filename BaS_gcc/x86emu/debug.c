@@ -176,27 +176,28 @@ void x86emu_decode_printf2 (char *x, int y)
 {
 	char temp[100], *p;
 
+	doprnt(xaddchar, x, y);
 #ifdef DBG_X86EMU
 	{
 		p = temp;
-		while(x[0] != 0)
+		while (x[0] != 0)
 		{
-			if(x[0]=='%' && x[1]=='d')
+			if (x[0] =='%' && x[1] =='d')
 			{
-				x+=2;
-	      Funcs_ltoa(p, y, 10);
-	      while(p[0] != 0)
-	      	p++;    
+				x += 2;
+	      		Funcs_ltoa(p, y, 10);
+	      		while (p[0] != 0)
+	      			p++;    
 			}
-			else if(x[0]=='%' && x[1]=='x')
+			else if (x[0]=='%' && x[1]=='x')
 			{
-				x+=2;
+				x += 2;
 				*p++ = '0';
 				*p++ = 'x';
 				y &= 0xffff;
-	      Funcs_ltoa(p, y, 16);
-	      while(p[0] != 0)
-	      	p++;      
+	      		Funcs_ltoa(p, y, 16);
+	      		while (p[0] != 0)
+	      			p++;      
 			}
 			else
 				*p++ = *x++;
@@ -376,7 +377,7 @@ static int parse_line (char *s, int *ps, int *n)
     int cmd;
 
     *n = 0;
-    while(*s == ' ' || *s == '\t') s++;
+    while (*s == ' ' || *s == '\t') s++;
     ps[*n] = *s;
     switch (*s) {
       case '\n':
@@ -393,7 +394,7 @@ static int parse_line (char *s, int *ps, int *n)
         if (*s == '\n')
             return cmd;
 
-        while(*s == ' ' || *s == '\t') s++;
+        while (*s == ' ' || *s == '\t') s++;
 
         sscanf(s,"%x",&ps[*n]);
         *n += 1;
