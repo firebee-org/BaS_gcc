@@ -1,4 +1,5 @@
 #define RINFO_ONLY
+#include "x86debug.h"
 #include "radeonfb.h"
 #include "bas_printf.h"
 #include "bas_string.h"
@@ -7,14 +8,6 @@
 #include "x86emu.h"
 #include "pci.h"
 #include "pci_ids.h"
-// #include "vgatables.h"
-
-#define DBG_EMULATOR
-#ifdef DBG_EMULATOR
-#define dbg(format, arg...) do { xprintf("DEBUG: " format, ##arg); } while (0)
-#else
-#define dbg(format, arg...) do { ; } while (0)
-#endif /* DBG_EMULATOR */
 
 #define USE_SDRAM
 #define DIRECT_ACCESS
@@ -78,6 +71,8 @@ static uint32_t config_address_reg;
 extern int pcibios_handler();
 extern COOKIE *get_cookie(long id);
 extern short restart, os_magic;
+
+X86EMU_sysEnv _X86EMU_env;
 
 /* general software interrupt handler */
 uint32_t getIntVect(int num)

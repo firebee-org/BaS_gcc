@@ -87,6 +87,9 @@ SECTIONS
 		OBJDIR/offscreen.o
 
 		OBJDIR/biosemu.o
+		OBJDIR/decode.o
+		OBJDIR/sys.o
+		OBJDIR/debug.o
 
 		OBJDIR/radeon_base.o
 		OBJDIR/radeon_accel.o

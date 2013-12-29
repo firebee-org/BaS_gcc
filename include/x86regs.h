@@ -59,8 +59,6 @@
  * done using the native instruction set fully.
  */
 
-#ifdef	__BIG_ENDIAN__
-
 typedef struct {
 	uint32_t e_reg;
 } I32_reg_t;
@@ -72,22 +70,6 @@ typedef struct {
 typedef struct {
 	uint8_t filler0, filler1, h_reg, l_reg;
 } I8_reg_t;
-
-#else /* !__BIG_ENDIAN__ */
-
-typedef struct {
-	uint32_t e_reg;
-} I32_reg_t;
-
-typedef struct {
-	uint16_t x_reg;
-} I16_reg_t;
-
-typedef struct {
-	uint8_t l_reg, h_reg;
-} I8_reg_t;
-
-#endif /* BIG_ENDIAN */
 
 typedef union {
 	I32_reg_t   I32_reg;
@@ -275,7 +257,7 @@ typedef struct {
 	uint32_t                         mode;
 	volatile int                intr;   /* mask of pending interrupts */
 	int                         debug;
-#ifdef DEBUG
+#ifdef DBG_X86EMU
 	int                         check;
 	uint16_t                         saved_ip;
 	uint16_t                         saved_cs;

@@ -11,17 +11,9 @@
  * option any later version.
  */
 
-#include <mint/errno.h> 
-#include <mint/sysvars.h>
-#include <string.h>
+#include "bas_types.h"
+#include "bas_string.h"
 #include "fb.h"
-
-#ifndef FALSE
-#define FALSE 0
-#endif
-#ifndef TRUE
-#define TRUE 1
-#endif
 
 #undef DEBUG
 
@@ -57,7 +49,7 @@ static long wrap;
 static void *xmgetblk(void)
 {
 	int i;
-	for(i = 0; i < MAXMD; i++)
+	for (i = 0; i < MAXMD; i++)
 	{
 		if(tab_md[i].m_own == NULL)
 		{
@@ -94,7 +86,7 @@ static MD *ffit(long amount, MPB *mp)
 	if((q = mp->mp_rover) == 0)      /* get rotating pointer */
 		return(0) ;
 	maxval = 0;
-	maxflg = ((amount == -1) ? TRUE : FALSE) ;
+	maxflg = ((amount == -1) ? true : false) ;
 	p = q->m_link;                   /* start with next MD */
 	do /* search the list for an MD with enough space */
 	{
@@ -151,7 +143,7 @@ static void freeit(MD *m, MPB *mp)
 {
 	MD *p, *q;
 	q = NULL;
-	for(p = mp->mp_mfl; p ; p = (q=p) -> m_link)
+	for (p = mp->mp_mfl; p ; p = (q=p) -> m_link)
 	{
 		if(m->m_start <= p->m_start)
 			break;
@@ -198,21 +190,21 @@ long offscreen_free(struct fb_info *info, long addr)
 	Funcs_puts(buf);
 	Funcs_puts("\r\n");
 #endif
-	*vblsem = 0;
+	//*vblsem = 0;
 	mpb = &pmd;
-	for(p = *(q = &mpb->mp_mal); p; p = *(q = &p->m_link))
+	for (p = *(q = &mpb->mp_mal); p; p = *(q = &p->m_link))
 	{
 		if(addr == p->m_start)
 			break;
 	}
 	if(!p)
 	{
-		*vblsem = 1;
-		return(EFAULT);
+		// *vblsem = 1;
+		return -1; //(EFAULT);
 	}
 	*q = p->m_link;
 	freeit(p,mpb);
-	*vblsem = 1;
+	//*vblsem = 1;
 	return(0);
 }
 
@@ -227,16 +219,16 @@ long offscreen_alloc(struct fb_info *info, long amount)
 	Funcs_puts(buf);
 	Funcs_puts(") = 0x");
 #endif
-	*vblsem = 0;
+	// *vblsem = 0;
 	if(amount == -1L)
 	{
 		ret = (long)ffit(-1L,&pmd);
-		*vblsem = 1;
+		// *vblsem = 1;
 		return(ret);
 	}
 	if(amount <= 0 )
 	{
-		*vblsem = 1;
+		// *vblsem = 1;
 		return(0);
 	}
 	if((amount & 1))
@@ -247,7 +239,7 @@ long offscreen_alloc(struct fb_info *info, long amount)
 #ifdef DEBUG
 		Funcs_puts("0\r\n");
 #endif
-		*vblsem = 1;
+		// *vblsem = 1;
 		return(0);
 	}
 #ifdef DEBUG
@@ -256,13 +248,13 @@ long offscreen_alloc(struct fb_info *info, long amount)
 	Funcs_puts("\r\n");
 #endif
 	ret = (long)m->m_start;
-	*vblsem = 1;
+	// *vblsem = 1;
 	return(ret);
 }
 
 long offscren_reserved(struct fb_info *info)
 {
-	return((long)info_fvdi->ram_base + (long) info->ram_size);
+	return((long) info->ram_base + (long) info->ram_size);
 }
 
 void offscreen_init(struct fb_info *info)
@@ -271,7 +263,7 @@ void offscreen_init(struct fb_info *info)
 	char buf[10];
 #endif
 	long size_screen, max_offscreen_size;
-	wrap = (long)info->var.xres_virtual * (long)(info->var.bits_per_pixel / 8);
+	wrap = (long) info->var.xres_virtual * (long)(info->var.bits_per_pixel / 8);
 	size_screen = (long)info->var.yres_virtual * wrap;
 	if(!size_screen)
 		size_screen = (long)info->screen_size;
