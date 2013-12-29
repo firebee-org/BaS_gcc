@@ -83,6 +83,8 @@ SECTIONS
 		OBJDIR/videl.o
 		OBJDIR/fbmem.o
 
+		OBJDIR/biosemu.o
+
 		OBJDIR/radeon_base.o
 		OBJDIR/radeon_accel.o
 		OBJDIR/radeon_cursor.o

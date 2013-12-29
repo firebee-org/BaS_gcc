@@ -9,6 +9,7 @@
 #include "i2c.h"
 #include "i2c-algo-bit.h"
 #include "util.h"			/* for swpX() */
+#include "wait.h"
 //#include "radeon_theatre.h"
 #include "radeon_reg.h"
 
@@ -470,7 +471,7 @@ struct radeonfb_info
  */
 static inline void _radeon_msleep(struct radeonfb_info *rinfo, uint32_t ms)
 {
-	mdelay(ms);
+	wait_ms(ms);
 }
 
 #define radeon_msleep(ms)		_radeon_msleep(rinfo,ms)

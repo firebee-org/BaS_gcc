@@ -468,7 +468,7 @@ struct fb_info {
 extern int fb_pan_display(struct fb_info *info, struct fb_var_screeninfo *var); 
 extern int fb_set_var(struct fb_info *info, struct fb_var_screeninfo *var); 
 extern int fb_blank(struct fb_info *info, int blank);
-extern int fb_ioctl(unsigned int cmd, unsigned long arg);
+extern int fb_ioctl(struct fb_info *info, unsigned int cmd, unsigned long arg);
 extern struct fb_info *framebuffer_alloc(unsigned long size);
 extern void framebuffer_release(struct fb_info *info);
 

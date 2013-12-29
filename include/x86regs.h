@@ -315,12 +315,13 @@ typedef struct {
 extern "C" {            			/* Use "C" linkage when in C++ mode */
 #endif
 
-	/* Global emulator machine state.
-	 *
-	 * We keep it global to avoid pointer dereferences in the code for speed.
-	 */
+/* Global emulator machine state.
+ *
+ * We keep it global to avoid pointer dereferences in the code for speed.
+ */
 
-	extern    X86EMU_sysEnv	_X86EMU_env;
+extern    X86EMU_sysEnv	_X86EMU_env;
+
 #define   M             _X86EMU_env
 
 #define X86_EAX M.x86.R_EAX
