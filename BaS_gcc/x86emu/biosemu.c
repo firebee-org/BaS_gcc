@@ -1,10 +1,19 @@
 #define RINFO_ONLY
 #include "radeonfb.h"
+#include "bas_printf.h"
 #include "bas_string.h"
+#include "util.h"
 #include "x86emu.h"
 #include "pci.h"
 #include "pci_ids.h"
 // #include "vgatables.h"
+
+#define DBG_EMULATOR
+#ifdef DBG_EMULATOR
+#define dbg(format, arg...) do { xprintf("DEBUG: " format, ##arg); } while (0)
+#else
+#define dbg(format, arg...) do { ; } while (0)
+#endif /* DBG_EMULATOR */
 
 #define USE_SDRAM
 #define DIRECT_ACCESS
@@ -21,11 +30,6 @@
 #define PCI_RAM_IMAGE_START     0xD0000
 #define SYS_BIOS                0xF0000
 #define SIZE_EMU               0x100000
-
-#ifdef DIRECT_ACCESS
-extern uint16_t swpw(uint16_t val);
-extern uint32_t swap_long(uint32_t val);
-#endif
 
 typedef struct
 {
@@ -103,17 +107,12 @@ static uint8_t inb(uint16_t port)
 {
 	uint8_t val = 0;
 
-	if ((port >= offset_port) && (port <= offset_port+0xFF))
+	if ((port >= offset_port) && (port <= offset_port + 0xFF))
 	{
-#ifdef DEBUG_X86EMU_PCI
-		DPRINTVALHEX("inb(", port);
-#endif
+		dbg("inb(");
 
 		val = *(uint8_t *)(offset_io+(uint32_t)port);
-#ifdef DEBUG_X86EMU_PCI
-		DPRINTVALHEX(") = ", val);
-		DPRINT("\r\n");
-#endif
+		dbg("0x%x) = 0x%x\r\n", port, val);
 	}
 	return val;
 }
@@ -124,14 +123,9 @@ static uint16_t inw(uint16_t port)
 
 	if ((port >= offset_port) && (port <= offset_port+0xFF))
 	{
-#ifdef DEBUG_X86EMU_PCI
-		DPRINTVALHEX("inw(", port);
-#endif
+		dbg("inw(");
 		val = swpw(*(uint16_t *)(offset_io+(uint32_t)port));
-#ifdef DEBUG_X86EMU_PCI
-		DPRINTVALHEX(") = ", val);
-		DPRINT("\r\n");
-#endif
+		dbg("0x%x) = 0x%x\r\n", port, val);
 	}
 	return val;
 }
@@ -141,27 +135,19 @@ static uint32_t inl(uint16_t port)
 	uint32_t val = 0;
 	if ((port >= offset_port) && (port <= offset_port+0xFF))
 	{
-#ifdef DEBUG_X86EMU_PCI
-		DPRINTVALHEX("inl(", port);
-#endif
+		dbg("inl(");
 		val = swpl(*(uint32_t *)(offset_io+(uint32_t)port));
-#ifdef DEBUG_X86EMU_PCI
-		DPRINTVALHEX(") = ", val);
-		DPRINT("\r\n");
-#endif
+		dbg("0x%x) = 0x%x\r\n", port, val);
 	}
 	else if (port == 0xCF8)
 	{
+		dbg("inl(");
 		val = config_address_reg;
-#ifdef DEBUG_X86EMU_PCI
-		DPRINTVALHEX("inl(", port);
-		DPRINTVALHEX(") = ", val);
-		DPRINT("\r\n");
-#endif
+		dbg("0x%x) = 0x%x\r\n", port, val);
 	}
-	else if ((port == 0xCFC) && ((config_address_reg & 0x80000000) !=0))
+	else if ((port == 0xCFC) && ((config_address_reg & 0x80000000) != 0))
 	{
-		switch(config_address_reg & 0xFC)
+		switch (config_address_reg & 0xFC)
 		{
 			case PCIIDR:
 				val = ((uint32_t) rinfo_biosemu->chipset << 16) + PCI_VENDOR_ID_ATI;
@@ -173,59 +159,39 @@ static uint32_t inl(uint16_t port)
 			val = pci_read_config_longword(rinfo_biosemu->handle, config_address_reg & 0xFC);
 			break;
 		}
-#ifdef DEBUG_X86EMU_PCI
-		DPRINTVALHEX("inl(", port);
-		DPRINTVALHEX(") = ", val);
-		DPRINT("\r\n");
-#endif
+		dbg("inl(0x%x) = 0x%x\r\n", port, val);
 	}
 	return val;
 }
 
 void outb(uint8_t val, uint16_t port)
 {
-	if ((port >= offset_port) && (port <= offset_port+0xFF))
+	if ((port >= offset_port) && (port <= offset_port + 0xFF))
 	{
-#ifdef DEBUG_X86EMU_PCI
-		DPRINTVALHEX("outb(", port);
-		DPRINTVALHEX(") = ", val);
-		DPRINT("\r\n");
-#endif
+		dbg("outb(0x%x, 0x%x)\r\n", port, val);
 		*(uint8_t *)(offset_io + (uint32_t) port) = val;
 	}
 }
 
 void outw(uint16_t val, uint16_t port)
 {
-	if ((port >= offset_port) && (port <= offset_port+0xFF))
+	if ((port >= offset_port) && (port <= offset_port + 0xFF))
 	{
-#ifdef DEBUG_X86EMU_PCI
-		DPRINTVALHEX("outw(", port);
-		DPRINTVALHEX(") = ", val);
-		DPRINT("\r\n");
-#endif
+		dbg("outw(0x%x, 0x%x)\r\n", port, val);
 		*(uint16_t *)(offset_io + (uint32_t) port) = swpw(val);
 	}
 }
 
 void outl(uint32_t val, uint16_t port)
 {
-	if ((port >= offset_port) && (port <= offset_port+0xFF))
+	if ((port >= offset_port) && (port <= offset_port + 0xFF))
 	{
-#ifdef DEBUG_X86EMU_PCI
-		DPRINTVALHEX("outl(", port);
-		DPRINTVALHEX(") = ", val);
-		DPRINT("\r\n");
-#endif
+		dbg("outl(0x%x, 0x%x)\r\n", port, val);
 		*(uint32_t *)(offset_io + (uint32_t) port) = swpl(val);
 	}
 	else if (port == 0xCF8)
 	{
-#ifdef DEBUG_X86EMU_PCI
-		DPRINTVALHEX("outl(", port);
-		DPRINTVALHEX(") = ", val);
-		DPRINT("\r\n");
-#endif
+		dbg("outl(0x%x, 0x%x)\r\n", port, val);
 		config_address_reg = val;
 	}
 	else if ((port == 0xCFC) && ((config_address_reg & 0x80000000) !=0))
@@ -234,11 +200,7 @@ void outl(uint32_t val, uint16_t port)
 			offset_port = (uint16_t)val & 0xFFFC;
 		else
 		{
-#ifdef DEBUG_X86EMU_PCI
-			DPRINTVALHEX("outl(", port);
-			DPRINTVALHEX(") = ", val);
-			DPRINT("\r\n");
-#endif
+			dbg("outl(0x%x, 0x%x)\r\n", port, val);
 			pci_write_config_longword(rinfo_biosemu->handle, config_address_reg & 0xFC, val);
 		}
 	}
@@ -554,11 +516,11 @@ void biosfn_set_video_mode(uint8_t mode)
 		memsetw(vga_modes[line].sstart,0x0000,0x4000); // 32k
 	else
 	{
-		outb(0x02,VGAREG_SEQU_ADDRESS);
-		mmask = inb( VGAREG_SEQU_DATA );
-		outb(0x0f,VGAREG_SEQU_DATA); // all planes
-		memsetw(vga_modes[line].sstart,0x0000,0x8000); // 64k
-		outb(mmask,VGAREG_SEQU_DATA);
+		outb(0x02, VGAREG_SEQU_ADDRESS);
+		mmask = inb(VGAREG_SEQU_DATA);
+		outb(0x0f, VGAREG_SEQU_DATA); // all planes
+		memsetw(vga_modes[line].sstart, 0x0000, 0x8000); // 64k
+		outb(mmask, VGAREG_SEQU_DATA);
 	}
 }
 
@@ -572,7 +534,7 @@ void run_bios(struct radeonfb_info *rinfo)
 	struct pci_data *rom_data;
 	unsigned long rom_size=0;
 	unsigned long image_size=0;
-	unsigned long biosmem=0x01000000; /* when run_bios() is called, SDRAM is valid but not added to the system */
+	unsigned long biosmem = 0x01000000; /* when run_bios() is called, SDRAM is valid but not added to the system */
 	unsigned long addr;
 	unsigned short initialcs;
 	unsigned short initialip;

@@ -28,6 +28,7 @@
 extern int strncmp(const char *s1, const char *s2, size_t max);
 extern char *strcpy(char *dst, const char *src);
 char *strncpy(char *dst, const char *src, size_t max);
+extern int strcmp(const char *s1, const char *s2);
 extern size_t strlen(const char *str);
 extern char *strcat(char *dst, const char *src);
 extern char *strncat(char *dst, const char *src, size_t max);

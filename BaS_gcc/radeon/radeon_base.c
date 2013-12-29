@@ -57,6 +57,7 @@
 #include "radeonfb.h"
 #include "edid.h"
 #include "ati_ids.h"
+#include "driver_mem.h"
 #include "bas_printf.h"
 #include "exceptions.h"		/* for set_ipl() */
 
@@ -68,8 +69,6 @@
 #endif /* DBG_RADEON */
 
 extern void run_bios(struct radeonfb_info *rinfo);
-extern void mdelay(int32_t msec);
-extern void udelay(int32_t usec);
 
 #define MAX_MAPPED_VRAM	(2048*2048*4)
 #define MIN_MAPPED_VRAM	(1024*768*4)
@@ -1011,7 +1010,7 @@ int32_t radeon_screen_blank(struct radeonfb_info *rinfo, int32_t blank, int32_t 
 					OUTPLLP(PIXCLKS_CNTL, 0, ~PIXCLK_LVDS_ALWAYS_ONb);
 				val &= ~(LVDS_BL_MOD_EN);
 				OUTREG(LVDS_GEN_CNTL, val);
-				udelay(100);
+				wait(100);
 				val &= ~(LVDS_ON | LVDS_EN);
 				OUTREG(LVDS_GEN_CNTL, val);
 				val &= ~LVDS_DIGON;
@@ -1525,7 +1524,7 @@ int radeonfb_set_par(struct fb_info *info)
 	int depth = var_to_depth(mode);
 	int use_rmx = 0;
 
-	newmode = (struct radeon_regs *)Funcs_malloc(sizeof(struct radeon_regs),3);
+	newmode = (struct radeon_regs *) driver_mem_alloc(sizeof(struct radeon_regs));
 	if (!newmode)
 		return -1; //-ENOMEM;
 	/* We always want engine to be idle on a mode switch, even
@@ -1774,7 +1773,7 @@ int radeonfb_set_par(struct fb_info *info)
 	/* Update fix */
 	info->fix.line_length = rinfo->pitch*64;
 	info->fix.visual = rinfo->depth == 8 ? FB_VISUAL_PSEUDOCOLOR : FB_VISUAL_DIRECTCOLOR;
-	Funcs_free(newmode);
+	driver_mem_free(newmode);
 	return 0;
 }
 
@@ -2186,9 +2185,9 @@ void radeonfb_pci_unregister(void)
 //	radeonfb_pm_exit(rinfo);
 	uninstall_vbl_timer(radeon_timer_func);
 	if (rinfo->mon1_EDID!=NULL)
-		Funcs_free(rinfo->mon1_EDID);
+		driver_mem_free(rinfo->mon1_EDID);
 	if (rinfo->mon2_EDID!=NULL)
-		Funcs_free(rinfo->mon2_EDID);
+		driver_mem_free(rinfo->mon2_EDID);
 	if (rinfo->mon1_modedb)
 		fb_destroy_modedb(rinfo->mon1_modedb);
 #ifdef CONFIG_FB_RADEON_I2C
