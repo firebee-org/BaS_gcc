@@ -99,7 +99,7 @@ int run_bios_int(int num)
 	return 1;
 }
 
-static uint8_t inb(uint16_t port)
+uint8_t inb(uint16_t port)
 {
 	uint8_t val = 0;
 
@@ -113,7 +113,7 @@ static uint8_t inb(uint16_t port)
 	return val;
 }
 
-static uint16_t inw(uint16_t port)
+uint16_t inw(uint16_t port)
 {
 	uint16_t val = 0;
 
@@ -126,7 +126,7 @@ static uint16_t inw(uint16_t port)
 	return val;
 }
 
-static uint32_t inl(uint16_t port)
+uint32_t inl(uint16_t port)
 {
 	uint32_t val = 0;
 	if ((port >= offset_port) && (port <= offset_port+0xFF))

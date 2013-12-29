@@ -86,11 +86,12 @@ SECTIONS
 		OBJDIR/fbmodedb.o
 		OBJDIR/offscreen.o
 
-		OBJDIR/biosemu.o
 		OBJDIR/decode.o
 		OBJDIR/ops.o
 		OBJDIR/ops2.o
+		OBJDIR/fpu.o
 		OBJDIR/sys.o
+		OBJDIR/biosemu.o
 		OBJDIR/debug.o
 		OBJDIR/prim_ops.o
 		OBJDIR/x86pcibios.o

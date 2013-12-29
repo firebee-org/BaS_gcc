@@ -60,8 +60,6 @@ extern uint32_t inl(uint16_t port);
 extern void outb(uint8_t val, uint16_t port);
 extern void outw(uint16_t val, uint16_t port);
 extern void outl(uint32_t val, uint16_t port);
-extern uint16_t swap_short(uint16_t val);
-extern uint32_t swap_long(uint32_t val);
 
 /*------------------------- Global Variables ------------------------------*/
 
@@ -202,7 +200,7 @@ uint32_t X86API rdl(uint32_t addr)
 #ifdef DEBUG_X86EMU_PCI
 		DPRINTVALHEX("rdl(", addr);
 #endif
-		val = swap_long(*(uint32_t *)(offset_mem+addr));
+		val = swpl(*(uint32_t *)(offset_mem+addr));
 #ifdef DEBUG_X86EMU_PCI
 		DPRINTVALHEX(") = ", val);
 		DPRINT("\r\n");
@@ -227,7 +225,7 @@ uint32_t X86API rdl(uint32_t addr)
 			DPRINT("\r\n");
 		}
 #endif
-		val = swap_long(*(uint32_t *)(M.mem_base + addr));
+		val = swpl(*(uint32_t *)(M.mem_base + addr));
 //	  val = *(uint32_t *)(M.mem_base + addr);
 	}
 	DB(if (DEBUG_MEM_TRACE())
@@ -302,15 +300,7 @@ void X86API wrw(uint32_t addr, uint16_t val)
 		DPRINTVALHEX(") = ", val);
 		DPRINT("\r\n");
 #endif
-#ifdef DIRECT_ACCESS
-		*(uint16_t *)(offset_mem+addr) = swap_short(val);
-#else
-#ifdef PCI_XBIOS
-		write_mem_word(rinfo_biosemu->handle, offset_mem+addr, val);
-#else
-		Write_mem_word(rinfo_biosemu->handle, offset_mem+addr, val);
-#endif
-#endif
+		*(uint16_t *)(offset_mem+addr) = swpw(val);
 	}
 	else
 	{
@@ -358,15 +348,7 @@ void X86API wrl(uint32_t addr, uint32_t val)
 		DPRINTVALHEX(") = ", val);
 		DPRINT("\r\n");
 #endif
-#ifdef DIRECT_ACCESS
-		*(uint32_t *)(offset_mem+addr) = swap_long(val);
-#else
-#ifdef PCI_XBIOS
-		write_mem_longword(rinfo_biosemu->handle, offset_mem+addr, val);
-#else
-		Write_mem_longword(rinfo_biosemu->handle, offset_mem+addr, val);
-#endif
-#endif
+		*(uint32_t *)(offset_mem+addr) = swpl(val);
 	}
 	else
 	{
@@ -385,7 +367,7 @@ void X86API wrl(uint32_t addr, uint32_t val)
 			DPRINT("\r\n");
 		}
 #endif
-		*(uint32_t *)(M.mem_base + addr) = swap_long(val);
+		*(uint32_t *)(M.mem_base + addr) = swpl(val);
 //		*(uint32_t *)(M.mem_base + addr) = val;
 	}
 	DB(if (DEBUG_MEM_TRACE())
