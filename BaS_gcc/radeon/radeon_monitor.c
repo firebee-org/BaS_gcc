@@ -2,6 +2,7 @@
 #include "wait.h"
 #include "edid.h"
 #include "driver_mem.h"
+#include "bas_printf.h"
 #include "bas_string.h"
 
 #define DBG_MONITOR
