@@ -579,22 +579,4 @@ extern long Funcs_misc(long func, long par, const char *token);
 extern long Funcs_event(long id_type, long data); 
 
 extern struct fb_info *info_fvdi;
-
-/*
- * Debugging stuffs
- */
-extern short debug;
-extern void debug_print(const char *string);
-extern void debug_print_value(const char *string, long val);
-extern void debug_print_value_hex(const char *string, long val);
-extern void debug_print_value_hex_byte(const char *string, unsigned char val);
-extern void debug_print_value_hex_word(const char *string, unsigned short val);
-extern void debug_print_value_hex_long(const char *string, unsigned long val);
-#define DPRINT debug_print
-#define DPRINTVAL debug_print_value
-#define DPRINTVALHEX debug_print_value_hex
-#define DPRINTVALHEXBYTE debug_print_value_hex_byte
-#define DPRINTVALHEXWORD debug_print_value_hex_word
-#define DPRINTVALHEXLONG debug_print_value_hex_long
-
 #endif /* _FB_H */
