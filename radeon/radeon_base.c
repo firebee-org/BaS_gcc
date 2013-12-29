@@ -2147,7 +2147,7 @@ int32_t radeonfb_pci_register(int32_t handle, const struct pci_device_id *ent)
 
 	/* Probe screen types */
 	dbg("radeonfb: radeonfb_pci_register: probe screen types, monitor_layout: 0x%x\r\n", monitor_layout);
-	radeon_probe_screens(rinfo, monitor_layout, (int)ignore_edid);
+	radeon_probe_screens(rinfo, monitor_layout, (int) ignore_edid);
 
 	/* Build mode list, check out panel native model */
 	dbg("radeonfb: radeonfb_pci_register: build mode list\r\n");

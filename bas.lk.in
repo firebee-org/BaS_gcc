@@ -84,6 +84,7 @@ SECTIONS
 		OBJDIR/fbmem.o
 		OBJDIR/fbmon.o
 		OBJDIR/fbmodedb.o
+		OBJDIR/offscreen.o
 
 		OBJDIR/biosemu.o
 
