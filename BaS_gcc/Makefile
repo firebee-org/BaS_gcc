@@ -120,6 +120,10 @@ CSRCS= \
 	decode.c \
 	sys.c \
 	debug.c \
+	prim_ops.c \
+	ops.c \
+	ops2.c \
+	x86pcibios.c \
 	\
 	basflash.c \
 	basflash_start.c 

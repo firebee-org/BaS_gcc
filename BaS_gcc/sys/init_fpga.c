@@ -39,6 +39,7 @@ extern uint8_t _FPGA_FLASH_DATA_SIZE[];
 #define FPGA_FLASH_DATA_SIZE	((uint32_t) &_FPGA_FLASH_DATA_SIZE[0])
 
 
+#ifdef _NOT_USED_
 void test_longword(void)
 {
 	uint32_t *fpga_data = (uint32_t *) FPGA_FLASH_DATA;
@@ -76,6 +77,7 @@ void test_byte(void)
 	} while (fpga_data < fpga_flash_data_end);
 	xprintf("finished. \r\n");
 }
+#endif /* _NOT_USED_ */
 
 /*
  * load FPGA

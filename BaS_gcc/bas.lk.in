@@ -88,8 +88,12 @@ SECTIONS
 
 		OBJDIR/biosemu.o
 		OBJDIR/decode.o
+		OBJDIR/ops.o
+		OBJDIR/ops2.o
 		OBJDIR/sys.o
 		OBJDIR/debug.o
+		OBJDIR/prim_ops.o
+		OBJDIR/x86pcibios.o
 
 		OBJDIR/radeon_base.o
 		OBJDIR/radeon_accel.o
