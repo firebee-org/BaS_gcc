@@ -68,7 +68,7 @@ uint32_t offset_mem;
 static uint32_t offset_io;
 static uint32_t config_address_reg;
 
-extern int pcibios_handler();
+extern int x86_pcibios_emulator();
 extern COOKIE *get_cookie(long id);
 extern short restart, os_magic;
 
@@ -232,7 +232,7 @@ void do_int(int num)
 		ret = 0;
 		break;
 	case 0x1A:
-		ret = pcibios_handler();
+		ret = x86_pcibios_emulator();
 		ret = 1;
 		break;
 	case 0xe6:
