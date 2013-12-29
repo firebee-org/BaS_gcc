@@ -82,6 +82,8 @@ SECTIONS
 		OBJDIR/video.o
 		OBJDIR/videl.o
 		OBJDIR/fbmem.o
+		OBJDIR/fbmon.o
+		OBJDIR/fbmodedb.o
 
 		OBJDIR/biosemu.o
 
