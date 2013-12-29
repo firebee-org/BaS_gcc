@@ -475,7 +475,7 @@ extern void framebuffer_release(struct fb_info *info);
 /* offscreen.c */
 extern long offscreen_free(struct fb_info *info, long addr);
 extern long offscreen_alloc(struct fb_info *info, long amount);
-extern long offscren_reserved(void);
+extern long offscren_reserved(struct fb_info *info);
 extern void offscreen_init(struct fb_info *info);
 
 /* fbmon.c */

@@ -3,6 +3,7 @@
 #include "bas_printf.h"
 #include "bas_string.h"
 #include "util.h"
+#include "driver_mem.h"
 #include "x86emu.h"
 #include "pci.h"
 #include "pci_ids.h"
@@ -211,9 +212,7 @@ void outl(uint32_t val, uint16_t port)
 void do_int(int num)
 {
 	int ret = 0;
-//	DPRINTVAL("int ", num);
-//	DPRINTVALHEX(" vector at ", getIntVect(num));
-//	DPRINT("\r\n");
+
 	switch (num)
 	{
 #ifndef _PC
@@ -221,7 +220,7 @@ void do_int(int num)
 	case 0x42:
 	case 0x6D:
 		if (getIntVect(num) == 0x0000)
-			DPRINT("un-inited int vector\r\n");
+			dbg("uninitialised int vector\r\n");
 		if (getIntVect(num) == 0xFF065)
 		{
 			//ret = int42_handler();
@@ -542,64 +541,55 @@ void run_bios(struct radeonfb_info *rinfo)
 	X86EMU_intrFuncs intFuncs[256];
 
 	if ((rinfo->mmio_base == NULL) || (rinfo->io_base == NULL))
+	{
+		dbg("%s: rinfo->mmio_base = %p, rinfo->io_base = %p\r\n", __FUNCTION__);
 		return;
+	}
 	rinfo_biosemu = rinfo;
 	config_address_reg = 0;
 	offset_port = 0x300;
 #ifdef DIRECT_ACCESS
-	offset_io = (uint32_t)rinfo->io_base-(uint32_t)offset_port;
-	offset_mem = (uint32_t)rinfo->fb_base-0xA0000;
+	offset_io = (uint32_t) rinfo->io_base - (uint32_t) offset_port;
+	offset_mem = (uint32_t) rinfo->fb_base - 0xA0000;
 #else
-	offset_io = rinfo->io_base_phys-(uint32_t)offset_port;
-	offset_mem = rinfo->fb_base_phys-0xA0000;
+	offset_io = rinfo->io_base_phys -(uint32_t) offset_port;
+	offset_mem = rinfo->fb_base_phys - 0xA0000;
 #endif
-	rom_header = (struct rom_header *)0;
+	rom_header = (struct rom_header *) 0;
 	do
 	{
 		rom_header = (struct rom_header *)((unsigned long)rom_header + image_size); // get next image
 		rom_data = (struct pci_data *)((unsigned long)rom_header + (unsigned long)BIOS_IN16((long)&rom_header->data));
 		image_size = (unsigned long)BIOS_IN16((long)&rom_data->ilen) * 512;
-	}
-	while((BIOS_IN8((long)&rom_data->type) != 0) && (BIOS_IN8((long)&rom_data->indicator) != 0));  // make sure we got x86 version
-	if (BIOS_IN8((long)&rom_data->type) != 0)
-		return;
-	rom_size = (unsigned long)BIOS_IN8((long)&rom_header->size) * 512;
-	if (PCI_CLASS_DISPLAY_VGA == BIOS_IN16((long)&rom_data->class_hi))
+	} while ((BIOS_IN8((long) &rom_data->type) != 0) && (BIOS_IN8((long) &rom_data->indicator) != 0));  // make sure we got x86 version
+	if (BIOS_IN8((long) &rom_data->type) != 0)
 	{
-#ifdef USE_SDRAM
-#if 0
-		if (os_magic)
-		{
-			biosmem = Mxalloc(SIZE_EMU, 3);
-			if (biosmem == 0)
-				return;
-		}
-#endif
-#else
-		biosmem = Mxalloc(SIZE_EMU, 0);
+		dbg("%s: ROM data type = 0x%x\r\n", __FUNCTION__, BIOS_IN8((long) &rom_data->type));
+		return;
+	}
+	rom_size = (unsigned long) BIOS_IN8((long) &rom_header->size) * 512;
+	if (PCI_CLASS_DISPLAY_VGA == BIOS_IN16((long) &rom_data->class_hi))
+	{
+		biosmem = driver_mem_alloc(SIZE_EMU);
 		if (biosmem == 0)
-			return;
-#endif /* USE_SDRAM */
-		memset((char *)biosmem, 0, SIZE_EMU);
-		setup_system_bios((char *)biosmem);
-		DPRINTVALHEX("Copying VGA ROM Image from ", (long)rinfo->bios_seg+(long)rom_header);
-		DPRINTVALHEX(" to ", biosmem+PCI_VGA_RAM_IMAGE_START);
-		DPRINTVALHEX(", ", rom_size);
-		DPRINT(" bytes\r\n");
-#if 0 // 8 bits copy
-		ptr = (char *)biosmem;
-		for(i = (long)rom_header, j = PCI_VGA_RAM_IMAGE_START; i < (long)rom_header+rom_size; ptr[j++] = BIOS_IN8(i++));
-#else // 32 bits copy
 		{
-			long bytes_align = (long)rom_header & 3;
-			ptr = (unsigned char *)biosmem;
-			i = (long)rom_header;
+			dbg("%s: could not allocate X86 BIOS memory\r\n", __FUNCTION__);
+			return;
+		}
+		memset((char *) biosmem, 0, SIZE_EMU);
+		setup_system_bios((char *) biosmem);
+		dbg("Copying VGA ROM Image from %p to %p (0x%lx bytes)\r\n", (long) rinfo->bios_seg + (long) rom_header,
+				biosmem + PCI_VGA_RAM_IMAGE_START, rom_size);
+		{
+			long bytes_align = (long) rom_header & 3;
+
+			ptr = (unsigned char *) biosmem;
+			i = (long) rom_header;
 			j = PCI_VGA_RAM_IMAGE_START;
 			if (bytes_align)
 				for(; i < 4 - bytes_align; ptr[j++] = BIOS_IN8(i++));
-			for(; i < (long)rom_header+rom_size; *((unsigned long *)&ptr[j]) = swpl(BIOS_IN32(i)), i+=4, j+=4);
+			for(; i < (long) rom_header + rom_size; *((unsigned long *)&ptr[j]) = swpl(BIOS_IN32(i)), i += 4, j += 4);
 		}
-#endif
 		addr = PCI_VGA_RAM_IMAGE_START;	
 	}
 	else
@@ -620,34 +610,35 @@ void run_bios(struct radeonfb_info *rinfo)
 #endif /* USE_SDRAM */
 		setup_system_bios((char *)biosmem);
 		memset((char *)biosmem, 0, SIZE_EMU);
-		DPRINTVALHEX("Copying non-VGA ROM Image from ", (long)rinfo->bios_seg+(long)rom_header);
-		DPRINTVALHEX(" to ", biosmem+PCI_RAM_IMAGE_START);
-		DPRINTVALHEX(", ", rom_size);
-		DPRINT(" bytes\r\n");		
-		ptr = (unsigned char *)biosmem;
-		for(i = (long)rom_header, j = PCI_RAM_IMAGE_START; i < (long)rom_header+rom_size; ptr[j++] = BIOS_IN8(i++));
+		dbg("Copying non-VGA ROM Image from %p to %p (0x%lx bytes)\r\n",
+				(long) rinfo->bios_seg + (long) rom_header,
+				biosmem + PCI_RAM_IMAGE_START,
+				rom_size);
+		ptr = (unsigned char *) biosmem;
+		for (i = (long) rom_header, j = PCI_RAM_IMAGE_START; i < (long) rom_header+rom_size; ptr[j++] = BIOS_IN8(i++));
 		addr = PCI_RAM_IMAGE_START;
 	}
 	initialcs = (addr & 0xF0000) >> 4;
 	initialip = (addr + 3) & 0xFFFF;	
-	X86EMU_setMemBase((void *)biosmem, SIZE_EMU);
-	for(i = 0; i < 256; i++)
+	X86EMU_setMemBase((void *) biosmem, SIZE_EMU);
+	for (i = 0; i < 256; i++)
 		intFuncs[i] = do_int;
 	X86EMU_setupIntrFuncs(intFuncs);
 	{
 		char *date = "01/01/99";
-		for(i = 0; date[i]; i++)
+		for (i = 0; date[i]; i++)
 			wrb(0xffff5 + i, date[i]);
 		wrb(0xffff7, '/');
 		wrb(0xffffa, '/');
 	}
 	{
-    /* FixME: move PIT init to its own file */
-    outb(0x36, 0x43);
-    outb(0x00, 0x40);
-    outb(0x00, 0x40);
+    	/* FixME: move PIT init to its own file */
+    	outb(0x36, 0x43);
+    	outb(0x00, 0x40);
+    	outb(0x00, 0x40);
 	}
 //	setup_int_vect();
+
 	/* cpu setup */
 	X86_AX = devfn ? devfn : 0xff;
 	X86_DX = 0x80;
@@ -658,6 +649,7 @@ void run_bios(struct radeonfb_info *rinfo)
 	X86_SP = 0xfffe;
 	X86_DS = 0x0040;
 	X86_ES = 0x0000;
+
 	/* We need a sane way to return from bios
 	 * execution. A hlt instruction and a pointer
 	 * to it, both kept on the stack, will do.
@@ -671,13 +663,13 @@ void run_bios(struct radeonfb_info *rinfo)
 	pushw(X86_SP + 2);
 #ifdef DEBUG_X86EMU
 	X86EMU_trace_on();
-  X86EMU_set_debug(DEBUG_DECODE_F | DEBUG_TRACE_F);
+	X86EMU_set_debug(DEBUG_DECODE_F | DEBUG_TRACE_F);
 #endif
-	DPRINT("X86EMU entering emulator\r\n");
+	dbg("X86EMU entering emulator\r\n");
 	//*vblsem = 0;
 	X86EMU_exec();
 	//*vblsem = 1;
-	DPRINT("X86EMU halted\r\n");
+	dbg("X86EMU halted\r\n");
 //	biosfn_set_video_mode(0x13); /* 320 x 200 x 256 colors */
 #ifdef USE_SDRAM
 #if 0
@@ -688,7 +680,7 @@ void run_bios(struct radeonfb_info *rinfo)
 	}
 #endif
 #else
-	memset((char *)biosmem, 0, SIZE_EMU);
-	Mfree(biosmem);
+	memset((char *) biosmem, 0, SIZE_EMU);
+	driver_mem_free(biosmem);
 #endif /* USE_SDRAM */
 }

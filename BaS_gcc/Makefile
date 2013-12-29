@@ -106,6 +106,7 @@ CSRCS= \
 	fbmem.c \
 	fbmon.c \
 	fbmodedb.c \
+	offscreen.c \
 	\
 	videl.c \
 	video.c \
