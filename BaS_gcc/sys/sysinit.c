@@ -1104,7 +1104,6 @@ void initialize_hardware(void)
 	init_pll();
 	init_video_ddr();
 	dvi_on();
-	screen_init();
 
 	/* experimental */
 	{
@@ -1129,6 +1128,7 @@ void initialize_hardware(void)
 #endif /* MACHINE_FIREBEE */
 	driver_mem_init();
 	init_pci();
+	video_init();
 	
 	/* do not try to init USB for now on the Firebee, it hangs the machine */
 #ifndef MACHINE_FIREBEE

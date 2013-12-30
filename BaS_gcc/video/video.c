@@ -1,6 +1,18 @@
 #include "video.h"
 #include "videl.h"
 #include "screen.h"
+#include "pci.h"
+#include "pci_ids.h"
+#include "mod_devicetable.h"
+#include "fb.h"
+#include "radeonfb.h"
+
+#define DBG_VIDEO
+#ifdef DBG_VIDEO
+#define dbg(format, arg...) do { xprintf("DEBUG: " format, ##arg); } while (0)
+#else
+#define dbg(format, arg...) do { ; } while (0)
+#endif /* DBG_VIDEO */
 
 #define MON_ALL     -1  /* code used in VMODE_ENTRY for match on mode only */
 
@@ -207,7 +219,7 @@ static void setphys(int32_t addr,int checkaddr)
  * done at the same time from C.
  */
 
-void screen_init(void)
+void videl_screen_init(void)
 {
 	uint32_t screen_start;
 	uint16_t boot_resolution = FALCON_DEFAULT_BOOT;
@@ -261,3 +273,70 @@ void screen_init(void)
 	/* correct physical address */
 	setphys(screen_start, 1);
 }
+
+
+static struct fb_info fb;
+struct fb_info *info_fb = &fb;
+
+const char monitor_layout[];
+int16_t ignore_edid;
+struct mode_option resolution;
+int16_t force_measure_pll;
+
+void install_vbl_timer(void *func, int remove)
+{
+	dbg("%s: not implemented\r\n", __FUNCTION__);
+}
+
+void video_init(void)
+{
+	/*
+	 * detect PCI video card
+	 */
+	
+	int index = 0;
+	int32_t handle;
+	struct pci_device_id *board;
+	int32_t id;
+	
+	dbg("%s\r\n", __FUNCTION__);
+	do
+	{
+		/*
+		 * scan PCI bus for graphics cards
+		 */
+		handle = pci_find_classcode(PCI_BASE_CLASS_DISPLAY | PCI_FIND_BASE_CLASS, index);
+		if (handle > 0)		/* found a display device */
+		{
+			dbg("%s: handle = 0x%x\r\n", __FUNCTION__, handle);
+
+			id = swpl(pci_read_config_longword(handle, PCIIDR));		/* get vendor + device id */
+			dbg("%s: PCIIDR=0x%x\r\n", __FUNCTION__, id);
+
+			board = &radeonfb_pci_table[0];
+
+			do
+			{
+				/* check it against elements of table */
+				dbg("%s: check %x %x against %08x\r\n", __FUNCTION__, board->device, board->vendor, id);
+				if ((board->device == (id >> 16)) && (board->vendor == (id & 0xffff)))
+				{
+					dbg("%s: matched\r\n", __FUNCTION__);
+					if (radeonfb_pci_register(handle, board) >= 0)
+					{
+						dbg("%s: RADEON video card found and registered\r\n", __FUNCTION__);
+					}
+					else
+					{
+						dbg("%s: failed to register RADEON PCI video card\r\n", __FUNCTION__);
+					}
+					return;
+				}
+				board++;
+			} while (board->vendor);
+		}
+		index++;
+	} while (handle > 0);
+}
+
+

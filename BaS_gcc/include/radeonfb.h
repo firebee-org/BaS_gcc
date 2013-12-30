@@ -666,4 +666,6 @@ extern int16_t virtual;
 extern int16_t force_measure_pll;
 extern int16_t zoom_mouse;
 
+extern struct pci_device_id radeonfb_pci_table[];
+
 #endif /* __RADEONFB_H__ */
