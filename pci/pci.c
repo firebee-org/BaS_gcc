@@ -43,7 +43,7 @@
 #if MACHINE_FIREBEE
 #define pci_config_wait()	wait(40000);	/* FireBee USB not properly detected otherwise !?? */
 #elif MACHINE_M5484LITE
-#define pci_config_wait() do { __asm__ __volatile("tpf" :::); } while (0)
+#define pci_config_wait() do { __asm__ __volatile("tpf" ::: "memory"); } while (0)
 #endif
 
 /*
@@ -130,7 +130,7 @@ __attribute__((aligned(16))) void chip_errata_135(void)
 		"		tpf.l	#0x0\n\t"
 		"		tpf.l	#0x0\n\t"
 		"		tpf.l	#0x0\n\t"
-		:::);
+		::: "memory");
 }
 
 
