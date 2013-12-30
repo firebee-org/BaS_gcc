@@ -360,6 +360,20 @@ static void xaddchar(int c)
 		*xstring++ = (char) c;
 }
 
+int sprintf(char *str, const char *format, ...)
+{
+	va_list va;
+	va_start(va, format);
+
+	xstring = str;
+
+	doprnt(xaddchar, format, va);
+	va_end(va);
+	*xstring++ = '\0';
+
+	return 0;
+}
+
 void xsnprintf(char *str, size_t size, const char *fmt, ...)
 {
 	va_list va;
