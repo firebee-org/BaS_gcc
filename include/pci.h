@@ -228,6 +228,12 @@ extern void init_pci(void);
 extern int32_t pci_find_device(uint16_t device_id, uint16_t vendor_id, int index);
 extern int32_t pci_find_classcode(uint32_t classcode, int index);
 
+/*
+ * match bits for pci_find_classcode()
+ */
+#define PCI_FIND_BASE_CLASS		(1 << 26)
+#define PCI_FIND_SUB_CLASS		(1 << 25)
+#define PCI_FIND_PROG_IF		(1 << 24)
 
 extern uint32_t pci_read_config_longword(int32_t handle, int offset);
 extern uint16_t pci_read_config_word(int32_t handle, int offset);

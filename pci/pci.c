@@ -78,7 +78,7 @@ static struct pci_class
 static int num_pci_classes = sizeof(pci_classes) / sizeof(struct pci_class);
 
 #define NUM_CARDS		10
-#define NUM_RESOURCES	6
+#define NUM_RESOURCES	7
 /* holds the handle of a card at position = array index */
 static int32_t handles[NUM_CARDS];	
 
@@ -719,6 +719,45 @@ static void pci_device_config(uint16_t bus, uint16_t device, uint16_t function)
 			}		
 		}
 	}
+
+	/*
+	 * check if we have an expansion ROM
+	 */
+	value = swpl(pci_read_config_longword(handle, PCIERBAR));
+
+	/*
+	 * write all bits of PCIERBAR
+	 */
+	pci_write_config_longword(handle, PCIERBAR, 0xffffffff);
+
+	/*
+	 * read back value to see which bits have been set
+	 */
+	address = swpl(pci_read_config_longword(handle, PCIERBAR));
+	if (address & 1)
+	{
+		struct pci_rd *rd = &descriptors[barnum]; 
+		int size = ~(address & 0xfffff800);
+
+		/* expansion ROM active and mapped */
+
+		/* calculate a valid map adress with alignment requirements */
+		address = (mem_address + size - 1) & ~(size - 1);
+
+		/* write it to PCIERBAR */
+		pci_write_config_longword(handle, PCIERBAR, swpl(address));
+
+
+		rd->next = sizeof(struct pci_rd);
+		rd->flags = FLG_ROM | FLG_8BIT | FLG_16BIT | FLG_32BIT | 2;
+		rd->start = address;
+		rd->offset = 0;
+		rd->length = size;
+		rd->dmaoffset = 0;
+
+		barnum++;
+	}
+
 	/* mark end of resource chain */
 	if (barnum > 0)
 		descriptors[barnum - 1].flags |= FLG_LAST;
