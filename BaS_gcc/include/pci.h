@@ -191,16 +191,16 @@ typedef struct                       /* structure of address conversion     */
 #define PCI_COMMAND(i)		(((i) >> 16) & 0xffff)
 
 /* register 0x08 macros */
-#define PCI_CLASS_CODE(i)	((swpl((i)) & 0xffff0000) >> 16)
-#define PCI_SUBCLASS(i)		((swpl((i)) & 0xffffff00) >> 8)
-#define PCI_PROF_IF(i)		(((i) & 0xff00) >> 8)
-#define PCI_REVISION_ID(i)	(((i) & 0xff))
+#define PCI_CLASS_CODE(i)	((swpl((i)) & 0xff000000) >> 24)
+#define PCI_SUBCLASS(i)		((swpl((i)) & 0x00ff0000) >> 16)
+#define PCI_PROG_IF(i)		((swpl((i)) & 0x0000ff00) >> 8)
+#define PCI_REVISION_ID(i)	((swpl((i)) & 0x000000ff))
 
 /* register 0x0c macros */
-#define PCI_BIST(i)			(((i) & 0xff000000) >> 24)
-#define PCI_HEADER_TYPE(i)	(((i) & 0xff0000) >> 16)
-#define PCI_LAT_TIMER(i)	(((i) & 0xff00) >> 8)
-#define PCI_CACHELINE_SIZE(i)	(((i) & 0xff))
+#define PCI_BIST(i)			((swpl((i)) & 0xff000000) >> 24)
+#define PCI_HEADER_TYPE(i)	((swpl((i)) & 0x00ff0000) >> 16)
+#define PCI_LAT_TIMER(i)	((swpl((i)) & 0x0000ff00) >> 8)
+#define PCI_CACHELINE_SIZE(i)	((swpl((i)) & 0x000000ff))
 
 /* register 0x2c macros */
 #define PCI_SUBSYS_ID(i)	(((i) & 0xffff0000) >> 16)
@@ -220,11 +220,14 @@ typedef struct                       /* structure of address conversion     */
 #define PCI_MEMBAR_TYPE(i)	(((i) & 0x6) >> 1)
 #define PCI_IOBAR_ADR(i)	(((i) & 0xfffffffc))
 #define PCI_MEMBAR_ADR(i)	(((i) & 0xfffffff0))
+
 extern void init_eport(void);
 extern void init_xlbus_arbiter(void);
 extern void init_pci(void);
 
 extern int32_t pci_find_device(uint16_t device_id, uint16_t vendor_id, int index);
+extern int32_t pci_find_classcode(uint32_t classcode, int index);
+
 
 extern uint32_t pci_read_config_longword(int32_t handle, int offset);
 extern uint16_t pci_read_config_word(int32_t handle, int offset);
