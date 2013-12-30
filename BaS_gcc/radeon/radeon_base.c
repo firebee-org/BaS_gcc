@@ -475,7 +475,7 @@ static int radeon_probe_pll_params(struct radeonfb_info *rinfo)
 	ipl = set_ipl(0);
 
 	start_tv = get_timer();
-	while(read_vline_crnt(rinfo) != 0)
+	while (read_vline_crnt(rinfo) != 0)
 	{
 		if ((get_timer() - start_tv) > US_TO_TIMER(10000000UL))    /* 10 sec */
 		{
@@ -487,7 +487,7 @@ static int radeon_probe_pll_params(struct radeonfb_info *rinfo)
 	if (!timeout)
 	{
 		start_tv = get_timer();
-		while(read_vline_crnt(rinfo) == 0)
+		while (read_vline_crnt(rinfo) == 0)
 		{
 			if ((get_timer() - start_tv) > US_TO_TIMER(1000000UL))   /* 1 sec */
 			{
@@ -497,7 +497,7 @@ static int radeon_probe_pll_params(struct radeonfb_info *rinfo)
 		}
 		if (!timeout)
 		{
-			while(read_vline_crnt(rinfo) != 0)
+			while (read_vline_crnt(rinfo) != 0)
 			{
 				if ((get_timer() - start_tv) > US_TO_TIMER(10000000UL))    /* 10 sec */
 				{
@@ -1207,7 +1207,7 @@ static void radeon_write_pll_regs(struct radeonfb_info *rinfo, struct radeon_reg
 	OUTPLLP(PPLL_DIV_3, mode->ppll_div_3, ~PPLL_FB3_DIV_MASK);
 	OUTPLLP(PPLL_DIV_3, mode->ppll_div_3, ~PPLL_POST3_DIV_MASK);
 	/* Write update */
-	while(INPLL(PPLL_REF_DIV) & PPLL_ATOMIC_UPDATE_R);
+	while (INPLL(PPLL_REF_DIV) & PPLL_ATOMIC_UPDATE_R);
 	OUTPLLP(PPLL_REF_DIV, PPLL_ATOMIC_UPDATE_W, ~PPLL_ATOMIC_UPDATE_W);
 	/* Wait read update complete */
 	/* FIXME: Certain revisions of R300 can't recover here.  Not sure of
@@ -1227,7 +1227,7 @@ static void radeon_write_pll_regs(struct radeonfb_info *rinfo, struct radeon_reg
 static void radeon_wait_vbl(struct fb_info *info)
 {
 	uint32_t cnt = INREG(CRTC_CRNT_FRAME);
-	while(cnt == INREG(CRTC_CRNT_FRAME));
+	while (cnt == INREG(CRTC_CRNT_FRAME));
 }
 
 static void radeon_timer_func(void)
@@ -1273,7 +1273,7 @@ static void radeon_timer_func(void)
 		w += (int32_t)skipleft;
 		info->fbops->SetupForScanlineCPUToScreenColorExpandFill(info,(int)foreground,(int)background,3,0xffffffff);
 		info->fbops->SubsequentScanlineCPUToScreenColorExpandFill(info,(int)dst_x,0,w,h,skipleft);
-		while(--h >= 0)
+		while (--h >= 0)
 		{
 			info->fbops->SubsequentScanline(info, (unsigned long *) src_buf);
 			src_buf += (info->var.xres_virtual >> 3);
@@ -1430,7 +1430,7 @@ static void radeon_calc_pll_regs(struct radeonfb_info *rinfo, struct radeon_regs
 	 * divider. I'll find a better fix once I have more infos on the
 	 * real cause of the problem.
 	 */
-	while(rinfo->has_CRTC2)
+	while (rinfo->has_CRTC2)
 	{
 		uint32_t fp2_gen_cntl = INREG(FP2_GEN_CNTL);
 		uint32_t disp_output_cntl;
@@ -1972,11 +1972,13 @@ int32_t radeonfb_pci_register(int32_t handle, const struct pci_device_id *ent)
 	info = framebuffer_alloc(sizeof(struct radeonfb_info));
 	if (!info)
 		return -1; // -ENOMEM;
+
 	rinfo = info->par;
+
 	rinfo->info = info;
 	rinfo->handle = handle;
-	rinfo->name[11] = (char)(ent->device >> 8);
-	rinfo->name[12] = (char)ent->device;
+	rinfo->name[11] = (char) (ent->device >> 8);
+	rinfo->name[12] = (char) ent->device;
 	rinfo->family = ent->driver_data & CHIP_FAMILY_MASK;
 	rinfo->chipset = ent->device;
 	rinfo->has_CRTC2 = (ent->driver_data & CHIP_HAS_CRTC2) != 0;

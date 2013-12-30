@@ -541,42 +541,11 @@ extern void udelay(long usec);
 #define US_TO_TIMER(a) (((a)*256)/5000)
 #define TIMER_TO_US(a) (((a)*5000)/256)
 #endif
-extern long get_timer(void);
 extern void start_timeout(void);
 extern int end_timeout(long msec);
 extern void mdelay(long msec);
 extern void install_vbl_timer(void *func, int remove);
 extern void uninstall_vbl_timer(void *func);
-
-/*
- * fVDI access
- */
-extern void Funcs_copymem(const void *s, void *d, long n);
-extern const char *Funcs_next_line(const char *ptr);
-extern const char *Funcs_skip_space(const char *ptr);
-extern const char *Funcs_get_token(const char *ptr, char *buf, long n);
-extern long Funcs_equal(const char *str1, const char *str2);
-extern long Funcs_length(const char *text);
-extern void Funcs_copy(const char *src, char *dest);
-extern void Funcs_cat(const char *src, char *dest);
-extern long Funcs_numeric(long ch);
-extern long Funcs_atol(const char *text);
-extern void Funcs_error(const char *text1, const char *text2);
-extern void *Funcs_malloc(long size, long type);
-extern long Funcs_free(void *addr);
-extern int Funcs_puts(const char *text);
-extern void Funcs_ltoa(char *buf, long n, unsigned long base);
-extern long Funcs_get_cookie(const unsigned char *cname, long super);
-extern long Funcs_set_cookie(const unsigned char *cname, long value);
-//extern long Funcs_fixup_font(Fontheader *font, char *buffer, long flip);
-//extern long Funcs_unpack_font(Fontheader *header, long format);
-//extern long Funcs_insert_font(Fontheader **first_font, Fontheader *new_font);
-extern long Funcs_get_size(const char *name);
-extern char *Funcs_allocate_block(long size);
-extern void Funcs_free_block(void *address);
-extern void Funcs_cache_flush(void);
-extern long Funcs_misc(long func, long par, const char *token);
-extern long Funcs_event(long id_type, long data); 
 
 extern struct fb_info *info_fvdi;
 #endif /* _FB_H */

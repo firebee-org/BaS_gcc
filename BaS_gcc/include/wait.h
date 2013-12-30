@@ -42,6 +42,10 @@ typedef bool (*checker_func)(void);
 extern __inline__ void wait(uint32_t) __attribute__((always_inline));
 extern __inline__ bool waitfor(uint32_t us, checker_func condition) __attribute__((always_inline));
 
+extern __inline__ uint32_t get_timer(void)
+{
+	return MCF_SLT_SCNT(0);
+}
 /*
  * wait for the specified number of us on slice timer 0. Replaces the original routines that had
  * the number of useconds to wait for hardcoded in their name.
