@@ -65,7 +65,7 @@
 #ifdef DBG_RADEON
 #define dbg(format, arg...) do { xprintf("DEBUG: " format, ##arg); } while (0)
 #else
-#defind dbg(format, arg...) do { ; } while (0)
+#define dbg(format, arg...) do { ; } while (0)
 #endif /* DBG_RADEON */
 
 extern void run_bios(struct radeonfb_info *rinfo);
