@@ -258,16 +258,16 @@ typedef struct {
 	volatile int                intr;   /* mask of pending interrupts */
 	int                         debug;
 #ifdef DBG_X86EMU
-	int                         check;
-	uint16_t                         saved_ip;
-	uint16_t                         saved_cs;
-	int                         enc_pos;
-	int                         enc_str_pos;
-	//    char                        decode_buf[32]; /* encoded byte stream  */
-	char                        decoded_buf[256]; /* disassembled strings */
+	int check;
+	uint16_t saved_ip;
+	uint16_t saved_cs;
+	int enc_pos;
+	int enc_str_pos;
+	//    char decode_buf[32]; /* encoded byte stream  */
+	char decoded_buf[256]; /* disassembled strings */
 #endif
-	uint8_t                          intno;
-	uint8_t                          __pad[3];
+	uint8_t intno;
+	uint8_t __pad[3];
 } X86EMU_regs;
 
 /****************************************************************************
@@ -281,12 +281,13 @@ mem_size		- Size of the real mode memory block for the emulator
 private			- private data pointer
 x86			- X86 registers
  ****************************************************************************/
-typedef struct {
-	unsigned long	mem_base;
-	unsigned long	mem_size;
-	unsigned long	abseg;
-	void*        	private;
-	X86EMU_regs		x86;
+typedef struct
+{
+	unsigned long mem_base;
+	unsigned long mem_size;
+	unsigned long abseg;
+	void* private;
+	X86EMU_regs x86;
 } X86EMU_sysEnv;
 
 //#pragma pack()
@@ -302,9 +303,9 @@ extern "C" {            			/* Use "C" linkage when in C++ mode */
  * We keep it global to avoid pointer dereferences in the code for speed.
  */
 
-extern    X86EMU_sysEnv	_X86EMU_env;
+extern X86EMU_sysEnv	_X86EMU_env;
 
-#define   M             _X86EMU_env
+#define   M _X86EMU_env
 
 #define X86_EAX M.x86.R_EAX
 #define X86_EBX M.x86.R_EBX
@@ -345,9 +346,9 @@ extern    X86EMU_sysEnv	_X86EMU_env;
 #define X86_DH M.x86.R_DH
 
 
-	/*-------------------------- Function Prototypes --------------------------*/
+/*-------------------------- Function Prototypes --------------------------*/
 
-	/* Function to log information at runtime */
+/* Function to log information at runtime */
 
 #ifdef  __cplusplus
 }                       			/* End of "C" linkage for C++   	*/
