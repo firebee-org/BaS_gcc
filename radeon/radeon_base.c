@@ -857,7 +857,7 @@ int radeonfb_pan_display(struct fb_var_screeninfo *var, struct fb_info *info)
 		return -1; //-EINVAL;
 	if (rinfo->asleep)
 		return 0;
-	radeon_fifo_wait(rinfo, 2);
+	radeon_wait_for_fifo(rinfo, 2);
 	rinfo->fb_offset = ((var->yoffset * var->xres_virtual + var->xoffset) * var->bits_per_pixel / 8) & ~7;
 	rinfo->dst_pitch_offset = (rinfo->pitch << 22) | ((rinfo->fb_local_base + rinfo->fb_offset) >> 10);
 	OUTREG(CRTC_OFFSET, rinfo->fb_offset);
@@ -881,7 +881,7 @@ int radeonfb_ioctl(unsigned int cmd, unsigned long arg, struct fb_info *info)
 		case FBIO_RADEON_SET_MIRROR:
 			if (!rinfo->is_mobility)
 				return -1; //-EINVAL;
-			radeon_fifo_wait(rinfo, 2);
+			radeon_wait_for_fifo(rinfo, 2);
 
 			if (value & 0x01)
 			{
@@ -1056,7 +1056,7 @@ static int radeon_setcolreg(unsigned regno, unsigned red, unsigned green,
 	pindex = regno;
 	if (!rinfo->asleep)
 	{
-		radeon_fifo_wait(rinfo, 9);
+		radeon_wait_for_fifo(rinfo, 9);
 		if (rinfo->bpp == 16)
 		{
 			pindex = regno * 8;
@@ -1148,7 +1148,7 @@ static void radeon_write_pll_regs(struct radeonfb_info *rinfo, struct radeon_reg
 {
 	int i;
 	dbg("radeonfb: radeon_write_pll_regs\r\n");
-	radeon_fifo_wait(rinfo, 20);
+	radeon_wait_for_fifo(rinfo, 20);
 #if 0
 	/* Workaround from XFree */
 	if (rinfo->is_mobility)
@@ -1340,7 +1340,7 @@ void radeon_write_mode(struct radeonfb_info *rinfo, struct radeon_regs *mode, in
 	dbg("radeonfb: radeon_write_mode\r\n");
 	if (!regs_only)
 		radeon_screen_blank(rinfo, FB_BLANK_NORMAL, 0);
-	radeon_fifo_wait(rinfo, 31);
+	radeon_wait_for_fifo(rinfo, 31);
 	for(i=0; i<10; i++)
 		OUTREG(common_regs[i].reg, common_regs[i].val);
 	/* Apply surface registers */
@@ -1377,7 +1377,7 @@ void radeon_write_mode(struct radeonfb_info *rinfo, struct radeon_regs *mode, in
 	radeon_write_pll_regs(rinfo, mode);
 	if ((primary_mon == MT_DFP) || (primary_mon == MT_LCD))
 	{
-		radeon_fifo_wait(rinfo, 10);
+		radeon_wait_for_fifo(rinfo, 10);
 		OUTREG(FP_CRTC_H_TOTAL_DISP, mode->fp_crtc_h_total_disp);
 		OUTREG(FP_CRTC_V_TOTAL_DISP, mode->fp_crtc_v_total_disp);
 		OUTREG(FP_H_SYNC_STRT_WID, mode->fp_h_sync_strt_wid);
@@ -1390,7 +1390,7 @@ void radeon_write_mode(struct radeonfb_info *rinfo, struct radeon_regs *mode, in
 	}
 	if (!regs_only)
 		radeon_screen_blank(rinfo, FB_BLANK_UNBLANK, 0);
-	radeon_fifo_wait(rinfo, 2);
+	radeon_wait_for_fifo(rinfo, 2);
 	OUTPLL(VCLK_ECP_CNTL, mode->vclk_ecp_cntl);
 }
 
@@ -1869,7 +1869,7 @@ static void radeon_identify_vram(struct radeonfb_info *rinfo)
 	{
 		uint32_t tom = INREG(NB_TOM);
 		tmp = ((((tom >> 16) - (tom & 0xffff) + 1) << 6) * 1024);
-		radeon_fifo_wait(rinfo, 6);
+		radeon_wait_for_fifo(rinfo, 6);
 		OUTREG(MC_FB_LOCATION, tom);
 		OUTREG(DISPLAY_BASE_ADDR, (tom & 0xffff) << 16);
 		OUTREG(CRTC2_DISPLAY_BASE_ADDR, (tom & 0xffff) << 16);
