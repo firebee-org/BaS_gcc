@@ -39,8 +39,8 @@
 
 #include "x86debug.h"
 #include "x86emui.h"
-#include "fpu.h"
-#include "fpu_regs.h"
+#include "x86fpu.h"
+#include "x86fpu_regs.h"
 
 /*----------------------------- Implementation ----------------------------*/
 

@@ -86,14 +86,14 @@ SECTIONS
 		OBJDIR/fbmodedb.o
 		OBJDIR/offscreen.o
 
-		OBJDIR/decode.o
-		OBJDIR/ops.o
-		OBJDIR/ops2.o
-		OBJDIR/fpu.o
-		OBJDIR/sys.o
-		OBJDIR/biosemu.o
-		OBJDIR/debug.o
-		OBJDIR/prim_ops.o
+		OBJDIR/x86decode.o
+		OBJDIR/x86ops.o
+		OBJDIR/x86ops2.o
+		OBJDIR/x86fpu.o
+		OBJDIR/x86sys.o
+		OBJDIR/x86biosemu.o
+		OBJDIR/x86debug.o
+		OBJDIR/x86prim_ops.o
 		OBJDIR/x86pcibios.o
 
 		OBJDIR/radeon_base.o

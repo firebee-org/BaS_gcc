@@ -658,7 +658,7 @@ extern int32_t radeonfb_pci_register(int32_t handle, const struct pci_device_id 
 extern void radeonfb_pci_unregister(void);
 
 /* global */
-extern uint8_t monitor_layout[];
+extern const char monitor_layout[];
 extern int16_t default_dynclk;
 extern int16_t ignore_edid;
 extern int16_t mirror;

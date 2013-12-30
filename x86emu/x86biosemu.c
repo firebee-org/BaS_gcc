@@ -528,7 +528,7 @@ void run_bios(struct radeonfb_info *rinfo)
 	struct pci_data *rom_data;
 	unsigned long rom_size=0;
 	unsigned long image_size=0;
-	unsigned long biosmem = 0x01000000; /* when run_bios() is called, SDRAM is valid but not added to the system */
+	void *biosmem = (void *) 0x01000000; /* when run_bios() is called, SDRAM is valid but not added to the system */
 	unsigned long addr;
 	unsigned short initialcs;
 	unsigned short initialip;
