@@ -1,5 +1,5 @@
 /*
- * File:        arp.c
+ * File:        bootp.c
  * Purpose:     Address Resolution Protocol routines.
  *
  * Notes:
@@ -11,7 +11,14 @@
 #include <stddef.h>
 #include "bas_printf.h"
 
-#define TIMER_NETWORK 3
+#define DBG_BOOTP
+#ifdef DBG_BOOTP
+#define dbg(format, arg...) do { xprintf("DEBUG: " format, ##arg); } while (0)
+#else
+#define dbg(format, arg...) do { ; } while (0)
+#endif /* DBG_BOOTP */
+
+#define TIMER_NETWORK 3			/* defines GPT3 as timer for this function */
 
 static struct bootp_connection connection;
 #define XID			0x1234		/* this is arbitrary */
@@ -52,6 +59,7 @@ void bootp_request(NIF *nif, uint8_t *pa)
 
 	connection.nif = nif;
 	addr = &nif->hwa[0];
+
 	for (i = 0; i < 6; i++)
 		p->ch_addr[i] = addr[i];
 
@@ -65,7 +73,7 @@ void bootp_request(NIF *nif, uint8_t *pa)
 		/* Send the BOOTP request */
 		result = udp_send(connection.nif, broadcast, BOOTP_CLIENT_PORT,
 							BOOTP_SERVER_PORT, nbuf);
-		xprintf("sent bootp request\r\n");
+		dbg("sent bootp request\r\n");
 		if (result == true)
 			break;
 	}
@@ -86,6 +94,8 @@ void bootp_handler(NIF *nif, NBUF *nbuf)
 	struct bootp_packet *rx_p;
 	udp_frame_hdr *udpframe;
 
+	dbg("%s\n", __FUNCTION__);
+
 	rx_p = (struct bootp_packet *) &nbuf->data[nbuf->offset];
 	udpframe = (udp_frame_hdr *) &nbuf->data[nbuf->offset - UDP_HDR_SIZE];
 
@@ -93,7 +103,7 @@ void bootp_handler(NIF *nif, NBUF *nbuf)
 
 	if (rx_p->type == BOOTP_TYPE_BOOTREPLY && rx_p->xid == XID)
 	{
-		xprintf("received bootp reply\r\n");
+		dbg("received bootp reply\r\n");
 		/* seems to be valid */
 	
 	}
@@ -101,7 +111,5 @@ void bootp_handler(NIF *nif, NBUF *nbuf)
 	{
 		/* not valid */
 		return;
-}
-
-	return;
+	}
 }

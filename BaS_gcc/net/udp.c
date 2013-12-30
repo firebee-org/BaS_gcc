@@ -11,12 +11,12 @@
 #include "net.h"
 #include <stddef.h>
 
-#define UDP_DEBUG
-#if defined(UDP_DEBUG)
+#define DBG_UDP
+#if defined(DBG_UDP)
 #define dbg(format, arg...) do { xprintf("DEBUG: " format "\r\n", ##arg); } while (0)
 #else
 #define dbg(format, arg...) do { ; } while (0)
-#endif
+#endif /* DBG_UDP */
 
 typedef struct
 {
