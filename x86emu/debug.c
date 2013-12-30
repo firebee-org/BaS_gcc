@@ -154,17 +154,17 @@ void x86emu_check_mem_access(uint32_t dummy)
     /*  check bounds, etc */
 }
 
-void x86emu_check_data_access (unsigned int dummy1, unsigned int dummy2)
+void x86emu_check_data_access(unsigned int dummy1, unsigned int dummy2)
 {
     /*  check bounds, etc */
 }
 
-void x86emu_inc_decoded_inst_len (int x)
+void x86emu_inc_decoded_inst_len(int x)
 {
 	M.x86.enc_pos += x;
 }
 
-void x86emu_decode_printf (char *x)
+void x86emu_decode_printf(char *x)
 {
 #ifdef DBG_X86EMU
 	strcpy(x, &M.x86.decoded_buf[M.x86.enc_str_pos & 127]);
@@ -172,44 +172,18 @@ void x86emu_decode_printf (char *x)
 #endif
 }
 
-void x86emu_decode_printf2 (char *x, int y)
+void x86emu_decode_printf2(char *x, int y)
 {
 	char temp[100], *p;
 
-	doprnt(xaddchar, x, y);
 #ifdef DBG_X86EMU
-	{
-		p = temp;
-		while (x[0] != 0)
-		{
-			if (x[0] =='%' && x[1] =='d')
-			{
-				x += 2;
-	      		Funcs_ltoa(p, y, 10);
-	      		while (p[0] != 0)
-	      			p++;    
-			}
-			else if (x[0] == '%' && x[1] == 'x')
-			{
-				x += 2;
-				*p++ = '0';
-				*p++ = 'x';
-				y &= 0xffff;
-	      		Funcs_ltoa(p, y, 16);
-	      		while (p[0] != 0)
-	      			p++;      
-			}
-			else
-				*p++ = *x++;
-		}
-		*p = 0;
-		strcpy(temp, &M.x86.decoded_buf[M.x86.enc_str_pos & 127]);
-		M.x86.enc_str_pos += strlen(temp);
-	}
+	sprintf(temp, x, y);
+	strcpy(temp, &M.x86.decoded_buf[M.x86.enc_str_pos & 127]);
+	M.x86.enc_str_pos += strlen(temp);
 #endif
 }
 
-void x86emu_end_instr (void)
+void x86emu_end_instr(void)
 {
     M.x86.enc_str_pos = 0;
     M.x86.enc_pos = 0;

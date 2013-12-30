@@ -352,7 +352,7 @@ static void doprnt(void (*addchar)(int), const char *sfmt, va_list ap)
 
 static char *xstring, *xestring;
 
-static void xaddchar(int c)
+void xaddchar(int c)
 {
 	if (xestring == xstring)
 		*xstring = '\0';
