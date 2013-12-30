@@ -189,7 +189,7 @@ void x86emu_decode_printf2 (char *x, int y)
 	      		while (p[0] != 0)
 	      			p++;    
 			}
-			else if (x[0]=='%' && x[1]=='x')
+			else if (x[0] == '%' && x[1] == 'x')
 			{
 				x += 2;
 				*p++ = '0';
