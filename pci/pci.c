@@ -498,6 +498,84 @@ int32_t pci_find_device(uint16_t device_id, uint16_t vendor_id, int index)
 	return PCI_DEVICE_NOT_FOUND;
 }
 
+/*
+ * pci_find_classcode(uint32_t classcode, int index)
+ *
+ * Find the index'th pci device with a specific classcode. Bits 0-23 describe this classcode.
+ * Bits 24 - 26 describe what needs to match: 24: prog interface, 25: PCI subclass, 26: PCI base class.
+ * If no bits are set, there is a match for each device.
+ */
+int32_t pci_find_classcode(uint32_t classcode, int index)
+{
+	uint16_t bus;
+	uint16_t device;
+	uint16_t function = 0;
+	uint16_t n = 0;
+	int32_t handle;
+
+	for (bus = 0; bus < 2; bus++)
+	{
+		for (device = 10; device < 31; device++)
+		{
+			uint32_t value;
+			uint8_t htr;
+
+			handle = PCI_HANDLE(bus, device, 0);
+
+			value = pci_read_config_longword(handle, PCIIDR);
+			
+			if (value != 0xffffffff)	/* device found */
+			{
+				value = pci_read_config_longword(handle, PCICCR);
+			
+				if ((classcode & (1 << 26) ? ((PCI_CLASS_CODE(value) == (classcode & 0xff))) : true) &&
+					(classcode & (1 << 25) ? ((PCI_SUBCLASS(value) == ((classcode & 0xff00) >> 8))) : true) &&
+					(classcode & (1 << 24) ? ((PCI_PROG_IF(value) == ((classcode & 0xff0000) >> 16))) : true))
+				{
+					if (n == index)
+					{
+						return handle;
+					}
+					n++;
+				}
+
+				/*
+			 	* there is a device at this position, but not the one we are looking for.
+			 	* Check to see if it is a multi-function device. We need to look "behind" it
+			 	* for the other functions in that case.
+			 	*/
+				if ((htr = pci_read_config_byte(handle, PCIHTR)) & 0x80)
+				{
+					/* yes, this is a multi-function device, look for more functions */
+
+					for (function = 1; function < 8; function++)
+					{
+						handle = PCI_HANDLE(bus, device, function);
+						value = pci_read_config_longword(handle, PCIIDR);
+
+						if (value != 0xffffffff)	/* device found */
+						{
+							value = pci_read_config_longword(handle, PCICCR);
+
+							if ((classcode & (1 << 26) ? ((PCI_CLASS_CODE(value) == (classcode & 0xff))) : true) &&
+								(classcode & (1 << 25) ? ((PCI_SUBCLASS(value) == ((classcode & 0xff00) >> 8))) : true) &&
+								(classcode & (1 << 24) ? ((PCI_PROG_IF(value) == ((classcode & 0xff0000) >> 16))) : true))
+							{
+								if (n == index)
+								{
+									return handle;
+								}
+								n++;
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+	return PCI_DEVICE_NOT_FOUND;
+}
+
 int32_t pci_hook_interrupt(int32_t handle, void *handler, void *parameter)
 {
 	/* FIXME: implement */
