@@ -45,6 +45,7 @@
 #include "nbuf.h"
 #include "nif.h"
 #include "fec.h"
+#include "bootp.h"
 #include "interrupts.h"
 #include "exceptions.h"
 
