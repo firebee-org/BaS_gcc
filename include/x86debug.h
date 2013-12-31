@@ -37,13 +37,13 @@
 ****************************************************************************/
 /* $XFree86: xc/extras/x86emu/src/x86emu/x86emu/debug.h,v 1.4 2000/11/21 23:10:27 tsi Exp $ */
 
+#include <stdint.h>
+#include "bas_printf.h"
+
 /*
  * for the X86 emulator, debug cannot be enabled and disabled on a per-file mode
  * as with all the other modules. It must be centrally enabled here.
  */
-
-#include <stdint.h>
-#include "bas_printf.h"
 
 #define DBG_X86EMU
 

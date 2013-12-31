@@ -288,6 +288,9 @@ void install_vbl_timer(void *func, int remove)
 	dbg("%s: not implemented\r\n", __FUNCTION__);
 }
 
+/*
+ * detect and initialise PCI graphics cards
+ */
 void video_init(void)
 {
 	/*
@@ -298,6 +301,7 @@ void video_init(void)
 	int32_t handle;
 	struct pci_device_id *board;
 	int32_t id;
+	bool radeon_found = false;
 	
 	dbg("%s\r\n", __FUNCTION__);
 	do
@@ -321,6 +325,8 @@ void video_init(void)
 				dbg("%s: check %x %x against %08x\r\n", __FUNCTION__, board->device, board->vendor, id);
 				if ((board->device == (id >> 16)) && (board->vendor == (id & 0xffff)))
 				{
+					radeon_found = true;
+
 					dbg("%s: matched\r\n", __FUNCTION__);
 					if (radeonfb_pci_register(handle, board) >= 0)
 					{
@@ -337,6 +343,8 @@ void video_init(void)
 		}
 		index++;
 	} while (handle > 0);
+	dbg("%s: RADEON video card %sfound and %sregistered\r\n", __FUNCTION__,
+					(radeon_found ? "" : "not "), (radeon_found ? "" : "not "));
 }
 
 
