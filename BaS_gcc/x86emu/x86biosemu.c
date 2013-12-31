@@ -105,10 +105,10 @@ uint8_t inb(uint16_t port)
 
 	if ((port >= offset_port) && (port <= offset_port + 0xFF))
 	{
-		dbg("%s:\r\n", __FUNCTION__);
+		//dbg("%s:\r\n", __FUNCTION__);
 
 		val = *(uint8_t *)(offset_io+(uint32_t)port);
-		dbg("%s: inb(0x%x) = 0x%x\r\n", __FUNCTION__, port, val);
+		//dbg("%s: inb(0x%x) = 0x%x\r\n", __FUNCTION__, port, val);
 	}
 	return val;
 }
@@ -119,9 +119,9 @@ uint16_t inw(uint16_t port)
 
 	if ((port >= offset_port) && (port <= offset_port+0xFF))
 	{
-		dbg("inw(");
+		//dbg("inw(");
 		val = swpw(*(uint16_t *)(offset_io+(uint32_t)port));
-		dbg("0x%x) = 0x%x\r\n", port, val);
+		//dbg("0x%x) = 0x%x\r\n", port, val);
 	}
 	return val;
 }
@@ -131,15 +131,15 @@ uint32_t inl(uint16_t port)
 	uint32_t val = 0;
 	if ((port >= offset_port) && (port <= offset_port+0xFF))
 	{
-		dbg("inl(");
+		//dbg("inl(");
 		val = swpl(*(uint32_t *)(offset_io+(uint32_t)port));
-		dbg("0x%x) = 0x%x\r\n", port, val);
+		//dbg("0x%x) = 0x%x\r\n", port, val);
 	}
 	else if (port == 0xCF8)
 	{
-		dbg("inl(");
+		//dbg("inl(");
 		val = config_address_reg;
-		dbg("0x%x) = 0x%x\r\n", port, val);
+		//dbg("0x%x) = 0x%x\r\n", port, val);
 	}
 	else if ((port == 0xCFC) && ((config_address_reg & 0x80000000) != 0))
 	{
@@ -155,16 +155,21 @@ uint32_t inl(uint16_t port)
 			val = pci_read_config_longword(rinfo_biosemu->handle, config_address_reg & 0xFC);
 			break;
 		}
-		dbg("inl(0x%x) = 0x%x\r\n", port, val);
+		//dbg("inl(0x%x) = 0x%x\r\n", port, val);
 	}
 	return val;
 }
+
+#ifdef DBG_X86EMU
+#undef DBG_X86EMU
+#define DBG_
+#endif
 
 void outb(uint8_t val, uint16_t port)
 {
 	if ((port >= offset_port) && (port <= offset_port + 0xFF))
 	{
-		dbg("outb(0x%x, 0x%x)\r\n", port, val);
+		//dbg("outb(0x%x, 0x%x)\r\n", port, val);
 		*(uint8_t *)(offset_io + (uint32_t) port) = val;
 	}
 }
@@ -173,7 +178,7 @@ void outw(uint16_t val, uint16_t port)
 {
 	if ((port >= offset_port) && (port <= offset_port + 0xFF))
 	{
-		dbg("outw(0x%x, 0x%x)\r\n", port, val);
+		//dbg("outw(0x%x, 0x%x)\r\n", port, val);
 		*(uint16_t *)(offset_io + (uint32_t) port) = swpw(val);
 	}
 }
@@ -182,12 +187,12 @@ void outl(uint32_t val, uint16_t port)
 {
 	if ((port >= offset_port) && (port <= offset_port + 0xFF))
 	{
-		dbg("outl(0x%x, 0x%x)\r\n", port, val);
+		//dbg("outl(0x%x, 0x%x)\r\n", port, val);
 		*(uint32_t *)(offset_io + (uint32_t) port) = swpl(val);
 	}
 	else if (port == 0xCF8)
 	{
-		dbg("outl(0x%x, 0x%x)\r\n", port, val);
+		//dbg("outl(0x%x, 0x%x)\r\n", port, val);
 		config_address_reg = val;
 	}
 	else if ((port == 0xCFC) && ((config_address_reg & 0x80000000) !=0))
@@ -196,11 +201,15 @@ void outl(uint32_t val, uint16_t port)
 			offset_port = (uint16_t)val & 0xFFFC;
 		else
 		{
-			dbg("outl(0x%x, 0x%x)\r\n", port, val);
+			//dbg("outl(0x%x, 0x%x)\r\n", port, val);
 			pci_write_config_longword(rinfo_biosemu->handle, config_address_reg & 0xFC, val);
 		}
 	}
 }
+
+#ifdef DBG_
+#define DBG_X86EMU
+#endif
 
 /* Interrupt multiplexer */
 
@@ -356,7 +365,7 @@ static int setup_system_bios(void *base_addr)
 	 * TODO: implement hlt-handler for these
 	 */
 //	for(i=0; i<0x10000; base[i++]=0xF4);
-	for(i=0; i<SIZE_EMU; base[i++]=0xF4);
+	for(i = 0; i < SIZE_EMU; base[i++] = 0xF4);
 	/* set bios date */
 	//strcpy(base + 0x0FFF5, "06/11/99");
 	/* set up eisa ident string */
@@ -387,8 +396,7 @@ static uint8_t find_vga_entry(uint8_t mode)
 			line=i;
 			break;
 		}
-	}
-	return(line);
+	} return(line);
 }
 
 void biosfn_set_video_mode(uint8_t mode)
@@ -565,7 +573,8 @@ void run_bios(struct radeonfb_info *rinfo)
 	rom_size = (unsigned long) BIOS_IN8((long) &rom_header->size) * 512;
 	if (PCI_CLASS_DISPLAY_VGA == BIOS_IN16((long) &rom_data->class_hi))
 	{
-		biosmem = driver_mem_alloc(SIZE_EMU);
+		//biosmem = driver_mem_alloc(SIZE_EMU);
+		biosmem = (char *) 0x100000;
 		if (biosmem == 0)
 		{
 			dbg("%s: could not allocate X86 BIOS memory\r\n", __FUNCTION__);
