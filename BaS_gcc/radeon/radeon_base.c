@@ -61,7 +61,7 @@
 #include "bas_printf.h"
 #include "exceptions.h"		/* for set_ipl() */
 
-#define DBG_RADEON
+//#define DBG_RADEON
 #ifdef DBG_RADEON
 #define dbg(format, arg...) do { xprintf("DEBUG: " format, ##arg); } while (0)
 #else
@@ -2117,7 +2117,7 @@ int32_t radeonfb_pci_register(int32_t handle, const struct pci_device_id *ent)
 	if ((rinfo->bios_seg != NULL))
 	{
 		dbg("%s: run VGA BIOS\r\n", __FUNCTION__);
-		run_bios(rinfo);
+		//run_bios(rinfo);
 	}
 	else
 	{
