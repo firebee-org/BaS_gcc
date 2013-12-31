@@ -7,7 +7,7 @@
 #include "fb.h"
 #include "radeonfb.h"
 
-#define DBG_VIDEO
+//#define DBG_VIDEO
 #ifdef DBG_VIDEO
 #define dbg(format, arg...) do { xprintf("DEBUG: " format, ##arg); } while (0)
 #else
@@ -330,7 +330,7 @@ void video_init(void)
 					dbg("%s: matched\r\n", __FUNCTION__);
 					if (radeonfb_pci_register(handle, board) >= 0)
 					{
-						dbg("%s: RADEON video card found and registered\r\n", __FUNCTION__);
+						xprintf("RADEON video card found and registered\r\n");
 					}
 					else
 					{

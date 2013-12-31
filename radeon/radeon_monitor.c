@@ -5,7 +5,7 @@
 #include "bas_printf.h"
 #include "bas_string.h"
 
-#define DBG_MONITOR
+//#define DBG_MONITOR
 #ifdef DBG_MONITOR 
 #define dbg(format, arg...) do { xprintf("DEBUG: " format, ##arg); } while (0)
 #else
