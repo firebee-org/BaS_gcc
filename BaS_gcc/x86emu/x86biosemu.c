@@ -105,10 +105,10 @@ uint8_t inb(uint16_t port)
 
 	if ((port >= offset_port) && (port <= offset_port + 0xFF))
 	{
-		dbg("inb(");
+		dbg("%s:\r\n", __FUNCTION__);
 
 		val = *(uint8_t *)(offset_io+(uint32_t)port);
-		dbg("0x%x) = 0x%x\r\n", port, val);
+		dbg("%s: inb(0x%x) = 0x%x\r\n", __FUNCTION__, port, val);
 	}
 	return val;
 }
@@ -537,7 +537,7 @@ void run_bios(struct radeonfb_info *rinfo)
 
 	if ((rinfo->mmio_base == NULL) || (rinfo->io_base == NULL))
 	{
-		dbg("%s: rinfo->mmio_base = %p, rinfo->io_base = %p\r\n", __FUNCTION__);
+		dbg("%s: rinfo->mmio_base = %p, rinfo->io_base = %p\r\n", __FUNCTION__, rinfo->mmio_base, rinfo->io_base);
 		return;
 	}
 	rinfo_biosemu = rinfo;
@@ -573,7 +573,7 @@ void run_bios(struct radeonfb_info *rinfo)
 		}
 		memset((char *) biosmem, 0, SIZE_EMU);
 		setup_system_bios((char *) biosmem);
-		dbg("Copying VGA ROM Image from %p to %p (0x%lx bytes)\r\n", (long) rinfo->bios_seg + (long) rom_header,
+		dbg("%s: Copying VGA ROM Image from %p to %p (0x%lx bytes)\r\n", __FUNCTION__, (long) rinfo->bios_seg + (long) rom_header,
 				biosmem + PCI_VGA_RAM_IMAGE_START, rom_size);
 		{
 			long bytes_align = (long) rom_header & 3;
@@ -605,7 +605,7 @@ void run_bios(struct radeonfb_info *rinfo)
 #endif /* USE_SDRAM */
 		setup_system_bios((char *)biosmem);
 		memset((char *)biosmem, 0, SIZE_EMU);
-		dbg("Copying non-VGA ROM Image from %p to %p (0x%lx bytes)\r\n",
+		dbg("%s: Copying non-VGA ROM Image from %p to %p (0x%lx bytes)\r\n", __FUNCTION__,
 				(long) rinfo->bios_seg + (long) rom_header,
 				biosmem + PCI_RAM_IMAGE_START,
 				rom_size);
@@ -660,11 +660,11 @@ void run_bios(struct radeonfb_info *rinfo)
 	X86EMU_trace_on();
 	X86EMU_set_debug(DEBUG_DECODE_F | DEBUG_TRACE_F);
 #endif
-	dbg("X86EMU entering emulator\r\n");
+	dbg("%s: X86EMU entering emulator\r\n", __FUNCTION__);
 	//*vblsem = 0;
 	X86EMU_exec();
 	//*vblsem = 1;
-	dbg("X86EMU halted\r\n");
+	dbg("%s: X86EMU halted\r\n", __FUNCTION__);
 //	biosfn_set_video_mode(0x13); /* 320 x 200 x 256 colors */
 #ifdef USE_SDRAM
 #if 0

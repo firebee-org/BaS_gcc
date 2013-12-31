@@ -13,29 +13,30 @@
 #endif /* DBG_MONITOR */
 
 #ifndef INT_MAX
-#define INT_MAX ((int)(~0U>>1))
+#define INT_MAX ((int) (~0U >> 1))
 #endif
 
-static struct fb_var_screeninfo radeonfb_default_var = {
-	.xres		= 640,
-	.yres		= 480,
-	.xres_virtual	= 640,
-	.yres_virtual	= 480,
+static struct fb_var_screeninfo radeonfb_default_var =
+{
+	.xres = 640,
+	.yres = 480,
+	.xres_virtual = 640,
+	.yres_virtual = 480,
 	.bits_per_pixel = 8,
-	.red		= { .length = 8 },
-	.green		= { .length = 8 },
-	.blue		= { .length = 8 },
-	.activate	= FB_ACTIVATE_NOW,
-	.height		= -1,
-	.width		= -1,
-	.pixclock	= 39721,
-	.left_margin	= 40,
-	.right_margin	= 24,
-	.upper_margin	= 32,
-	.lower_margin	= 11,
-	.hsync_len	= 96,
-	.vsync_len	= 2,
-	.vmode		= FB_VMODE_NONINTERLACED
+	.red = { .length = 8 },
+	.green = { .length = 8 },
+	.blue = { .length = 8 },
+	.activate = FB_ACTIVATE_NOW,
+	.height = -1,
+	.width = -1,
+	.pixclock = 39721,
+	.left_margin = 40,
+	.right_margin = 24,
+	.upper_margin = 32,
+	.lower_margin = 11,
+	.hsync_len = 96,
+	.vsync_len = 2,
+	.vmode = FB_VMODE_NONINTERLACED
 };
 
 static char *radeon_get_mon_name(int type)
@@ -73,9 +74,10 @@ static char *radeon_get_mon_name(int type)
 static int radeon_crt_is_connected(struct radeonfb_info *rinfo, int is_crt_dac)
 {
 	int	connected = 0;
-	/* the monitor either wasn't connected or it is a non-DDC CRT.
+	/*
+	 * the monitor either wasn't connected or it is a non-DDC CRT.
 	 * try to probe it
-   */
+	 */
 	if (is_crt_dac)
 	{
 		unsigned long ulOrigVCLK_ECP_CNTL;
@@ -84,12 +86,13 @@ static int radeon_crt_is_connected(struct radeonfb_info *rinfo, int is_crt_dac)
 		unsigned long ulOrigCRTC_EXT_CNTL;
 		unsigned long ulData;
 		unsigned long ulMask;
+
 		ulOrigVCLK_ECP_CNTL = INPLL(VCLK_ECP_CNTL);
 		ulData = ulOrigVCLK_ECP_CNTL;
 		ulData &= ~(PIXCLK_ALWAYS_ONb | PIXCLK_DAC_ALWAYS_ONb);
 		ulMask = ~(PIXCLK_ALWAYS_ONb | PIXCLK_DAC_ALWAYS_ONb);
 		OUTPLLP(VCLK_ECP_CNTL, ulData, ulMask);
-	 	ulOrigCRTC_EXT_CNTL = INREG(CRTC_EXT_CNTL);
+		ulOrigCRTC_EXT_CNTL = INREG(CRTC_EXT_CNTL);
 		ulData = ulOrigCRTC_EXT_CNTL;
 		ulData |= CRTC_CRT_ON;
 		OUTREG(CRTC_EXT_CNTL, ulData);
@@ -98,11 +101,11 @@ static int radeon_crt_is_connected(struct radeonfb_info *rinfo, int is_crt_dac)
 		ulData &= ~DAC_FORCE_DATA_MASK;
 		ulData |= (DAC_FORCE_BLANK_OFF_EN | DAC_FORCE_DATA_EN | DAC_FORCE_DATA_SEL_MASK);
 		if ((rinfo->family == CHIP_FAMILY_RV250) || (rinfo->family == CHIP_FAMILY_RV280))
-	    ulData |= (0x01b6 << DAC_FORCE_DATA_SHIFT);
+			ulData |= (0x01b6 << DAC_FORCE_DATA_SHIFT);
 		else
-	    ulData |= (0x01ac << DAC_FORCE_DATA_SHIFT);
+			ulData |= (0x01ac << DAC_FORCE_DATA_SHIFT);
 		OUTREG(DAC_EXT_CNTL, ulData);
- 		ulOrigDAC_CNTL = INREG(DAC_CNTL);
+		ulOrigDAC_CNTL = INREG(DAC_CNTL);
 		ulData = ulOrigDAC_CNTL;
 		ulData |= DAC_CMP_EN;
 		ulData &= ~(DAC_RANGE_CNTL_MASK | DAC_PDWN);
@@ -224,25 +227,25 @@ void radeon_probe_screens(struct radeonfb_info *rinfo, const char *monitor_layou
 		 * a layout for each card ?
 		 */
 #ifdef CONFIG_FB_RADEON_I2C
-		dbg("radeonfb: radeon_probe_screens: use monitor layout\r\n");
+		dbg("%s: use monitor layout\r\n", __FUNCTION__);
 		if (!ignore_edid)
 		{
 			if (rinfo->mon1_type != MT_NONE)
 			{
-				dbg("radeonfb: radeon_probe_screens: probe ddc_dvi on MON1\r\n");
+				dbg("%s: probe ddc_dvi on MON1\r\n", __FUNCTION__);
 				if (!radeon_probe_i2c_connector(rinfo, ddc_dvi, &rinfo->mon1_EDID))
 				{
-					dbg("radeonfb: radeon_probe_screens: probe ddc_crt2 on MON1\r\n");
+					dbg("%s: probe ddc_crt2 on MON1\r\n", __FUNCTION__);
 					radeon_probe_i2c_connector(rinfo, ddc_crt2, &rinfo->mon1_EDID);
 					ddc_crt2_used = 1;
 				}
 			}
 			if (rinfo->mon2_type != MT_NONE)
 			{
-				dbg("radeonfb: radeon_probe_screens: probe ddc_vga on MON2\r\n");
+				dbg("%s: probe ddc_vga on MON2\r\n", __FUNCTION__);
 				if (!radeon_probe_i2c_connector(rinfo, ddc_vga, &rinfo->mon2_EDID) && !ddc_crt2_used)
 				{
-					dbg("radeonfb: radeon_probe_screens: probe ddc_crt2 on MON2\r\n");
+					dbg("%s: probe ddc_crt2 on MON2\r\n", __FUNCTION__);
 					radeon_probe_i2c_connector(rinfo, ddc_crt2, &rinfo->mon2_EDID);
 				}
 			}
@@ -258,7 +261,7 @@ void radeon_probe_screens(struct radeonfb_info *rinfo, const char *monitor_layou
 			else
 			{
 				rinfo->mon1_type = MT_CRT;
-				dbg("radeonfb: No valid monitor, assuming CRT on first port\r\n");
+				dbg("%s: No valid monitor, assuming CRT on first port\r\n", __FUNCTION__);
 			}
 			rinfo->mon2_type = MT_NONE;
 			rinfo->mon2_EDID = NULL;
@@ -270,7 +273,7 @@ void radeon_probe_screens(struct radeonfb_info *rinfo, const char *monitor_layou
 		 * Auto-detecting display type (well... trying to ...)
 		 */
 #ifdef CONFIG_FB_RADEON_I2C
-		dbg("radeonfb: radeon_probe_screens: Auto-detecting\r\n");
+		dbg("%s: Auto-detecting\r\n", __FUNCTION__);
 #endif
 #if 0 //#if DEBUG && defined(CONFIG_FB_RADEON_I2C)
 		{
@@ -289,17 +292,17 @@ void radeon_probe_screens(struct radeonfb_info *rinfo, const char *monitor_layou
 #ifdef CONFIG_FB_RADEON_I2C
 			if (rinfo->mon1_type == MT_NONE)
 			{
-				dbg("radeonfb: radeon_probe_screens: probe ddc_dvi on MON1\r\n");
+				dbg("%s: probe ddc_dvi on MON1\r\n", __FUNCTION__);
 				rinfo->mon1_type = radeon_probe_i2c_connector(rinfo, ddc_dvi, &rinfo->mon1_EDID);
 			}
 			if (rinfo->mon1_type == MT_NONE)
 			{
-				dbg("radeonfb: radeon_probe_screens: probe ddc_vga on MON1\r\n");
+				dbg("%s: probe ddc_vga on MON1\r\n", __FUNCTION__);
 				rinfo->mon1_type = radeon_probe_i2c_connector(rinfo, ddc_vga, &rinfo->mon1_EDID);
 			}
 			if (rinfo->mon1_type == MT_NONE)
 			{
-				dbg("radeonfb: radeon_probe_screens: probe ddc_crt2 on MON1\r\n");
+				dbg("%s: probe ddc_crt2 on MON1\r\n", __FUNCTION__);
 				rinfo->mon1_type = radeon_probe_i2c_connector(rinfo, ddc_crt2, &rinfo->mon1_EDID);
 			}
 #endif /* CONFIG_FB_RADEON_I2C */
@@ -313,22 +316,22 @@ void radeon_probe_screens(struct radeonfb_info *rinfo, const char *monitor_layou
 #ifdef CONFIG_FB_RADEON_I2C
 		if (rinfo->mon1_type == MT_NONE)
 		{
-			dbg("radeonfb: radeon_probe_screens: probe ddc_dvi on MON1\r\n");
+			dbg("%s: probe ddc_dvi on MON1\r\n", __FUNCTION__);
 			rinfo->mon1_type = radeon_probe_i2c_connector(rinfo, ddc_dvi, &rinfo->mon1_EDID);
 		}
 		if (rinfo->mon1_type == MT_NONE)
 		{
-			dbg("radeonfb: radeon_probe_screens: probe ddc_crt2 on MON1\r\n");
+			dbg("%s: probe ddc_crt2 on MON1\r\n", __FUNCTION__);
 			rinfo->mon1_type = radeon_probe_i2c_connector(rinfo, ddc_crt2, &rinfo->mon1_EDID);
 			if (rinfo->mon1_type != MT_NONE)
 				ddc_crt2_used = 1;
 		}
 #endif /* CONFIG_FB_RADEON_I2C */
 		if (rinfo->mon1_type == MT_NONE && rinfo->is_mobility
-		 && (INREG(LVDS_GEN_CNTL) & LVDS_ON))
+				&& (INREG(LVDS_GEN_CNTL) & LVDS_ON))
 		{
 			rinfo->mon1_type = MT_LCD;
-			dbg("Non-DDC laptop panel detected\r\n");
+			dbg("%s: Non-DDC laptop panel detected\r\n", __FUNCTION__);
 		}
 		if (rinfo->mon1_type == MT_NONE)
 			rinfo->mon1_type = radeon_crt_is_connected(rinfo, rinfo->reversed_DAC);
@@ -338,12 +341,12 @@ void radeon_probe_screens(struct radeonfb_info *rinfo, const char *monitor_layou
 #ifdef CONFIG_FB_RADEON_I2C
 		if (rinfo->mon2_type == MT_NONE)
 		{
-			dbg("radeonfb: radeon_probe_screens: probe ddc_vga on MON2\r\n");
+			dbg("%s: probe ddc_vga on MON2\r\n", __FUNCTION__);
 			rinfo->mon2_type = radeon_probe_i2c_connector(rinfo, ddc_vga,	&rinfo->mon2_EDID);
 		}
 		if (rinfo->mon2_type == MT_NONE && !ddc_crt2_used)
 		{
-			dbg("radeonfb: radeon_probe_screens: probe ddc_crt2 on MON2\r\n");
+			dbg("%s: probe ddc_crt2 on MON2\r\n", __FUNCTION__);
 			rinfo->mon2_type = radeon_probe_i2c_connector(rinfo, ddc_crt2, &rinfo->mon2_EDID);
 		}
 #endif /* CONFIG_FB_RADEON_I2C */
@@ -396,18 +399,18 @@ void radeon_probe_screens(struct radeonfb_info *rinfo, const char *monitor_layou
 	}
 
 bail:
-	dbg("radeonfb: Monitor 1 type %s found\r\n", radeon_get_mon_name(rinfo->mon1_type));
+	dbg("%s: Monitor 1 type %s found\r\n", __FUNCTION__, radeon_get_mon_name(rinfo->mon1_type));
 	if (rinfo->mon1_EDID)
 	{
-		dbg("radeonfb: EDID probed\r\n");
+		dbg("%s: EDID probed\r\n", __FUNCTION__);
 	}
 
 	if (!rinfo->has_CRTC2)
 		return;
-	dbg("radeonfb: Monitor 2 type %s\r\n", radeon_get_mon_name(rinfo->mon2_type));
+	dbg("%s: Monitor 2 type %s\r\n", __FUNCTION__, radeon_get_mon_name(rinfo->mon2_type));
 	if (rinfo->mon2_EDID)
 	{
-		dbg("radeonfb: EDID probed\r\n");
+		dbg("%s: EDID probed\r\n", __FUNCTION__);
 	}
 }
 
@@ -439,7 +442,7 @@ static void radeon_var_to_panel_info(struct radeonfb_info *rinfo, struct fb_var_
 }
 
 static void radeon_videomode_to_var(struct fb_var_screeninfo *var,
-       const struct fb_videomode *mode)
+		const struct fb_videomode *mode)
 {
 	var->xres = mode->xres;
 	var->yres = mode->yres;
@@ -467,7 +470,7 @@ void radeon_check_modes(struct radeonfb_info *rinfo, struct mode_option *resolut
 	struct fb_info *info = rinfo->info;
 	int has_default_mode = 0;
 	struct mode_option xres_yres;
-	dbg("radeonfb: radeon_check_modes\r\n");
+	dbg("%s: radeon_check_modes\r\n", __FUNCTION__);
 
 	/*
 	 * Fill default var first
@@ -569,7 +572,7 @@ void radeon_check_modes(struct radeonfb_info *rinfo, struct mode_option *resolut
 		xres_yres.height = rinfo->panel_info.yres;
 		xres_yres.bpp = xres_yres.freq = 0;
 		if (fb_find_mode(&info->var, info, &xres_yres, modedb, dbsize, NULL,
-			(resolution->bpp >= 8) ? (unsigned int)resolution->bpp : 8) == 0)
+					(resolution->bpp >= 8) ? (unsigned int)resolution->bpp : 8) == 0)
 		{
 			rinfo->mon1_type = MT_CRT;
 			goto pickup_default;
@@ -584,9 +587,9 @@ pickup_default:
 	if (resolution->used)
 	{
 		if (fb_find_mode(&info->var, info, resolution, info->monspecs.modedb,
-		 info->monspecs.modedb_len, NULL, (resolution->bpp >= 8) ? (unsigned int)resolution->bpp : 8) != 0)
+					info->monspecs.modedb_len, NULL, (resolution->bpp >= 8) ? (unsigned int)resolution->bpp : 8) != 0)
 			has_default_mode = 1;
- 	}
+	}
 	/*
 	 * Still no mode, let's pick up a default from the db
 	 */
@@ -636,7 +639,7 @@ pickup_default:
  * the current fbcon doesn't quite mind ;)
  */
 static int radeon_compare_modes(const struct fb_var_screeninfo *var,
-				const struct fb_videomode *mode)
+		const struct fb_videomode *mode)
 {
 	int distance = 0;
 
@@ -652,8 +655,8 @@ static int radeon_compare_modes(const struct fb_var_screeninfo *var,
  * We need something better ultimately.
  */
 int radeon_match_mode(struct radeonfb_info *rinfo,
-		       struct fb_var_screeninfo *dest,
-		       const struct fb_var_screeninfo *src)
+		struct fb_var_screeninfo *dest,
+		const struct fb_var_screeninfo *src)
 {
 	const struct fb_videomode	*db = vesa_modes;
 	int i, dbsize = 34;
@@ -684,7 +687,7 @@ int radeon_match_mode(struct radeonfb_info *rinfo,
 			|| (src->activate & FB_ACTIVATE_MASK) == FB_ACTIVATE_NOW)
 	{
 		/* We don't have an RMX, validate timings. If we don't have
-	 	 * monspecs, we should be paranoid and not let use go above
+		 * monspecs, we should be paranoid and not let use go above
 		 * 640x480-60, but I assume userland knows what it's doing here
 		 * (though I may be proven wrong...)
 		 */

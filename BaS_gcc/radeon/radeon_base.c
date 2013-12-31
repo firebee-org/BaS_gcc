@@ -412,7 +412,7 @@ static int radeon_map_ROM(struct radeonfb_info *rinfo)
 		dbg("%s: Found Intel x86 BIOS ROM Image\r\n", __FUNCTION__);
 		break;
 	case 1:
-		dbg("%s: radeonfb: Found Open Firmware ROM Image\r\n", __FUNCTION__);
+		dbg("%s: Found Open Firmware ROM Image\r\n", __FUNCTION__);
 		goto failed;
 	case 2:
 		dbg("%s: Found HP PA-RISC ROM Image\r\n", __FUNCTION__);
@@ -424,15 +424,13 @@ static int radeon_map_ROM(struct radeonfb_info *rinfo)
 anyway:
 	/* Locate the flat panel infos, do some sanity checking !!! */
 	rinfo->fp_bios_start = BIOS_IN16(0x48);
-
-//	DPRINTVALHEX("radeonfb: BIOS start offset: ", BIOS_IN16(0x48));
-//	DPRINT("\r\n");
+	dbg("%s: BIOS start offset: %p\r\n", __FUNCTION__, BIOS_IN16(0x48));
 
 	/* Save BIOS PLL informations */
 	{
 		uint16_t pll_info_block = BIOS_IN16(rinfo->fp_bios_start + 0x30);
 
-		dbg("radeonfb: BIOS PLL info block offset: %p\r\n", BIOS_IN16(rinfo->fp_bios_start + 0x30));
+		dbg("%s: BIOS PLL info block offset: %p\r\n", __FUNCTION__, BIOS_IN16(rinfo->fp_bios_start + 0x30));
 		rinfo->bios_pll.sclk		= BIOS_IN16(pll_info_block + 0x08);
 		rinfo->bios_pll.mclk		= BIOS_IN16(pll_info_block + 0x0a);
 		rinfo->bios_pll.ref_clk	= BIOS_IN16(pll_info_block + 0x0e);
@@ -511,13 +509,13 @@ static int radeon_probe_pll_params(struct radeonfb_info *rinfo)
 	set_ipl(ipl);
 
 	hz = US_TO_TIMER(1000000.0) / (double)(stop_tv - start_tv);
-	dbg("%s: radeon_probe_pll_params hz %d\r\n", __FUNCTION__, (int32_t) hz);
+	dbg("%s:hz %d\r\n", __FUNCTION__, (int32_t) hz);
 	hTotal = ((INREG(CRTC_H_TOTAL_DISP) & 0x1ff) + 1) * 8;
 	vTotal = ((INREG(CRTC_V_TOTAL_DISP) & 0x3ff) + 1);
-	dbg("	hTotal=%d\r\n", hTotal);
-	dbg("	vTotal=%d\r\n", vTotal);
+	dbg("%s:hTotal=%d\r\n", __FUNCTION__, hTotal);
+	dbg("%s:vTotal=%d\r\n", __FUNCTION__, vTotal);
 	vclk = (double) hTotal * (double) vTotal * hz;
-	dbg("vclk=0x%x\r\n", (int) vclk);
+	dbg("%s:vclk=%d\r\n", __FUNCTION__, (int) vclk);
 
 	switch ((INPLL(PPLL_REF_DIV) & 0x30000) >> 16)
 	{
@@ -1964,8 +1962,8 @@ static void radeon_identify_vram(struct radeonfb_info *rinfo)
 		case CHIP_FAMILY_R420: dbg("R420"); break;	
 		default: dbg("UNKNOW"); break;
 	}	
-	dbg(" found %d", rinfo->video_ram / 1024);
-	dbg("KB of %s %d bits wide video RAM\r\n", rinfo->vram_ddr ? "DDR " : "SDRAM ", rinfo->vram_width);
+	dbg("%s: found %d KB of %s %d bits wide video RAM\r\n", __FUNCTION__, rinfo->video_ram / 1024,
+				rinfo->vram_ddr ? "DDR " : "SDRAM ", rinfo->vram_width);
 }
 
 int32_t radeonfb_pci_register(int32_t handle, const struct pci_device_id *ent)
@@ -1995,22 +1993,22 @@ int32_t radeonfb_pci_register(int32_t handle, const struct pci_device_id *ent)
 	rinfo->is_IGP = (ent->driver_data & CHIP_IS_IGP) != 0;
 
 	/* Set base addrs */
-	dbg("radeonfb: radeonfb_pci_register: Set base addrs\r\n");
+	dbg("%s: Set base addrs\r\n", __FUNCTION__);
 	rinfo->fb_base_phys = rinfo->mmio_base_phys = rinfo->io_base_phys = 0xFFFFFFFF;
 	rinfo->mapped_vram = 0;
 	rinfo->mmio_base = rinfo->io_base = NULL;
 	rinfo->bios_seg = NULL;
 
 	pci_rsc_desc = pci_get_resource(handle);
-	if ((int32_t)pci_rsc_desc >= 0)
+	if ((int32_t) pci_rsc_desc >= 0)
 	{
 		uint16_t flags;
 		do
 		{
 			dbg("%s: flags %p\r\n", __FUNCTION__, pci_rsc_desc->flags);
 			dbg("%s:	start %p\r\n", __FUNCTION__, pci_rsc_desc->start);
-			dbg("%s:    offset %x\r\n", __FUNCTION__, pci_rsc_desc->offset);
-			dbg("%s:	length %x\r\n", __FUNCTION__, pci_rsc_desc->length);
+			dbg("%s:	offset 0x%x\r\n", __FUNCTION__, pci_rsc_desc->offset);
+			dbg("%s:	length 0x%x\r\n", __FUNCTION__, pci_rsc_desc->length);
 
 			if (!(pci_rsc_desc->flags & FLG_IO))
 			{
@@ -2023,12 +2021,12 @@ int32_t radeonfb_pci_register(int32_t handle, const struct pci_device_id *ent)
 					if ((pci_rsc_desc->flags & FLG_ENDMASK) == ORD_MOTOROLA)
 					{
 						rinfo->big_endian = 0; /* host bridge make swapping intel -> motorola */
-						dbg("%s: radeonfb: host bridge is big endian\r\n", __FUNCTION__);
+						dbg("%s: host bridge is big endian\r\n", __FUNCTION__);
 					}
 					else
 					{
 						rinfo->big_endian = 1; /* radeon make swapping intel -> motorola */
-						dbg("%s: radeonfb: host bridge is little endian\r\n", __FUNCTION__);
+						dbg("%s: host bridge is little endian\r\n", __FUNCTION__);
 					}
 				}
 				else if ((pci_rsc_desc->length >= RADEON_REGSIZE) && (pci_rsc_desc->length < 0x100000))
@@ -2036,14 +2034,21 @@ int32_t radeonfb_pci_register(int32_t handle, const struct pci_device_id *ent)
 					if (pci_rsc_desc->flags & FLG_ROM)
 					{
 						dbg("%s: FLG_ROM resource descriptor found\r\n", __FUNCTION__);
-						dbg("%s:    start = %p, size = 0x%x\r\n", __FUNCTION__, pci_rsc_desc->start, pci_rsc_desc->length);
+						dbg("%s:	start = %p, size = 0x%x\r\n", __FUNCTION__, pci_rsc_desc->start, pci_rsc_desc->length);
+						dbg("%s:	bios_seg = %p\r\n", __FUNCTION__, rinfo->bios_seg);
+						
 						if (rinfo->bios_seg == NULL)
 						{
 							rinfo->bios_seg_phys = pci_rsc_desc->start;
 							if (BIOS_IN16(0) == 0xaa55)
 								rinfo->bios_seg = (void *) (pci_rsc_desc->offset + pci_rsc_desc->start);
 							else
-								rinfo->bios_seg_phys = 0;
+							{
+								dbg("%s: BIOS_IN16(0) was %x (expected 0xaa55)\r\n", __FUNCTION__, BIOS_IN16(0));
+								rinfo->bios_seg_phys = pci_rsc_desc->offset + pci_rsc_desc->start;
+								hexdump(rinfo->bios_seg_phys, 512);
+								//rinfo->bios_seg_phys = 0;
+							}
 						}
 					}
 					else
@@ -2065,7 +2070,7 @@ int32_t radeonfb_pci_register(int32_t handle, const struct pci_device_id *ent)
 				}
 			}
 			flags = pci_rsc_desc->flags;
-			pci_rsc_desc = (struct pci_rd *)((uint32_t)pci_rsc_desc->next + (uint32_t)pci_rsc_desc);
+			pci_rsc_desc = (struct pci_rd *) ((uint32_t) pci_rsc_desc->next + (uint32_t) pci_rsc_desc);
 		}
 		while (!(flags & FLG_LAST));
 	}
@@ -2073,21 +2078,21 @@ int32_t radeonfb_pci_register(int32_t handle, const struct pci_device_id *ent)
 		dbg("%s: get_resource error\r\n", __FUNCTION__);
 
 	/* map the regions */
-	dbg("radeonfb: radeonfb_pci_register: map memory regions\r\n");
+	dbg("%s: map memory regions\r\n", __FUNCTION__);
 	if (rinfo->mmio_base == NULL)
 	{
-		dbg("radeonfb: cannot map MMIO\r\n");
+		dbg("%s: cannot map MMIO\r\n", __FUNCTION__);
 		framebuffer_release(info);
 		return -2; //(-EIO);	
 	}
-	dbg("radeonfb: %s: mmio_base_phys %p, mmio_base %p\r\n", __FUNCTION__, rinfo->mmio_base_phys, rinfo->mmio_base);
-	dbg("radeonfb: %s: io_base_phys %p, io_base %p\r\n", __FUNCTION__, rinfo->io_base_phys, rinfo->io_base);
-	dbg("radeonfb: %s: fb_base_phys %p, fb_base %p\r\n", __FUNCTION__, rinfo->fb_base_phys, rinfo->fb_base);
+	dbg("%s: mmio_base_phys %p, mmio_base %p\r\n", __FUNCTION__, rinfo->mmio_base_phys, rinfo->mmio_base);
+	dbg("%s: io_base_phys %p, io_base %p\r\n", __FUNCTION__, rinfo->io_base_phys, rinfo->io_base);
+	dbg("%s: fb_base_phys %p, fb_base %p\r\n", __FUNCTION__, rinfo->fb_base_phys, rinfo->fb_base);
 
 	/*
 	 * Check for errata
 	 */
-	dbg("radeonfb: radeonfb_pci_register: check for errata\r\n");
+	dbg("%s: check for errata\r\n", __FUNCTION__);
 	rinfo->errata = 0;
 	if (rinfo->family == CHIP_FAMILY_R300
 				&& (INREG(CONFIG_CNTL) & CFG_ATI_REV_ID_MASK) == CFG_ATI_REV_A11)
@@ -2103,15 +2108,19 @@ int32_t radeonfb_pci_register(int32_t handle, const struct pci_device_id *ent)
 	 * Map the BIOS ROM if any and retreive PLL parameters from
 	 * the BIOS.
 	 */
-	dbg("radeonfb: %s: bios_seg_phys %p\r\n", __FUNCTION__, rinfo->bios_seg_phys);
-	dbg("radeonfb: %s: map the BIOS ROM\r\n", __FUNCTION__);
+	dbg("%s: bios_seg_phys %p\r\n", __FUNCTION__, rinfo->bios_seg_phys);
+	dbg("%s: map the BIOS ROM\r\n", __FUNCTION__);
 	radeon_map_ROM(rinfo);
 
 	/* Run VGA BIOS */
 	if ((rinfo->bios_seg != NULL))
 	{
-		dbg("radeonfb: %s: run VGA BIOS\r\n", __FUNCTION__);
+		dbg("%s: run VGA BIOS\r\n", __FUNCTION__);
 		run_bios(rinfo);
+	}
+	else
+	{
+		dbg("%s: could not run VGA bios - rinfo->bios_seg is NULL\r\n", __FUNCTION__);
 	}
 
 	dbg("%s: fixup display base address \r\n", __FUNCTION__);
@@ -2129,41 +2138,45 @@ int32_t radeonfb_pci_register(int32_t handle, const struct pci_device_id *ent)
 	OUTREG(OV0_BASE_ADDR, 0);
 
 	/* Get VRAM size and type */
-	dbg("radeonfb: radeonfb_pci_register: get VRAM size\r\n");
+	dbg("%s: get VRAM size\r\n", __FUNCTION__);
 	radeon_identify_vram(rinfo);
 
 	if ((rinfo->fb_base == NULL)
-	 || ((rinfo->video_ram > rinfo->mapped_vram) && (rinfo->mapped_vram < MIN_MAPPED_VRAM*2)))
+			|| ((rinfo->video_ram > rinfo->mapped_vram) && (rinfo->mapped_vram < MIN_MAPPED_VRAM * 2)))
 	{
-		dbg("radeonfb: cannot map FB, video ram: %d KB\r\n", rinfo->mapped_vram / 1024);
+		dbg("%s: cannot map FB, video ram: %d KB\r\n", __FUNCTION__, rinfo->mapped_vram / 1024);
 		framebuffer_release(info);
 		return -2; //(-EIO);
 	}
+	else
+	{
+		dbg("%s: %d KB of VRAM mapped to %p\r\n", __FUNCTION__, rinfo->mapped_vram / 1024, rinfo->fb_base);
+	}
 	
 	/* Get informations about the board's PLL */
-	dbg("radeonfb: radeonfb_pci_register: get informations about the board's PLL\r\n");
+	dbg("%s: get informations about the board's PLL\r\n", __FUNCTION__);
 	radeon_get_pllinfo(rinfo);
 
 #ifdef CONFIG_FB_RADEON_I2C
 	/* Register I2C bus */
-	dbg("radeonfb: radeonfb_pci_register: register I2C bus\r\n");
+	dbg("%s: register I2C bus\r\n", __FUNCTION__);
 	radeon_create_i2c_busses(rinfo);
 #endif /* CONFIG_FB_RADEON_I2C */
 
 	/* set all the vital stuff */
-	dbg("radeonfb: radeonfb_pci_register: set all the vital stuff\r\n");
+	dbg("%s: set all the vital stuff\r\n", __FUNCTION__);
 	radeon_set_fbinfo(rinfo);
 
 	/* set offscreen memory descriptor */
-	dbg("radeonfb: radeonfb_pci_register: set offscreen memory descriptor\r\n");
+	dbg("%s: set offscreen memory descriptor\r\n", __FUNCTION__);
 	offscreen_init(info);
 
 	/* Probe screen types */
-	dbg("radeonfb: radeonfb_pci_register: probe screen types, monitor_layout: 0x%x\r\n", monitor_layout);
+	dbg("%s: probe screen types, monitor_layout: 0x%x\r\n", __FUNCTION__, monitor_layout);
 	radeon_probe_screens(rinfo, monitor_layout, (int) ignore_edid);
 
 	/* Build mode list, check out panel native model */
-	dbg("radeonfb: radeonfb_pci_register: build mode list\r\n");
+	dbg("%s: build mode list\r\n", __FUNCTION__);
 	radeon_check_modes(rinfo, &resolution);
 
 	/* save current mode regs before we switch into the new one
@@ -2177,7 +2190,7 @@ int32_t radeonfb_pci_register(int32_t handle, const struct pci_device_id *ent)
 //	DPRINT("radeonfb: radeonfb_pci_register: setup power management\r\n");
 //	radeonfb_pm_init(rinfo, (int)default_dynclk);
 
-	dbg("radeonfb: radeonfb_pci_register: install VBL timer\r\n");
+	dbg("%s: install VBL timer\r\n", __FUNCTION__);
 	rinfo->lvds_timer = 0;
 #ifndef DRIVER_IN_ROM
 	install_vbl_timer(radeon_timer_func, 1); /* remove old vector */ 
