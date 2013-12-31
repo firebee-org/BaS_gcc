@@ -637,7 +637,7 @@ static void pci_device_config(uint16_t bus, uint16_t device, uint16_t function)
 	for (i = 0; i < 6 * 4; i += 4)		/* for all bars */
 	{
 		/*
-		 * read BAR[i] value
+		 * read BAR[i] value (FIXME: no need to do this, actually, this will contain no meaningful value anyway)
 		 */
 		value = swpl(pci_read_config_longword(handle, PCIBAR0 + i));
 
@@ -658,7 +658,8 @@ static void pci_device_config(uint16_t bus, uint16_t device, uint16_t function)
 			 */
 			struct pci_rd *rd = &descriptors[barnum]; 
 
-			if (IS_PCI_MEM_BAR(value))
+			dbg("%s: address = %08x\r\n", __FUNCTION__, address);
+			if (IS_PCI_MEM_BAR(address))
 			{
 				/* adjust base address to card's alignment requirements */
 				int size = ~(address & 0xfffffff0) + 1;
@@ -692,7 +693,7 @@ static void pci_device_config(uint16_t bus, uint16_t device, uint16_t function)
 				/* index to next unused resource descriptor */
 				barnum++;
 			}
-			else if (IS_PCI_IO_BAR(value)) /* same as above for I/O resources */
+			else if (IS_PCI_IO_BAR(address)) /* same as above for I/O resources */
 			{
 				int size = ~(address & 0xfffffffc) + 1;
 				dbg("device 0x%x: BAR[%d] requests %d bytes of I/O space\r\n", handle, i, size);
