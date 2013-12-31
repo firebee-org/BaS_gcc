@@ -1939,31 +1939,32 @@ static void radeon_identify_vram(struct radeonfb_info *rinfo)
 		else
 			rinfo->vram_width = 64;
 	}
-	/* This may not be correct, as some cards can have half of channel disabled
+
+	/*
+	 * This may not be correct, as some cards can have half of channel disabled
 	 * ToDo: identify these cases
 	 */
-	dbg("radeonfb:");
 	switch(rinfo->family)
 	{
-		case CHIP_FAMILY_LEGACY: dbg("LEGACY"); break;	
-		case CHIP_FAMILY_RADEON: dbg("RADEON"); break;	
-		case CHIP_FAMILY_RV100: dbg("RV100"); break;	
-		case CHIP_FAMILY_RS100: dbg("RS100"); break;	
-		case CHIP_FAMILY_RV200: dbg("RV200"); break;	
-		case CHIP_FAMILY_RS200: dbg("RS200"); break;	
-		case CHIP_FAMILY_R200: dbg("R200"); break;	
-		case CHIP_FAMILY_RV250: dbg("RV250"); break;	
-		case CHIP_FAMILY_RS300: dbg("RS300"); break;	
-		case CHIP_FAMILY_RV280: dbg("RV280"); break;	
-		case CHIP_FAMILY_R300: dbg("R300"); break;	
-		case CHIP_FAMILY_R350: dbg("R350"); break;	
-		case CHIP_FAMILY_RV350: dbg("RV350"); break;	
-		case CHIP_FAMILY_RV380: dbg("RV380"); break;	
-		case CHIP_FAMILY_R420: dbg("R420"); break;	
-		default: dbg("UNKNOW"); break;
+		case CHIP_FAMILY_LEGACY: dbg("%s chip type: %s\r\n", __FUNCTION__, "LEGACY"); break;	
+		case CHIP_FAMILY_RADEON: dbg("%s chip type: %s\r\n", __FUNCTION__, "RADEON"); break;	
+		case CHIP_FAMILY_RV100: dbg("%s chip type: %s\r\n", __FUNCTION__, "RV100"); break;	
+		case CHIP_FAMILY_RS100: dbg("%s chip type: %s\r\n", __FUNCTION__, "RS100"); break;	
+		case CHIP_FAMILY_RV200: dbg("%s chip type: %s\r\n", __FUNCTION__, "RV200"); break;	
+		case CHIP_FAMILY_RS200: dbg("%s chip type: %s\r\n", __FUNCTION__, "RS200"); break;	
+		case CHIP_FAMILY_R200: dbg("%s chip type: %s\r\n", __FUNCTION__, "R200"); break;	
+		case CHIP_FAMILY_RV250: dbg("%s chip type: %s\r\n", __FUNCTION__, "RV250"); break;	
+		case CHIP_FAMILY_RS300: dbg("%s chip type: %s\r\n", __FUNCTION__, "RS300"); break;	
+		case CHIP_FAMILY_RV280: dbg("%s chip type: %s\r\n", __FUNCTION__, "RV280"); break;	
+		case CHIP_FAMILY_R300: dbg("%s chip type: %s\r\n", __FUNCTION__, "R300"); break;	
+		case CHIP_FAMILY_R350: dbg("%s chip type: %s\r\n", __FUNCTION__, "R350"); break;	
+		case CHIP_FAMILY_RV350: dbg("%s chip type: %s\r\n", __FUNCTION__, "RV350"); break;	
+		case CHIP_FAMILY_RV380: dbg("%s chip type: %s\r\n", __FUNCTION__, "RV380"); break;	
+		case CHIP_FAMILY_R420: dbg("%s chip type: %s\r\n", __FUNCTION__, "R420"); break;	
+		default: dbg("%s chip type: %s\r\n", "UNKNOW"); break;
 	}	
-	dbg("%s: found %d KB of %s %d bits wide video RAM\r\n", __FUNCTION__, rinfo->video_ram / 1024,
-				rinfo->vram_ddr ? "DDR " : "SDRAM ", rinfo->vram_width);
+	dbg("%s: found %d KB of %d bits wide %s video RAM\r\n", __FUNCTION__, rinfo->video_ram / 1024,
+				rinfo->vram_width, rinfo->vram_ddr ? "DDR " : "SDRAM ");
 }
 
 int32_t radeonfb_pci_register(int32_t handle, const struct pci_device_id *ent)
