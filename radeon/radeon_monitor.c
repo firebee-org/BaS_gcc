@@ -130,21 +130,28 @@ static int radeon_parse_monitor_layout(struct radeonfb_info *rinfo, const char *
 	char s1[5], s2[5];
 	int i = 0, second = 0;
 	const char *s;
+
 	if ((monitor_layout == NULL) || (*monitor_layout == '\0'))
+	{
+		dbg("%s: monitor_layout missing\r\n");
 		return 0;
+	}
+
 	s = monitor_layout;
 	do
 	{
-		switch(*s)
+		switch (*s)
 		{
 			case ',':
 				s1[i] = '\0';
 				i = 0;
 				second = 1;
 				break;
+
 			case ' ':
 			case '\0':
 				break;
+
 			default:
 				if (i >= 4)
 					break;
@@ -155,8 +162,8 @@ static int radeon_parse_monitor_layout(struct radeonfb_info *rinfo, const char *
 				i++;
 				break;				
 		}
-	}
-	while(*s++);
+	} while(*s++);
+
 	if (second)
 		s2[i] = '\0';
 	else
@@ -164,28 +171,46 @@ static int radeon_parse_monitor_layout(struct radeonfb_info *rinfo, const char *
 		s1[i] = '\0';
 		s2[0] = '\0';
 	}
+
 	if (strcmp(s1, "CRT"))
+	{
 		rinfo->mon1_type = MT_CRT;
+		dbg("%s: monitor 1 set to CRT\r\n", __FUNCTION__);
+	}
 	else if (strcmp(s1, "TMDS"))
+	{
 		rinfo->mon1_type = MT_DFP;
+		dbg("%s: monitor 1 set to TMDS\r\n", __FUNCTION__);
+	}
 	else if (strcmp(s1, "LVDS"))
+	{
 		rinfo->mon1_type = MT_LCD;
+		dbg("%s: monitor 1 set to LVDS\r\n", __FUNCTION__);
+	}
+
 	if (strcmp(s2, "CRT"))
+	{
 		rinfo->mon2_type = MT_CRT;
+		dbg("%s: monitor 2 set to CRT\r\n", __FUNCTION__);
+	}
 	else if (strcmp(s2, "TMDS"))
+	{
 		rinfo->mon2_type = MT_DFP;
+		dbg("%s: monitor 2 set to TMDS\r\n", __FUNCTION__);
+	}
 	else if (strcmp(s2, "LVDS"))
+	{
 		rinfo->mon2_type = MT_LCD;
+		dbg("%s: monitor 2 set to LVDS\r\n", __FUNCTION__);
+	}
 	return 1;
 }
 
 /*
  * Probe display on both primary and secondary card's connector (if any)
- * by i2c and try to retreive EDID. The algorithm here comes from XFree's
- * radeon driver
+ * by i2c and try to retreive EDID. The algorithm here comes from XFree's * radeon driver
  */
-void radeon_probe_screens(struct radeonfb_info *rinfo,
-     const char *monitor_layout, int ignore_edid)
+void radeon_probe_screens(struct radeonfb_info *rinfo, const char *monitor_layout, int ignore_edid)
 {
 #ifdef CONFIG_FB_RADEON_I2C
 	int ddc_crt2_used = 0;	
@@ -338,6 +363,7 @@ void radeon_probe_screens(struct radeonfb_info *rinfo,
 			}
 			else
 				rinfo->mon1_type = MT_CRT;
+
 			rinfo->mon2_type = MT_NONE;
 			rinfo->mon2_EDID = NULL;
 		}
@@ -360,6 +386,7 @@ void radeon_probe_screens(struct radeonfb_info *rinfo,
 			}
 		}
 	}
+
 	if (ignore_edid)
 	{
 		driver_mem_free(rinfo->mon1_EDID);
@@ -367,12 +394,14 @@ void radeon_probe_screens(struct radeonfb_info *rinfo,
 		driver_mem_free(rinfo->mon2_EDID);
 		rinfo->mon2_EDID = NULL;
 	}
+
 bail:
 	dbg("radeonfb: Monitor 1 type %s found\r\n", radeon_get_mon_name(rinfo->mon1_type));
 	if (rinfo->mon1_EDID)
 	{
 		dbg("radeonfb: EDID probed\r\n");
 	}
+
 	if (!rinfo->has_CRTC2)
 		return;
 	dbg("radeonfb: Monitor 2 type %s\r\n", radeon_get_mon_name(rinfo->mon2_type));
@@ -400,7 +429,8 @@ static void radeon_var_to_panel_info(struct radeonfb_info *rinfo, struct fb_var_
 	rinfo->panel_info.hAct_high = (var->sync & FB_SYNC_HOR_HIGH_ACT) != 0;
 	rinfo->panel_info.vAct_high = (var->sync & FB_SYNC_VERT_HIGH_ACT) != 0;
 	rinfo->panel_info.valid = 1;
-	/* We use a default of 200ms for the panel power delay, 
+	/*
+	 * We use a default of 200ms for the panel power delay, 
 	 * I need to have a real schedule() instead of mdelay's in the panel code.
 	 * we might be possible to figure out a better power delay either from
 	 * MacOS OF tree or from the EDID block (proprietary extensions ?)
@@ -438,20 +468,23 @@ void radeon_check_modes(struct radeonfb_info *rinfo, struct mode_option *resolut
 	int has_default_mode = 0;
 	struct mode_option xres_yres;
 	dbg("radeonfb: radeon_check_modes\r\n");
+
 	/*
 	 * Fill default var first
 	 */
 	memcpy(&info->var, &radeonfb_default_var, sizeof(struct fb_var_screeninfo));
+
 	/*
 	 * Parse EDID detailed timings and deduce panel infos if any. Right now
 	 * we only deal with first entry returned by parse_EDID, we may do better
 	 * some day...
 	 */
 	if (!rinfo->panel_info.use_bios_dividers
-	 && rinfo->mon1_type != MT_CRT && rinfo->mon1_EDID)
+			&& rinfo->mon1_type != MT_CRT && rinfo->mon1_EDID)
 	{
 		struct fb_var_screeninfo var;
-		dbg("radeonfb: radeon_check_modes: fb_parse_edid\r\n");
+
+		dbg("%s: fb_parse_edid\r\n", __FUNCTION__);
 		if (fb_parse_edid(rinfo->mon1_EDID, &var) == 0)
 		{
 			if ((var.xres >= rinfo->panel_info.xres) && (var.yres >= rinfo->panel_info.yres))
@@ -459,7 +492,7 @@ void radeon_check_modes(struct radeonfb_info *rinfo, struct mode_option *resolut
 		}
 		else
 		{
-			dbg("radeonfb: radeon_check_modes: no data to parse\r\n");
+			dbg("%s: no data to parse\r\n", __FUNCTION__);
 		}
 	}
 	/*
@@ -469,7 +502,7 @@ void radeon_check_modes(struct radeonfb_info *rinfo, struct mode_option *resolut
 	if (rinfo->mon1_type != MT_CRT && rinfo->panel_info.valid)
 	{
 		struct fb_var_screeninfo *var = &info->var;
-		dbg("radeonfb: radeon_check_modes: setup the default mode based on panel info\r\n");
+		dbg("%s: setup the default mode based on panel info\r\n", __FUNCTION__);
 		var->xres = rinfo->panel_info.xres;
 		var->yres = rinfo->panel_info.yres;
 		var->xres_virtual = rinfo->panel_info.xres;
@@ -484,13 +517,17 @@ void radeon_check_modes(struct radeonfb_info *rinfo, struct mode_option *resolut
 		var->hsync_len = rinfo->panel_info.hSync_width;
 		var->vsync_len = rinfo->panel_info.vSync_width;
 		var->sync = 0;
+
 		if (rinfo->panel_info.hAct_high)
 			var->sync |= FB_SYNC_HOR_HIGH_ACT;
+
 		if (rinfo->panel_info.vAct_high)
 			var->sync |= FB_SYNC_VERT_HIGH_ACT;
+
 		var->vmode = 0;
 		has_default_mode = 1;
 	}
+
 	/*
 	 * Now build modedb from EDID
 	 */
@@ -509,13 +546,17 @@ void radeon_check_modes(struct radeonfb_info *rinfo, struct mode_option *resolut
 	{
 		struct fb_videomode	*modedb;
 		int dbsize;
+
 		if (rinfo->panel_info.xres == 0 || rinfo->panel_info.yres == 0)
 		{
 			unsigned long tmp = INREG(FP_HORZ_STRETCH) & HORZ_PANEL_SIZE;
+
 			rinfo->panel_info.xres = ((tmp >> HORZ_PANEL_SHIFT) + 1) * 8;
+
 			tmp = INREG(FP_VERT_STRETCH) & VERT_PANEL_SIZE;
 			rinfo->panel_info.yres = (tmp >> VERT_PANEL_SHIFT) + 1;
 		}
+
 		if ((rinfo->panel_info.xres <= 8) || (rinfo->panel_info.yres <= 1))
 		{
 			rinfo->mon1_type = MT_CRT;
@@ -527,7 +568,8 @@ void radeon_check_modes(struct radeonfb_info *rinfo, struct mode_option *resolut
 		xres_yres.width = rinfo->panel_info.xres;
 		xres_yres.height = rinfo->panel_info.yres;
 		xres_yres.bpp = xres_yres.freq = 0;
-		if (fb_find_mode(&info->var, info, &xres_yres, modedb, dbsize, NULL, (resolution->bpp >= 8) ? (unsigned int)resolution->bpp : 8) == 0)
+		if (fb_find_mode(&info->var, info, &xres_yres, modedb, dbsize, NULL,
+			(resolution->bpp >= 8) ? (unsigned int)resolution->bpp : 8) == 0)
 		{
 			rinfo->mon1_type = MT_CRT;
 			goto pickup_default;
@@ -552,6 +594,7 @@ pickup_default:
 	{
 		struct fb_monspecs *specs = &info->monspecs;
 		struct fb_videomode *modedb = NULL;
+
 		/* get preferred timing */
 		if (specs->misc & FB_MISC_1ST_DETAIL)
 		{
@@ -570,6 +613,7 @@ pickup_default:
 			/* otherwise, get first mode in database */
 			modedb = &specs->modedb[0];
 		}
+
 		if (modedb != NULL)
 		{
 			info->var.bits_per_pixel = 8;
@@ -595,8 +639,10 @@ static int radeon_compare_modes(const struct fb_var_screeninfo *var,
 				const struct fb_videomode *mode)
 {
 	int distance = 0;
+
 	distance = mode->yres - var->yres;
 	distance += (mode->xres - var->xres)/2;
+
 	return distance;
 }
 
@@ -614,9 +660,12 @@ int radeon_match_mode(struct radeonfb_info *rinfo,
 	int has_rmx, native_db = 0;
 	int	distance = INT_MAX;
 	const struct fb_videomode	*candidate = NULL;
-	dbg("radeonfb: radeon_match_mode\r\n");
+
+	dbg("%s:\r\n", __FUNCTION__);
+
 	/* Start with a copy of the requested mode */
 	memcpy(dest, src, sizeof(struct fb_var_screeninfo));
+
 	/* Check if we have a modedb built from EDID */
 	if (rinfo->mon1_modedb)
 	{
@@ -626,12 +675,13 @@ int radeon_match_mode(struct radeonfb_info *rinfo,
 	}
 	/* Check if we have a scaler allowing any fancy mode */
 	has_rmx = (rinfo->mon1_type == MT_LCD) || (rinfo->mon1_type == MT_DFP);
+
 	/* If we have a scaler and are passed FB_ACTIVATE_TEST or
 	 * FB_ACTIVATE_NOW, just do basic checking and return if the
 	 * mode match
 	 */
 	if ((src->activate & FB_ACTIVATE_MASK) == FB_ACTIVATE_TEST
-	 || (src->activate & FB_ACTIVATE_MASK) == FB_ACTIVATE_NOW)
+			|| (src->activate & FB_ACTIVATE_MASK) == FB_ACTIVATE_NOW)
 	{
 		/* We don't have an RMX, validate timings. If we don't have
 	 	 * monspecs, we should be paranoid and not let use go above
@@ -645,13 +695,15 @@ int radeon_match_mode(struct radeonfb_info *rinfo,
 		}
 		return 0;
 	}
-	dbg("radeonfb: radeon_match_mode, look for a mode in the database\r\n");
+	dbg("%s:look for a mode in the database\r\n", __FUNCTION__);
+
 	/* Now look for a mode in the database */
 	while(db)
 	{
-		for(i = 0; i < dbsize; i++)
+		for (i = 0; i < dbsize; i++)
 		{
 			int d;
+
 			if ((db[i].yres < src->yres) || (db[i].xres < src->xres))
 				continue;
 			d = radeon_compare_modes(src, &db[i]);

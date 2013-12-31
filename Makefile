@@ -33,7 +33,6 @@ INCLUDE=-Iinclude
 CFLAGS=-mcpu=5474 \
 		-Wall \
 		-Os \
-		-g \
 		-fomit-frame-pointer \
 		-ffreestanding \
 		-fleading-underscore \
