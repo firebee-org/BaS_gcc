@@ -11,6 +11,13 @@
 #include "bas_printf.h"
 #include <stddef.h>
 
+#define DBG_FECBD
+#ifdef DBG_FECBD
+#define dbg(format, arg...) do { xprintf("DEBUG: " format, ##arg); } while (0)
+#else
+#define dbg(format, arg...) do { ; } while (0)
+#endif /* DBG_FECBD */
+
 /*
  * This implements a simple static buffer descriptor
  * ring for each channel and each direction
@@ -73,7 +80,7 @@ void fecbd_init(uint8_t ch)
         nbuf = nbuf_alloc();
 		if (nbuf == NULL)
 		{
-			xprintf("%s: could not allocate network buffer\r\n", __FUNCTION__);
+			dbg("%s: could not allocate network buffer\r\n", __FUNCTION__);
 			return;
 		}
 			

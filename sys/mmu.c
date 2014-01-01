@@ -62,7 +62,7 @@
 
 #define DEBUG_MMU
 #ifdef DEBUG_MMU
-#define dbg_mmu(format, arg...) do { xprintf("DEBUG: " format "\r\n", ##arg);} while(0)
+#define dbg_mmu(format, arg...) do { xprintf("DEBUG: " format, ##arg);} while(0)
 #else
 #define dbg_mmu(format, arg...) do {;} while (0)
 #endif /* DEBUG_MMU */

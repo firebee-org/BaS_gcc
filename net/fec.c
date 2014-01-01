@@ -27,6 +27,13 @@
 #error Unknown machine!
 #endif
 
+#define DBG_FEC
+#ifdef DBG_FEC
+#define dbg(format, arg...) do { xprintf("DEBUG: " format, ##arg); } while (0)
+#else
+#define dbg(format, arg...) do { ; } while (0)
+#endif /* DBG_FEC */
+
 
 FEC_EVENT_LOG fec_log[2];
 
@@ -86,6 +93,7 @@ int fec_mii_write(uint8_t ch, uint8_t phy_addr, uint8_t reg_addr, uint16_t data)
         if (MCF_FEC_EIR(ch) & MCF_FEC_EIR_MII)
             break;
     }
+
     if(timeout == FEC_MII_TIMEOUT)
         return 1;
 
@@ -226,32 +234,33 @@ void fec_log_init(uint8_t ch)
  */
 void fec_log_dump(uint8_t ch)
 {
-    xprintf("\n   FEC%d Log\n---------------\n",ch);
-    xprintf("Total: %4d\n", fec_log[ch].total);
-    xprintf("hberr: %4d\n", fec_log[ch].hberr);
-    xprintf("babr:  %4d\n", fec_log[ch].babr);
-    xprintf("babt:  %4d\n", fec_log[ch].babt);
-    xprintf("gra:   %4d\n", fec_log[ch].gra);
-    xprintf("txf:   %4d\n", fec_log[ch].txf);
-    xprintf("mii:   %4d\n", fec_log[ch].mii);
-    xprintf("lc:    %4d\n", fec_log[ch].lc);
-    xprintf("rl:    %4d\n", fec_log[ch].rl);
-    xprintf("xfun:  %4d\n", fec_log[ch].xfun);
-    xprintf("xferr: %4d\n", fec_log[ch].xferr);
-    xprintf("rferr: %4d\n", fec_log[ch].rferr);
-    xprintf("dtxf:  %4d\n", fec_log[ch].dtxf);
-    xprintf("drxf:  %4d\n", fec_log[ch].drxf);
-    xprintf("\nRFSW:\n");
-    xprintf("inv:   %4d\n", fec_log[ch].rfsw_inv);
-    xprintf("m:     %4d\n", fec_log[ch].rfsw_m);
-    xprintf("bc:    %4d\n", fec_log[ch].rfsw_bc);
-    xprintf("mc:    %4d\n", fec_log[ch].rfsw_mc);
-    xprintf("lg:    %4d\n", fec_log[ch].rfsw_lg);
-    xprintf("no:    %4d\n", fec_log[ch].rfsw_no);
-    xprintf("cr:    %4d\n", fec_log[ch].rfsw_cr);
-    xprintf("ov:    %4d\n", fec_log[ch].rfsw_ov);
-    xprintf("tr:    %4d\n", fec_log[ch].rfsw_tr);
-    xprintf("---------------\n\n");
+    dbg("%s: \r\n   FEC%d Log\r\n", __FUNCTION__, ch);
+	dbg("%s:   ---------------\r\n", __FUNCTION__);
+    dbg("%s: Total: %4d\r\n", __FUNCTION__, fec_log[ch].total);
+    dbg("%s: hberr: %4d\r\n", __FUNCTION__, fec_log[ch].hberr);
+    dbg("%s: babr:  %4d\r\n", __FUNCTION__, fec_log[ch].babr);
+    dbg("%s: babt:  %4d\r\n", __FUNCTION__, fec_log[ch].babt);
+    dbg("%s: gra:   %4d\r\n", __FUNCTION__, fec_log[ch].gra);
+    dbg("%s: txf:   %4d\r\n", __FUNCTION__, fec_log[ch].txf);
+    dbg("%s: mii:   %4d\r\n", __FUNCTION__, fec_log[ch].mii);
+    dbg("%s: lc:    %4d\r\n", __FUNCTION__, fec_log[ch].lc);
+    dbg("%s: rl:    %4d\r\n", __FUNCTION__, fec_log[ch].rl);
+    dbg("%s: xfun:  %4d\r\n", __FUNCTION__, fec_log[ch].xfun);
+    dbg("%s: xferr: %4d\r\n", __FUNCTION__, fec_log[ch].xferr);
+    dbg("%s: rferr: %4d\r\n", __FUNCTION__, fec_log[ch].rferr);
+    dbg("%s: dtxf:  %4d\r\n", __FUNCTION__, fec_log[ch].dtxf);
+    dbg("%s: drxf:  %4d\r\n", __FUNCTION__, fec_log[ch].drxf);
+    dbg("%s: \r\nRFSW:\r\n", __FUNCTION__);
+    dbg("%s: inv:   %4d\r\n", __FUNCTION__, fec_log[ch].rfsw_inv);
+    dbg("%s: m:     %4d\r\n", __FUNCTION__, fec_log[ch].rfsw_m);
+    dbg("%s: bc:    %4d\r\n", __FUNCTION__, fec_log[ch].rfsw_bc);
+    dbg("%s: mc:    %4d\r\n", __FUNCTION__, fec_log[ch].rfsw_mc);
+    dbg("%s: lg:    %4d\r\n", __FUNCTION__, fec_log[ch].rfsw_lg);
+    dbg("%s: no:    %4d\r\n", __FUNCTION__, fec_log[ch].rfsw_no);
+    dbg("%s: cr:    %4d\r\n", __FUNCTION__, fec_log[ch].rfsw_cr);
+    dbg("%s: ov:    %4d\r\n", __FUNCTION__, fec_log[ch].rfsw_ov);
+    dbg("%s: tr:    %4d\r\n", __FUNCTION__, fec_log[ch].rfsw_tr);
+    dbg("%s: ---------------\r\n\r\n", __FUNCTION__);
 }
 
 /********************************************************************/
@@ -263,30 +272,30 @@ void fec_log_dump(uint8_t ch)
  */
 void fec_debug_dump(uint8_t ch)
 {
-    xprintf("\n------------- FEC%d -------------\n",ch);
-    xprintf("EIR      %08x        \n", MCF_FEC_EIR(ch));
-    xprintf("EIMR     %08x        \n", MCF_FEC_EIMR(ch));
-    xprintf("ECR      %08x        \n", MCF_FEC_ECR(ch));
-    xprintf("RCR      %08x        \n", MCF_FEC_RCR(ch));
-    xprintf("R_HASH   %08x        \n", MCF_FEC_RHR_HASH(ch));
-    xprintf("TCR      %08x        \n", MCF_FEC_TCR(ch));
-    xprintf("FECTFWR  %08x        \n", MCF_FEC_FECTFWR(ch));
-    xprintf("FECRFSR  %08x        \n", MCF_FEC_FECRFSR(ch));
-    xprintf("FECRFCR  %08x        \n", MCF_FEC_FECRFCR(ch));
-    xprintf("FECRLRFP %08x        \n", MCF_FEC_FECRLRFP(ch));
-    xprintf("FECRLWFP %08x        \n", MCF_FEC_FECRLWFP(ch));
-    xprintf("FECRFAR  %08x        \n", MCF_FEC_FECRFAR(ch));
-    xprintf("FECRFRP  %08x        \n", MCF_FEC_FECRFRP(ch));
-    xprintf("FECRFWP  %08x        \n", MCF_FEC_FECRFWP(ch));
-    xprintf("FECTFSR  %08x        \n", MCF_FEC_FECTFSR(ch));
-    xprintf("FECTFCR  %08x        \n", MCF_FEC_FECTFCR(ch));
-    xprintf("FECTLRFP %08x        \n", MCF_FEC_FECTLRFP(ch));
-    xprintf("FECTLWFP %08x        \n", MCF_FEC_FECTLWFP(ch));
-    xprintf("FECTFAR  %08x        \n", MCF_FEC_FECTFAR(ch));
-    xprintf("FECTFRP  %08x        \n", MCF_FEC_FECTFRP(ch));
-    xprintf("FECTFWP  %08x        \n", MCF_FEC_FECTFWP(ch));
-    xprintf("FRST     %08x        \n", MCF_FEC_FECFRST(ch));
-    xprintf("--------------------------------\n\n");
+    dbg("\n------------- FEC%d -------------\n",ch);
+    dbg("EIR      %08x        \n", MCF_FEC_EIR(ch));
+    dbg("EIMR     %08x        \n", MCF_FEC_EIMR(ch));
+    dbg("ECR      %08x        \n", MCF_FEC_ECR(ch));
+    dbg("RCR      %08x        \n", MCF_FEC_RCR(ch));
+    dbg("R_HASH   %08x        \n", MCF_FEC_RHR_HASH(ch));
+    dbg("TCR      %08x        \n", MCF_FEC_TCR(ch));
+    dbg("FECTFWR  %08x        \n", MCF_FEC_FECTFWR(ch));
+    dbg("FECRFSR  %08x        \n", MCF_FEC_FECRFSR(ch));
+    dbg("FECRFCR  %08x        \n", MCF_FEC_FECRFCR(ch));
+    dbg("FECRLRFP %08x        \n", MCF_FEC_FECRLRFP(ch));
+    dbg("FECRLWFP %08x        \n", MCF_FEC_FECRLWFP(ch));
+    dbg("FECRFAR  %08x        \n", MCF_FEC_FECRFAR(ch));
+    dbg("FECRFRP  %08x        \n", MCF_FEC_FECRFRP(ch));
+    dbg("FECRFWP  %08x        \n", MCF_FEC_FECRFWP(ch));
+    dbg("FECTFSR  %08x        \n", MCF_FEC_FECTFSR(ch));
+    dbg("FECTFCR  %08x        \n", MCF_FEC_FECTFCR(ch));
+    dbg("FECTLRFP %08x        \n", MCF_FEC_FECTLRFP(ch));
+    dbg("FECTLWFP %08x        \n", MCF_FEC_FECTLWFP(ch));
+    dbg("FECTFAR  %08x        \n", MCF_FEC_FECTFAR(ch));
+    dbg("FECTFRP  %08x        \n", MCF_FEC_FECTFRP(ch));
+    dbg("FECTFWP  %08x        \n", MCF_FEC_FECTFWP(ch));
+    dbg("FRST     %08x        \n", MCF_FEC_FECFRST(ch));
+    dbg("--------------------------------\n\n");
 }
 
 /********************************************************************/
@@ -722,7 +731,7 @@ void fec_rx_frame(uint8_t ch, NIF *nif)
             if (new_nbuf == NULL)
             {
                 #ifdef DEBUG_PRINT
-                    xprintf("nbuf_alloc() failed\n");
+                    dbg("nbuf_alloc() failed\n");
                 #endif
 
                 /*
@@ -1031,7 +1040,11 @@ int fec_send(uint8_t ch, NIF *nif, uint8_t *dst, uint8_t *src, uint16_t type, NB
     
     /* Check the length */
     if ((nbuf->length + ETH_HDR_LEN) > ETH_MTU)
+	{
+		dbg("%s: nbuf->length (%d) + ETH_HDR_LEN (%d) exceeds ETH_MTU (%d)\r\n", 
+			__FUNCTION__, nbuf->length, ETH_HDR_LEN, ETH_MTU);
         return 0;
+	}
 
     /* 
      * Copy the destination address, source address, and Ethernet 
@@ -1162,7 +1175,7 @@ static void fec_irq_handler(uint8_t ch)
 
     #ifdef DEBUG
     if (event != eir)
-        xprintf("Pending but not enabled: 0x%08X\n", (event ^ eir));
+        dbg("Pending but not enabled: 0x%08X\n", (event ^ eir));
     #endif
 
     /*
@@ -1175,8 +1188,8 @@ static void fec_irq_handler(uint8_t ch)
         fec_log[ch].total++;
         fec_log[ch].rferr++;
         #ifdef DEBUG
-        xprintf("RFERR\n");
-        xprintf("FECRFSR%d = 0x%08x\n", ch, MCF_FEC_FECRFSR(ch));
+        dbg("RFERR\n");
+        dbg("FECRFSR%d = 0x%08x\n", ch, MCF_FEC_FECRFSR(ch));
         fec_eth_stop(ch);
         #endif
     }
@@ -1185,7 +1198,7 @@ static void fec_irq_handler(uint8_t ch)
         fec_log[ch].total++;
         fec_log[ch].xferr++;
         #ifdef DEBUG
-        xprintf("XFERR\n");
+        dbg("XFERR\n");
         #endif
     }
     if (event & MCF_FEC_EIR_XFUN)
@@ -1193,7 +1206,7 @@ static void fec_irq_handler(uint8_t ch)
         fec_log[ch].total++;
         fec_log[ch].xfun++;
         #ifdef DEBUG
-        xprintf("XFUN\n");
+        dbg("XFUN\n");
         fec_eth_stop(ch);
         #endif
     }
@@ -1202,7 +1215,7 @@ static void fec_irq_handler(uint8_t ch)
         fec_log[ch].total++;
         fec_log[ch].rl++;
         #ifdef DEBUG
-        xprintf("RL\n");
+        dbg("RL\n");
         #endif
     }
     if (event & MCF_FEC_EIR_LC)
@@ -1210,7 +1223,7 @@ static void fec_irq_handler(uint8_t ch)
         fec_log[ch].total++;
         fec_log[ch].lc++;
         #ifdef DEBUG
-        xprintf("LC\n");
+        dbg("LC\n");
         #endif
     }
     if (event & MCF_FEC_EIR_MII)
@@ -1230,7 +1243,7 @@ static void fec_irq_handler(uint8_t ch)
         fec_log[ch].total++;
         fec_log[ch].babt++;
         #ifdef DEBUG
-        xprintf("BABT\n");
+        dbg("BABT\n");
         #endif
     }
     if (event & MCF_FEC_EIR_BABR)
@@ -1238,7 +1251,7 @@ static void fec_irq_handler(uint8_t ch)
         fec_log[ch].total++;
         fec_log[ch].babr++;
         #ifdef DEBUG
-        xprintf("BABR\n");
+        dbg("BABR\n");
         #endif
     }
     if (event & MCF_FEC_EIR_HBERR)
@@ -1246,7 +1259,7 @@ static void fec_irq_handler(uint8_t ch)
         fec_log[ch].total++;
         fec_log[ch].hberr++;
         #ifdef DEBUG
-        xprintf("HBERR\n");
+        dbg("HBERR\n");
         #endif
     }
 }

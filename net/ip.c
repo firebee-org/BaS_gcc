@@ -13,7 +13,7 @@
 
 #define IP_DEBUG
 #if defined(IP_DEBUG)
-#define dbg(format, arg...) do { xprintf("DEBUG: " format "\r\n", ##arg); } while (0)
+#define dbg(format, arg...) do { xprintf("DEBUG: " format, ##arg); } while (0)
 #else
 #define dbg(format, arg...) do { ; } while (0)
 #endif
@@ -168,7 +168,7 @@ int ip_send(NIF *nif, uint8_t *dest, uint8_t *src, uint8_t protocol, NBUF *pNbuf
 		route = ip_resolve_route(nif, dest);
 		if (route == NULL)
 		{
-			dbg("Unable to locate %d.%d.%d.%d\n",
+			dbg("%s: Unable to locate %d.%d.%d.%d\r\n", __FUNCTION__,
 					dest[0], dest[1], dest[2], dest[3]);
 			return 0;
 		}
@@ -178,7 +178,7 @@ int ip_send(NIF *nif, uint8_t *dest, uint8_t *src, uint8_t protocol, NBUF *pNbuf
 		route = bc;
 		dbg("%s: route = broadcast\r\n", __FUNCTION__);
 		dbg("%s: nif = %p\r\n", __FUNCTION__, nif);
-		dbg("%s: nif->send = %p\n\t", __FUNCTION__, nif->send);
+		dbg("%s: nif->send = %p\r\n", __FUNCTION__, nif->send);
 	}
 
 	return nif->send(nif, route, &nif->hwa[0], ETH_FRM_IP, pNbuf);

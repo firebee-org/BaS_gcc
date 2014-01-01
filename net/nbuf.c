@@ -10,6 +10,14 @@
 #include "exceptions.h"
 #include "bas_types.h"
 #include "bas_printf.h"
+
+
+#define DBG_NBUF
+#if defined(DBG_NBUF)
+#define dbg(format, arg...) do { xprintf("DEBUG: " format, ##arg); } while (0)
+#else
+#define dbg(format, arg...) do { ; } while (0)
+#endif /* DBG_NBUF */
 /*
  * Queues used for network buffer storage
  */
@@ -40,9 +48,7 @@ int nbuf_init(void)
 		queue_init(&nbuf_queue[i]);
 	}
 
-#ifdef DEBUG_PRINT
-	printf("Creating %d net buffers of %d bytes\r\n",NBUF_MAX,NBUF_SZ);
-#endif
+	dbg("Creating %d net buffers of %d bytes\r\n", NBUF_MAX, NBUF_SZ);
 
 	for (i = 0; i < NBUF_MAX; ++i)
 	{
@@ -70,7 +76,7 @@ int nbuf_init(void)
 		queue_add(&nbuf_queue[NBUF_FREE], (QNODE *)nbuf);
 	}
 
-	xprintf("NBUF allocation complete\r\n");
+	dbg("NBUF allocation complete\r\n");
 
 	return 0;
 }
@@ -184,7 +190,7 @@ void nbuf_reset(void)
  */
 void nbuf_debug_dump(void)
 {
-#ifdef DEBUG
+#ifdef DBG_NBUF
 	NBUF *nbuf;
 	int i, j, level;
 
@@ -192,14 +198,14 @@ void nbuf_debug_dump(void)
 
 	for (i = 0; i < NBUF_MAXQ; ++i)
 	{
-		printf("\n\nQueue #%d\n\n",i);
-		printf("\tBuffer Location\tOffset\tLength\n");
-		printf("--------------------------------------\n");
+		dbg("\n\nQueue #%d\n\n", i);
+		dbg("\tBuffer Location\tOffset\tLength\n");
+		dbg("--------------------------------------\n");
 		j = 0;
 		nbuf = (NBUF *)queue_peek(&nbuf_queue[i]);
 		while (nbuf != NULL)
 		{
-			printf("%d\t  0x%08x\t0x%04x\t0x%04x\n",j++,nbuf->data,
+			dbg("%d\t  0x%08x\t0x%04x\t0x%04x\n",j++,nbuf->data,
 					nbuf->offset,
 					nbuf->length);
 			nbuf = (NBUF *)nbuf->node.next;
@@ -207,5 +213,5 @@ void nbuf_debug_dump(void)
 	}
 
 	set_ipl(level);
-#endif
+#endif DBG_NBUF
 }

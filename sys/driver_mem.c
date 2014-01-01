@@ -24,14 +24,7 @@
 #include "m5484l.h"
 #endif
 
-#ifndef FALSE
-#define FALSE 0
-#endif
-#ifndef TRUE
-#define TRUE 1
-#endif
-
-#undef DRIVER_MEM_DEBUG
+//#undef DRIVER_MEM_DEBUG
 
 #ifdef	DRIVER_MEM_DEBUG
 #define	dbg(fmt, args...)	xprintf(fmt, ##args)
@@ -114,7 +107,7 @@ static MD *ffit(long amount, MPB *mp)
 	}
 	
 	maxval = 0;
-	maxflg = ((amount == -1) ? TRUE : FALSE) ;
+	maxflg = ((amount == -1) ? true : false) ;
 	p = q->m_link;                   /* start with next MD */
 	do /* search the list for an MD with enough space */
 	{

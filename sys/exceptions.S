@@ -306,7 +306,7 @@ init_vec_loop:
 		move.l	a1,(INT_SOURCE_GPT2 + 64) * 4(a0)
 		move.l	a1,(INT_SOURCE_GPT3 + 64) * 4(a0)
 		move.l	a1,(INT_SOURCE_FEC0 + 64) * 4(a0)
-		move.l	a1,(INT_SOURCE_FEC1 + 64) * 4(a0)
+		//move.l	a1,(INT_SOURCE_FEC1 + 64) * 4(a0)
 		move.l	a1,(INT_SOURCE_DMA + 64) * 4(a0)
 
 		move.l	(sp)+,a2			// Restore registers
@@ -994,7 +994,8 @@ _lowlevel_isr_handler:
 		jsr		_isr_execute_handler
 		lea		4(sp),sp
 		cmp.l	#1,d0
-		beq		handled
+		//beq		handled			// this is probably not a too bright idea for hw interrupts not known to TOS
+		bra		handled
 nothandled:
 		movem.l	(sp),d0-d1/a0-a1
 		unlk	a6

@@ -36,7 +36,7 @@ extern void (*rt_vbr[])(void);
 
 #define IRQ_DEBUG
 #if defined(IRQ_DEBUG)
-#define dbg(format, arg...) do { xprintf("DEBUG: " format "\r\n", ##arg); } while (0)
+#define dbg(format, arg...) do { xprintf("DEBUG: " format, ##arg); } while (0)
 #else
 #define dbg(format, arg...) do { ; } while (0)
 #endif
@@ -57,7 +57,7 @@ int register_interrupt_handler(uint8_t source, uint8_t level, uint8_t priority, 
 
 	if (source < 1 || source > 63)
 	{
-		xprintf("%s: interrupt source %d not defined\r\n", __FUNCTION__, source);
+		dbg("%s: interrupt source %d not defined\r\n", __FUNCTION__, source);
 		return -1;
 	}
 
@@ -68,7 +68,7 @@ int register_interrupt_handler(uint8_t source, uint8_t level, uint8_t priority, 
 	{
 		if (ICR[i] == lp)
 		{
-			xprintf("%s: level %d and priority %d already used for interrupt source %d!\r\n", __FUNCTION__,
+			dbg("%s: level %d and priority %d already used for interrupt source %d!\r\n", __FUNCTION__,
 					level, priority, i);
 			return -1;
 		}
@@ -158,10 +158,12 @@ int isr_register_handler(int type, int vector,
 			isrtab[index].handler = handler;
 			isrtab[index].hdev = hdev;
 			isrtab[index].harg = harg;
+
 			return true;
 		}
 	}
-	dbg("%s: no available slots\n\t", __FUNCTION__);
+	dbg("%s: no available slots to register handler for vector %d\n\r", __FUNCTION__, vector);
+
 	return false;   /* no available slots */
 }
 
@@ -183,8 +185,11 @@ void isr_remove_handler(int type, int (*handler)(void *, void *))
 			isrtab[index].handler = 0;
 			isrtab[index].hdev = 0;
 			isrtab[index].harg = 0;
+
+			return;
 		}
 	}
+	dbg("%s: no such handler registered (type=%d, handler=%p\r\n", __FUNCTION__, type, handler);
 }
 
 
@@ -205,32 +210,14 @@ bool isr_execute_handler(int vector)
 		if ((isrtab[index].vector == vector) &&
 				(isrtab[index].type == ISR_DBUG_ISR))
 		{
-			xprintf("calling BaS isr handler at %p\r\n", isrtab[index].handler);
+			retval = true;
 			if (isrtab[index].handler(isrtab[index].hdev,isrtab[index].harg))
 			{
-				retval = true;
-				break;
+				return retval;
 			}
 		}
 	}
-
-	/*
-	 * Try to locate a user-registered Interrupt Service Routine handler.
-	 */
-	for (index = 0; index < UIF_MAX_ISR_ENTRY; index++)
-	{
-		if ((isrtab[index].vector == vector) &&
-				(isrtab[index].type == ISR_USER_ISR))
-		{
-			xprintf("calling USR isr handler at %p\r\n", isrtab[index].handler);
-			if (isrtab[index].handler(isrtab[index].hdev,isrtab[index].harg))
-			{
-				retval = true;
-				break;
-			}
-		}
-	}
-
+	dbg("%s: no BaS isr handler for vector %d found\r\n", __FUNCTION__, vector);
 	return retval;
 }
 

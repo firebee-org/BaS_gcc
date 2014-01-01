@@ -262,9 +262,10 @@ void network_init(void)
 	handler = fec0_interrupt_handler;
 	vector = 103;
 
+	isr_init();		/* need to call that explicitely, otherwise isr table might be full */
 	if (!isr_register_handler(ISR_DBUG_ISR, vector, handler, NULL, (void *) &nif1))
 	{
-		dbg("%s: unable to register handler\r\n", __FUNCTION__);
+		dbg("%s: unable to register handler for vector %d\r\n", __FUNCTION__, vector);
 		return;
 	}
 
@@ -276,15 +277,16 @@ void network_init(void)
 
     if (!isr_register_handler(ISR_DBUG_ISR, vector, handler, NULL,NULL))
 	{
-		xprintf("Error: Unable to register handler\n");
+		dbg("%s: Error: Unable to register handler for vector %s\r\n", __FUNCTION__, vector);
 		return;
 	}
 
+#ifdef _NOT_USED_
 	nif_init(&nif1);
 	nif1.mtu = ETH_MTU;
 	nif1.send = fec0_send;
 	fec_eth_setup(0, FEC_MODE_MII, FEC_MII_100BASE_TX, FEC_MII_FULL_DUPLEX, mac);
-	fec_eth_setup(1, FEC_MODE_MII, FEC_MII_100BASE_TX, FEC_MII_FULL_DUPLEX, mac);
+	// fec_eth_setup(1, FEC_MODE_MII, FEC_MII_100BASE_TX, FEC_MII_FULL_DUPLEX, mac);
 	memcpy(nif1.hwa, mac, 6);
 	memcpy(nif1.broadcast, bc, 6);
 
@@ -293,10 +295,11 @@ void network_init(void)
 
 	ip_init(&ip_info, myip, gateway, netmask);
 	nif_bind_protocol(&nif1, ETH_FRM_IP, ip_handler, (void *) &ip_info);
+#endif
+	dma_irq_enable(6, 6);
+	//set_ipl(0);
 
-	dma_irq_enable(6, 0);
-
-	//bootp_request(&nif1, 0);
+	// bootp_request(&nif1, 0);
 }
 
 void BaS(void)
