@@ -40,9 +40,9 @@
  */
 typedef struct
 {
-    uint16_t status;  /* control and status */
-    uint16_t length;  /* transfer length */
-    uint8_t  *data;   /* buffer address */
+	uint16_t status;  /* control and status */
+	uint16_t length;  /* transfer length */
+	uint8_t  *data;   /* buffer address */
 } FECBD;
 
 /*
@@ -82,19 +82,11 @@ typedef struct
 /* 
  * Functions provided in fec_bd.c 
  */
-void   
-fecbd_init(uint8_t);
-
-uint32_t fecbd_get_start(uint8_t, uint8_t);
-
-FECBD *
-fecbd_rx_alloc(uint8_t);
-
-FECBD *
-fecbd_tx_alloc(uint8_t);
-
-FECBD *
-fecbd_tx_free(uint8_t);
+extern void fecbd_init(uint8_t);
+extern uint32_t fecbd_get_start(uint8_t, uint8_t);
+extern FECBD *fecbd_rx_alloc(uint8_t);
+extern FECBD *fecbd_tx_alloc(uint8_t);
+extern FECBD *fecbd_tx_free(uint8_t);
 
 /*******************************************************************/
 
