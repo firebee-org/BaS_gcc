@@ -8,6 +8,8 @@
 #ifndef _FECBD_H_
 #define _FECBD_H_
 
+#include "bas_types.h"
+
 /********************************************************************/
 
 #define Rx  1
@@ -27,10 +29,10 @@
  * Number of Rx and Tx Buffers and Buffer Descriptors 
  */
 #ifndef NRXBD
-#define NRXBD   10
+#define NRXBD   20
 #endif
 #ifndef NTXBD
-#define NTXBD   4
+#define NTXBD   20
 #endif
 
 /* 

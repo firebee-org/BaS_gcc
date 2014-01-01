@@ -40,11 +40,11 @@
 #define dbg(format, arg...) do { ; } while (0)
 #endif /* DEBUG_PCI */
 
-#if MACHINE_FIREBEE
-#define pci_config_wait()	wait(40000);	/* FireBee USB not properly detected otherwise !?? */
-#elif MACHINE_M5484LITE
+//#if MACHINE_FIREBEE
+//#define pci_config_wait()	wait(40000);	/* FireBee USB not properly detected otherwise !?? */
+//#elif MACHINE_M5484LITE
 #define pci_config_wait() do { __asm__ __volatile("tpf" ::: "memory"); } while (0)
-#endif
+//#endif
 
 /*
  * PCI device class descriptions displayed during PCI bus scan
@@ -924,6 +924,7 @@ void init_pci(void)
 	init_xlbus_arbiter();
 
 	MCF_PCI_PCIGSCR = 1;	/* reset PCI */
+	wait(400000);	/* give devices a chance to come up */
 
 	/*
 	 * setup the PCI arbiter
@@ -1001,6 +1002,7 @@ void init_pci(void)
 	MCF_PCI_PCIGSCR &= ~MCF_PCI_PCIGSCR_PR;
 	do {;} while (MCF_PCI_PCIGSCR & MCF_PCI_PCIGSCR_PR); /* wait until reset finished */
 	xprintf("finished\r\n");
+	wait(400000);			/* give devices a chance to come up */
 
 	/* initialize/clear resource descriptor table */
 	memset(&resource_descriptors, 0, NUM_CARDS * NUM_RESOURCES * sizeof(struct pci_rd));

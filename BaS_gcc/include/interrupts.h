@@ -78,14 +78,12 @@
 #define	INT_SOURCE_GPT1				61	// GPT1 timer interrupt
 #define	INT_SOURCE_GPT0				62	// GPT0 timer interrupt
 
-#define DMA_INTC_LVL	6			/* interrupt level for DMA interrupt */
-#define DMA_INTC_PRI	0			/* interrupt priority for DMA interrupt */
 
 #define FEC0_INTC_LVL	5			/* interrupt level for FEC0 */
-#define FEC0_INTC_PRI	0			/* interrupt priority for FEC0 */
+#define FEC0_INTC_PRI	7			/* interrupt priority for FEC0 */
 
 #define FEC1_INTC_LVL	5			/* interrupt level for FEC1 */
-#define FEC1_INTC_PRI	1			/* interrupt priority for FEC1 */
+#define FEC1_INTC_PRI	7			/* interrupt priority for FEC1 */
 
 #define FEC_INTC_LVL(x)		((x == 0) ? FEC0_INTC_LVL : FEC1_INTC_LVL)
 #define FEC_INTC_PRI(x)		((x == 0) ? FEC0_INTC_PRI : FEC1_INTC_PRI)

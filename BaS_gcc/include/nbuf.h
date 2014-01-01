@@ -8,6 +8,8 @@
 #ifndef _NBUF_H_
 #define _NBUF_H_
 
+#include "bas_types.h"
+
 /********************************************************************/
 /*
  * Include the Queue structure definitions

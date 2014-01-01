@@ -35,6 +35,13 @@
 #include "m5484l.h"
 #endif /* MACHINE_FIREBEE */
 
+#define DBG_DMA
+#ifdef DBG_DMA
+#define dbg(format, arg...) do { xprintf("DEBUG: " format, ##arg); } while (0)
+#else
+#define dbg(format, arg...) do { ; } while (0)
+#endif /* DBG_DMA */
+
 extern char _SYS_SRAM[];
 #define SYS_SRAM &_SYS_SRAM[0]
 
@@ -64,19 +71,23 @@ static struct dma_channel dma_channel[NCHANNELS] =
  */
 void dma_irq_enable(uint8_t lvl, uint8_t pri)
 {
-    /* Setup the DMA ICR (#48) */
-    MCF_INTC_ICR48 = 0
-        | MCF_INTC_ICR_IP(pri)
-        | MCF_INTC_ICR_IL(lvl);
+	/* Setup the DMA ICR (#48) */
+	MCF_INTC_ICR48 = 0
+		| MCF_INTC_ICR_IP(pri)
+		| MCF_INTC_ICR_IL(lvl);
+	dbg("%s:DMA irq assigned level %d, priority %d\r\n", __FUNCTION__, lvl, pri);
 
-    /* Unmask all task interrupts */
-    MCF_DMA_DIMR = 0;
+	/* Unmask all task interrupts */
+	MCF_DMA_DIMR = 0;
 
-    /* Clear the interrupt pending register */
-    MCF_DMA_DIPR = 0;
+	/* Clear the interrupt pending register */
+	MCF_DMA_DIPR = 0;
 
-    /* Unmask the DMA interrupt in the interrupt controller */
-    MCF_INTC_IMRH &= ~MCF_INTC_IMRH_INT_MASK48;
+	/* Unmask the DMA interrupt in the interrupt controller */
+	MCF_INTC_IMRH &= ~MCF_INTC_IMRH_INT_MASK48;
+
+	dbg("%s: DMA task interrupts unmasked, pending interrupts cleared, interrupt controller active\r\n",
+		__FUNCTION__);
 }
 
 /********************************************************************/
@@ -85,14 +96,16 @@ void dma_irq_enable(uint8_t lvl, uint8_t pri)
  */
 void dma_irq_disable(void)
 {
-    /* Mask all task interrupts */
-    MCF_DMA_DIMR = (uint32_t) ~0;
+	/* Mask all task interrupts */
+	MCF_DMA_DIMR = (uint32_t) ~0;
 
-    /* Clear any pending task interrupts */
-    MCF_DMA_DIPR = (uint32_t) ~0;
+	/* Clear any pending task interrupts */
+	MCF_DMA_DIPR = (uint32_t) ~0;
 
-    /* Mask the DMA interrupt in the interrupt controller */
-    MCF_INTC_IMRH |= MCF_INTC_IMRH_INT_MASK48;
+	/* Mask the DMA interrupt in the interrupt controller */
+	MCF_INTC_IMRH |= MCF_INTC_IMRH_INT_MASK48;
+
+	dbg("%s: DMA interrupts masked and disabled\r\n", __FUNCTION__);
 }
 
 int dma_set_initiator(int initiator)
@@ -118,211 +131,211 @@ int dma_set_initiator(int initiator)
 			break;
 
 		case DMA_FEC0_RX:
-            MCF_DMA_IMCR = (MCF_DMA_IMCR & ~MCF_DMA_IMCR_IMC16(3))
-                            | MCF_DMA_IMCR_IMC16_FEC0RX;
-            used_reqs[16] = DMA_FEC0_RX;
-            break;
-        case DMA_FEC0_TX:
-            MCF_DMA_IMCR = (MCF_DMA_IMCR & ~MCF_DMA_IMCR_IMC17(3))
-                            | MCF_DMA_IMCR_IMC17_FEC0TX;
-            used_reqs[17] = DMA_FEC0_TX;
-            break;
-        case DMA_FEC1_RX:
-            MCF_DMA_IMCR = (MCF_DMA_IMCR & ~MCF_DMA_IMCR_IMC20(3))
-                            | MCF_DMA_IMCR_IMC20_FEC1RX;
-            used_reqs[20] = DMA_FEC1_RX;
-            break;
-        case DMA_FEC1_TX:
-            if (used_reqs[21] == 0)
-            {
-                MCF_DMA_IMCR = (MCF_DMA_IMCR & ~MCF_DMA_IMCR_IMC21(3))
-                                | MCF_DMA_IMCR_IMC21_FEC1TX;
-                used_reqs[21] = DMA_FEC1_TX;
-            }
-            else if (used_reqs[25] == 0)
-            {
-                MCF_DMA_IMCR = (MCF_DMA_IMCR & ~MCF_DMA_IMCR_IMC25(3))
-                                | MCF_DMA_IMCR_IMC25_FEC1TX;
-                used_reqs[25] = DMA_FEC1_TX;
-            }
-            else if (used_reqs[31] == 0)
-            {
-                MCF_DMA_IMCR = (MCF_DMA_IMCR & ~MCF_DMA_IMCR_IMC31(3))
-                                | MCF_DMA_IMCR_IMC31_FEC1TX;
-                used_reqs[31] = DMA_FEC1_TX;
-            }
-            else /* No empty slots */
-                return 1;
-            break;
-        case DMA_DREQ1:
-            if (used_reqs[29] == 0)
-            {
-                MCF_DMA_IMCR = (MCF_DMA_IMCR & ~MCF_DMA_IMCR_IMC29(3))
-                                | MCF_DMA_IMCR_IMC29_DREQ1;
-                used_reqs[29] = DMA_DREQ1;
-            }
-            else if (used_reqs[21] == 0)
-            {
-                MCF_DMA_IMCR = (MCF_DMA_IMCR & ~MCF_DMA_IMCR_IMC21(3))
-                                | MCF_DMA_IMCR_IMC21_DREQ1;
-                used_reqs[21] = DMA_DREQ1;
-            }
-            else /* No empty slots */
-                return 1;
-            break;
-        case DMA_CTM0:
-            if (used_reqs[24] == 0)
-            {
-                MCF_DMA_IMCR = (MCF_DMA_IMCR & ~MCF_DMA_IMCR_IMC24(3))
-                                | MCF_DMA_IMCR_IMC24_CTM0;
-                used_reqs[24] = DMA_CTM0;
-            }
-            else /* No empty slots */
-                return 1;
-            break;
-        case DMA_CTM1:
-            if (used_reqs[25] == 0)
-            {
-                MCF_DMA_IMCR = (MCF_DMA_IMCR & ~MCF_DMA_IMCR_IMC25(3))
-                                | MCF_DMA_IMCR_IMC25_CTM1;
-                used_reqs[25] = DMA_CTM1;
-            }
-            else /* No empty slots */
-                return 1;
-            break;
-        case DMA_CTM2:
-            if (used_reqs[26] == 0)
-            {
-                MCF_DMA_IMCR = (MCF_DMA_IMCR & ~MCF_DMA_IMCR_IMC26(3))
-                                | MCF_DMA_IMCR_IMC26_CTM2;
-                used_reqs[26] = DMA_CTM2;
-            }
-            else /* No empty slots */
-                return 1;
-            break;
-        case DMA_CTM3:
-            if (used_reqs[27] == 0)
-            {
-                MCF_DMA_IMCR = (MCF_DMA_IMCR & ~MCF_DMA_IMCR_IMC27(3))
-                                | MCF_DMA_IMCR_IMC27_CTM3;
-                used_reqs[27] = DMA_CTM3;
-            }
-            else /* No empty slots */
-                return 1;
-            break;
-        case DMA_CTM4:
-            if (used_reqs[28] == 0)
-            {
-                MCF_DMA_IMCR = (MCF_DMA_IMCR & ~MCF_DMA_IMCR_IMC28(3))
-                                | MCF_DMA_IMCR_IMC28_CTM4;
-                used_reqs[28] = DMA_CTM4;
-            }
-            else /* No empty slots */
-                return 1;
-            break;
-        case DMA_CTM5:
-            if (used_reqs[29] == 0)
-            {
-                MCF_DMA_IMCR = (MCF_DMA_IMCR & ~MCF_DMA_IMCR_IMC29(3))
-                                | MCF_DMA_IMCR_IMC29_CTM5;
-                used_reqs[29] = DMA_CTM5;
-            }
-            else /* No empty slots */
-                return 1;
-            break;
-        case DMA_CTM6:
-            if (used_reqs[30] == 0)
-            {
-                MCF_DMA_IMCR = (MCF_DMA_IMCR & ~MCF_DMA_IMCR_IMC30(3))
-                                | MCF_DMA_IMCR_IMC30_CTM6;
-                used_reqs[30] = DMA_CTM6;
-            }
-            else /* No empty slots */
-                return 1;
-            break;
-        case DMA_CTM7:
-            if (used_reqs[31] == 0)
-            {
-                MCF_DMA_IMCR = (MCF_DMA_IMCR & ~MCF_DMA_IMCR_IMC31(3))
-                                | MCF_DMA_IMCR_IMC31_CTM7;
-                used_reqs[31] = DMA_CTM7;
-            }
-            else /* No empty slots */
-                return 1;
-            break;
-        case DMA_USBEP4:
-            if (used_reqs[26] == 0)
-            {
-                MCF_DMA_IMCR = (MCF_DMA_IMCR & ~MCF_DMA_IMCR_IMC26(3))
-                                | MCF_DMA_IMCR_IMC26_USBEP4;
-                used_reqs[26] = DMA_USBEP4;
-            }
-            else /* No empty slots */
-                return 1;
-            break;
-        case DMA_USBEP5:
-            if (used_reqs[27] == 0)
-            {
-                MCF_DMA_IMCR = (MCF_DMA_IMCR & ~MCF_DMA_IMCR_IMC27(3))
-                                | MCF_DMA_IMCR_IMC27_USBEP5;
-                used_reqs[27] = DMA_USBEP5;
-            }
-            else /* No empty slots */
-                return 1;
-            break;
-        case DMA_USBEP6:
-            if (used_reqs[28] == 0)
-            {
-                MCF_DMA_IMCR = (MCF_DMA_IMCR & ~MCF_DMA_IMCR_IMC28(3))
-                                | MCF_DMA_IMCR_IMC28_USBEP6;
-                used_reqs[28] = DMA_USBEP6;
-            }
-            else /* No empty slots */
-                return 1;
-            break;
-        case DMA_PSC2_RX:
-            if (used_reqs[28] == 0)
-            {
-                MCF_DMA_IMCR = (MCF_DMA_IMCR & ~MCF_DMA_IMCR_IMC28(3))
-                                | MCF_DMA_IMCR_IMC28_PSC2RX;
-                used_reqs[28] = DMA_PSC2_RX;            }
-            else /* No empty slots */
-                return 1;
-            break;
-        case DMA_PSC2_TX:
-            if (used_reqs[29] == 0)
-            {
-                MCF_DMA_IMCR = (MCF_DMA_IMCR & ~MCF_DMA_IMCR_IMC29(3))
-                                | MCF_DMA_IMCR_IMC29_PSC2TX;
-                used_reqs[29] = DMA_PSC2_TX;
-            }
-            else /* No empty slots */
-                return 1;
-            break;
-        case DMA_PSC3_RX:
-            if (used_reqs[30] == 0)
-            {
-                MCF_DMA_IMCR = (MCF_DMA_IMCR & ~MCF_DMA_IMCR_IMC30(3))
-                                | MCF_DMA_IMCR_IMC30_PSC3RX;
-                used_reqs[30] = DMA_PSC3_RX;
-            }
-            else /* No empty slots */
-                return 1;
-            break;
-        case DMA_PSC3_TX:
-            if (used_reqs[31] == 0)
-            {
-                MCF_DMA_IMCR = (MCF_DMA_IMCR & ~MCF_DMA_IMCR_IMC31(3))
-                                | MCF_DMA_IMCR_IMC31_PSC3TX;
-                used_reqs[31] = DMA_PSC3_TX;
-            }
-            else /* No empty slots */
-                return 1;
-            break;
-        default:
-            return 1;
-    }
-    return 0;
+			MCF_DMA_IMCR = (MCF_DMA_IMCR & ~MCF_DMA_IMCR_IMC16(3))
+				| MCF_DMA_IMCR_IMC16_FEC0RX;
+			used_reqs[16] = DMA_FEC0_RX;
+			break;
+		case DMA_FEC0_TX:
+			MCF_DMA_IMCR = (MCF_DMA_IMCR & ~MCF_DMA_IMCR_IMC17(3))
+				| MCF_DMA_IMCR_IMC17_FEC0TX;
+			used_reqs[17] = DMA_FEC0_TX;
+			break;
+		case DMA_FEC1_RX:
+			MCF_DMA_IMCR = (MCF_DMA_IMCR & ~MCF_DMA_IMCR_IMC20(3))
+				| MCF_DMA_IMCR_IMC20_FEC1RX;
+			used_reqs[20] = DMA_FEC1_RX;
+			break;
+		case DMA_FEC1_TX:
+			if (used_reqs[21] == 0)
+			{
+				MCF_DMA_IMCR = (MCF_DMA_IMCR & ~MCF_DMA_IMCR_IMC21(3))
+					| MCF_DMA_IMCR_IMC21_FEC1TX;
+				used_reqs[21] = DMA_FEC1_TX;
+			}
+			else if (used_reqs[25] == 0)
+			{
+				MCF_DMA_IMCR = (MCF_DMA_IMCR & ~MCF_DMA_IMCR_IMC25(3))
+					| MCF_DMA_IMCR_IMC25_FEC1TX;
+				used_reqs[25] = DMA_FEC1_TX;
+			}
+			else if (used_reqs[31] == 0)
+			{
+				MCF_DMA_IMCR = (MCF_DMA_IMCR & ~MCF_DMA_IMCR_IMC31(3))
+					| MCF_DMA_IMCR_IMC31_FEC1TX;
+				used_reqs[31] = DMA_FEC1_TX;
+			}
+			else /* No empty slots */
+				return 1;
+			break;
+		case DMA_DREQ1:
+			if (used_reqs[29] == 0)
+			{
+				MCF_DMA_IMCR = (MCF_DMA_IMCR & ~MCF_DMA_IMCR_IMC29(3))
+					| MCF_DMA_IMCR_IMC29_DREQ1;
+				used_reqs[29] = DMA_DREQ1;
+			}
+			else if (used_reqs[21] == 0)
+			{
+				MCF_DMA_IMCR = (MCF_DMA_IMCR & ~MCF_DMA_IMCR_IMC21(3))
+					| MCF_DMA_IMCR_IMC21_DREQ1;
+				used_reqs[21] = DMA_DREQ1;
+			}
+			else /* No empty slots */
+				return 1;
+			break;
+		case DMA_CTM0:
+			if (used_reqs[24] == 0)
+			{
+				MCF_DMA_IMCR = (MCF_DMA_IMCR & ~MCF_DMA_IMCR_IMC24(3))
+					| MCF_DMA_IMCR_IMC24_CTM0;
+				used_reqs[24] = DMA_CTM0;
+			}
+			else /* No empty slots */
+				return 1;
+			break;
+		case DMA_CTM1:
+			if (used_reqs[25] == 0)
+			{
+				MCF_DMA_IMCR = (MCF_DMA_IMCR & ~MCF_DMA_IMCR_IMC25(3))
+					| MCF_DMA_IMCR_IMC25_CTM1;
+				used_reqs[25] = DMA_CTM1;
+			}
+			else /* No empty slots */
+				return 1;
+			break;
+		case DMA_CTM2:
+			if (used_reqs[26] == 0)
+			{
+				MCF_DMA_IMCR = (MCF_DMA_IMCR & ~MCF_DMA_IMCR_IMC26(3))
+					| MCF_DMA_IMCR_IMC26_CTM2;
+				used_reqs[26] = DMA_CTM2;
+			}
+			else /* No empty slots */
+				return 1;
+			break;
+		case DMA_CTM3:
+			if (used_reqs[27] == 0)
+			{
+				MCF_DMA_IMCR = (MCF_DMA_IMCR & ~MCF_DMA_IMCR_IMC27(3))
+					| MCF_DMA_IMCR_IMC27_CTM3;
+				used_reqs[27] = DMA_CTM3;
+			}
+			else /* No empty slots */
+				return 1;
+			break;
+		case DMA_CTM4:
+			if (used_reqs[28] == 0)
+			{
+				MCF_DMA_IMCR = (MCF_DMA_IMCR & ~MCF_DMA_IMCR_IMC28(3))
+					| MCF_DMA_IMCR_IMC28_CTM4;
+				used_reqs[28] = DMA_CTM4;
+			}
+			else /* No empty slots */
+				return 1;
+			break;
+		case DMA_CTM5:
+			if (used_reqs[29] == 0)
+			{
+				MCF_DMA_IMCR = (MCF_DMA_IMCR & ~MCF_DMA_IMCR_IMC29(3))
+					| MCF_DMA_IMCR_IMC29_CTM5;
+				used_reqs[29] = DMA_CTM5;
+			}
+			else /* No empty slots */
+				return 1;
+			break;
+		case DMA_CTM6:
+			if (used_reqs[30] == 0)
+			{
+				MCF_DMA_IMCR = (MCF_DMA_IMCR & ~MCF_DMA_IMCR_IMC30(3))
+					| MCF_DMA_IMCR_IMC30_CTM6;
+				used_reqs[30] = DMA_CTM6;
+			}
+			else /* No empty slots */
+				return 1;
+			break;
+		case DMA_CTM7:
+			if (used_reqs[31] == 0)
+			{
+				MCF_DMA_IMCR = (MCF_DMA_IMCR & ~MCF_DMA_IMCR_IMC31(3))
+					| MCF_DMA_IMCR_IMC31_CTM7;
+				used_reqs[31] = DMA_CTM7;
+			}
+			else /* No empty slots */
+				return 1;
+			break;
+		case DMA_USBEP4:
+			if (used_reqs[26] == 0)
+			{
+				MCF_DMA_IMCR = (MCF_DMA_IMCR & ~MCF_DMA_IMCR_IMC26(3))
+					| MCF_DMA_IMCR_IMC26_USBEP4;
+				used_reqs[26] = DMA_USBEP4;
+			}
+			else /* No empty slots */
+				return 1;
+			break;
+		case DMA_USBEP5:
+			if (used_reqs[27] == 0)
+			{
+				MCF_DMA_IMCR = (MCF_DMA_IMCR & ~MCF_DMA_IMCR_IMC27(3))
+					| MCF_DMA_IMCR_IMC27_USBEP5;
+				used_reqs[27] = DMA_USBEP5;
+			}
+			else /* No empty slots */
+				return 1;
+			break;
+		case DMA_USBEP6:
+			if (used_reqs[28] == 0)
+			{
+				MCF_DMA_IMCR = (MCF_DMA_IMCR & ~MCF_DMA_IMCR_IMC28(3))
+					| MCF_DMA_IMCR_IMC28_USBEP6;
+				used_reqs[28] = DMA_USBEP6;
+			}
+			else /* No empty slots */
+				return 1;
+			break;
+		case DMA_PSC2_RX:
+			if (used_reqs[28] == 0)
+			{
+				MCF_DMA_IMCR = (MCF_DMA_IMCR & ~MCF_DMA_IMCR_IMC28(3))
+					| MCF_DMA_IMCR_IMC28_PSC2RX;
+				used_reqs[28] = DMA_PSC2_RX;            }
+			else /* No empty slots */
+				return 1;
+			break;
+		case DMA_PSC2_TX:
+			if (used_reqs[29] == 0)
+			{
+				MCF_DMA_IMCR = (MCF_DMA_IMCR & ~MCF_DMA_IMCR_IMC29(3))
+					| MCF_DMA_IMCR_IMC29_PSC2TX;
+				used_reqs[29] = DMA_PSC2_TX;
+			}
+			else /* No empty slots */
+				return 1;
+			break;
+		case DMA_PSC3_RX:
+			if (used_reqs[30] == 0)
+			{
+				MCF_DMA_IMCR = (MCF_DMA_IMCR & ~MCF_DMA_IMCR_IMC30(3))
+					| MCF_DMA_IMCR_IMC30_PSC3RX;
+				used_reqs[30] = DMA_PSC3_RX;
+			}
+			else /* No empty slots */
+				return 1;
+			break;
+		case DMA_PSC3_TX:
+			if (used_reqs[31] == 0)
+			{
+				MCF_DMA_IMCR = (MCF_DMA_IMCR & ~MCF_DMA_IMCR_IMC31(3))
+					| MCF_DMA_IMCR_IMC31_PSC3TX;
+				used_reqs[31] = DMA_PSC3_TX;
+			}
+			else /* No empty slots */
+				return 1;
+			break;
+		default:
+			return 1;
+	}
+	return 0;
 }
 
 /*
@@ -337,14 +350,14 @@ int dma_set_initiator(int initiator)
  */
 uint32_t dma_get_initiator(int requestor)
 {
-    uint32_t i;
+	uint32_t i;
 
-    for (i = 0; i < sizeof(used_reqs); ++i)
-    {
-        if (used_reqs[i] == requestor)
-            return i;
-    }
-    return 0;
+	for (i = 0; i < sizeof(used_reqs); ++i)
+	{
+		if (used_reqs[i] == requestor)
+			return i;
+	}
+	return 0;
 }
 
 /*
@@ -355,16 +368,17 @@ uint32_t dma_get_initiator(int requestor)
  */
 void dma_free_initiator(int requestor)
 {
-    uint32_t i;
+	uint32_t i;
 
-    for (i = 16; i < sizeof(used_reqs); ++i)
-    {
-        if (used_reqs[i] == requestor)
-        {
-            used_reqs[i] = 0;
-            break;
-        }
-    }
+	for (i = 16; i < sizeof(used_reqs); ++i)
+	{
+		if (used_reqs[i] == requestor)
+		{
+			used_reqs[i] = 0;
+			break;
+		}
+	}
+	dbg("%s: DMA requestor %d freed\r\n", __FUNCTION__, requestor);
 }
 
 /*
@@ -378,33 +392,36 @@ void dma_free_initiator(int requestor)
  */
 int dma_set_channel(int requestor, void (*handler)(void))
 {
-    int i;
+	int i;
 
-    /* Check to see if this requestor is already assigned to a channel */
-    if ((i = dma_get_channel(requestor)) != -1)
-        return i;
+	/* Check to see if this requestor is already assigned to a channel */
+	dbg("%s: check if requestor %d is already assigned to a channel\r\n", __FUNCTION__, requestor);
+	if ((i = dma_get_channel(requestor)) != -1)
+		return i;
 
-    for (i=0; i<NCHANNELS; ++i)
-    {
-        if (dma_channel[i].req == -1)
-        {
-            dma_channel[i].req = requestor;
-            dma_channel[i].handler = handler;
-            return i;
-        }
-    }
+	for (i = 0; i < NCHANNELS; ++i)
+	{
+		if (dma_channel[i].req == -1)
+		{
+			dma_channel[i].req = requestor;
+			dma_channel[i].handler = handler;
+			dbg("%s: assigned channel %d to requestor %d\r\n", __FUNCTION__, i, requestor);
+			return i;
+		}
+	}
+	dbg("%s: no free DMA channel found for requestor %d\r\n", __FUNCTION__, requestor);
 
-    /* All channels taken */
-    return -1;
+	/* All channels taken */
+	return -1;
 }
 
 void dma_clear_channel(int channel)
 {
-  if(channel >= 0 && channel < NCHANNELS)
-  {
-    dma_channel[channel].req = -1;
-    dma_channel[channel].handler = NULL;
-  }
+	if(channel >= 0 && channel < NCHANNELS)
+	{
+		dma_channel[channel].req = -1;
+		dma_channel[channel].handler = NULL;
+	}
 }
 
 /*
@@ -419,14 +436,15 @@ void dma_clear_channel(int channel)
  */
 int dma_get_channel(int requestor)
 {
-    uint32_t i;
+	uint32_t i;
 
-    for (i = 0; i < NCHANNELS; ++i)
-    {
-        if (dma_channel[i].req == requestor)
-            return i;
-    }
-    return -1;
+	for (i = 0; i < NCHANNELS; ++i)
+	{
+		if (dma_channel[i].req == requestor)
+			return i;
+	}
+	dbg("%s: no channel occupied by requestor %d\r\n", __FUNCTION__, requestor);
+	return -1;
 }
 
 /*
@@ -438,17 +456,17 @@ int dma_get_channel(int requestor)
  */
 void dma_free_channel(int requestor)
 {
-    uint32_t i;
+	uint32_t i;
 
-    for (i=0; i < NCHANNELS; ++i)
-    {
-        if (dma_channel[i].req == requestor)
-        {
-            dma_channel[i].req = -1;
-            dma_channel[i].handler = NULL;
-            break;
-        }
-    }
+	for (i=0; i < NCHANNELS; ++i)
+	{
+		if (dma_channel[i].req == requestor)
+		{
+			dma_channel[i].req = -1;
+			dma_channel[i].handler = NULL;
+			break;
+		}
+	}
 }
 
 /* 
@@ -456,42 +474,43 @@ void dma_free_channel(int requestor)
  */
 int dma_interrupt_handler(void *arg1, void *arg2)
 {
-    uint32_t i, interrupts;
-    uint32_t ipl;
-    
-    (void)arg1;
-    (void)arg2;
+	uint32_t i, interrupts;
+	uint32_t ipl;
 
-    ipl = set_ipl(0x2700);
+	(void)arg1;
+	(void)arg2;
 
-    /* 
-     * Determine which interrupt(s) triggered by AND'ing the 
-     * pending interrupts with those that aren't masked.
-     */
-    interrupts = MCF_DMA_DIPR & ~MCF_DMA_DIMR;
+	ipl = set_ipl(7);
 
-    /* Make sure we are here for a reason */
-    if (interrupts == 0)
+	/* 
+	 * Determine which interrupt(s) triggered by AND'ing the 
+	 * pending interrupts with those that aren't masked.
+	 */
+	interrupts = MCF_DMA_DIPR & ~MCF_DMA_DIMR;
+
+	/* Make sure we are here for a reason */
+	if (interrupts == 0)
 		return 0;
 
-    /* Clear the interrupt in the pending register */
-    MCF_DMA_DIPR = interrupts;
+	/* Clear the interrupt in the pending register */
+	MCF_DMA_DIPR = interrupts;
 
-    for (i = 0; i < 16; ++i, interrupts>>=1)
-    {
-        if (interrupts & 0x1)
-        {
-           /* If there is a handler, call it */
-            if (dma_channel[i].handler != NULL)
-                dma_channel[i].handler();
-        }
-    }
+	for (i = 0; i < 16; ++i, interrupts >>= 1)
+	{
+		if (interrupts & 0x1)
+		{
+			/* If there is a handler, call it */
+			if (dma_channel[i].handler != NULL)
+				dma_channel[i].handler();
+		}
+	}
 
-    set_ipl(ipl);
-    return 1;
+	set_ipl(ipl);
+
+	return 1;
 }
 /********************************************************************/
-                                                                               
+
 void *dma_memcpy(void *dst, void *src, size_t n)
 {
 	int ret;
@@ -503,7 +522,7 @@ void *dma_memcpy(void *dst, void *src, size_t n)
 	ret = MCD_startDma(1, src, 4, dst, 4, n, 4, DMA_ALWAYS, 0, MCD_SINGLE_DMA, 0);
 	if (ret == MCD_OK)
 	{
-		xprintf("DMA on channel 1 successfully started\r\n");
+		dbg("%s: DMA on channel 1 successfully started\r\n", __FUNCTION__);
 	}
 
 	do
@@ -512,40 +531,40 @@ void *dma_memcpy(void *dst, void *src, size_t n)
 #ifdef _NOT_USED_ /* suppress annoying printout for now */
 		switch (ret)
 		{
-		case MCD_NO_DMA:
-			xprintf("MCD_NO_DMA: no DMA active on this channel\r\n");
-			return NULL;
-			break;
-		case MCD_IDLE:
-			xprintf("MCD_IDLE: DMA defined but not active (initiator not ready)\r\n");
-			break;
-		case MCD_RUNNING:
-			xprintf("MCD_RUNNING: DMA active and working on this channel\r\n");
-			break;
-		case MCD_PAUSED:
-			xprintf("MCD_PAUSED: DMA defined and enabled, but currently paused\r\n");
-			break;
-		case MCD_HALTED:
-			xprintf("MCD_HALTED: DMA killed\r\n");
-			return NULL;
-			break;
-		case MCD_DONE:
-			xprintf("MCD_DONE: DMA finished\r\n");
-			break;
-		case MCD_CHANNEL_INVALID:
-			xprintf("MCD_CHANNEL_INVALID: invalid DMA channel\r\n");
-			return NULL;
-			break;
-		default:
-			xprintf("unknown DMA status %d\r\n", ret);
-			break;
+			case MCD_NO_DMA:
+				xprintf("MCD_NO_DMA: no DMA active on this channel\r\n");
+				return NULL;
+				break;
+			case MCD_IDLE:
+				xprintf("MCD_IDLE: DMA defined but not active (initiator not ready)\r\n");
+				break;
+			case MCD_RUNNING:
+				xprintf("MCD_RUNNING: DMA active and working on this channel\r\n");
+				break;
+			case MCD_PAUSED:
+				xprintf("MCD_PAUSED: DMA defined and enabled, but currently paused\r\n");
+				break;
+			case MCD_HALTED:
+				xprintf("MCD_HALTED: DMA killed\r\n");
+				return NULL;
+				break;
+			case MCD_DONE:
+				xprintf("MCD_DONE: DMA finished\r\n");
+				break;
+			case MCD_CHANNEL_INVALID:
+				xprintf("MCD_CHANNEL_INVALID: invalid DMA channel\r\n");
+				return NULL;
+				break;
+			default:
+				xprintf("unknown DMA status %d\r\n", ret);
+				break;
 		}
 #endif
 	} while (ret != MCD_DONE);
 
 	end = MCF_SLT0_SCNT;
 	time = (start - end) / (SYSCLK / 1000) / 1000;
-	xprintf("took %d ms (%f Mbytes/second)\r\n",	time, n / (float) time / 1000.0);
+	dbg("%s: took %d ms (%f Mbytes/second)\r\n", __FUNCTION__, time, n / (float) time / 1000.0);
 
 	return dst;
 }
@@ -554,18 +573,17 @@ int dma_init(void)
 {
 	int res;
 
-	xprintf("MCD DMA API initialization: ");
+	dbg("%s: MCD DMA API initialization: ", __FUNCTION__);
 	res = MCD_initDma((dmaRegs *) &_MBAR[0x8000], SYS_SRAM, MCD_RELOC_TASKS | MCD_COMM_PREFETCH_EN);
 	if (res != MCD_OK)
 	{
-		xprintf("DMA API initialization failed (0x%x)\r\n", res);
+		dbg("%s: DMA API initialization failed (0x%x)\r\n", __FUNCTION__, res);
 		return 0;
 	}
 
 	// test
 	dma_memcpy((void *) 0x10000, (void *) 0x03e00000, 0x00100000);	/* copy one megabyte of flash to RAM */
 
-	xprintf("DMA finished\r\n");
 	return 0;
 }
 
