@@ -268,6 +268,18 @@ void network_init(void)
 		return;
 	}
 
+    /*
+     * Register the DMA interrupt handler
+     */
+    handler = dma_interrupt_handler;
+    vector = 112;
+
+    if (!isr_register_handler(ISR_DBUG_ISR, vector, handler, NULL,NULL))
+	{
+		xprintf("Error: Unable to register handler\n");
+		return;
+	}
+
 	nif_init(&nif1);
 	nif1.mtu = ETH_MTU;
 	nif1.send = fec0_send;
@@ -282,7 +294,9 @@ void network_init(void)
 	ip_init(&ip_info, myip, gateway, netmask);
 	nif_bind_protocol(&nif1, ETH_FRM_IP, ip_handler, (void *) &ip_info);
 
-	bootp_request(&nif1, 0);
+	dma_irq_enable(6, 0);
+
+	//bootp_request(&nif1, 0);
 }
 
 void BaS(void)
@@ -422,7 +436,7 @@ void BaS(void)
 	enable_coldfire_interrupts();
 
 	//set_ipl(0);
-	//network_init();
+	network_init();
 
 	xprintf("call EmuTOS\r\n");
 	ROM_HEADER* os_header = (ROM_HEADER*)TOS;

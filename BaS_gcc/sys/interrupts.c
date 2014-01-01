@@ -205,6 +205,7 @@ bool isr_execute_handler(int vector)
 		if ((isrtab[index].vector == vector) &&
 				(isrtab[index].type == ISR_DBUG_ISR))
 		{
+			xprintf("calling BaS isr handler at %p\r\n", isrtab[index].handler);
 			if (isrtab[index].handler(isrtab[index].hdev,isrtab[index].harg))
 			{
 				retval = true;
@@ -221,6 +222,7 @@ bool isr_execute_handler(int vector)
 		if ((isrtab[index].vector == vector) &&
 				(isrtab[index].type == ISR_USER_ISR))
 		{
+			xprintf("calling USR isr handler at %p\r\n", isrtab[index].handler);
 			if (isrtab[index].handler(isrtab[index].hdev,isrtab[index].harg))
 			{
 				retval = true;
