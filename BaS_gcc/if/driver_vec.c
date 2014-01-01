@@ -25,10 +25,10 @@
 
 #include <stdint.h>
 #include <stddef.h>
-#include "driver_vec.h"
 #include "version.h"
 #include "xhdi_sd.h"
 #include "dma.h"
+#include "driver_vec.h"
 #include "driver_mem.h"
 
 /*
@@ -67,6 +67,16 @@ static struct dma_driver_interface dma_interface =
 	.dma_free = driver_mem_free
 };
 
+extern const struct fb_info *info_fb;
+
+/*
+ * driver interface struct for the BaS framebuffer video driver
+ */
+static struct framebuffer_driver_interface framebuffer_interface =
+{
+	.framebuffer_info = &info_fb
+};
+
 static struct generic_interface interfaces[] =
 {
 	{
@@ -86,6 +96,14 @@ static struct generic_interface interfaces[] =
 		.version = 0,
 		.revision = 1,
 		.interface.dma = &dma_interface,
+	},
+	{
+		.type = VIDEO_DRIVER,
+		.name = "RADEON",
+		.description = "BaS RADEON framebuffer driver",
+		.version = 0,
+		.revision = 1,
+		.interface.fb = &framebuffer_interface,
 	},
 
 	/* insert new drivers here */
