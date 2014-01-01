@@ -44,7 +44,7 @@ TOOLDIR=util
 
 VPATH=dma exe flash fs if kbd pci spi sys usb net util video radeon x86emu xhdi
 
-# Linker control file. The final $(LDCFILE) is intermediate only (preprocessed  version of $(LDCSRC)
+# Linker control file. The final $(LDCFILE) is intermediate only (preprocessed version of $(LDCSRC)
 LDCFILE=bas.lk
 LDRFILE=ram.lk
 LDCSRC=bas.lk.in

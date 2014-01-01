@@ -174,22 +174,22 @@ extern struct mode_option resolution; /* fVDI */
 #define FB_ACCEL_PROSAVAGE_DDRK 0x8e	/* S3 ProSavage DDR-K           */
 
 struct fb_fix_screeninfo {
-	char id[16];			/* identification string eg "TT Builtin" */
-	unsigned long smem_start;	/* Start of frame buffer mem */
-					/* (physical address) */
+	char id[16];					/* identification string eg "TT Builtin" */
+	unsigned long smem_start;		/* Start of frame buffer mem */
+									/* (physical address) */
 	unsigned long smem_len;			/* Length of frame buffer mem */
-	unsigned long type;			/* see FB_TYPE_*		*/
+	unsigned long type;				/* see FB_TYPE_*		*/
 	unsigned long type_aux;			/* Interleave for interleaved Planes */
 	unsigned long visual;			/* see FB_VISUAL_*		*/ 
-	unsigned short xpanstep;			/* zero if no hardware panning  */
-	unsigned short ypanstep;			/* zero if no hardware panning  */
+	unsigned short xpanstep;		/* zero if no hardware panning  */
+	unsigned short ypanstep;		/* zero if no hardware panning  */
 	unsigned short ywrapstep;		/* zero if no hardware ywrap    */
 	unsigned long line_length;		/* length of a line in bytes    */
-	unsigned long mmio_start;	/* Start of Memory Mapped I/O   */
-					/* (physical address) */
+	unsigned long mmio_start;		/* Start of Memory Mapped I/O   */
+									/* (physical address) */
 	unsigned long mmio_len;			/* Length of Memory Mapped I/O  */
 	unsigned long accel;			/* Indicate to driver which	*/
-					/*  specific chip/card we have	*/
+									/*  specific chip/card we have	*/
 	unsigned short reserved[3];		/* Reserved for future compatibility */
 };
 
@@ -243,20 +243,20 @@ struct fb_bitfield {
 #define KHZ2PICOS(a) (1000000000UL/(a))
 
 struct fb_var_screeninfo {
-	unsigned long xres;			/* visible resolution		*/
+	unsigned long xres;				/* visible resolution		*/
 	unsigned long yres;
 	unsigned long xres_virtual;		/* virtual resolution		*/
 	unsigned long yres_virtual;
 	unsigned long xoffset;			/* offset from virtual to visible */
 	unsigned long yoffset;			/* resolution			*/
 
-	unsigned long bits_per_pixel;		/* guess what			*/
+	unsigned long bits_per_pixel;	/* guess what			*/
 	unsigned long grayscale;		/* != 0 Graylevels instead of colors */
 
-	struct fb_bitfield red;		/* bitfield in fb mem if true color, */
-	struct fb_bitfield green;	/* else only length is significant */
+	struct fb_bitfield red;			/* bitfield in fb mem if true color, */
+	struct fb_bitfield green;		/* else only length is significant */
 	struct fb_bitfield blue;
-	struct fb_bitfield transp;	/* transparency			*/	
+	struct fb_bitfield transp;		/* transparency			*/	
 
 	unsigned long nonstd;			/* != 0 Non standard pixel format */
 
@@ -275,7 +275,7 @@ struct fb_var_screeninfo {
 	unsigned long lower_margin;
 	unsigned long hsync_len;		/* length of horizontal sync	*/
 	unsigned long vsync_len;		/* length of vertical sync	*/
-	unsigned long sync;			/* see FB_SYNC_*		*/
+	unsigned long sync;				/* see FB_SYNC_*		*/
 	unsigned long vmode;			/* see FB_VMODE_*		*/
 	unsigned long rotate;			/* angle we rotate counter clockwise */
 	unsigned long refresh;
@@ -363,15 +363,15 @@ struct fb_chroma {
 struct fb_monspecs {
 	struct fb_chroma chroma;
 	struct fb_videomode *modedb;	/* mode database */
-	unsigned char  manufacturer[4];		/* Manufacturer */
+	unsigned char  manufacturer[4];	/* Manufacturer */
 	unsigned char  monitor[14];		/* Monitor String */
-	unsigned char  serial_no[14];		/* Serial Number */
+	unsigned char  serial_no[14];	/* Serial Number */
 	unsigned char  ascii[14];		/* ? */
 	unsigned long modedb_len;		/* mode database length */
 	unsigned long model;			/* Monitor Model */
 	unsigned long serial;			/* Serial Number - Integer */
-	unsigned long year;			/* Year manufactured */
-	unsigned long week;			/* Week Manufactured */
+	unsigned long year;				/* Year manufactured */
+	unsigned long week;				/* Week Manufactured */
 	unsigned long hfmin;			/* hfreq lower limit (Hz) */
 	unsigned long hfmax;			/* hfreq upper limit (Hz) */
 	unsigned long dclkmin;			/* pixelclock lower limit (Hz) */
@@ -385,7 +385,7 @@ struct fb_monspecs {
 	unsigned short gtf	: 1;		/* supports GTF */
 	unsigned short misc;			/* Misc flags - see FB_MISC_* */
 	unsigned char  version;			/* EDID version... */
-	unsigned char  revision;			/* ...and revision */
+	unsigned char  revision;		/* ...and revision */
 	unsigned char  max_x;			/* Maximum horizontal size (cm) */
 	unsigned char  max_y;			/* Maximum vertical size (cm) */
 };

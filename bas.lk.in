@@ -118,7 +118,7 @@ SECTIONS
 		__BAS_BSS_END = .;
 #endif /* COMPILE_RAM */
 
-#if (FORMAT == elf32-m68k)
+#if FORMAT == elf32-m68k
 		*(.rodata)
 		*(.rodata.*)
 #endif
@@ -148,6 +148,7 @@ SECTIONS
 
 	.driver_memory :
 	{
+		. = ALIGN(4);
 		_driver_mem_buffer = .;
 		//. = . + DRIVER_MEM_BUFFER_SIZE;
 	} > driver_ram
