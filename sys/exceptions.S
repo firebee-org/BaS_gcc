@@ -307,6 +307,7 @@ init_vec_loop:
 		move.l	a1,(INT_SOURCE_GPT3 + 64) * 4(a0)
 		move.l	a1,(INT_SOURCE_FEC0 + 64) * 4(a0)
 		move.l	a1,(INT_SOURCE_FEC1 + 64) * 4(a0)
+		move.l	a1,(INT_SOURCE_DMA + 64) * 4(a0)
 
 		move.l	(sp)+,a2			// Restore registers
 		rts

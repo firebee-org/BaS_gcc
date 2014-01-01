@@ -40,6 +40,9 @@ extern void dma_clear_channel(int channel);
 extern uint32_t dma_get_initiator(int requestor);
 extern int dma_set_initiator(int initiator);
 extern void dma_free_initiator(int initiator);
+extern void dma_irq_enable(uint8_t lvl, uint8_t pri);
+extern void dma_irq_disable(void);
+extern int dma_interrupt_handler(void *arg1, void *arg2);
 
 
 #endif /* _DMA_H_ */

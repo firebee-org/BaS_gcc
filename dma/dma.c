@@ -48,11 +48,52 @@ static char used_reqs[32];
 
 static struct dma_channel dma_channel[NCHANNELS] =
 {
-	{-1,NULL}, {-1,NULL}, {-1,NULL}, {-1,NULL},
-	{-1,NULL}, {-1,NULL}, {-1,NULL}, {-1,NULL},
-	{-1,NULL}, {-1,NULL}, {-1,NULL}, {-1,NULL},
-	{-1,NULL}, {-1,NULL}, {-1,NULL}, {-1,NULL},
+	{-1, NULL}, {-1, NULL}, {-1, NULL}, {-1, NULL},
+	{-1, NULL}, {-1, NULL}, {-1, NULL}, {-1, NULL},
+	{-1, NULL}, {-1, NULL}, {-1, NULL}, {-1, NULL},
+	{-1, NULL}, {-1, NULL}, {-1, NULL}, {-1, NULL},
 };
+
+/********************************************************************/
+/*
+ * Enable all DMA interrupts
+ *
+ * Parameters:
+ *  pri     Interrupt Priority
+ *  lvl     Interrupt Level
+ */
+void dma_irq_enable(uint8_t lvl, uint8_t pri)
+{
+    /* Setup the DMA ICR (#48) */
+    MCF_INTC_ICR48 = 0
+        | MCF_INTC_ICR_IP(pri)
+        | MCF_INTC_ICR_IL(lvl);
+
+    /* Unmask all task interrupts */
+    MCF_DMA_DIMR = 0;
+
+    /* Clear the interrupt pending register */
+    MCF_DMA_DIPR = 0;
+
+    /* Unmask the DMA interrupt in the interrupt controller */
+    MCF_INTC_IMRH &= ~MCF_INTC_IMRH_INT_MASK48;
+}
+
+/********************************************************************/
+/*
+ * Disable all DMA interrupts
+ */
+void dma_irq_disable(void)
+{
+    /* Mask all task interrupts */
+    MCF_DMA_DIMR = (uint32_t) ~0;
+
+    /* Clear any pending task interrupts */
+    MCF_DMA_DIPR = (uint32_t) ~0;
+
+    /* Mask the DMA interrupt in the interrupt controller */
+    MCF_INTC_IMRH |= MCF_INTC_IMRH_INT_MASK48;
+}
 
 int dma_set_initiator(int initiator)
 {
@@ -365,6 +406,7 @@ void dma_clear_channel(int channel)
     dma_channel[channel].handler = NULL;
   }
 }
+
 /*
  * Return the channel being initiated by the given requestor
  *
@@ -379,7 +421,7 @@ int dma_get_channel(int requestor)
 {
     uint32_t i;
 
-    for (i=0; i<NCHANNELS; ++i)
+    for (i = 0; i < NCHANNELS; ++i)
     {
         if (dma_channel[i].req == requestor)
             return i;
@@ -398,7 +440,7 @@ void dma_free_channel(int requestor)
 {
     uint32_t i;
 
-    for (i=0; i<NCHANNELS; ++i)
+    for (i=0; i < NCHANNELS; ++i)
     {
         if (dma_channel[i].req == requestor)
         {
