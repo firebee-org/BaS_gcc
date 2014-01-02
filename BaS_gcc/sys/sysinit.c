@@ -276,9 +276,7 @@ void init_serial(void)
 	MCF_PSC3_PSCCR = 0x05;
 #endif /* MACHINE_FIREBEE */
 
-#ifdef _NOT_USED_
-	MCF_INTC_ICR32 = 0x3F;	//MAXIMALE PRIORITY/**********/
-#endif /* _NOT_USED_ */
+	MCF_INTC_ICR32 = 0x3F;		/* PSC3 interrupt vector. Do we need it? */
 
 	xprintf("\r\nserial interfaces initialization: finished\r\n");
 }
