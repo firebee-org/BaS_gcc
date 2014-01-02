@@ -24,7 +24,7 @@
 #include "m5484l.h"
 #endif
 
-//#undef DRIVER_MEM_DEBUG
+#define DRIVER_MEM_DEBUG
 
 #ifdef	DRIVER_MEM_DEBUG
 #define	dbg(fmt, args...)	xprintf(fmt, ##args)
@@ -257,7 +257,7 @@ int driver_mem_free(void *addr)
 	freeit(p, mpb);
 	set_ipl(level);
 	
-	dbg("driver_mem_free(0x%08X)\r\n", addr);
+	dbg("%s: driver_mem_free(0x%08X)\r\n", __FUNCTION__, addr);
 	
 	return(0);
 }
@@ -291,27 +291,19 @@ void *driver_mem_alloc(long amount)
 		ret = (void *)m->m_start;
 	}
 	set_ipl(level);
-	dbg("driver_mem_alloc(%d) = 0x%08X\r\n", amount, ret);
+	dbg("%s: driver_mem_alloc(%d) = 0x%08X\r\n", __FUNCTION__, amount, ret);
 	
 	return(ret);
 }
 
-static int init_count = 0;
+static int use_count = 0;
 
 int driver_mem_init(void)
 {
-	if (init_count == 0)
+	if (use_count == 0)
 	{
-#ifdef USE_RADEON_MEMORY
-		driver_mem_buffer = (void *) offscreen_reserved();
-		if (driver_mem_buffer == NULL)
-#endif
+		dbg("%s: initialise driver_mem_buffer[] at %p, size %x\r\n", __FUNCTION__, driver_mem_buffer, DRIVER_MEM_BUFFER_SIZE);
 		memset(driver_mem_buffer, 0, DRIVER_MEM_BUFFER_SIZE);
-
-		if (driver_mem_buffer == NULL)
-		{
-			return(-1);
-		}
 	
 		pmd.mp_mfl = pmd.mp_rover = &tab_md[0];
 		tab_md[0].m_link = (MD *) NULL;
@@ -320,18 +312,17 @@ int driver_mem_init(void)
 		tab_md[0].m_own = (void *) 1L;
 		pmd.mp_mal = (MD *) NULL;
 		memset(driver_mem_buffer, 0, tab_md[0].m_length);
-		dbg("uncached driver memory buffer at 0x%08X size %d\r\n", tab_md[0].m_start, tab_md[0].m_length);
+
+		dbg("%s: uncached driver memory buffer at 0x%08X size %d\r\n", __FUNCTION__, tab_md[0].m_start, tab_md[0].m_length);
 	}
-	else
-	{
-		init_count++;
-	}
+	use_count++;
+	dbg("%s: driver_mem now has a use count of %d\r\n", __FUNCTION__, use_count);
 	return(0);
 }
 
 void driver_mem_release(void)
 {
-	if (init_count-- == 0)
+	if (use_count-- == 0)
 	{
 #ifndef CONFIG_USB_MEM_NO_CACHE
 #ifdef USE_RADEON_MEMORY
@@ -341,6 +332,7 @@ void driver_mem_release(void)
 #endif
 #endif
 	}
+	dbg("%s: driver_mem use count now %d\r\n", __FUNCTION__, use_count);
 }
 
 

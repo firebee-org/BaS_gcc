@@ -14,6 +14,7 @@
 #define dbg(format, arg...) do { ; } while (0)
 #endif /* DBG_VIDEO */
 
+#ifdef _USE_VIDEL_
 #define MON_ALL     -1  /* code used in VMODE_ENTRY for match on mode only */
 
 /*
@@ -46,9 +47,6 @@ static const VMODE_ENTRY vga_init_table[] = {
  */
 void initialise_palette_registers(int16_t rez,int16_t mode)
 {
-	int16_t mask;
-
-    mask = 0x0fff;
     initialise_falcon_palette(mode);
 }
 
@@ -274,11 +272,12 @@ void videl_screen_init(void)
 	setphys(screen_start, 1);
 }
 
+#endif /* _USE_VIDEL_ */
 
 static struct fb_info fb;
 struct fb_info *info_fb = &fb;
 
-const char monitor_layout[];
+const char monitor_layout[1024];
 int16_t ignore_edid;
 struct mode_option resolution;
 int16_t force_measure_pll;
@@ -343,7 +342,7 @@ void video_init(void)
 		}
 		index++;
 	} while (handle > 0);
-	dbg("%s: RADEON video card %sfound and %sregistered\r\n", __FUNCTION__,
+	xprintf("%s: RADEON video card %sfound and %sregistered\r\n", __FUNCTION__,
 					(radeon_found ? "" : "not "), (radeon_found ? "" : "not "));
 }
 

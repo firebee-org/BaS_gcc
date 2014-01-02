@@ -48,7 +48,7 @@ int nbuf_init(void)
 		queue_init(&nbuf_queue[i]);
 	}
 
-	dbg("Creating %d net buffers of %d bytes\r\n", NBUF_MAX, NBUF_SZ);
+	dbg("%s: Creating %d net buffers of %d bytes\r\n", __FUNCTION__, NBUF_MAX, NBUF_SZ);
 
 	for (i = 0; i < NBUF_MAX; ++i)
 	{
@@ -76,7 +76,7 @@ int nbuf_init(void)
 		queue_add(&nbuf_queue[NBUF_FREE], (QNODE *)nbuf);
 	}
 
-	dbg("NBUF allocation complete\r\n");
+	dbg("%s: NBUF allocation complete\r\n", __FUNCTION__);
 
 	return 0;
 }
@@ -134,7 +134,7 @@ void nbuf_free(NBUF *nbuf)
 
 	nbuf->offset = 0;
 	nbuf->length = NBUF_SZ;
-	queue_add(&nbuf_queue[NBUF_FREE],(QNODE *)nbuf);
+	queue_add(&nbuf_queue[NBUF_FREE],(QNODE *) nbuf);
 
 	set_ipl(level);
 }
@@ -165,7 +165,7 @@ NBUF *nbuf_remove(int q)
 void nbuf_add(int q, NBUF *nbuf)
 {
 	int level = set_ipl(7);
-	queue_add(&nbuf_queue[q],(QNODE *)nbuf);
+	queue_add(&nbuf_queue[q], (QNODE *) nbuf);
 	set_ipl(level);
 }
 
@@ -202,16 +202,16 @@ void nbuf_debug_dump(void)
 		dbg("\tBuffer Location\tOffset\tLength\n");
 		dbg("--------------------------------------\n");
 		j = 0;
-		nbuf = (NBUF *)queue_peek(&nbuf_queue[i]);
+		nbuf = (NBUF *) queue_peek(&nbuf_queue[i]);
 		while (nbuf != NULL)
 		{
 			dbg("%d\t  0x%08x\t0x%04x\t0x%04x\n",j++,nbuf->data,
 					nbuf->offset,
 					nbuf->length);
-			nbuf = (NBUF *)nbuf->node.next;
+			nbuf = (NBUF *) nbuf->node.next;
 		}
 	}
 
 	set_ipl(level);
-#endif DBG_NBUF
+#endif /* DBG_NBUF */
 }
