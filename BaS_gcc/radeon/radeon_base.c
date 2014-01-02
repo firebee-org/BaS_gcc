@@ -2046,9 +2046,7 @@ int32_t radeonfb_pci_register(int32_t handle, const struct pci_device_id *ent)
 							else
 							{
 								dbg("%s: BIOS_IN16(0) was %x (expected 0xaa55)\r\n", __FUNCTION__, BIOS_IN16(0));
-								rinfo->bios_seg_phys = pci_rsc_desc->offset + pci_rsc_desc->start;
-								hexdump((uint8_t *) rinfo->bios_seg_phys, 512);
-								//rinfo->bios_seg_phys = 0;
+								rinfo->bios_seg_phys = 0;
 							}
 						}
 					}
