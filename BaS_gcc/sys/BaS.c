@@ -263,6 +263,7 @@ void network_init(void)
 	vector = 103;
 
 	isr_init();		/* need to call that explicitely, otherwise isr table might be full */
+
 	if (!isr_register_handler(ISR_DBUG_ISR, vector, handler, NULL, (void *) &nif1))
 	{
 		dbg("%s: unable to register handler for vector %d\r\n", __FUNCTION__, vector);
@@ -281,7 +282,6 @@ void network_init(void)
 		return;
 	}
 
-#ifdef _NOT_USED_
 	nif_init(&nif1);
 	nif1.mtu = ETH_MTU;
 	nif1.send = fec0_send;
@@ -295,7 +295,6 @@ void network_init(void)
 
 	ip_init(&ip_info, myip, gateway, netmask);
 	nif_bind_protocol(&nif1, ETH_FRM_IP, ip_handler, (void *) &ip_info);
-#endif
 	dma_irq_enable(6, 6);
 	//set_ipl(0);
 

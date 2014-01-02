@@ -50,25 +50,26 @@ struct dma_driver_interface
 {
 	int32_t version;
 	int32_t magic;
-	int32_t (*dma_set_initiator)(int initiator);
-	uint32_t (*dma_get_initiator)(int requestor);
-	void (*dma_free_initiator)(int requestor);
-	int32_t (*dma_set_channel)(int requestor, void (*handler)(void));
-	int (*dma_get_channel)(int requestor);
-	void (*dma_free_channel)(int requestor);
-	void (*dma_clear_channel)(int channel);
-	int (*MCD_startDma)(int channel, int8_t *srcAddr, int16_t srcIncr, int8_t *destAddr, int16_t destIncr,
-						uint32_t dmaSize, uint32_t xferSize, uint32_t initiator, int32_t priority, uint32_t flags,
-						uint32_t funcDesc);
-	int (*MCD_dmaStatus)(int channel);
-	int (*MCD_XferProgrQuery)(int channel, MCD_XferProg *progRep);
-	int (*MCD_killDma)(int channel);
-	int (*MCD_continDma)(int channel);
-	int (*MCD_pauseDma)(int channel);
-	int (*MCD_resumeDma)(int channel);
-	int (*MCD_csumQuery)(int channel, uint32_t *csum);
-	void *(*dma_malloc)(long amount);
-	int (*dma_free)(void *addr);
+	int32_t (*dma_set_initiator)(int32_t initiator);
+	uint32_t (*dma_get_initiator)(int32_t requestor);
+	void (*dma_free_initiator)(int32_t requestor);
+	int32_t (*dma_set_channel)(int32_t requestor, void (*handler)(void));
+	int32_t (*dma_get_channel)(int32_t requestor);
+	void (*dma_free_channel)(int32_t requestor);
+	void (*dma_clear_channel)(int32_t channel);
+	int32_t (*MCD_startDma)(long channel,
+						int8_t *srcAddr, uint32_t srcIncr, int8_t *destAddr, uint32_t destIncr,
+						uint32_t dmaSize, uint32_t xferSize, uint32_t initiator, int32_t priority,
+						uint32_t flags, uint32_t funcDesc);
+	int32_t (*MCD_dmaStatus)(int32_t channel);
+	int32_t (*MCD_XferProgrQuery)(int32_t channel, MCD_XferProg *progRep);
+	int32_t (*MCD_killDma)(int32_t channel);
+	int32_t (*MCD_continDma)(int32_t channel);
+	int32_t (*MCD_pauseDma)(int32_t channel);
+	int32_t (*MCD_resumeDma)(int32_t channel);
+	int32_t (*MCD_csumQuery)(int32_t channel, uint32_t *csum);
+	void *(*dma_malloc)(uint32_t amount);
+	int32_t (*dma_free)(void *addr);
 };
 	
 struct xhdi_driver_interface
