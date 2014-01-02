@@ -135,16 +135,19 @@ int dma_set_initiator(int initiator)
 				| MCF_DMA_IMCR_IMC16_FEC0RX;
 			used_reqs[16] = DMA_FEC0_RX;
 			break;
+
 		case DMA_FEC0_TX:
 			MCF_DMA_IMCR = (MCF_DMA_IMCR & ~MCF_DMA_IMCR_IMC17(3))
 				| MCF_DMA_IMCR_IMC17_FEC0TX;
 			used_reqs[17] = DMA_FEC0_TX;
 			break;
+
 		case DMA_FEC1_RX:
 			MCF_DMA_IMCR = (MCF_DMA_IMCR & ~MCF_DMA_IMCR_IMC20(3))
 				| MCF_DMA_IMCR_IMC20_FEC1RX;
 			used_reqs[20] = DMA_FEC1_RX;
 			break;
+
 		case DMA_FEC1_TX:
 			if (used_reqs[21] == 0)
 			{
@@ -165,8 +168,13 @@ int dma_set_initiator(int initiator)
 				used_reqs[31] = DMA_FEC1_TX;
 			}
 			else /* No empty slots */
+			{
+				dbg("%s: no free slot found\r\n", __FUNCTION__);
+
 				return 1;
+			}
 			break;
+
 		case DMA_DREQ1:
 			if (used_reqs[29] == 0)
 			{
@@ -181,8 +189,13 @@ int dma_set_initiator(int initiator)
 				used_reqs[21] = DMA_DREQ1;
 			}
 			else /* No empty slots */
+			{
+				dbg("%s: no free slot\r\n", __FUNCTION__);
+
 				return 1;
+			}
 			break;
+
 		case DMA_CTM0:
 			if (used_reqs[24] == 0)
 			{
@@ -191,8 +204,13 @@ int dma_set_initiator(int initiator)
 				used_reqs[24] = DMA_CTM0;
 			}
 			else /* No empty slots */
+			{
+				dbg("%s: no free slot\r\n", __FUNCTION__);
+
 				return 1;
+			}
 			break;
+
 		case DMA_CTM1:
 			if (used_reqs[25] == 0)
 			{
@@ -201,8 +219,13 @@ int dma_set_initiator(int initiator)
 				used_reqs[25] = DMA_CTM1;
 			}
 			else /* No empty slots */
+			{
+				dbg("%s: no free slot\r\n", __FUNCTION__);
+				
 				return 1;
+			}
 			break;
+
 		case DMA_CTM2:
 			if (used_reqs[26] == 0)
 			{
@@ -211,8 +234,13 @@ int dma_set_initiator(int initiator)
 				used_reqs[26] = DMA_CTM2;
 			}
 			else /* No empty slots */
+			{
+				dbg("%s: no free slot\r\n", __FUNCTION__);
+
 				return 1;
+			}
 			break;
+
 		case DMA_CTM3:
 			if (used_reqs[27] == 0)
 			{
@@ -221,8 +249,13 @@ int dma_set_initiator(int initiator)
 				used_reqs[27] = DMA_CTM3;
 			}
 			else /* No empty slots */
+			{
+				dbg("%s: no free slot\r\n", __FUNCTION__);
+
 				return 1;
+			}
 			break;
+
 		case DMA_CTM4:
 			if (used_reqs[28] == 0)
 			{
@@ -231,8 +264,13 @@ int dma_set_initiator(int initiator)
 				used_reqs[28] = DMA_CTM4;
 			}
 			else /* No empty slots */
+			{
+				dbg("%s: no free slot\r\n", __FUNCTION__);
+
 				return 1;
+			}
 			break;
+
 		case DMA_CTM5:
 			if (used_reqs[29] == 0)
 			{
@@ -241,8 +279,13 @@ int dma_set_initiator(int initiator)
 				used_reqs[29] = DMA_CTM5;
 			}
 			else /* No empty slots */
+			{
+				dbg("%s: no free slot\r\n", __FUNCTION__);
+
 				return 1;
+			}
 			break;
+
 		case DMA_CTM6:
 			if (used_reqs[30] == 0)
 			{
@@ -251,8 +294,13 @@ int dma_set_initiator(int initiator)
 				used_reqs[30] = DMA_CTM6;
 			}
 			else /* No empty slots */
+			{
+				dbg("%s: no free slot\r\n", __FUNCTION__);
+
 				return 1;
+			}
 			break;
+
 		case DMA_CTM7:
 			if (used_reqs[31] == 0)
 			{
@@ -261,8 +309,13 @@ int dma_set_initiator(int initiator)
 				used_reqs[31] = DMA_CTM7;
 			}
 			else /* No empty slots */
+			{
+				dbg("%s: no free slot\r\n", __FUNCTION__);
+
 				return 1;
+			}
 			break;
+
 		case DMA_USBEP4:
 			if (used_reqs[26] == 0)
 			{
@@ -271,8 +324,13 @@ int dma_set_initiator(int initiator)
 				used_reqs[26] = DMA_USBEP4;
 			}
 			else /* No empty slots */
+			{
+				dbg("%s: no free slot\r\n", __FUNCTION__);
+
 				return 1;
+			}
 			break;
+
 		case DMA_USBEP5:
 			if (used_reqs[27] == 0)
 			{
@@ -281,8 +339,13 @@ int dma_set_initiator(int initiator)
 				used_reqs[27] = DMA_USBEP5;
 			}
 			else /* No empty slots */
+			{
+				dbg("%s: no free slot\r\n", __FUNCTION__);
+
 				return 1;
+			}
 			break;
+
 		case DMA_USBEP6:
 			if (used_reqs[28] == 0)
 			{
@@ -300,8 +363,13 @@ int dma_set_initiator(int initiator)
 					| MCF_DMA_IMCR_IMC28_PSC2RX;
 				used_reqs[28] = DMA_PSC2_RX;            }
 			else /* No empty slots */
+			{
+				dbg("%s: no free slot\r\n", __FUNCTION__);
+
 				return 1;
+			}
 			break;
+
 		case DMA_PSC2_TX:
 			if (used_reqs[29] == 0)
 			{
@@ -310,8 +378,13 @@ int dma_set_initiator(int initiator)
 				used_reqs[29] = DMA_PSC2_TX;
 			}
 			else /* No empty slots */
+			{
+				dbg("%s: no free slot\r\n", __FUNCTION__);
+
 				return 1;
+			}
 			break;
+
 		case DMA_PSC3_RX:
 			if (used_reqs[30] == 0)
 			{
@@ -320,8 +393,13 @@ int dma_set_initiator(int initiator)
 				used_reqs[30] = DMA_PSC3_RX;
 			}
 			else /* No empty slots */
+			{
+				dbg("%s: no free slot\r\n", __FUNCTION__);
+
 				return 1;
+			}
 			break;
+
 		case DMA_PSC3_TX:
 			if (used_reqs[31] == 0)
 			{
@@ -330,10 +408,19 @@ int dma_set_initiator(int initiator)
 				used_reqs[31] = DMA_PSC3_TX;
 			}
 			else /* No empty slots */
+			{
+				dbg("%s: no free slot\r\n", __FUNCTION__);
+
 				return 1;
+			}
 			break;
+
 		default:
-			return 1;
+			{
+				dbg("%s: don't know what to do\r\n", __FUNCTION__);
+
+				return 1;
+			}
 	}
 	return 0;
 }
@@ -357,6 +444,8 @@ uint32_t dma_get_initiator(int requestor)
 		if (used_reqs[i] == requestor)
 			return i;
 	}
+	dbg("%s: no initiator found for requestor %d\r\n", __FUNCTION__, requestor);
+
 	return 0;
 }
 
@@ -421,6 +510,7 @@ void dma_clear_channel(int channel)
 	{
 		dma_channel[channel].req = -1;
 		dma_channel[channel].handler = NULL;
+		dbg("%s: cleared DMA channel %d\r\n", __FUNCTION__, channel);
 	}
 }
 
@@ -458,7 +548,7 @@ void dma_free_channel(int requestor)
 {
 	uint32_t i;
 
-	for (i=0; i < NCHANNELS; ++i)
+	for (i = 0; i < NCHANNELS; ++i)
 	{
 		if (dma_channel[i].req == requestor)
 		{
