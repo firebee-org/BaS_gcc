@@ -40,11 +40,7 @@
 #define dbg(format, arg...) do { ; } while (0)
 #endif /* DEBUG_PCI */
 
-//#if MACHINE_FIREBEE
-//#define pci_config_wait()	wait(40000);	/* FireBee USB not properly detected otherwise !?? */
-//#elif MACHINE_M5484LITE
 #define pci_config_wait() do { __asm__ __volatile("tpf" ::: "memory"); } while (0)
-//#endif
 
 /*
  * PCI device class descriptions displayed during PCI bus scan
@@ -637,11 +633,6 @@ static void pci_device_config(uint16_t bus, uint16_t device, uint16_t function)
 	for (i = 0; i < 6 * 4; i += 4)		/* for all bars */
 	{
 		/*
-		 * read BAR[i] value (FIXME: no need to do this, actually, this will contain no meaningful value anyway)
-		 */
-		value = swpl(pci_read_config_longword(handle, PCIBAR0 + i));
-
-		/*
 		 * write all bits of BAR[i]
 		 */
 		pci_write_config_longword(handle, PCIBAR0 + i, 0xffffffff);
@@ -924,7 +915,6 @@ void init_pci(void)
 	init_xlbus_arbiter();
 
 	MCF_PCI_PCIGSCR = 1;	/* reset PCI */
-	wait(400000);	/* give devices a chance to come up */
 
 	/*
 	 * setup the PCI arbiter
@@ -1002,7 +992,6 @@ void init_pci(void)
 	MCF_PCI_PCIGSCR &= ~MCF_PCI_PCIGSCR_PR;
 	do {;} while (MCF_PCI_PCIGSCR & MCF_PCI_PCIGSCR_PR); /* wait until reset finished */
 	xprintf("finished\r\n");
-	wait(400000);			/* give devices a chance to come up */
 
 	/* initialize/clear resource descriptor table */
 	memset(&resource_descriptors, 0, NUM_CARDS * NUM_RESOURCES * sizeof(struct pci_rd));
@@ -1012,44 +1001,15 @@ void init_pci(void)
 	memset(interrupts, 0, MAX_INTERRUPTS * sizeof(struct pci_interrupt));
 
 	/*
+	 * give devices a chance to come up befor attempting to configure them,
+	 * necessary to properly detect the FireBee USB chip
+	 */
+	wait(400000);
+
+	/*
 	 * do normal initialization
 	 */
 	pci_scan();
-
-
-#ifdef _NOT_USED_
-
-	int index = 0;
-	int handle;
-	handle = pci_find_device(0x0, 0xFFFF, ++index);
-	while (handle > 0)
-	{
-		uint32_t value;
-		uint32_t addr;
-
-		value = pci_read_config_longword(handle, PCIIDR);
-		xprintf(" %02x | %02x | %02x |%04x|%04x|%04x| %s (0x%02x)\r\n",
-				PCI_BUS_FROM_HANDLE(handle),
-				PCI_DEVICE_FROM_HANDLE(handle),
-				PCI_FUNCTION_FROM_HANDLE(handle),
-				PCI_VENDOR_ID(value), PCI_DEVICE_ID(value),
-				handle,
-				device_class(pci_read_config_byte(handle, PCICCR)),
-				pci_read_config_byte(handle, PCICCR));
-
-		pci_print_device_abilities(handle);
-		pci_print_device_config(handle);
-
-		/* read some value from PCIBAR0 */
-		addr = swpl(pci_read_config_longword(handle, PCIBAR0)) & ~0x1f;
-		xprintf("%p = %08x\r\n", addr, * (uint32_t *) addr);
-
-		pci_print_device_abilities(handle);
-		pci_print_device_config(handle);
-
-		handle = pci_find_device(0x0, 0xFFFF, ++index);
-	}
-#endif /* _NOT_USED_ */
 }
 
 
