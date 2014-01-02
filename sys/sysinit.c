@@ -50,6 +50,7 @@
 #include "pci_ids.h"
 #include "driver_mem.h"
 #include "usb.h"
+#include "video.h"
 
 #define UNUSED(x) (void)(x)               /* Unused variable         */
 
@@ -204,13 +205,9 @@ void init_gpio(void)
 						MCF_PAD_PAR_TIMER_PAR_TIN2(MCF_PAD_PAR_TIMER_PAR_TIN2_IRQ2) |
 						MCF_PAD_PAR_TIMER_PAR_TOUT2;
 
-	// MCF_PAD_PAR_TIMER = 0b00101101;	TIN3..2=#IRQ3..2;TOUT3..2=NORMAL 
-
-	// ALLE OUTPUTS NORMAL LOW
-
-	// ALLE DIR NORMAL INPUT = 0
+#if defined(MACHINE_FIREBEE)
 	/*
-	 * Configure GPIO FEC1L port directions
+	 * Configure GPIO FEC1L port directions (needed to load FPGA configuration)
 	 */
 	MCF_GPIO_PDDR_FEC1L = 0 |								/* bit 7 = input */
 						  0	|								/* bit 6 = input */
@@ -220,6 +217,7 @@ void init_gpio(void)
 						  MCF_GPIO_PDDR_FEC1L_PDDR_FEC1L2 |	/* bit 2 = FPGA_CONFIG => output */
 						  MCF_GPIO_PDDR_FEC1L_PDDR_FEC1L1 |	/* bit 1 = PRG_CLK (FPGA) => output */
 						  0;								/* bit 0 => input */
+#endif /* MACHINE_FIREBEE */
 }
 
 /*
@@ -587,7 +585,7 @@ void init_usb(void)
 	extern struct pci_device_id ehci_usb_pci_table[];
 	struct pci_device_id *board;
 	int32_t handle;
-	bool usb_found;
+	int usb_found = 0;
 	int index = 0;
 
 	xprintf("USB controller initialization:\r\n");
@@ -1108,7 +1106,7 @@ void initialize_hardware(void)
 	/* experimental */
 	{
 		int i;
-		uint32_t *scradr = 0xd00000;
+		uint32_t *scradr = (uint32_t *) 0xd00000;
 
 		for (i = 0; i < 100; i++)
 		{
