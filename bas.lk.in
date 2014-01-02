@@ -119,11 +119,8 @@ SECTIONS
 #endif /* COMPILE_RAM */
 
 #if (FORMAT_ELF == 1)
-#warning elf32-m68k format, m68k-elf
 		*(.rodata)
 		*(.rodata.*)
-#else
-#warning srec format, m68k-atari-mint
 #endif
 	} > bas_rom
 
