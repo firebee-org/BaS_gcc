@@ -9,7 +9,7 @@
 
 # can be either "Y" or "N" (without quotes). "Y" for using the m68k-elf-, "N" for using the m68k-atari-mint
 # toolchain
-COMPILE_ELF=Y
+COMPILE_ELF=N
 
 ifeq (Y,$(COMPILE_ELF))
 TCPREFIX=m68k-elf-
@@ -93,6 +93,7 @@ CSRCS= \
 	nbuf.c \
 	queue.c \
 	net_timer.c \
+	am79c874.c \
 	nif.c \
 	fecbd.c \
 	fec.c \

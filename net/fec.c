@@ -17,6 +17,7 @@
 #include "bas_string.h"
 #include "bas_printf.h"
 #include "util.h"
+#include "am79c874.h"
 #include <stdbool.h>
 
 #if defined(MACHINE_FIREBEE)
@@ -544,19 +545,19 @@ void fec_rx_start(uint8_t ch, int8_t *rxbd)
 {
 	uint32_t initiator;
 	int channel;
-	int result;
-
-	(void) result; /* to avoid compiler warning */
+	int res;
 
 	/*
 	 * Make the initiator assignment
 	 */
-	result = dma_set_initiator(DMA_FEC_RX(ch));
+	res = dma_set_initiator(DMA_FEC_RX(ch));
+	dbg("%s: dma_set_initiator(DMA_FEC_RX(%d)): %d\r\n", __FUNCTION__, ch, res);
 
 	/*
 	 * Grab the initiator number
 	 */
 	initiator = dma_get_initiator(DMA_FEC_RX(ch));
+	dbg("%s: dma_get_initiator(DMA_FEC_RX(%d)) = %d\r\n", __FUNCTION__, ch, initiator);
 
 	/*
 	 * Determine the DMA channel running the task for the
@@ -564,6 +565,7 @@ void fec_rx_start(uint8_t ch, int8_t *rxbd)
 	 */
 	channel = dma_set_channel(DMA_FEC_RX(ch),
 			(ch == 0) ? fec0_rx_frame : fec1_rx_frame);
+	dbg("%s: DMA channel for FEC%1d: %d\r\n", __FUNCTION__, ch, channel);
 
 	/*
 	 * Start the Rx DMA task
@@ -588,6 +590,7 @@ void fec_rx_start(uint8_t ch, int8_t *rxbd)
 			| MCD_NO_CSUM
 			| MCD_NO_BYTE_SWAP
 			);
+	dbg("%s: Rx DMA task for FEC%1d started\r\n", __FUNCTION__, ch);
 }
 
 /********************************************************************/
@@ -612,10 +615,13 @@ void fec_rx_continue(uint8_t ch)
 	 */
 	channel = dma_get_channel(DMA_FEC_RX(ch));
 
+	dbg("%s: RX DMA channel for FEC%1d is %d\r\n", __FUNCTION__, ch, channel);
+
 	/*
 	 * Continue/restart the DMA task
 	 */
 	MCD_continDma(channel);
+	dbg("%s: RX dma on channel %d continued\r\n", __FUNCTION__, channel);
 }
 
 /********************************************************************/
@@ -850,13 +856,10 @@ void fec_tx_start(uint8_t ch, int8_t *txbd)
 	void fec0_tx_frame(void);
 	void fec1_tx_frame(void);
 
-	(void) result;	/* to avoid compiler warning */
-	/* FIXME: code assumes that there are always free initiator slots */
-
 	/*
 	 * Make the initiator assignment
 	 */
-	result = dma_set_initiator(DMA_FEC_TX(ch));
+	(void) dma_set_initiator(DMA_FEC_TX(ch));
 
 	/*
 	 * Grab the initiator number
@@ -1327,7 +1330,11 @@ void fec_eth_setup(uint8_t ch, uint8_t trcvr, uint8_t speed, uint8_t duplex, con
 		/*
 		 * Initialize the MII interface
 		 */
+#if defined(MACHINE_FIREBEE)
+		am79c874_init(0, 0, speed, duplex);
+#else
 		fec_mii_init(ch, SYSCLK);
+#endif /* MACHINE_FIREBEE */
 	}
 
 	/*

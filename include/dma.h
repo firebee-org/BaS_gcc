@@ -1,6 +1,5 @@
 /*
- * spidma.h
- *
+ * spidma.h *
  * This file is part of BaS_gcc.
  *
  * BaS_gcc is free software: you can redistribute it and/or modify

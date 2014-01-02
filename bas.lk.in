@@ -59,6 +59,7 @@ SECTIONS
 		OBJDIR/nif.o(.text)
 		OBJDIR/fecbd.o(.text)
 		OBJDIR/fec.o(.text)
+		OBJDIR/am79c874.o(.text)
 		OBJDIR/ip.o(.text)
 		OBJDIR/udp.o(text)
 		OBJDIR/bootp.o(text)

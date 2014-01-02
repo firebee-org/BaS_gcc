@@ -295,24 +295,27 @@ init_vec_loop:
 		lea		handler_psc3(pc),a1
 		// PSC3 interrupt source = 32
 		move.l	a1,(INT_SOURCE_PSC3 + 64) * 4(a0)
+
 // timer vectors (triggers when vbashi gets changed, used for video page copy)
 		lea		handler_gpt0(pc),a1
 		// GPT0 interrupt source = 62
 		move.l	a1,(INT_SOURCE_GPT0 + 64) * 4(a0)
 #endif /* MACHINE_FIREBEE */
 
-		// install isr handlers for the three GPT timers,
-		// the FEC interrupts and the DMA task interrupts
-		// (used by network driver in BaS and MiNT)
-		lea		_lowlevel_isr_handler,a1
+// install lowlevel_isr_handler for the three GPT timers
+		lea		_lowlevel_isr_handler(pc),a1
 		move.l	a1,(INT_SOURCE_GPT1 + 64) * 4(a0)
 		move.l	a1,(INT_SOURCE_GPT2 + 64) * 4(a0)
 		move.l	a1,(INT_SOURCE_GPT3 + 64) * 4(a0)
+
+// install lowlevel_isr_handler for the FEC0  interrupt
 		move.l	a1,(INT_SOURCE_FEC0 + 64) * 4(a0)
 #ifndef MACHINE_FIREBEE
-		// second FEC not wired on the FireBee
+// FEC1 not wired on the FireBee
 		move.l	a1,(INT_SOURCE_FEC1 + 64) * 4(a0)
 #endif
+
+// install lowlevel_isr_handler for DMA interrupts
 		move.l	a1,(INT_SOURCE_DMA + 64) * 4(a0)
 
 		move.l	(sp)+,a2			// Restore registers
@@ -990,24 +993,16 @@ video_chg_end:
 		.extern	_isr_execute_handler
 
 _lowlevel_isr_handler:
-		move.w	#0x2700,sr
-		link	a6,#-4*4
-		movem.l	d0-d1/a0-a1,(sp)
+		move.w	#0x2700,sr			// disable interrupts
+		link	a6,#-4*4			// make room for
+		movem.l	d0-d1/a0-a1,(sp)	// gcc scratch registers and save them
 
-		move.w	4(a6),d0
-		lsr.l	#2,d0
-		andi.l	#0x0000ff,d0
-		move.l	d0,-(sp)
-		jsr		_isr_execute_handler
-		lea		4(sp),sp
-		cmp.l	#1,d0
-		//beq		handled			// this is probably not a too bright idea for hw interrupts not known to TOS
-		bra		handled
-nothandled:
-		movem.l	(sp),d0-d1/a0-a1
-		unlk	a6
-		jmp		std_exc_vec
-handled:
-		movem.l	(sp),d0-d1/a0-a1
-		unlk	a6
+		move.w	4(a6),d0			// fetch vector number from stack
+		lsr.l	#2,d0				// move it in place
+		andi.l	#0x000000ff,d0		// mask it out
+		move.l	d0,-(sp)			// push it
+		jsr		_isr_execute_handler	// call the C handler
+		lea		4(sp),sp			// adjust stack
+		movem.l	(sp),d0-d1/a0-a1	// restore registers
+		unlk	a6					// cleanup stack
 		rte

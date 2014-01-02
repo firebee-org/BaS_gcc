@@ -32,7 +32,6 @@
 #define dbg(fmt, args...)
 #endif
 
-extern void *info_fvdi;
 extern long offscren_reserved(void);
 
 extern uint8_t driver_mem_buffer[DRIVER_MEM_BUFFER_SIZE];	/* defined in linker control file */
@@ -231,7 +230,7 @@ static void freeit(MD *m, MPB *mp)
 	}
 }
 
-int driver_mem_free(void *addr)
+int32_t driver_mem_free(void *addr)
 {
 	int level;
 	MD *p, **q;
@@ -262,7 +261,7 @@ int driver_mem_free(void *addr)
 	return(0);
 }
 
-void *driver_mem_alloc(long amount)
+void *driver_mem_alloc(uint32_t amount)
 {
 	void *ret = NULL;
 	int level;
