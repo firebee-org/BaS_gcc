@@ -301,12 +301,18 @@ init_vec_loop:
 		move.l	a1,(INT_SOURCE_GPT0 + 64) * 4(a0)
 #endif /* MACHINE_FIREBEE */
 
+		// install isr handlers for the three GPT timers,
+		// the FEC interrupts and the DMA task interrupts
+		// (used by network driver in BaS and MiNT)
 		lea		_lowlevel_isr_handler,a1
 		move.l	a1,(INT_SOURCE_GPT1 + 64) * 4(a0)
 		move.l	a1,(INT_SOURCE_GPT2 + 64) * 4(a0)
 		move.l	a1,(INT_SOURCE_GPT3 + 64) * 4(a0)
 		move.l	a1,(INT_SOURCE_FEC0 + 64) * 4(a0)
-		//move.l	a1,(INT_SOURCE_FEC1 + 64) * 4(a0)
+#ifndef MACHINE_FIREBEE
+		// second FEC not wired on the FireBee
+		move.l	a1,(INT_SOURCE_FEC1 + 64) * 4(a0)
+#endif
 		move.l	a1,(INT_SOURCE_DMA + 64) * 4(a0)
 
 		move.l	(sp)+,a2			// Restore registers
