@@ -1206,9 +1206,11 @@ static void radeon_write_pll_regs(struct radeonfb_info *rinfo, struct radeon_reg
 	}
 	else
 		OUTPLLP(PPLL_REF_DIV, mode->ppll_ref_div, ~PPLL_REF_DIV_MASK);
+
 	/* Set PPLL divider 3 & post divider*/
 	OUTPLLP(PPLL_DIV_3, mode->ppll_div_3, ~PPLL_FB3_DIV_MASK);
 	OUTPLLP(PPLL_DIV_3, mode->ppll_div_3, ~PPLL_POST3_DIV_MASK);
+
 	/* Write update */
 	while (INPLL(PPLL_REF_DIV) & PPLL_ATOMIC_UPDATE_R);
 	OUTPLLP(PPLL_REF_DIV, PPLL_ATOMIC_UPDATE_W, ~PPLL_ATOMIC_UPDATE_W);
@@ -1230,6 +1232,7 @@ static void radeon_write_pll_regs(struct radeonfb_info *rinfo, struct radeon_reg
 static void radeon_wait_vbl(struct fb_info *info)
 {
 	uint32_t cnt = INREG(CRTC_CRNT_FRAME);
+
 	while (cnt == INREG(CRTC_CRNT_FRAME));
 }
 
@@ -2070,8 +2073,7 @@ int32_t radeonfb_pci_register(int32_t handle, const struct pci_device_id *ent)
 			}
 			flags = pci_rsc_desc->flags;
 			pci_rsc_desc = (struct pci_rd *) ((uint32_t) pci_rsc_desc->next + (uint32_t) pci_rsc_desc);
-		}
-		while (!(flags & FLG_LAST));
+		} while (!(flags & FLG_LAST));
 	}
 	else
 		dbg("%s: get_resource error\r\n", __FUNCTION__);
