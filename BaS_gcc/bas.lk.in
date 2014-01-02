@@ -7,7 +7,7 @@
 #endif /* MACHINE_M5484LITE */
 
 /* make bas_rom access flags rx if compiling to RAM */
-#if COMPILE_RAM
+#ifdef COMPILE_RAM
 #define ROMFLAGS	WX
 #else
 #define ROMFLAGS	RX
@@ -79,37 +79,37 @@ SECTIONS
 		OBJDIR/MCD_tasks.o(.text)
 		OBJDIR/MCD_tasksInit.o(.text)
 
-		OBJDIR/video.o
-		OBJDIR/videl.o
-		OBJDIR/fbmem.o
-		OBJDIR/fbmon.o
-		OBJDIR/fbmodedb.o
-		OBJDIR/offscreen.o
+		OBJDIR/video.o(.text)
+		OBJDIR/videl.o(.text)
+		OBJDIR/fbmem.o(.text)
+		OBJDIR/fbmon.o(.text)
+		OBJDIR/fbmodedb.o(.text)
+		OBJDIR/offscreen.o(.text)
 
-		OBJDIR/x86decode.o
-		OBJDIR/x86ops.o
-		OBJDIR/x86ops2.o
-		OBJDIR/x86fpu.o
-		OBJDIR/x86sys.o
-		OBJDIR/x86biosemu.o
-		OBJDIR/x86debug.o
-		OBJDIR/x86prim_ops.o
-		OBJDIR/x86pcibios.o
+		OBJDIR/x86decode.o(.text)
+		OBJDIR/x86ops.o(.text)
+		OBJDIR/x86ops2.o(.text)
+		OBJDIR/x86fpu.o(.text)
+		OBJDIR/x86sys.o(.text)
+		OBJDIR/x86biosemu.o(.text)
+		OBJDIR/x86debug.o(.text)
+		OBJDIR/x86prim_ops.o(.text)
+		OBJDIR/x86pcibios.o(.text)
 
-		OBJDIR/radeon_base.o
-		OBJDIR/radeon_accel.o
-		OBJDIR/radeon_cursor.o
-		OBJDIR/radeon_monitor.o
+		OBJDIR/radeon_base.o(.text)
+		OBJDIR/radeon_accel.o(.text)
+		OBJDIR/radeon_cursor.o(.text)
+		OBJDIR/radeon_monitor.o(.text)
 
 		OBJDIR/xhdi_sd.o(.text)
 		OBJDIR/xhdi_interface.o(.text)
 		OBJDIR/xhdi_vec.o(.text)
 		
+#ifdef COMPILE_RAM
 		/*
 		 * if we compile to RAM anyway, there is no need to copy anything
 		 */
-#ifdef COMPILE_RAM
-		. = ALIGN(16);
+		. = ALIGN(4);
 		__BAS_DATA_START = .;
 		*(.data)
 		__BAS_DATA_END = .;
@@ -118,20 +118,20 @@ SECTIONS
 		__BAS_BSS_END = .;
 #endif /* COMPILE_RAM */
 
-#if FORMAT == elf32-m68k
+#if (FORMAT_ELF == 1)
+#warning elf32-m68k format, m68k-elf
 		*(.rodata)
 		*(.rodata.*)
+#else
+#warning srec format, m68k-atari-mint
 #endif
 	} > bas_rom
 
 #if (TARGET_ADDRESS == BOOTFLASH_BASE_ADDRESS)
-	/* BaS in RAM */
-	.bas :
 	/*
-	 * The BaS is stored in the flash, just after the init part.
-	 * Then it will be copied to its final location in the RAM.
-	 * This data must be aligned for optimal copy loop speed.
+	 * put BaS .data and .bss segments to flash, but relocate it to RAM after initialize_hardware() ran
 	 */
+	.bas :
 	AT (ALIGN(ADDR(.text) + SIZEOF(.text), 4))
 	{
 		. = ALIGN(4);		/* same alignment than AT() statement! */
