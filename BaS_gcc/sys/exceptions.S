@@ -990,6 +990,7 @@ video_chg_end:
 		.extern	_isr_execute_handler
 
 _lowlevel_isr_handler:
+		move.w	#0x2700,sr
 		link	a6,#-4*4
 		movem.l	d0-d1/a0-a1,(sp)
 
