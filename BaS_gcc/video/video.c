@@ -277,9 +277,18 @@ void videl_screen_init(void)
 static struct fb_info fb;
 struct fb_info *info_fb = &fb;
 
-const char monitor_layout[1024];
+const char monitor_layout[1024] = "CRT,CRT";
 int16_t ignore_edid;
-struct mode_option resolution;
+
+struct mode_option resolution = 
+{
+	.used = 0,
+	.width = 640,
+	.height = 480,
+	.bpp = 8,
+	.freq = 60,
+	.flags = 0
+};
 int16_t force_measure_pll;
 
 void install_vbl_timer(void *func, int remove)

@@ -51,7 +51,17 @@ struct dma_channel
 	void (*handler)(void);
 };
 
-static char used_reqs[32];
+static char used_reqs[32] =
+{
+	DMA_ALWAYS,  DMA_DSPI_RXFIFO, DMA_DSPI_TXFIFO, DMA_DREQ0,
+    DMA_PSC0_RX, DMA_PSC0_TX, DMA_USB_EP0,  DMA_USB_EP1,
+    DMA_USB_EP2,  DMA_USB_EP3,  DMA_PCI_TX,  DMA_PCI_RX,
+    DMA_PSC1_RX, DMA_PSC1_TX, DMA_I2C_RX,  DMA_I2C_TX,
+    0,           0,           0,           0,
+    0,           0,           0,           0,
+    0,           0,           0,           0,
+    0,           0,           0,           0
+};
 
 static struct dma_channel dma_channel[NCHANNELS] =
 {
@@ -337,6 +347,7 @@ int dma_set_initiator(int initiator)
 			else /* No empty slots */
 				return 1;
 			break;
+
 		case DMA_PSC2_RX:
 			if (used_reqs[28] == 0)
 			{
@@ -543,8 +554,6 @@ int dma_interrupt_handler(void *arg1, void *arg2)
 {
 	uint32_t i, interrupts;
 
-	dbg("%s: arg1 = %p, arg2 = %p\r\n", __FUNCTION__, arg1, arg2);
-
 	(void) set_ipl(7);
 
 	/* 
@@ -555,7 +564,10 @@ int dma_interrupt_handler(void *arg1, void *arg2)
 
 	/* Make sure we are here for a reason */
 	if (interrupts == 0)
+	{
+		dbg("%s: not DMA interrupt! Spurious?\r\n", __FUNCTION__);
 		return 0;
+	}
 
 	/* Clear the interrupt in the pending register */
 	MCF_DMA_DIPR = interrupts;
@@ -567,7 +579,7 @@ int dma_interrupt_handler(void *arg1, void *arg2)
 			/* If there is a handler, call it */
 			if (dma_channel[i].handler != NULL)
 			{
-				dbg("%s: call handler for interrupt %d (%p)\r\n", __FUNCTION__, i, dma_channel[i].handler);
+				dbg("%s: call handler for DMA channel %d (%p)\r\n", __FUNCTION__, i, dma_channel[i].handler);
 				dma_channel[i].handler();
 			}
 		}

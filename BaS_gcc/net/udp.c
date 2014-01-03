@@ -8,6 +8,7 @@
  *
  */
 #include "bas_types.h"
+#include "bas_printf.h"
 #include "net.h"
 #include <stddef.h>
 
@@ -106,6 +107,8 @@ uint16_t udp_obtain_free_port(void)
 
 int udp_send(NIF *nif, uint8_t *dest, int sport, int dport, NBUF *pNbuf)
 {
+	uint8_t *myip;
+
 	if (nif == NULL)
 	{
 		dbg("%s: nif is NULL\r\n", __FUNCTION__);
@@ -135,8 +138,14 @@ int udp_send(NIF *nif, uint8_t *dest, int sport, int dport, NBUF *pNbuf)
 	/* Add the length of the UDP packet to the total length of the packet */
 	pNbuf->length += 8;
 
-	return (ip_send(nif, dest, ip_get_myip(nif_get_protocol_info(nif, ETH_FRM_IP)),
-				IP_PROTO_UDP, pNbuf));
+	myip = ip_get_myip(nif_get_protocol_info(nif, ETH_FRM_IP));
+
+	dbg("%s: sent UDP request to %d.%d.%d.%d from %d.%d.%d.%d\r\n", __FUNCTION__,
+			dest[0], dest[1], dest[2], dest[3],
+			myip[0], myip[1], myip[2], myip[3]);
+
+	return (ip_send(nif, dest, myip, IP_PROTO_UDP, pNbuf));
+
 }
 
 void udp_handler(NIF *nif, NBUF *pNbuf)
@@ -148,6 +157,8 @@ void udp_handler(NIF *nif, NBUF *pNbuf)
 	void (*handler)(NIF *, NBUF *);
 
 	udpframe = (udp_frame_hdr *) &pNbuf->data[pNbuf->offset];
+
+	dbg("%s: packet received\r\n", __FUNCTION__);
 
 	/*
 	 * Adjust the length and valid data offset of the packet we are
@@ -164,7 +175,7 @@ void udp_handler(NIF *nif, NBUF *pNbuf)
 		handler(nif, pNbuf);
 	else
 	{
-		xprintf("Received UDP packet for non-supported port\n");
+		dbg("%s: received UDP packet for non-supported port\n", __FUNCTION__);
 		nbuf_free(pNbuf);
 	}
 

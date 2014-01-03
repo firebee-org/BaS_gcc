@@ -9,8 +9,17 @@
  */
 #include "net.h"
 #include "bas_types.h"
+#include "bas_printf.h"
+
 #include <stdint.h>
 #include <stdbool.h>
+
+#define DBG_NIF
+#ifdef DBG_NIF
+#define dbg(format, arg...) do { xprintf("DEBUG: " format, ##arg); } while (0)
+#else
+#define dbg(format, arg...) do { ; } while (0)
+#endif /* DBG_NIF */
 
 int nif_protocol_exist(NIF *nif, uint16_t protocol)
 {
@@ -46,8 +55,14 @@ void nif_protocol_handler(NIF *nif, uint16_t protocol, NBUF *pNbuf)
 	for (index = 0; index < nif->num_protocol; ++index)
 	{
 		if (nif->protocol[index].protocol == protocol)
+		{
+			dbg("%s: call protocol handler for protocol %d at %p\r\n", __FUNCTION__, protocol,
+						nif->protocol[index].handler);
 			nif->protocol[index].handler(nif,pNbuf);
+			return;
+		}
 	}
+	dbg("%s: no protocol handler found for protocol %d\r\n", __FUNCTION__, protocol);
 }
 
 void *nif_get_protocol_info(NIF *nif, uint16_t protocol)
@@ -80,6 +95,7 @@ int nif_bind_protocol(NIF *nif, uint16_t protocol, void (*handler)(NIF *,NBUF *)
 		nif->protocol[nif->num_protocol].handler = (void(*)(NIF*,NBUF*))handler;
 		nif->protocol[nif->num_protocol].info = info;
 		++nif->num_protocol;
+
 		return true;
 	}
 	return false;

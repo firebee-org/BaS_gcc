@@ -49,7 +49,7 @@ int am79c874_init(uint8_t fec_ch, uint8_t phy_addr, uint8_t speed, uint8_t duple
 	if (duplex); /* to do */
 	
 	/* Initialize the MII interface */
-	fec_mii_init(fec_ch, SYSCLK);
+	fec_mii_init(fec_ch, SYSCLK / 1000);
 	dbg("%s: PHY reset\r\n", __FUNCTION__);
 	
 	/* Reset the PHY */

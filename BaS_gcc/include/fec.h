@@ -69,7 +69,7 @@ extern void fec_duplex (uint8_t, uint8_t);
 extern uint8_t fec_hash_address(const uint8_t *);
 extern void fec_set_address (uint8_t ch, const uint8_t *);
 extern void fec_reset (uint8_t);
-extern void fec_init (uint8_t, uint8_t, const uint8_t *);
+extern void fec_init(uint8_t ch, uint8_t mode, const uint8_t *pa);
 extern void fec_rx_start(uint8_t, int8_t *);
 extern void fec_rx_restart(uint8_t);
 extern void fec_rx_stop (uint8_t);

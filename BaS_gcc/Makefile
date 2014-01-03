@@ -9,7 +9,7 @@
 
 # can be either "Y" or "N" (without quotes). "Y" for using the m68k-elf-, "N" for using the m68k-atari-mint
 # toolchain
-COMPILE_ELF=N
+COMPILE_ELF=Y
 
 ifeq (Y,$(COMPILE_ELF))
 TCPREFIX=m68k-elf-
@@ -33,6 +33,15 @@ INCLUDE=-Iinclude
 CFLAGS=-mcpu=5474 \
 		-Wall \
 		-Os \
+		-g \
+		-fomit-frame-pointer \
+		-ffreestanding \
+		-fleading-underscore \
+		-Wa,--register-prefix-optional
+CFLAGS_OPTIMIZED = -mcpu=5474 \
+		-Wall \
+		-O2 \
+		-g \
 		-fomit-frame-pointer \
 		-ffreestanding \
 		-fleading-underscore \
@@ -94,6 +103,7 @@ CSRCS= \
 	queue.c \
 	net_timer.c \
 	am79c874.c \
+	bcm5222.c \
 	nif.c \
 	fecbd.c \
 	fec.c \
@@ -177,6 +187,18 @@ ifeq (firebee,$(1))
 else
 	MACHINE=MACHINE_M5484LITE
 endif
+
+# always optimize x86 emulator objects
+$(1)/objs/x86decode.o:	CFLAGS=$(CFLAGS_OPTIMIZED)
+$(1)/objs/x86sys.o:		CFLAGS=$(CFLAGS_OPTIMIZED)
+$(1)/objs/x86debug.o:	CFLAGS=$(CFLAGS_OPTIMIZED)
+$(1)/objs/x86prim_ops.o:CFLAGS=$(CFLAGS_OPTIMIZED)
+$(1)/objs/x86ops.o:		CFLAGS=$(CFLAGS_OPTIMIZED)
+$(1)/objs/x86ops2.o:	CFLAGS=$(CFLAGS_OPTIMIZED)
+$(1)/objs/x86fpu.o:		CFLAGS=$(CFLAGS_OPTIMIZED)
+$(1)/objs/x86biosemu.o:	CFLAGS=$(CFLAGS_OPTIMIZED)
+$(1)/objs/x86pcibios.o:	CFLAGS=$(CFLAGS_OPTIMIZED)
+
 $(1)/objs/%.o:%.c
 	$(CC) $$(CFLAGS) -D$$(MACHINE) $(INCLUDE) -c $$< -o $$@
 

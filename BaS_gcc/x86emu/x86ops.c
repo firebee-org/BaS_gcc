@@ -79,7 +79,7 @@ extern unsigned decode_rmXX_address(int mod, int rm);
 
 /* constant arrays to do several instructions in just one function */
 
-#ifdef DEBUG
+#ifdef DBG_X86EMU
 static char *x86emu_GenOpName[8] = {
 	"ADD", "OR", "ADC", "SBB", "AND", "SUB", "XOR", "CMP"};
 #endif
@@ -160,7 +160,7 @@ static uint32_t (*opcD1_long_operation[])(uint32_t s, uint8_t d) =
 	sar_long,
 };
 
-#ifdef DEBUG
+#ifdef DBG_X86EMU
 
 static char *opF6_names[8] =
 { "TEST\t", "", "NOT\t", "NEG\t", "MUL\t", "IMUL\t", "DIV\t", "IDIV\t" };
@@ -1284,7 +1284,7 @@ void x86emuOp_opc80_byte_RM_IMM(uint8_t X86EMU_UNUSED(op1))
 	 */
 	START_OF_INSTR();
 	FETCH_DECODE_MODRM(mod, rh, rl);
-#ifdef DEBUG
+#ifdef DBG_X86EMU
 	if (DEBUG_DECODE()) {
 		/* XXX DECODE_PRINTF may be changed to something more
 		   general, so that it is important to leave the strings
@@ -1360,7 +1360,7 @@ void x86emuOp_opc81_word_RM_IMM(uint8_t X86EMU_UNUSED(op1))
 	 */
 	START_OF_INSTR();
 	FETCH_DECODE_MODRM(mod, rh, rl);
-#ifdef DEBUG
+#ifdef DBG_X86EMU
 	if (DEBUG_DECODE()) {
 		/* XXX DECODE_PRINTF may be changed to something more
 		   general, so that it is important to leave the strings
@@ -1470,7 +1470,7 @@ void x86emuOp_opc82_byte_RM_IMM(uint8_t X86EMU_UNUSED(op1))
 	 */
 	START_OF_INSTR();
 	FETCH_DECODE_MODRM(mod, rh, rl);
-#ifdef DEBUG
+#ifdef DBG_X86EMU
 	if (DEBUG_DECODE()) {
 		/* XXX DECODE_PRINTF may be changed to something more
 		   general, so that it is important to leave the strings
@@ -1544,7 +1544,7 @@ void x86emuOp_opc83_word_RM_IMM(uint8_t X86EMU_UNUSED(op1))
 	 */
 	START_OF_INSTR();
 	FETCH_DECODE_MODRM(mod, rh, rl);
-#ifdef DEBUG
+#ifdef DBG_X86EMU
 	if (DEBUG_DECODE()) {
 		/* XXX DECODE_PRINTF may be changed to something more
 		   general, so that it is important to leave the strings
@@ -3070,7 +3070,7 @@ void x86emuOp_opcC0_byte_RM_MEM(uint8_t X86EMU_UNUSED(op1))
 	 */
 	START_OF_INSTR();
 	FETCH_DECODE_MODRM(mod, rh, rl);
-#ifdef DEBUG
+#ifdef DBG_X86EMU
 	if (DEBUG_DECODE()) {
 		/* XXX DECODE_PRINTF may be changed to something more
 		   general, so that it is important to leave the strings
@@ -3145,7 +3145,7 @@ void x86emuOp_opcC1_word_RM_MEM(uint8_t X86EMU_UNUSED(op1))
 	 */
 	START_OF_INSTR();
 	FETCH_DECODE_MODRM(mod, rh, rl);
-#ifdef DEBUG
+#ifdef DBG_X86EMU
 	if (DEBUG_DECODE()) {
 		/* XXX DECODE_PRINTF may be changed to something more
 		   general, so that it is important to leave the strings
@@ -3622,7 +3622,7 @@ void x86emuOp_opcD0_byte_RM_1(uint8_t X86EMU_UNUSED(op1))
 	 */
 	START_OF_INSTR();
 	FETCH_DECODE_MODRM(mod, rh, rl);
-#ifdef DEBUG
+#ifdef DBG_X86EMU
 	if (DEBUG_DECODE()) {
 		/* XXX DECODE_PRINTF may be changed to something more
 		   general, so that it is important to leave the strings
@@ -3693,7 +3693,7 @@ void x86emuOp_opcD1_word_RM_1(uint8_t X86EMU_UNUSED(op1))
 	 */
 	START_OF_INSTR();
 	FETCH_DECODE_MODRM(mod, rh, rl);
-#ifdef DEBUG
+#ifdef DBG_X86EMU
 	if (DEBUG_DECODE()) {
 		/* XXX DECODE_PRINTF may be changed to something more
 		   general, so that it is important to leave the strings
@@ -3795,7 +3795,7 @@ void x86emuOp_opcD2_byte_RM_CL(uint8_t X86EMU_UNUSED(op1))
 	 */
 	START_OF_INSTR();
 	FETCH_DECODE_MODRM(mod, rh, rl);
-#ifdef DEBUG
+#ifdef DBG_X86EMU
 	if (DEBUG_DECODE()) {
 		/* XXX DECODE_PRINTF may be changed to something more
 		   general, so that it is important to leave the strings
@@ -3868,7 +3868,7 @@ void x86emuOp_opcD3_word_RM_CL(uint8_t X86EMU_UNUSED(op1))
 	 */
 	START_OF_INSTR();
 	FETCH_DECODE_MODRM(mod, rh, rl);
-#ifdef DEBUG
+#ifdef DBG_X86EMU
 	if (DEBUG_DECODE()) {
 		/* XXX DECODE_PRINTF may be changed to something more
 		   general, so that it is important to leave the strings
@@ -4852,7 +4852,7 @@ void x86emuOp_opcFE_byte_RM(uint8_t X86EMU_UNUSED(op1))
 	/* Yet another special case instruction. */
 	START_OF_INSTR();
 	FETCH_DECODE_MODRM(mod, rh, rl);
-#ifdef DEBUG
+#ifdef DBG_X86EMU
 	if (DEBUG_DECODE()) {
 		/* XXX DECODE_PRINTF may be changed to something more
 		   general, so that it is important to leave the strings
@@ -4916,7 +4916,7 @@ void x86emuOp_opcFF_word_RM(uint8_t X86EMU_UNUSED(op1))
 	/* Yet another special case instruction. */
 	START_OF_INSTR();
 	FETCH_DECODE_MODRM(mod, rh, rl);
-#ifdef DEBUG
+#ifdef DBG_X86EMU
 	if (DEBUG_DECODE()) {
 		/* XXX DECODE_PRINTF may be changed to something more
 		   general, so that it is important to leave the strings

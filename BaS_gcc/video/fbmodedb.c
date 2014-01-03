@@ -507,6 +507,7 @@ int fb_find_mode(struct fb_var_screeninfo *var,
 		default_mode = &modedb[DEFAULT_MODEDB_INDEX];
 	if (!default_bpp)
 		default_bpp = 8;
+
 	/* Did the user specify a video mode? */
 	if (resolution->used) /* fVDI mode */
 	{
