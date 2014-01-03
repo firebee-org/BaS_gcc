@@ -38,7 +38,6 @@
 
 FEC_EVENT_LOG fec_log[2];
 
-/********************************************************************/
 /*
  * Write a value to a PHY's MII register.
  *
@@ -111,7 +110,6 @@ int fec_mii_write(uint8_t ch, uint8_t phy_addr, uint8_t reg_addr, uint16_t data)
 	return 0;
 }
 
-/********************************************************************/
 /*
  * Read a value from a PHY's MII register.
  *
@@ -174,7 +172,6 @@ int fec_mii_read(uint8_t ch, uint8_t phy_addr, uint8_t reg_addr, uint16_t *data)
 	return 0;
 }
 
-/********************************************************************/
 /*
  * Initialize the MII interface controller
  *
@@ -194,7 +191,6 @@ void fec_mii_init(uint8_t ch, uint32_t sys_clk)
 	MCF_FEC_MSCR(ch) = MCF_FEC_MSCR_MII_SPEED((sys_clk / 5) + 1);
 }
 
-/********************************************************************/
 /* Initialize the MIB counters
  *
  * Parameters:
@@ -205,8 +201,8 @@ void fec_mib_init(uint8_t ch)
 	//To do
 }
 
-/********************************************************************/
-/* Display the MIB counters
+/*
+ * Display the MIB counters
  *
  * Parameters:
  *  ch      FEC channel
@@ -216,8 +212,8 @@ void fec_mib_dump(uint8_t ch)
 	//To do
 }
 
-/********************************************************************/
-/* Initialize the FEC log
+/*
+ * Initialize the FEC log
  *
  * Parameters:
  *  ch      FEC channel
@@ -227,8 +223,8 @@ void fec_log_init(uint8_t ch)
 	memset(&fec_log[ch], 0, sizeof(FEC_EVENT_LOG));
 }
 
-/********************************************************************/
-/* Display the FEC log
+/*
+ * Display the FEC log
  *
  * Parameters:
  *  ch      FEC channel
@@ -264,7 +260,6 @@ void fec_log_dump(uint8_t ch)
 	dbg("%s: ---------------\r\n\r\n", __FUNCTION__);
 }
 
-/********************************************************************/
 /*
  * Display some of the registers for debugging
  *
@@ -299,7 +294,6 @@ void fec_debug_dump(uint8_t ch)
 	dbg("--------------------------------\n\n");
 }
 
-/********************************************************************/
 /*
  * Set the duplex on the selected FEC controller
  *
@@ -307,7 +301,7 @@ void fec_debug_dump(uint8_t ch)
  *  ch      FEC channel
  *  duplex  FEC_MII_FULL_DUPLEX or FEC_MII_HALF_DUPLEX
  */
-void fec_duplex (uint8_t ch, uint8_t duplex)
+void fec_duplex(uint8_t ch, uint8_t duplex)
 {
 	switch (duplex)
 	{
@@ -323,7 +317,6 @@ void fec_duplex (uint8_t ch, uint8_t duplex)
 	}
 }
 
-/********************************************************************/
 /*
  * Generate the hash table settings for the given address
  *
@@ -358,7 +351,6 @@ uint8_t fec_hash_address(const uint8_t *addr)
 	return (uint8_t)(crc >> 26);
 }
 
-/********************************************************************/
 /*
  * Set the Physical (Hardware) Address and the Individual Address
  * Hash in the selected FEC
@@ -388,14 +380,13 @@ void fec_set_address(uint8_t ch, const uint8_t *pa)
 		MCF_FEC_IALR(ch) |= (uint32_t) (1 << crc);
 }
 
-/********************************************************************/
 /*
  * Reset the selected FEC controller
  *
  * Parameters:
  *  ch      FEC channel
  */
-void fec_reset (uint8_t ch)
+void fec_reset(uint8_t ch)
 {
 	int i;
 
@@ -425,7 +416,6 @@ void fec_reset (uint8_t ch)
 		NOP();
 }
 
-/********************************************************************/
 /*
  * Initialize the selected FEC
  *
@@ -533,7 +523,6 @@ void fec_init(uint8_t ch, uint8_t mode, const uint8_t *pa)
 		| MCF_FEC_FECCTCWR_CRC;
 }
 
-/********************************************************************/
 /*
  * Start the FEC Rx DMA task
  *
@@ -593,7 +582,6 @@ void fec_rx_start(uint8_t ch, int8_t *rxbd)
 	dbg("%s: Rx DMA task for FEC%1d started\r\n", __FUNCTION__, ch);
 }
 
-/********************************************************************/
 /*
  * Continue the Rx DMA task
  *
@@ -624,7 +612,6 @@ void fec_rx_continue(uint8_t ch)
 	dbg("%s: RX dma on channel %d continued\r\n", __FUNCTION__, channel);
 }
 
-/********************************************************************/
 /*
  * Stop all frame receptions on the selected FEC
  *
@@ -664,7 +651,6 @@ void fec_rx_stop (uint8_t ch)
 	MCF_FEC_EIMR(ch) = mask;
 }
 
-/********************************************************************/
 /*
  * Receive Frame interrupt handler - this handler is called by the 
  * DMA interrupt handler indicating that a packet was successfully
@@ -840,7 +826,6 @@ void fec1_rx_frame(void)
 	fec_rx_frame(1, &nif1);
 }
 
-/********************************************************************/
 /*
  * Start the FEC Tx DMA task
  *
@@ -855,16 +840,20 @@ void fec_tx_start(uint8_t ch, int8_t *txbd)
 	int result;
 	void fec0_tx_frame(void);
 	void fec1_tx_frame(void);
+	int res;
 
 	/*
 	 * Make the initiator assignment
 	 */
-	(void) dma_set_initiator(DMA_FEC_TX(ch));
+	res = dma_set_initiator(DMA_FEC_TX(ch));
+	dbg("%s: dma_set_initiator(%d) = %d\r\n", __FUNCTION__, ch, res);
 
 	/*
 	 * Grab the initiator number
 	 */
 	initiator = dma_get_initiator(DMA_FEC_TX(ch));
+	dbg("%s: dma_get_initiator(%d) = %d\r\n", __FUNCTION__, ch, initiator);
+
 
 	/*
 	 * Determine the DMA channel running the task for the
@@ -872,6 +861,7 @@ void fec_tx_start(uint8_t ch, int8_t *txbd)
 	 */
 	channel = dma_set_channel(DMA_FEC_TX(ch),
 			(ch == 0) ? fec0_tx_frame : fec1_tx_frame);
+	dbg("%s: dma_set_channel(%d, ...) = %d\r\n", __FUNCTION__, ch, channel);
 
 	/*
 	 * Start the Tx DMA task
@@ -896,9 +886,9 @@ void fec_tx_start(uint8_t ch, int8_t *txbd)
 			| MCD_NO_CSUM
 			| MCD_NO_BYTE_SWAP
 			);
+	dbg("%s: DMA tx task started\r\n", __FUNCTION__);
 }
 
-/********************************************************************/
 /*
  * Continue the Tx DMA task
  *
@@ -919,21 +909,23 @@ void fec_tx_continue(uint8_t ch)
 	 * selected FEC
 	 */
 	channel = dma_get_channel(DMA_FEC_TX(ch));
+	dbg("%s: dma_get_channel(DMA_FEC_TX(%d)) = %d\r\n",
+			__FUNCTION__, ch, channel);
 
 	/*
 	 * Continue/restart the DMA task
 	 */
-	MCD_continDma((int)channel);
+	MCD_continDma(channel);
+	dbg("%s: DMA TX task continue\r\n", __FUNCTION__);
 }
 
-/********************************************************************/
 /*
  * Stop all transmissions on the selected FEC and kill the DMA task
  *
  * Parameters:
  *  ch  FEC channel
  */
-void fec_tx_stop (uint8_t ch)
+void fec_tx_stop(uint8_t ch)
 {
 	uint32_t mask;
 	int channel;
@@ -984,7 +976,6 @@ void fec_tx_stop (uint8_t ch)
 	MCF_FEC_EIMR(ch) = mask;
 }
 
-/********************************************************************/
 /*
  * Trasmit Frame interrupt handler - this handler is called by the 
  * DMA interrupt handler indicating that a packet was successfully
@@ -998,6 +989,7 @@ void fec_tx_frame(uint8_t ch)
 	FECBD *pTxBD;
 	NBUF *pNbuf;
 
+	dbg("%s:\r\n", __FUNCTION__);
 	while ((pTxBD = fecbd_tx_free(ch)) != NULL)
 	{
 		fec_log[ch].dtxf++;
