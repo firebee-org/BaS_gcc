@@ -39,6 +39,7 @@
 
 #ifndef __X86EMU_REGS_H
 #define __X86EMU_REGS_H
+#include "x86debug.h"
 
 /*---------------------- Macros and type definitions ----------------------*/
 

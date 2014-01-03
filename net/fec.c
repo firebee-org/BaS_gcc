@@ -18,6 +18,7 @@
 #include "bas_printf.h"
 #include "util.h"
 #include "am79c874.h"
+#include "bcm5222.h"
 #include <stdbool.h>
 
 #if defined(MACHINE_FIREBEE)
@@ -268,30 +269,30 @@ void fec_log_dump(uint8_t ch)
  */
 void fec_debug_dump(uint8_t ch)
 {
-	dbg("\n------------- FEC%d -------------\n",ch);
-	dbg("EIR      %08x        \n", MCF_FEC_EIR(ch));
-	dbg("EIMR     %08x        \n", MCF_FEC_EIMR(ch));
-	dbg("ECR      %08x        \n", MCF_FEC_ECR(ch));
-	dbg("RCR      %08x        \n", MCF_FEC_RCR(ch));
-	dbg("R_HASH   %08x        \n", MCF_FEC_RHR_HASH(ch));
-	dbg("TCR      %08x        \n", MCF_FEC_TCR(ch));
-	dbg("FECTFWR  %08x        \n", MCF_FEC_FECTFWR(ch));
-	dbg("FECRFSR  %08x        \n", MCF_FEC_FECRFSR(ch));
-	dbg("FECRFCR  %08x        \n", MCF_FEC_FECRFCR(ch));
-	dbg("FECRLRFP %08x        \n", MCF_FEC_FECRLRFP(ch));
-	dbg("FECRLWFP %08x        \n", MCF_FEC_FECRLWFP(ch));
-	dbg("FECRFAR  %08x        \n", MCF_FEC_FECRFAR(ch));
-	dbg("FECRFRP  %08x        \n", MCF_FEC_FECRFRP(ch));
-	dbg("FECRFWP  %08x        \n", MCF_FEC_FECRFWP(ch));
-	dbg("FECTFSR  %08x        \n", MCF_FEC_FECTFSR(ch));
-	dbg("FECTFCR  %08x        \n", MCF_FEC_FECTFCR(ch));
-	dbg("FECTLRFP %08x        \n", MCF_FEC_FECTLRFP(ch));
-	dbg("FECTLWFP %08x        \n", MCF_FEC_FECTLWFP(ch));
-	dbg("FECTFAR  %08x        \n", MCF_FEC_FECTFAR(ch));
-	dbg("FECTFRP  %08x        \n", MCF_FEC_FECTFRP(ch));
-	dbg("FECTFWP  %08x        \n", MCF_FEC_FECTFWP(ch));
-	dbg("FRST     %08x        \n", MCF_FEC_FECFRST(ch));
-	dbg("--------------------------------\n\n");
+	dbg("\r\n------------- FEC%d -------------\r\n",ch);
+	dbg("EIR      %08x        \r\n", MCF_FEC_EIR(ch));
+	dbg("EIMR     %08x        \r\n", MCF_FEC_EIMR(ch));
+	dbg("ECR      %08x        \r\n", MCF_FEC_ECR(ch));
+	dbg("RCR      %08x        \r\n", MCF_FEC_RCR(ch));
+	dbg("R_HASH   %08x        \r\n", MCF_FEC_RHR_HASH(ch));
+	dbg("TCR      %08x        \r\n", MCF_FEC_TCR(ch));
+	dbg("FECTFWR  %08x        \r\n", MCF_FEC_FECTFWR(ch));
+	dbg("FECRFSR  %08x        \r\n", MCF_FEC_FECRFSR(ch));
+	dbg("FECRFCR  %08x        \r\n", MCF_FEC_FECRFCR(ch));
+	dbg("FECRLRFP %08x        \r\n", MCF_FEC_FECRLRFP(ch));
+	dbg("FECRLWFP %08x        \r\n", MCF_FEC_FECRLWFP(ch));
+	dbg("FECRFAR  %08x        \r\n", MCF_FEC_FECRFAR(ch));
+	dbg("FECRFRP  %08x        \r\n", MCF_FEC_FECRFRP(ch));
+	dbg("FECRFWP  %08x        \r\n", MCF_FEC_FECRFWP(ch));
+	dbg("FECTFSR  %08x        \r\n", MCF_FEC_FECTFSR(ch));
+	dbg("FECTFCR  %08x        \r\n", MCF_FEC_FECTFCR(ch));
+	dbg("FECTLRFP %08x        \r\n", MCF_FEC_FECTLRFP(ch));
+	dbg("FECTLWFP %08x        \r\n", MCF_FEC_FECTLWFP(ch));
+	dbg("FECTFAR  %08x        \r\n", MCF_FEC_FECTFAR(ch));
+	dbg("FECTFRP  %08x        \r\n", MCF_FEC_FECTFRP(ch));
+	dbg("FECTFWP  %08x        \r\n", MCF_FEC_FECTFWP(ch));
+	dbg("FRST     %08x        \r\n", MCF_FEC_FECFRST(ch));
+	dbg("--------------------------------\r\n\r\n");
 }
 
 /*
@@ -398,11 +399,11 @@ void fec_reset(uint8_t ch)
 			| MCF_FEC_FECRFSR_FAE
 			| MCF_FEC_FECRFSR_IP);
 	MCF_FEC_FECTFSR(ch) = (0
-			| MCF_FEC_FECRFSR_OF
-			| MCF_FEC_FECRFSR_UF
-			| MCF_FEC_FECRFSR_RXW
-			| MCF_FEC_FECRFSR_FAE
-			| MCF_FEC_FECRFSR_IP);
+			| MCF_FEC_FECTFSR_OF
+			| MCF_FEC_FECTFSR_UF
+			| MCF_FEC_FECTFSR_TXW
+			| MCF_FEC_FECTFSR_FAE
+			| MCF_FEC_FECTFSR_IP);
 
 	/* Reset the FIFOs */
 	MCF_FEC_FECFRST(ch) |= MCF_FEC_FECFRST_SW_RST;
@@ -1003,13 +1004,17 @@ void fec_tx_frame(uint8_t ch)
 		 * Free up the network buffer that was just transmitted
 		 */
 		nbuf_free(pNbuf);
+		dbg("%s: free buffer %p from TX ring\r\n", __FUNCTION__, pNbuf);
 
 		/*
 		 * Re-initialize the Tx BD
 		 */
 		pTxBD->data = NULL;
 		pTxBD->length = 0;
+
+		return;
 	}    
+	dbg("%s: BD ring is empty\r\n", __FUNCTION__);
 }
 
 void fec0_tx_frame(void)
@@ -1228,16 +1233,20 @@ static void fec_irq_handler(uint8_t ch)
 	if (event & MCF_FEC_EIR_MII)
 	{
 		fec_log[ch].mii++;
+		dbg("%s: MII\r\n", __FUNCTION__);
 	}
 
 	if (event & MCF_FEC_EIR_TXF)
 	{
 		fec_log[ch].txf++;
+		dbg("%s: TXF\r\n", __FUNCTION__);
+		fec_log_dump(0);
 	}
 
 	if (event & MCF_FEC_EIR_GRA)
 	{
 		fec_log[ch].gra++;
+		dbg("%s: GRA\r\n", __FUNCTION__);
 	}
 
 	if (event & MCF_FEC_EIR_BABT)
@@ -1315,7 +1324,7 @@ void fec_eth_setup(uint8_t ch, uint8_t trcvr, uint8_t speed, uint8_t duplex, con
 	 * Initialize the FEC
 	 */
 	fec_reset(ch);
-	fec_init(ch,trcvr,mac);
+	fec_init(ch, trcvr, mac);
 
 	if (trcvr == FEC_MODE_MII)
 	{
@@ -1324,8 +1333,10 @@ void fec_eth_setup(uint8_t ch, uint8_t trcvr, uint8_t speed, uint8_t duplex, con
 		 */
 #if defined(MACHINE_FIREBEE)
 		am79c874_init(0, 0, speed, duplex);
+#elif defined(MACHINE_M548X)
+		bcm_5222_init(0, 0, speed, duplex);
 #else
-		fec_mii_init(ch, SYSCLK);
+		fec_mii_init(ch, SYSCLK / 1000);
 #endif /* MACHINE_FIREBEE */
 	}
 

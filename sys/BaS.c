@@ -290,15 +290,27 @@ void network_init(void)
 	memcpy(nif1.hwa, mac, 6);
 	memcpy(nif1.broadcast, bc, 6);
 
+	dbg("%s: ethernet address is %02X:%02X:%02X:%02X:%02X:%02X\r\n", __FUNCTION__, 
+				nif1.hwa[0], nif1.hwa[1], nif1.hwa[2],
+				nif1.hwa[3], nif1.hwa[4], nif1.hwa[5]);
+	
+	timer_init(TIMER_NETWORK, TMR_INTC_LVL, TMR_INTC_PRI);
+
 	arp_init(&arp_info);
 	nif_bind_protocol(&nif1, ETH_FRM_ARP, arp_handler, (void *) &arp_info);
 
 	ip_init(&ip_info, myip, gateway, netmask);
 	nif_bind_protocol(&nif1, ETH_FRM_IP, ip_handler, (void *) &ip_info);
-	dma_irq_enable(6, 6);
-	//set_ipl(0);
 
-	// bootp_request(&nif1, 0);
+	udp_init();
+
+	dma_irq_enable(6, 6);
+
+	set_ipl(0);
+
+	bootp_request(&nif1, 0);
+
+	fec_eth_stop(0);
 }
 
 void BaS(void)
@@ -315,7 +327,7 @@ void BaS(void)
 
 	/* copy EMUTOS */
 	src = (uint8_t *) EMUTOS;
-	memcpy(dst, src, EMUTOS_SIZE);
+	dma_memcpy(dst, src, EMUTOS_SIZE);
 	xprintf("finished\r\n");
 
 	xprintf("initialize MMU: ");

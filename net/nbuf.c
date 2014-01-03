@@ -165,6 +165,7 @@ NBUF *nbuf_remove(int q)
 void nbuf_add(int q, NBUF *nbuf)
 {
 	int level = set_ipl(7);
+
 	queue_add(&nbuf_queue[q], (QNODE *) nbuf);
 	set_ipl(level);
 }
@@ -198,19 +199,20 @@ void nbuf_debug_dump(void)
 
 	for (i = 0; i < NBUF_MAXQ; ++i)
 	{
-		dbg("\n\nQueue #%d\n\n", i);
-		dbg("\tBuffer Location\tOffset\tLength\n");
-		dbg("--------------------------------------\n");
+		dbg("\r\n\r\nQueue #%d\r\n\r\n", i);
+		dbg("\tBuffer Location\tOffset\tLength\r\n");
+		dbg("--------------------------------------\r\n");
 		j = 0;
 		nbuf = (NBUF *) queue_peek(&nbuf_queue[i]);
 		while (nbuf != NULL)
 		{
-			dbg("%d\t  0x%08x\t0x%04x\t0x%04x\n",j++,nbuf->data,
+			dbg("%d\t0x%08x\t0x%04x\t0x%04x\r\n", j++, nbuf->data,
 					nbuf->offset,
 					nbuf->length);
 			nbuf = (NBUF *) nbuf->node.next;
 		}
 	}
+	dbg("\r\n");
 
 	set_ipl(level);
 #endif /* DBG_NBUF */

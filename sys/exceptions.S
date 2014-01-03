@@ -310,6 +310,7 @@ init_vec_loop:
 
 // install lowlevel_isr_handler for the FEC0  interrupt
 		move.l	a1,(INT_SOURCE_FEC0 + 64) * 4(a0)
+
 #ifndef MACHINE_FIREBEE
 // FEC1 not wired on the FireBee
 		move.l	a1,(INT_SOURCE_FEC1 + 64) * 4(a0)

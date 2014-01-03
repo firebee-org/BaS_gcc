@@ -61,7 +61,7 @@
 #include "bas_printf.h"
 #include "exceptions.h"		/* for set_ipl() */
 
-//#define DBG_RADEON
+#define DBG_RADEON
 #ifdef DBG_RADEON
 #define dbg(format, arg...) do { xprintf("DEBUG: " format, ##arg); } while (0)
 #else
@@ -670,23 +670,14 @@ static void radeon_get_pllinfo(struct radeonfb_info *rinfo)
 	 */
 	if (!force_measure_pll && (rinfo->bios_seg != NULL))
 	{
-#ifdef DRIVER_IN_ROM // problem if BIOS ROM is invalid after run_bios()
 		rinfo->pll.sclk		= rinfo->bios_pll.sclk;
 		rinfo->pll.mclk		= rinfo->bios_pll.mclk;
 		rinfo->pll.ref_clk	= rinfo->bios_pll.ref_clk;
 		rinfo->pll.ref_div	= rinfo->bios_pll.ref_div;
 		rinfo->pll.ppll_min	= rinfo->bios_pll.ppll_min;
 		rinfo->pll.ppll_max	= rinfo->bios_pll.ppll_max;
-#else
-		uint16_t pll_info_block = BIOS_IN16(rinfo->fp_bios_start + 0x30);
-		rinfo->pll.sclk		= BIOS_IN16(pll_info_block + 0x08);
-		rinfo->pll.mclk		= BIOS_IN16(pll_info_block + 0x0a);
-		rinfo->pll.ref_clk	= BIOS_IN16(pll_info_block + 0x0e);
-		rinfo->pll.ref_div	= BIOS_IN16(pll_info_block + 0x10);
-		rinfo->pll.ppll_min	= BIOS_IN32(pll_info_block + 0x12);
-		rinfo->pll.ppll_max	= BIOS_IN32(pll_info_block + 0x16);
-#endif
 		dbg("%s: Retreived PLL infos from BIOS\r\n", __FUNCTION__);
+
 		goto found;
 	}
 
@@ -831,19 +822,30 @@ int radeonfb_check_var(struct fb_var_screeninfo *var, struct fb_info *info)
 	v.xres_virtual = (pitch << 6) / ((v.bits_per_pixel + 1) / 8);
 
 	if (((v.xres_virtual * v.yres_virtual * nom) / den) > info->screen_size)
+	{
+		dbg("%s: mode %d x %d rejected (screen size too small)\r\n", __FUNCTION__, v.xres_virtual, v.yres_virtual);
 		return -1; //-EINVAL;
+	}
+
 	if (v.xres_virtual < v.xres)
 		v.xres = v.xres_virtual;
+	
 	if (v.xoffset < 0)
 		v.xoffset = 0;
+
 	if (v.yoffset < 0)
 		v.yoffset = 0;
+
 	if (v.xoffset > v.xres_virtual - v.xres)
 		v.xoffset = v.xres_virtual - v.xres - 1;
+
 	if (v.yoffset > v.yres_virtual - v.yres)
 		v.yoffset = v.yres_virtual - v.yres - 1;
+
 	v.red.msb_right = v.green.msb_right = v.blue.msb_right = 0;
 	v.transp.offset = v.transp.length = v.transp.msb_right = 0;
+
+	dbg("%s: using mode %d x %d \r\n", __FUNCTION__, v.xres, v.yres);
 
 	memcpy(var, &v, sizeof(v));
 	return 0;
@@ -1786,6 +1788,7 @@ int radeonfb_set_par(struct fb_info *info)
 static void radeonfb_check_modes(struct fb_info *info, struct mode_option *resolution)
 {
 	struct radeonfb_info *rinfo = info->par;
+
 	radeon_check_modes(rinfo, resolution);
 }
 
@@ -1839,6 +1842,7 @@ static struct fb_ops radeonfb_ops =
 static int radeon_set_fbinfo(struct radeonfb_info *rinfo)
 {
 	struct fb_info *info = rinfo->info;
+
 	info->par = rinfo;
 	info->fbops = &radeonfb_ops;
 	info->ram_base = info->screen_base = rinfo->fb_base;
@@ -1848,7 +1852,10 @@ static int radeon_set_fbinfo(struct radeonfb_info *rinfo)
 		info->screen_size = MAX_MAPPED_VRAM;
 	else if (info->screen_size > MIN_MAPPED_VRAM)
 		info->screen_size = MIN_MAPPED_VRAM;
-	dbg("radeonfb: radeon_set_fbinfo: screen_size %lx\r\n", info->screen_size);
+
+	dbg("%s: ram_base %p\r\n", __FUNCTION__, info->screen_base);
+	dbg("%s: ram_size %p\r\n", __FUNCTION__, info->ram_size);
+
 	/* Fill fix common fields */
 	memcpy(info->fix.id, rinfo->name, sizeof(info->fix.id));
 	info->fix.smem_start = rinfo->fb_base_phys;
@@ -2117,7 +2124,7 @@ int32_t radeonfb_pci_register(int32_t handle, const struct pci_device_id *ent)
 	if ((rinfo->bios_seg != NULL))
 	{
 		dbg("%s: run VGA BIOS\r\n", __FUNCTION__);
-		//run_bios(rinfo);
+		run_bios(rinfo);
 	}
 	else
 	{
@@ -2180,7 +2187,8 @@ int32_t radeonfb_pci_register(int32_t handle, const struct pci_device_id *ent)
 	dbg("%s: build mode list\r\n", __FUNCTION__);
 	radeon_check_modes(rinfo, &resolution);
 
-	/* save current mode regs before we switch into the new one
+	/*
+	 * save current mode regs before we switch into the new one
 	 * so we can restore this upon exit
 	 */
 	dbg("%s: save current mode\r\n", __FUNCTION__);

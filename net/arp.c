@@ -6,8 +6,17 @@
  */
 
 #include "net.h"
+#include "net_timer.h"
+#include "bas_printf.h"
 #include <stdbool.h>
 #include <stddef.h>
+
+#define DBG_ARP
+#ifdef DBG_ARP
+#define dbg(format, arg...) do { xprintf("DEBUG: " format, ##arg); } while (0)
+#else
+#define dbg(format, arg...) do { ; } while (0)
+#endif /* DBG_ARP */
 
 #define TIMER_NETWORK 3
 
@@ -219,12 +228,12 @@ void arp_request(NIF *nif, uint8_t *pa)
 	int i, result;
 
 
-	xprintf("%s\r\n", __FUNCTION__);
+	dbg("%s\r\n", __FUNCTION__);
 
 	pNbuf = nbuf_alloc();
 	if (pNbuf == NULL)
 	{
-		xprintf("ARP: arp_request couldn't allocate Tx buffer\n");
+		dbg("%s: arp_request couldn't allocate Tx buffer\n", __FUNCTION__);
 		return;
 	}
 
@@ -254,6 +263,7 @@ void arp_request(NIF *nif, uint8_t *pa)
 	pNbuf->length = ARP_HDR_LEN;
 
 	/* Send the ARP request */
+	dbg("%s: sending ARP request\r\n", __FUNCTION__);
 	result = nif->send(nif, nif->broadcast, nif->hwa, ETH_FRM_ARP, pNbuf);
 
 	if (result == 0)
@@ -290,7 +300,7 @@ uint8_t *arp_resolve(NIF *nif, uint16_t protocol, uint8_t *pa)
 	 * Check to see if the necessary MAC-to-IP translation information
 	 * is in table already 
 	 */
-	if (arp_resolve_pa (nif, protocol, pa, &hwa))
+	if (arp_resolve_pa(nif, protocol, pa, &hwa))
 		return hwa;
 
 	/* 
@@ -300,13 +310,20 @@ uint8_t *arp_resolve(NIF *nif, uint16_t protocol, uint8_t *pa)
 	 */
 	for (i = 0; i < 3; i++)
 	{
-		arp_request (nif, pa);
+		arp_request(nif, pa);
 
 		timer_set_secs(TIMER_NETWORK, ARP_TIMEOUT);
 		while (timer_get_reference(TIMER_NETWORK))
 		{
-			if (arp_resolve_pa (nif, protocol, pa, &hwa))
+			dbg("%s: try to resolve %d.%d.%d.%d\r\n", __FUNCTION__,
+				pa[0], pa[1], pa[2], pa[3], pa[4]);
+			if (arp_resolve_pa(nif, protocol, pa, &hwa))
+			{
+				dbg("%s: resolved to %02x:%02x:%02x:%02x:%02x:%02x.\r\n", __FUNCTION__,
+					hwa[0], hwa[1], hwa[2], hwa[3], hwa[4], hwa[5], hwa[6]);
+					
 				return hwa;
+			}
 		}
 	}
 

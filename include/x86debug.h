@@ -65,7 +65,7 @@
 #define CHECK_MEM_ACCESS_F              0x4 /*using regular linear pointer */
 #define CHECK_DATA_ACCESS_F             0x8 /*using segment:offset*/
 
-#ifdef DEBUG
+#ifdef DBG_X86EMU
 # define CHECK_IP_FETCH()              	(M.x86.check & CHECK_IP_FETCH_F)
 # define CHECK_SP_ACCESS()             	(M.x86.check & CHECK_SP_ACCESS_F)
 # define CHECK_MEM_ACCESS()            	(M.x86.check & CHECK_MEM_ACCESS_F)
@@ -77,7 +77,7 @@
 # define CHECK_DATA_ACCESS()
 #endif
 
-#ifdef DEBUG
+#ifdef DBG_X86EMU
 # define DEBUG_INSTRUMENT()    	(M.x86.debug & DEBUG_INSTRUMENT_F)
 # define DEBUG_DECODE()        	(M.x86.debug & DEBUG_DECODE_F)
 # define DEBUG_TRACE()         	(M.x86.debug & DEBUG_TRACE_F)
@@ -116,7 +116,7 @@
 # define DEBUG_DECODE_NOPRINT() 0
 #endif
 
-#ifdef DEBUG
+#ifdef DBG_X86EMU
 
 # define DECODE_PRINTF(x)     	if (DEBUG_DECODE()) \
 									x86emu_decode_printf(x)
@@ -146,7 +146,7 @@
 # define SAVE_IP_CS(x,y)
 #endif
 
-#ifdef DEBUG
+#ifdef DBG_X86EMU
 #define TRACE_REGS()                                   		\
 	if (DEBUG_DISASSEMBLE()) {                         		\
 		x86emu_just_disassemble();                        	\
@@ -157,7 +157,7 @@
 # define TRACE_REGS()
 #endif
 
-#ifdef DEBUG
+#ifdef DBG_X86EMU
 # define SINGLE_STEP()		if (DEBUG_STEP()) x86emu_single_step()
 #else
 # define SINGLE_STEP()
@@ -167,7 +167,7 @@
 	TRACE_REGS();			\
 	SINGLE_STEP()
 
-#ifdef DEBUG
+#ifdef DBG_X86EMU
 # define START_OF_INSTR()
 # define END_OF_INSTR()		EndOfTheInstructionProcedure: x86emu_end_instr();
 # define END_OF_INSTR_NO_TRACE()	x86emu_end_instr();
@@ -177,7 +177,7 @@
 # define END_OF_INSTR_NO_TRACE()
 #endif
 
-#ifdef DEBUG
+#ifdef DBG_X86EMU
 # define  CALL_TRACE(u,v,w,x,s)                                 \
 	if (DEBUG_TRACECALLREGS())									\
 		x86emu_dump_regs();                                     \
@@ -203,7 +203,7 @@
 # define RETURN_TRACE(n,u,v)
 #endif
 
-#ifdef DEBUG
+#ifdef DBG_X86EMU
 #define	DB(x)	x
 #else
 #define	DB(x)

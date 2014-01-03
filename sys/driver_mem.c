@@ -301,7 +301,7 @@ int driver_mem_init(void)
 {
 	if (use_count == 0)
 	{
-		dbg("%s: initialise driver_mem_buffer[] at %p, size %x\r\n", __FUNCTION__, driver_mem_buffer, DRIVER_MEM_BUFFER_SIZE);
+		dbg("%s: initialise driver_mem_buffer[] at %p, size 0x%x\r\n", __FUNCTION__, driver_mem_buffer, DRIVER_MEM_BUFFER_SIZE);
 		memset(driver_mem_buffer, 0, DRIVER_MEM_BUFFER_SIZE);
 	
 		pmd.mp_mfl = pmd.mp_rover = &tab_md[0];

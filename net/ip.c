@@ -280,6 +280,8 @@ void ip_handler(NIF *nif, NBUF *pNbuf)
 	 */
 	ip_frame_hdr *ipframe;
 
+	dbg("%s: packet received\r\n", __FUNCTION__);
+
 	ipframe = (ip_frame_hdr *) &pNbuf->data[pNbuf->offset];
 
 	/*
@@ -300,7 +302,7 @@ void ip_handler(NIF *nif, NBUF *pNbuf)
 	switch (IP_PROTOCOL(ipframe))
 	{
 		case IP_PROTO_ICMP:
-			// FIXME: icmp_handler(nif,pNbuf);
+			// FIXME: icmp_handler(nif, pNbuf);
 			break;
 		case IP_PROTO_UDP:
 			udp_handler(nif,pNbuf);
