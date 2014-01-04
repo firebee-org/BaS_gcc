@@ -178,26 +178,30 @@
 #endif
 
 #ifdef DBG_X86EMU
-# define  CALL_TRACE(u,v,w,x,s)                                 \
-	if (DEBUG_TRACECALLREGS())									\
-		x86emu_dump_regs();                                     \
-	if (DEBUG_TRACECALL()) {                                  	\
-		DPRINTVALHEXWORD("", u);                       \
-		DPRINTVALHEXWORD(":", v);                      \
-		DPRINT(": CALL ");                                        \
-		DPRINT(s);                                                \
-		DPRINTVALHEXWORD("", w);                       \
-		DPRINTVALHEXWORD(":", x);                      \
-		DPRINT("\r\n"); }
-# define RETURN_TRACE(n,u,v)                                    \
-	if (DEBUG_TRACECALLREGS())									\
-		x86emu_dump_regs();                                     \
-	if (DEBUG_TRACECALL()) {                                 	\
-		DPRINTVALHEXWORD("", (unsigned long)u);                       \
-		DPRINTVALHEXWORD(":", (unsigned long)v);                      \
-		DPRINT(": CALL ");                                        \
-		DPRINT(n);                                                \
-		DPRINT("\r\n"); }
+# define  CALL_TRACE(u,v,w,x,s)		\
+	if (DEBUG_TRACECALLREGS())		\
+		x86emu_dump_regs();         \
+	if (DEBUG_TRACECALL()) {        \
+		xprintf("%x", u);           \
+		xprintf(":%x", v);			\
+		xprintf(": CALL ");			\
+		xprintf("%x", s); 			\
+		xprintf(" %x", w);			\
+		xprintf(":%x", x);			\
+		xprintf("%s", "\r\n");		\
+	}
+
+# define RETURN_TRACE(n,u,v)		\
+	if (DEBUG_TRACECALLREGS())		\
+		x86emu_dump_regs();			\
+	if (DEBUG_TRACECALL())			\
+	{								\
+		xprintf("%x", (unsigned long)u);	\
+		xprintf(":%x", (unsigned long)v);	\
+		xprintf(": CALL ");			\
+		xprintf("%x", n);			\
+		xprintf("\r\n");			\
+	}
 #else
 # define CALL_TRACE(u,v,w,x,s)
 # define RETURN_TRACE(n,u,v)
