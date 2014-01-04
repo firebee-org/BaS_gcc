@@ -306,7 +306,7 @@ extern "C" {            			/* Use "C" linkage when in C++ mode */
 
 extern X86EMU_sysEnv	_X86EMU_env;
 
-#define   M _X86EMU_env
+#define M _X86EMU_env
 
 #define X86_EAX M.x86.R_EAX
 #define X86_EBX M.x86.R_EBX

@@ -149,12 +149,9 @@ extern "C" {            			/* Use "C" linkage when in C++ mode */
 	void 	X86EMU_exec(void);
 	void 	X86EMU_halt_sys(void);
 
-#ifdef	DEBUG
+#ifdef	DBG_X86EMU
 #define	HALT_SYS() \
-	DPRINT("halt_sys: file "); \
-	DPRINT(__FILE__); \
-	DPRINTVAL(", line ", __LINE__);	\
-	DPRINT("\r\n"); \
+	dbg("%s: halt_sys: file %s line %d\r\n", __FUNCTION__, __FILE__, __LINE__);\
 	X86EMU_halt_sys();
 #else
 #define	HALT_SYS()	X86EMU_halt_sys()

@@ -65,12 +65,6 @@
 
 #include "radeonfb.h"
 
-#ifdef DEBUG_X86EMU
-#define DEBUG  /* => see also sys.c */
-#else
-#undef DEBUG
-#endif
-
 #include "x86emu.h"
 #include "x86regs.h"
 #include "x86decode.h"
