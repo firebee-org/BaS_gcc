@@ -80,12 +80,13 @@ struct x86_fpu_reg {
 
 #define  X86_FPU_STKTOP  0
 
-struct x86_fpu_registers {
+struct x86_fpu_registers
+{
     struct x86_fpu_reg  x86_fpu_stack[8];
     int                 x86_fpu_flags;
     int                 x86_fpu_config;         /* rounding modes, etc. */
     short               x86_fpu_tos, x86_fpu_bos;
-	};
+};
 
 #pragma	pack()
 
@@ -102,14 +103,14 @@ struct x86_fpu_registers {
 
 #endif /* X86_FPU_SUPPORT */
 
-#ifdef DEBUG
-# define DECODE_PRINTINSTR32(t,mod,rh,rl)     	\
-	DECODE_PRINTF(t[(mod<<3)+(rh)]);
-# define DECODE_PRINTINSTR256(t,mod,rh,rl)    	\
-	DECODE_PRINTF(t[(mod<<6)+(rh<<3)+(rl)]);
+#ifdef DBG_X86EMU
+#define DECODE_PRINTINSTR32(t, mod, rh, rl)		\
+	DECODE_PRINTF(t[(mod << 3) + (rh)]);
+#define DECODE_PRINTINSTR256(t, mod, rh, rl)   	\
+	DECODE_PRINTF(t[(mod << 6) + (rh << 3) + (rl)]);
 #else
-# define DECODE_PRINTINSTR32(t,mod,rh,rl)
-# define DECODE_PRINTINSTR256(t,mod,rh,rl)
+#define DECODE_PRINTINSTR32(t,mod,rh,rl)
+#define DECODE_PRINTINSTR256(t,mod,rh,rl)
 #endif
 
 #endif /* __X86EMU_FPU_REGS_H */
