@@ -49,11 +49,6 @@
 #include "x86debug.h"
 #include "x86prim_ops.h"
 
-#ifndef NULL
-#define NULL ((void *)0)
-#endif
-
-
 extern uint8_t inb(uint16_t port);
 extern uint16_t inw(uint16_t port);
 extern uint32_t inl(uint16_t port);
@@ -86,18 +81,18 @@ inline uint8_t X86API rdb(uint32_t addr)
 	
 	if ((addr >= 0xA0000) && (addr <= 0xBFFFF))
 	{
-		val = *(uint8_t *)(offset_mem + addr);
+		val = *(uint8_t *) (offset_mem + addr);
 		dbg("%s: rdb(%x) = %x\r\n", __FUNCTION__, addr, val);
 	}
 	else
 	{
-	DB(if (DEBUG_MEM_TRACE())
-	{
-		dbg("%s: %p 1 -> %x\r\n", __FUNCTION__, addr, val);
-	} )
+		DB(if (DEBUG_MEM_TRACE())
+		{
+			dbg("%s: %p 1 -> %x\r\n", __FUNCTION__, addr, val);
+		} )
+	}
 	return val;
 }
-
 /*
  * PARAMETERS:
  * addr	- Emulator memory address to read
@@ -108,7 +103,7 @@ inline uint8_t X86API rdb(uint32_t addr)
  * REMARKS:
  * Reads a word value from the emulator memory.
  */
-inline uint16_t X86API rdw(uint32_t addr)
+uint16_t X86API rdw(uint32_t addr)
 {
 	uint16_t val;
 	
@@ -124,7 +119,7 @@ inline uint16_t X86API rdw(uint32_t addr)
 	}
 	DB(if (DEBUG_MEM_TRACE())
 	{
-		dbg("%s: %p 2 -> %x\r\n", __FUNCTION__, addr, value);
+		dbg("%s: %p 2 -> %x\r\n", __FUNCTION__, addr, val);
 	} )
 	return val;
 }
@@ -154,7 +149,7 @@ inline uint32_t X86API rdl(uint32_t addr)
 	DB(if (DEBUG_MEM_TRACE())
 	{
 
-		dbg("%s: %p 4 -> %x\r\n", __FUNCTION__, addr, value);
+		dbg("%s: %p 4 -> %x\r\n", __FUNCTION__, addr, val);
 	} )
 	return val;
 }
@@ -176,7 +171,7 @@ inline void X86API wrb(uint32_t addr, uint8_t val)
 	}
 	else
 	{
-		if(addr >= M.mem_size)
+		if (addr >= M.mem_size)
 		{
 			DB(
 			{
@@ -204,12 +199,12 @@ inline void X86API wrw(uint32_t addr, uint16_t val)
 {
 	if ((addr >= 0xA0000) && (addr <= 0xBFFFF))
 	{
-		dbg("%s: wrw(%x) = %x\r\n", __FUNCTION_, addr, val);
+		dbg("%s: wrw(%x) = %x\r\n", __FUNCTION__, addr, val);
 		*(uint16_t *)(offset_mem+addr) = swpw(val);
 	}
 	else
 	{
-		if(addr > M.mem_size - 2)
+		if (addr > M.mem_size - 2)
 		{
 			DB(
 			{
@@ -238,147 +233,125 @@ inline void X86API wrl(uint32_t addr, uint32_t val)
 {
 	if ((addr >= 0xA0000) && (addr <= 0xBFFFF))
 	{
-#ifdef DEBUG_X86EMU_PCI
-		DPRINTVALHEX("wrl(", addr);
-		DPRINTVALHEX(") = ", val);
-		DPRINT("\r\n");
-#endif
+		dbg("%s: wrl(%x) = %x\r\n", __FUNCTION__, addr, val);
 		*(uint32_t *)(offset_mem+addr) = swpl(val);
 	}
 	else
 	{
-		if(addr > M.mem_size - 4)
+		if (addr > M.mem_size - 4)
 		{
-			DB( { DPRINTVALHEX("mem_ptr: address ", addr);
-			      DPRINT(" out of range!\r\n"); } )
-			    HALT_SYS();
+			DB(
+			{
+				dbg("%s: mem_ptr: address %x out of range!\r\n", __FUNCTION__, addr);
+			}
+			)
+			HALT_SYS();
 		}
-#if 0
-		if(addr < 0x200)
-		{
-			DPRINTVALHEXWORD("", M.x86.R_CS);
-			DPRINTVALHEXWORD(":", M.x86.R_IP);		
-			DPRINTVALHEX(" updating int vector ", addr >> 2);
-			DPRINT("\r\n");
-		}
-#endif
 		*(uint32_t *)(M.mem_base + addr) = swpl(val);
-//		*(uint32_t *)(M.mem_base + addr) = val;
 	}
 	DB(if (DEBUG_MEM_TRACE())
 	{
-		DPRINTVALHEXLONG("", addr);
-		DPRINTVALHEXLONG(" 4 <- ", val);
-		DPRINT("\r\n");
+		dbg("%s: %p 4 <- %x\r\n", __FUNCTION__, addr, val);
 	} )
 }
 
-/****************************************************************************
-PARAMETERS:
-addr	- PIO address to read
-RETURN:
-0
-REMARKS:
-Default PIO byte read function. Doesn't perform real inb.
-****************************************************************************/
-static uint8_t X86API p_inb(X86EMU_pioAddr addr)
+/*
+ * PARAMETERS:
+ * addr	- PIO address to read
+ * RETURN:
+ * 0
+ * REMARKS:
+ * Default PIO byte read function. Doesn't perform real inb.
+ */
+inline uint8_t X86API p_inb(X86EMU_pioAddr addr)
 {
 	DB(if (DEBUG_IO_TRACE())
 	{
-		DPRINTVALHEXWORD("inb ", addr);
-		DPRINT(" \r\n");
+		dbg("%s: inb(%p)\r\n", __FUNCTION__);
 	} )
 	return inb(addr);
 }
 
-/****************************************************************************
-PARAMETERS:
-addr	- PIO address to read
-RETURN:
-0
-REMARKS:
-Default PIO word read function. Doesn't perform real inw.
-****************************************************************************/
-static uint16_t X86API p_inw(X86EMU_pioAddr addr)
+/*
+ * PARAMETERS:
+ * addr	- PIO address to read
+ * RETURN:
+ * 0
+ * REMARKS:
+ * Default PIO word read function. Doesn't perform real inw.
+ */
+inline uint16_t X86API p_inw(X86EMU_pioAddr addr)
 {
 	DB(if (DEBUG_IO_TRACE())
 	{
-		DPRINTVALHEXWORD("inw ", addr);
-		DPRINT(" \r\n");
+		dbg("%s: inw(%p)\r\n", __FUNCTION__, addr);
 	} )
 	return inw(addr);
 }
 
-/****************************************************************************
-PARAMETERS:
-addr	- PIO address to read
-RETURN:
-0
-REMARKS:
-Default PIO long read function. Doesn't perform real inl.
-****************************************************************************/
-static uint32_t X86API p_inl(X86EMU_pioAddr addr)
+/*
+ * PARAMETERS:
+ * addr	- PIO address to read
+ * RETURN:
+ * 0
+ * REMARKS:
+ * Default PIO long read function. Doesn't perform real inl.
+ */
+inline uint32_t X86API p_inl(X86EMU_pioAddr addr)
 {
 	DB(if (DEBUG_IO_TRACE())
 	{
-		DPRINTVALHEXWORD("inl ", addr);
-		DPRINT(" \r\n");
+		dbg("%s: inl %p\r\n", __FUNCTION__, addr);
 	} )
 	return inl(addr);
 }
 
-/****************************************************************************
-PARAMETERS:
-addr	- PIO address to write
-val     - Value to store
-REMARKS:
-Default PIO byte write function. Doesn't perform real outb.
-****************************************************************************/
-static void X86API p_outb(X86EMU_pioAddr addr, uint8_t val)
+/*
+ * PARAMETERS:
+ * addr	- PIO address to write
+ * val     - Value to store
+ * REMARKS:
+ * Default PIO byte write function. Doesn't perform real outb.
+ */
+inline void X86API p_outb(X86EMU_pioAddr addr, uint8_t val)
 {
 	DB(if (DEBUG_IO_TRACE())
 	{
-		DPRINTVALHEXBYTE("outb ", val);
-		DPRINTVALHEXWORD(" -> ", addr);
-		DPRINT(" \r\n");
+		dbg("%s: outb %x -> %x\r\n", __FUNCTION__, val, addr);
 	} )
 	outb(val, addr);
 	return;
 }
 
-/****************************************************************************
-PARAMETERS:
-addr	- PIO address to write
-val     - Value to store
-REMARKS:
-Default PIO word write function. Doesn't perform real outw.
-****************************************************************************/
-static void X86API p_outw(X86EMU_pioAddr addr, uint16_t val)
+/*
+ * PARAMETERS:
+ * addr	- PIO address to write
+ * val     - Value to store
+ * REMARKS:
+ * Default PIO word write function. Doesn't perform real outw.
+ */
+inline void X86API p_outw(X86EMU_pioAddr addr, uint16_t val)
 {
 	DB(if (DEBUG_IO_TRACE())
 	{
-		DPRINTVALHEXWORD("outw ", (unsigned long)val);
-		DPRINTVALHEXWORD(" -> ", addr);
-		DPRINT(" \r\n");
+		dbg("outw %x -> %x\r\n", __FUNCTION__, val, addr);
 	} )
 	outw(val, addr);
 	return;
 }
 
-/****************************************************************************
-PARAMETERS:
-addr	- PIO address to write
-val     - Value to store
-REMARKS:
-Default PIO ;ong write function. Doesn't perform real outl.
-****************************************************************************/
-static void X86API p_outl(X86EMU_pioAddr addr, uint32_t val)
+/*
+ * PARAMETERS:
+ * addr	- PIO address to write
+ * val     - Value to store
+ * REMARKS:
+ * Default PIO ;ong write function. Doesn't perform real outl.
+ */
+inline void X86API p_outl(X86EMU_pioAddr addr, uint32_t val)
 {
 	DB(if (DEBUG_IO_TRACE())
 	{
-		DPRINTVALHEXLONG("outl ", val);
-		DPRINTVALHEXWORD(" -> ", addr);
-		DPRINT(" \r\n");
+		dbg("%s: outl %x -> %x\r\n", __FUNCTION__, val, addr);
 	} )
 	outl(val, addr);
 	return;

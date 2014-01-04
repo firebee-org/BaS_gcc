@@ -80,8 +80,10 @@ extern unsigned decode_rmXX_address(int mod, int rm);
 /* constant arrays to do several instructions in just one function */
 
 #ifdef DBG_X86EMU
-static char *x86emu_GenOpName[8] = {
-	"ADD", "OR", "ADC", "SBB", "AND", "SUB", "XOR", "CMP"};
+static char *x86emu_GenOpName[8] =
+{
+	"ADD", "OR", "ADC", "SBB", "AND", "SUB", "XOR", "CMP"
+};
 #endif
 
 /* used by several opcodes  */
@@ -3241,7 +3243,7 @@ void x86emuOp_ret_near_IMM(uint8_t X86EMU_UNUSED(op1))
 	DECODE_PRINTF("RET\t");
 	imm = fetch_word_imm();
 	DECODE_PRINTF2("%x\r\n", imm);
-	RETURN_TRACE("RET",M.x86.saved_cs,M.x86.saved_ip);
+	RETURN_TRACE("RET", M.x86.saved_cs,M.x86.saved_ip);
 	TRACE_AND_STEP();
 	M.x86.R_IP = pop_word();
 	M.x86.R_SP += imm;
