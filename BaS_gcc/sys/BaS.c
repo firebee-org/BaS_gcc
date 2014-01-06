@@ -49,7 +49,7 @@
 #include "interrupts.h"
 #include "exceptions.h"
 
-#define BAS_DEBUG
+//#define BAS_DEBUG
 #if defined(BAS_DEBUG)
 #define dbg(format, arg...) do { xprintf("DEBUG: " format "\r\n", ##arg); } while (0)
 #else
@@ -251,7 +251,7 @@ static ARP_INFO	arp_info;
 
 void network_init(void)
 {
-	uint8_t mac[6] = {0x00, 0x04, 0x9f, 0x01, 0x01, 0x01}; /* this is a Freescale MAC address */
+	uint8_t mac[6] = {0x00, 0xcf, 0x54, 0x12, 0x34, 0x56};
 	uint8_t bc[6] = {0xff, 0xff, 0xff, 0xff, 0xff, 0xff}; /* this is our broadcast MAC address */
 	IP_ADDR myip = {192, 168, 1, 100};
 	IP_ADDR gateway = {192, 168, 1, 1};

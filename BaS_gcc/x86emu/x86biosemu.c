@@ -301,10 +301,10 @@ void run_bios(struct radeonfb_info *rinfo)
 	}
 
 	rom_size = (unsigned long) BIOS_IN8((long) &rom_header->size) * 512;
+
 	if (PCI_CLASS_DISPLAY_VGA == BIOS_IN16((long) &rom_data->class_hi))
 	{
 		memset((char *) biosmem, 0, SIZE_EMU);
-		
 		setup_system_bios((char *) biosmem);
 
 		dbg("%s: Copying VGA ROM Image from %p to %p (0x%lx bytes)\r\n",
@@ -327,9 +327,8 @@ void run_bios(struct radeonfb_info *rinfo)
 	}
 	else
 	{
-		setup_system_bios((char *) biosmem);
-
 		memset((char *) biosmem, 0, SIZE_EMU);
+		setup_system_bios((char *) biosmem);
 
 		dbg("%s: Copying non-VGA ROM Image from %p to %p (0x%lx bytes)\r\n", __FUNCTION__,
 				(long) rinfo->bios_seg + (long) rom_header,
@@ -342,6 +341,7 @@ void run_bios(struct radeonfb_info *rinfo)
 
 	initialcs = (addr & 0xF0000) >> 4;
 	initialip = (addr + 3) & 0xFFFF;	
+
 	X86EMU_setMemBase((void *) biosmem, SIZE_EMU);
 
 	for (i = 0; i < 256; i++)
@@ -381,6 +381,7 @@ void run_bios(struct radeonfb_info *rinfo)
 	 * to it, both kept on the stack, will do.
 	 */
 	pushw(0xf4f4);    /* hlt; hlt */
+
 //	pushw(0x10cd);    /* int #0x10 */
 //	pushw(0x0013);    /* 320 x 200 x 256 colors */
 // //	pushw(0x000F);    /* 640 x 350 x mono */

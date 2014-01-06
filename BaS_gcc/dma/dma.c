@@ -35,7 +35,7 @@
 #include "m5484l.h"
 #endif /* MACHINE_FIREBEE */
 
-#define DBG_DMA
+//#define DBG_DMA
 #ifdef DBG_DMA
 #define dbg(format, arg...) do { xprintf("DEBUG: " format, ##arg); } while (0)
 #else
@@ -552,7 +552,7 @@ void dma_free_channel(int requestor)
  */
 int dma_interrupt_handler(void *arg1, void *arg2)
 {
-	uint32_t i, interrupts;
+	int i, interrupts;
 
 	(void) set_ipl(7);
 
@@ -585,7 +585,7 @@ int dma_interrupt_handler(void *arg1, void *arg2)
 		}
 	}
 
-	return 1;
+	return 1;	/* handled */
 }
 /********************************************************************/
 

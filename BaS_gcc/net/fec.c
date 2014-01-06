@@ -29,7 +29,7 @@
 #error Unknown machine!
 #endif
 
-#define DBG_FEC
+//#define DBG_FEC
 #ifdef DBG_FEC
 #define dbg(format, arg...) do { xprintf("DEBUG: " format, ##arg); } while (0)
 #else
@@ -96,7 +96,7 @@ int fec_mii_write(uint8_t ch, uint8_t phy_addr, uint8_t reg_addr, uint16_t data)
 	}
 
 	if(timeout == FEC_MII_TIMEOUT)
-		return 1;
+		return 0;
 
 	/*
 	 * Clear the MII interrupt bit
@@ -108,7 +108,7 @@ int fec_mii_write(uint8_t ch, uint8_t phy_addr, uint8_t reg_addr, uint16_t data)
 	 */
 	MCF_FEC_EIMR(ch) = eimr;
 
-	return 0;
+	return 1;
 }
 
 /*
@@ -161,7 +161,7 @@ int fec_mii_read(uint8_t ch, uint8_t phy_addr, uint8_t reg_addr, uint16_t *data)
 	}
 
 	if(timeout == FEC_MII_TIMEOUT)
-		return 1;
+		return 0;
 
 	/*
 	 * Clear the MII interrupt bit
@@ -170,7 +170,7 @@ int fec_mii_read(uint8_t ch, uint8_t phy_addr, uint8_t reg_addr, uint16_t *data)
 
 	*data = (uint16_t)(MCF_FEC_MMFR(ch) & 0x0000FFFF);
 
-	return 0;
+	return 1;
 }
 
 /*
@@ -481,9 +481,9 @@ void fec_init(uint8_t ch, uint8_t mode, const uint8_t *pa)
 	 */
 	MCF_FEC_RCR(ch) = 0
 		| MCF_FEC_RCR_MAX_FL(ETH_MAX_FRM)
-#ifdef FEC_PROMISCUOUS
+//#ifdef FEC_PROMISCUOUS
 		| MCF_FEC_RCR_PROM
-#endif
+//#endif
 		| MCF_FEC_RCR_FCE;
 
 	if (mode == FEC_MODE_MII)
@@ -668,6 +668,8 @@ void fec_rx_frame(uint8_t ch, NIF *nif)
 	NBUF *cur_nbuf, *new_nbuf;
 	int keep;
 
+	dbg("%s: started\r\n", __FUNCTION__);
+
 	while ((pRxBD = fecbd_rx_alloc(ch)) != NULL)
 	{
 		fec_log[ch].drxf++;
@@ -778,6 +780,7 @@ void fec_rx_frame(uint8_t ch, NIF *nif)
 			 */
 			if (nif_protocol_exist(nif, eth_hdr->type))
 			{
+				hexdump((uint8_t *) eth_hdr, ETH_MAX_FRM);
 				nif_protocol_handler(nif, eth_hdr->type, cur_nbuf);
 			}
 			else
@@ -989,6 +992,7 @@ void fec_tx_frame(uint8_t ch)
 {
 	FECBD *pTxBD;
 	NBUF *pNbuf;
+	bool is_empty = true;
 
 	dbg("%s:\r\n", __FUNCTION__);
 	while ((pTxBD = fecbd_tx_free(ch)) != NULL)
@@ -1011,10 +1015,11 @@ void fec_tx_frame(uint8_t ch)
 		 */
 		pTxBD->data = NULL;
 		pTxBD->length = 0;
+		is_empty = false;
 
-		return;
 	}    
-	dbg("%s: BD ring is empty\r\n", __FUNCTION__);
+	if (is_empty)
+		dbg("%s: transmit queue was empty!\r\n", __FUNCTION__);
 }
 
 void fec0_tx_frame(void)
@@ -1198,7 +1203,7 @@ static void fec_irq_handler(uint8_t ch)
 		fec_log[ch].rferr++;
 		dbg("%s: RFERR\r\n", __FUNCTION__);
 		dbg("%s: FECRFSR%d = 0x%08x\r\n", __FUNCTION__, ch, MCF_FEC_FECRFSR(ch));
-		fec_eth_stop(ch);
+		//fec_eth_stop(ch);
 	}
 
 	if (event & MCF_FEC_EIR_XFERR)
@@ -1213,7 +1218,7 @@ static void fec_irq_handler(uint8_t ch)
 		fec_log[ch].total++;
 		fec_log[ch].xfun++;
 		dbg("%s: XFUN\r\n", __FUNCTION__);
-		fec_eth_stop(ch);
+		//fec_eth_stop(ch);
 	}
 
 	if (event & MCF_FEC_EIR_RL)
@@ -1271,6 +1276,10 @@ static void fec_irq_handler(uint8_t ch)
 	}
 }
 
+/*
+ * handler for FEC interrupts
+ * arg2 is a pointer to the nif in this case
+ */
 int fec0_interrupt_handler(void* arg1, void* arg2)
 {
 	(void) arg1;
@@ -1332,7 +1341,10 @@ void fec_eth_setup(uint8_t ch, uint8_t trcvr, uint8_t speed, uint8_t duplex, con
 		 * Initialize the MII interface
 		 */
 #if defined(MACHINE_FIREBEE)
-		am79c874_init(0, 0, speed, duplex);
+		if (am79c874_init(0, 0, speed, duplex))
+			dbg("%s: PHY init completed\r\n", __FUNCTION__);
+		else
+			dbg("%s: PHY init failed\r\n", __FUNCTION__);
 #elif defined(MACHINE_M548X)
 		bcm_5222_init(0, 0, speed, duplex);
 #else
@@ -1385,6 +1397,7 @@ void fec_eth_stop(uint8_t ch)
 	 */
 	level = set_ipl(7);
 
+	dbg("%s: fec %d stopped\r\n", __FUNCTION__, ch);
 	/*
 	 * Gracefully disable the receiver and transmitter
 	 */

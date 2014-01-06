@@ -211,7 +211,8 @@ bool isr_execute_handler(int vector)
 				(isrtab[index].type == ISR_DBUG_ISR))
 		{
 			retval = true;
-			if (isrtab[index].handler(isrtab[index].hdev,isrtab[index].harg))
+		
+			if (isrtab[index].handler(isrtab[index].hdev, isrtab[index].harg))
 			{
 				return retval;
 			}

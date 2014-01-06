@@ -85,19 +85,11 @@ void test_byte(void)
 void init_fpga(void)
 {
 	uint8_t *fpga_data;
+	volatile int32_t time, start, end;
 	int i;
 
-	/*
-	xprintf("MCF_FBCS0_CSAR: %08x\r\n", MCF_FBCS0_CSAR);
-	xprintf("MCF_FBCS0_CSCR: %08x\r\n", MCF_FBCS0_CSCR);
-	xprintf("MCF_FBCS0_CSMR: %08x\r\n", MCF_FBCS0_CSMR);
-	*/
-
 	xprintf("FPGA load config... ");
-
-	//test_longword();
-	//test_word();
-	//test_byte();
+	start = MCF_SLT0_SCNT; 
 
 	MCF_GPIO_PODR_FEC1L &= ~FPGA_CLOCK;		/* FPGA clock => low */
 
@@ -157,13 +149,18 @@ void init_fpga(void)
 
 	if (fpga_data < fpga_flash_data_end)
 	{
+#ifdef _NOT_USED_
 		while (fpga_data++ < fpga_flash_data_end)
 		{
 			/* toggle a little more since it's fun ;) */
 			MCF_GPIO_PODR_FEC1L |= FPGA_CLOCK;
 			MCF_GPIO_PODR_FEC1L &= ~FPGA_CLOCK;
 		}
-		xprintf("finished\r\n");
+#endif /* _NOT_USED_ */
+		end = MCF_SLT0_SCNT;
+		time = (start - end) / (SYSCLK / 1000) / 1000;
+		
+		xprintf("finished (took %f seconds).\r\n", time / 1000.0);
 	}
 	else
 	{
