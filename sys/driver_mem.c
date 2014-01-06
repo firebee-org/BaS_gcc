@@ -24,9 +24,9 @@
 #include "m5484l.h"
 #endif
 
-#define DRIVER_MEM_DEBUG
+//#define DBG_DM
 
-#ifdef	DRIVER_MEM_DEBUG
+#ifdef	DBG_DM
 #define	dbg(fmt, args...)	xprintf(fmt, ##args)
 #else
 #define dbg(fmt, args...)

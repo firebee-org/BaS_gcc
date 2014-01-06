@@ -12,7 +12,7 @@
 #include "bas_printf.h"
 
 
-#define DBG_NBUF
+//#define DBG_NBUF
 #if defined(DBG_NBUF)
 #define dbg(format, arg...) do { xprintf("DEBUG: " format, ##arg); } while (0)
 #else

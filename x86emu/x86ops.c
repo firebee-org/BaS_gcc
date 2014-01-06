@@ -169,21 +169,20 @@ static char *opF6_names[8] =
 
 #endif
 
-/****************************************************************************
-PARAMETERS:
-op1 - Instruction op code
-
-REMARKS:
-Handles illegal opcodes.
- ****************************************************************************/
-void x86emuOp_illegal_op(
-		uint8_t op1)
+/*
+ * PARAMETERS:
+ * op1 - Instruction op code
+ * 
+ * REMARKS:
+ * Handles illegal opcodes.
+ */
+void x86emuOp_illegal_op(uint8_t op1)
 {
 	START_OF_INSTR();
 	if (M.x86.R_SP != 0) {
 		DECODE_PRINTF("ILLEGAL X86 OPCODE\r\n");
 		TRACE_REGS();
-		dbg("%x:%x: %x\r\n", M.x86.R_CS, M.x86.R_IP - 1, op1);
+		dbg("%04x:%04x: %02X ILLEGAL X86 OPCODE!\r\n", M.x86.R_CS, M.x86.R_IP - 1, op1);
 		dbg(" ILLEGAL X86 OPCODE!\r\n");
 		HALT_SYS();
 	}
@@ -199,10 +198,10 @@ void x86emuOp_illegal_op(
 	END_OF_INSTR();
 }
 
-/****************************************************************************
-REMARKS:
-Handles opcodes 0x00, 0x08, 0x10, 0x18, 0x20, 0x28, 0x30, 0x38
- ****************************************************************************/
+/*
+ * REMARKS:
+ * Handles opcodes 0x00, 0x08, 0x10, 0x18, 0x20, 0x28, 0x30, 0x38
+ */
 void x86emuOp_genop_byte_RM_R(uint8_t op1)
 {
 	int mod, rl, rh;
@@ -216,19 +215,21 @@ void x86emuOp_genop_byte_RM_R(uint8_t op1)
 	DECODE_PRINTF(x86emu_GenOpName[op1]);
 	DECODE_PRINTF("\t");
 	FETCH_DECODE_MODRM(mod, rh, rl);
-	if(mod<3)
-	{ destoffset = decode_rmXX_address(mod,rl);
+	if (mod < 3)
+	{
+		destoffset = decode_rmXX_address(mod, rl);
 		DECODE_PRINTF(",");
 		destval = fetch_data_byte(destoffset);
 		srcreg = DECODE_RM_BYTE_REGISTER(rh);
 		DECODE_PRINTF("\r\n");
 		TRACE_AND_STEP();
 		destval = genop_byte_operation[op1](destval, *srcreg);
-		if (op1 != 7)
-			store_data_byte(destoffset, destval);
+		store_data_byte(destoffset, destval);
 	}
 	else
-	{                       /* register to register */
+	{	
+		/* register to register */
+
 		destreg = DECODE_RM_BYTE_REGISTER(rl);
 		DECODE_PRINTF(",");
 		srcreg = DECODE_RM_BYTE_REGISTER(rh);
@@ -240,10 +241,10 @@ void x86emuOp_genop_byte_RM_R(uint8_t op1)
 	END_OF_INSTR();
 }
 
-/****************************************************************************
-REMARKS:
-Handles opcodes 0x01, 0x09, 0x11, 0x19, 0x21, 0x29, 0x31, 0x39
- ****************************************************************************/
+/*
+ * REMARKS:
+ * Handles opcodes 0x01, 0x09, 0x11, 0x19, 0x21, 0x29, 0x31, 0x39
+ */
 void x86emuOp_genop_word_RM_R(uint8_t op1)
 {
 	int mod, rl, rh;
@@ -256,9 +257,11 @@ void x86emuOp_genop_word_RM_R(uint8_t op1)
 	DECODE_PRINTF("\t");
 	FETCH_DECODE_MODRM(mod, rh, rl);
 
-	if(mod<3) {
+	if (mod < 3)
+	{
 		destoffset = decode_rmXX_address(mod,rl);
-		if (M.x86.mode & SYSMODE_PREFIX_DATA) {
+		if (M.x86.mode & SYSMODE_PREFIX_DATA)
+		{
 			uint32_t destval;
 			uint32_t *srcreg;
 
@@ -270,7 +273,9 @@ void x86emuOp_genop_word_RM_R(uint8_t op1)
 			destval = genop_long_operation[op1](destval, *srcreg);
 			if (op1 != 7)
 				store_data_long(destoffset, destval);
-		} else {
+		}
+		else
+		{
 			uint16_t destval;
 			uint16_t *srcreg;
 
@@ -283,8 +288,11 @@ void x86emuOp_genop_word_RM_R(uint8_t op1)
 			if (op1 != 7)
 				store_data_word(destoffset, destval);
 		}
-	} else {                    /* register to register */
-		if (M.x86.mode & SYSMODE_PREFIX_DATA) {
+	}
+	else
+	{                    /* register to register */
+		if (M.x86.mode & SYSMODE_PREFIX_DATA)
+		{
 			uint32_t *destreg, *srcreg;
 
 			destreg = DECODE_RM_LONG_REGISTER(rl);
@@ -293,7 +301,9 @@ void x86emuOp_genop_word_RM_R(uint8_t op1)
 			DECODE_PRINTF("\r\n");
 			TRACE_AND_STEP();
 			*destreg = genop_long_operation[op1](*destreg, *srcreg);
-		} else {
+		}
+		else
+		{
 			uint16_t *destreg, *srcreg;
 
 			destreg = DECODE_RM_WORD_REGISTER(rl);
@@ -308,10 +318,10 @@ void x86emuOp_genop_word_RM_R(uint8_t op1)
 	END_OF_INSTR();
 }
 
-/****************************************************************************
-REMARKS:
-Handles opcodes 0x02, 0x0a, 0x12, 0x1a, 0x22, 0x2a, 0x32, 0x3a
- ****************************************************************************/
+/*
+ * REMARKS:
+ * Handles opcodes 0x02, 0x0a, 0x12, 0x1a, 0x22, 0x2a, 0x32, 0x3a
+ */
 void x86emuOp_genop_byte_R_RM(uint8_t op1)
 {
 	int mod, rl, rh;

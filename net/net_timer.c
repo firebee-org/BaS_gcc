@@ -12,7 +12,7 @@
 #include "MCF5475.h"
 #include "interrupts.h"
 
-#define DBG_TMR
+//#define DBG_TMR
 #ifdef DBG_TMR
 #define dbg(format, arg...) do { xprintf("DEBUG: " format, ##arg); } while (0)
 #else

@@ -60,11 +60,11 @@
 #error "unknown machine!"
 #endif /* MACHINE_FIREBEE */
 
-#define DEBUG_MMU
+//#define DEBUG_MMU
 #ifdef DEBUG_MMU
-#define dbg_mmu(format, arg...) do { xprintf("DEBUG: " format, ##arg);} while(0)
+#define dbg(format, arg...) do { xprintf("DEBUG: " format, ##arg);} while(0)
 #else
-#define dbg_mmu(format, arg...) do {;} while (0)
+#define dbg(format, arg...) do {;} while (0)
 #endif /* DEBUG_MMU */
 
 /*
@@ -385,7 +385,7 @@ void mmu_init(void)
 					MCF_MMU_MMUDR_SP |		/* supervisor protect */
 					MCF_MMU_MMUDR_R |		/* read access enable */
 					MCF_MMU_MMUDR_W |		/* write access enable */
-					MCF_MMU_MMUDR_X |		/* execute access enable */
+					//MCF_MMU_MMUDR_X |		/* execute access enable */
 					MCF_MMU_MMUDR_LK;		/* lock entry */
 	MCF_MMU_MMUOR = MCF_MMU_MMUOR_ACC |		/* access TLB, data */
 					MCF_MMU_MMUOR_UAA;		/* update allocation address field */
@@ -396,7 +396,7 @@ void mmu_init(void)
 
 void mmutr_miss(uint32_t address)
 {
-	dbg_mmu("MMU TLB MISS at 0x%08x\r\n", address);
+	dbg("MMU TLB MISS at 0x%08x\r\n", address);
 	flush_and_invalidate_caches();
 
 	switch (address)
@@ -404,13 +404,13 @@ void mmutr_miss(uint32_t address)
 		case keyctl:
 		case keybd:
 			/* do something to emulate the IKBD access */
-			dbg_mmu("IKBD access\r\n");
+			dbg("IKBD access\r\n");
 			break;
 
 		case midictl:
 		case midi:
 			/* do something to emulate MIDI access */
-			dbg_mmu("MIDI ACIA access\r\n");
+			dbg("MIDI ACIA access\r\n");
 			break;
 
 		default:

@@ -11,7 +11,7 @@
 #include <stddef.h>
 
 
-#define IP_DEBUG
+//#define IP_DEBUG
 #if defined(IP_DEBUG)
 #define dbg(format, arg...) do { xprintf("DEBUG: " format, ##arg); } while (0)
 #else

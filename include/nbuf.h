@@ -25,7 +25,7 @@
  * Size of each buffer in bytes
  */
 #ifndef NBUF_SZ
-#define NBUF_SZ     1520
+#define NBUF_SZ     2048
 #endif 
 
 /*

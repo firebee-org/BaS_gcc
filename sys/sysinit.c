@@ -284,7 +284,7 @@ void init_serial(void)
 /********************************************************************/
 /* Initialize DDR DIMMs on the EVB board */
 /********************************************************************/
-void init_ddram(void)
+bool init_ddram(void)
 {
 	xprintf("SDRAM controller initialization: ");
 
@@ -396,11 +396,14 @@ void init_ddram(void)
 #endif /* MACHINE_FIREBEE */
 
 		xprintf("finished\r\n");
+
+		return true;
 	}
 	else
 	{
 		xprintf("skipped. Already initialized (running from RAM)\r\n");
 	}
+	return false;
 }
 
 /*
@@ -936,6 +939,8 @@ void clear_bss_segment(void)
 
 void initialize_hardware(void)
 {
+	bool coldboot = true;
+
 	/* Test for FireTOS switch: DIP switch #5 up */
 #ifdef MACHINE_FIREBEE
 	if (!(DIP_SWITCH & (1 << 6))) {
@@ -960,7 +965,7 @@ void initialize_hardware(void)
 
 		/* Jump into FireTOS */
 		typedef void void_func(void);
-		void_func* FireTOS = (void_func*)FIRETOS;
+		void_func* FireTOS = (void_func*) FIRETOS;
 		FireTOS(); 	// Should never return
 		return;
 	}
@@ -1051,7 +1056,7 @@ void initialize_hardware(void)
 
 	init_slt();
 	init_fbcs();
-	init_ddram();
+	coldboot = init_ddram();
 
 	/*
 	 * install (preliminary) exception vectors
@@ -1096,11 +1101,15 @@ void initialize_hardware(void)
 	}
 
 #if MACHINE_FIREBEE
+	if (coldboot) /* does not work with BDM */
+		;
 	init_fpga();
+
 	init_pll();
 	init_video_ddr();
 	dvi_on();
 
+#ifdef _NOT_USED_ 
 	/* experimental */
 	{
 		int i;
@@ -1120,6 +1129,7 @@ void initialize_hardware(void)
 			}
 		}
 	}
+#endif /* _NOT_USED_ */
 
 #endif /* MACHINE_FIREBEE */
 	driver_mem_init();

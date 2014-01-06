@@ -11,7 +11,7 @@
 #include "bas_printf.h"
 #include <stddef.h>
 
-#define DBG_FECBD
+//#define DBG_FECBD
 #ifdef DBG_FECBD
 #define dbg(format, arg...) do { xprintf("DEBUG: " format, ##arg); } while (0)
 #else

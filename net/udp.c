@@ -12,7 +12,7 @@
 #include "net.h"
 #include <stddef.h>
 
-#define DBG_UDP
+//#define DBG_UDP
 #if defined(DBG_UDP)
 #define dbg(format, arg...) do { xprintf("DEBUG: " format "\r\n", ##arg); } while (0)
 #else

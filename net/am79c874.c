@@ -17,7 +17,7 @@
 #error "unknown machine"
 #endif
 
-#define DBG_AM79
+//#define DBG_AM79
 #ifdef DBG_AM79
 #define dbg(format, arg...) do { xprintf("DEBUG: " format, ##arg); } while (0)
 #else
@@ -55,6 +55,7 @@ int am79c874_init(uint8_t fec_ch, uint8_t phy_addr, uint8_t speed, uint8_t duple
 	/* Reset the PHY */
 	if (!fec_mii_write(fec_ch, phy_addr, MII_AM79C874_CR, MII_AM79C874_CR_RESET))
 		return 0;
+
 	/* Wait for the PHY to reset */
 	for (timeout = 0; timeout < FEC_MII_TIMEOUT; timeout++)
 	{
@@ -63,7 +64,10 @@ int am79c874_init(uint8_t fec_ch, uint8_t phy_addr, uint8_t speed, uint8_t duple
 			break;
 	}
 	if (timeout >= FEC_MII_TIMEOUT)
+	{
+		dbg("%s: PHY reset failed\r\n", __FUNCTION__);
 		return 0;
+	};
 	dbg("%s: PHY reset OK\r\n", __FUNCTION__);
 	dbg("%s: PHY Enable Auto-Negotiation\r\n", __FUNCTION__);
 
@@ -107,7 +111,7 @@ int am79c874_init(uint8_t fec_ch, uint8_t phy_addr, uint8_t speed, uint8_t duple
 	else
 		dbg("%s: Half-duplex\r\n", __FUNCTION__);
 
-	dbg("%s:PHY auto-negociation complete\r\n", __FUNCTION__);
+	dbg("%s:PHY auto-negotiation complete\r\n", __FUNCTION__);
 #endif /* DBG_AM79 */
 
 	return 1;
