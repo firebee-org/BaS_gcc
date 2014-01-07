@@ -18,7 +18,7 @@
 #include "bas_printf.h"
 #include "util.h"
 #include "am79c874.h"
-#include "bcm5222.h"
+//#include "bcm5222.h"
 #include <stdbool.h>
 
 #if defined(MACHINE_FIREBEE)

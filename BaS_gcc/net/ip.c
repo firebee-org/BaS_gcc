@@ -289,6 +289,8 @@ void ip_handler(NIF *nif, NBUF *pNbuf)
 	 */
 	if (!validate_ip_hdr(nif, ipframe))
 	{
+		dbg("%s: not a valid IP packet!\r\n", __FUNCTION__);
+		
 		nbuf_free(pNbuf);
 		return;
 	}
@@ -308,6 +310,8 @@ void ip_handler(NIF *nif, NBUF *pNbuf)
 			udp_handler(nif,pNbuf);
 			break;
 		default:
+			dbg("%s: no protocol handler registered for protocol %d\r\n",
+					__FUNCTION__, IP_PROTOCOL(ipframe));
 			nbuf_free(pNbuf);
 			break;
 	}
