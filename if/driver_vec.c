@@ -47,8 +47,8 @@ static struct xhdi_driver_interface xhdi_call_interface =
 static struct dma_driver_interface dma_interface =
 {
 	.version = 0x0101,
-	.magic = 'DMAC',
-	.dma_set_initiator = &dma_set_initiator,
+	.magic = 0x444d4143, 						/* 'DMAC' */
+	.dma_set_initiator = dma_set_initiator,
 	.dma_get_initiator = dma_get_initiator,
 	.dma_free_initiator = dma_free_initiator,
 	.dma_set_channel = dma_set_channel,

@@ -11,7 +11,7 @@
 #include <stddef.h>
 #include "bas_printf.h"
 
-#define DBG_BOOTP
+//#define DBG_BOOTP
 #ifdef DBG_BOOTP
 #define dbg(format, arg...) do { xprintf("DEBUG: " format, ##arg); } while (0)
 #else

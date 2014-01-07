@@ -39,6 +39,7 @@ void udp_init(void)
 	for (index = 0; index < UDP_MAX_PORTS; ++index)
 	{
 		udp_port_table[index].port = 0;
+		udp_port_table[index].handler = 0;
 	}
 
 	udp_port = DEFAULT_UDP_PORT;    /* next free port */
@@ -88,7 +89,7 @@ static void *udp_port_handler(uint16_t port)
 	{
 		if (udp_port_table[index].port == port)
 		{
-			return (void *)udp_port_table[index].handler;
+			return (void *) udp_port_table[index].handler;
 		}
 	}
 	return NULL;
@@ -116,7 +117,7 @@ int udp_send(NIF *nif, uint8_t *dest, int sport, int dport, NBUF *pNbuf)
 	}
 
 	/*
-	 * This function takes data and creates a UDP frame and
+	 * This function takes data, creates a UDP frame from it and
 	 * passes it onto the IP layer
 	 */
 	udp_frame_hdr *udpframe;
