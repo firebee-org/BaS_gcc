@@ -251,7 +251,7 @@ static ARP_INFO	arp_info;
 
 void network_init(void)
 {
-	uint8_t mac[6] = {0x00, 0xcf, 0x54, 0x12, 0x34, 0x56};
+	uint8_t mac[6] = {0x00, 0xcf, 0x54, 0x85, 0xcf, 0x01};	/* this is the original MAC address dbug assigns */
 	uint8_t bc[6] = {0xff, 0xff, 0xff, 0xff, 0xff, 0xff}; /* this is our broadcast MAC address */
 	IP_ADDR myip = {192, 168, 1, 100};
 	IP_ADDR gateway = {192, 168, 1, 1};
