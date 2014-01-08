@@ -79,10 +79,10 @@
 #define	INT_SOURCE_GPT0				62	// GPT0 timer interrupt
 
 
-#define FEC0_INTC_LVL	0			/* interrupt level for FEC0 */
+#define FEC0_INTC_LVL	1			/* interrupt level for FEC0 */
 #define FEC0_INTC_PRI	2			/* interrupt priority for FEC0 */
 
-#define FEC1_INTC_LVL	0			/* interrupt level for FEC1 */
+#define FEC1_INTC_LVL	1			/* interrupt level for FEC1 */
 #define FEC1_INTC_PRI	2			/* interrupt priority for FEC1 */
 
 #define FEC_INTC_LVL(x)		((x == 0) ? FEC0_INTC_LVL : FEC1_INTC_LVL)
