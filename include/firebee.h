@@ -27,7 +27,7 @@
  *      Author: Markus Fröschle
  */
 
-#define SYSCLK			132000
+#define SYSCLK			132000		/* NOTE: 132 _is_ correct. 133 _is_ wrong. Do not change! */
 
 #define BOOTFLASH_BASE_ADDRESS		0xE0000000
 #define BOOTFLASH_SIZE				0x800000		/* FireBee has 8 MByte Flash */

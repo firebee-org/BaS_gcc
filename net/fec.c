@@ -17,6 +17,7 @@
 #include "bas_string.h"
 #include "bas_printf.h"
 #include "util.h"
+#include "wait.h"
 #include "am79c874.h"
 //#include "bcm5222.h"
 #include <stdbool.h>
@@ -91,11 +92,12 @@ int fec_mii_write(uint8_t ch, uint8_t phy_addr, uint8_t reg_addr, uint16_t data)
 	 */
 	for (timeout = 0; timeout < FEC_MII_TIMEOUT; timeout++)
 	{
+		wait(1);
 		if (MCF_FEC_EIR(ch) & MCF_FEC_EIR_MII)
 			break;
 	}
 
-	if(timeout == FEC_MII_TIMEOUT)
+	if (timeout == FEC_MII_TIMEOUT)
 		return 0;
 
 	/*
@@ -156,11 +158,12 @@ int fec_mii_read(uint8_t ch, uint8_t phy_addr, uint8_t reg_addr, uint16_t *data)
 	 */
 	for (timeout = 0; timeout < FEC_MII_TIMEOUT; timeout++)
 	{
+		wait(1);
 		if (MCF_FEC_EIR(ch) & MCF_FEC_EIR_MII)
 			break;
 	}
 
-	if(timeout == FEC_MII_TIMEOUT)
+	if (timeout == FEC_MII_TIMEOUT)
 		return 0;
 
 	/*
@@ -481,9 +484,7 @@ void fec_init(uint8_t ch, uint8_t mode, const uint8_t *pa)
 	 */
 	MCF_FEC_RCR(ch) = 0
 		| MCF_FEC_RCR_MAX_FL(ETH_MAX_FRM)
-//#ifdef FEC_PROMISCUOUS
 		| MCF_FEC_RCR_PROM
-//#endif
 		| MCF_FEC_RCR_FCE;
 
 	if (mode == FEC_MODE_MII)

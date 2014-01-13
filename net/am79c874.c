@@ -93,7 +93,10 @@ int am79c874_init(uint8_t fec_ch, uint8_t phy_addr, uint8_t speed, uint8_t duple
 
 		/* Set the default mode (Full duplex, 100 Mbps) */
 		if (!fec_mii_write(fec_ch, phy_addr, MII_AM79C874_CR, MII_AM79C874_CR_100MB | MII_AM79C874_CR_DPLX))
+		{
+			dbg("%s: forced setting 100Mbps/full failed.\r\n", __FUNCTION__);
 			return 0;
+		}
 	}
 
 #ifdef DBG_AM79
