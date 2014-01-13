@@ -394,45 +394,88 @@ void mmu_init(void)
 					MCF_MMU_MMUOR_UAA;      /* update allocation address field */
 }
 
+
+/*
+ * handle an access error 
+ * upper level routine called from access_exception inside exceptions.S
+ */
+bool access_exception(uint32_t pc, uint32_t format_status)
+{
+	int fault_status;
+	uint32_t fault_address;
+	bool is_tlb_miss = false;	/* assume access error is not a TLB miss */
+	extern uint8_t __FASTRAM_END[];
+	uint32_t FASTRAM_END = (uint32_t) &__FASTRAM_END[0];
+
+	fault_status = (((format_status & 0xc000000) >> 26) |
+					((format_status & 0x30000) >> 16));
+
+	/*
+	 * determine if access fault was caused by a TLB miss
+	 */
+	switch (fault_status)
+	{
+		case 0x5:	/* TLB miss on opword of instruction fetch */
+		case 0x6:	/* TLB miss on extension word of instruction fetch */
+		case 0xa:	/* TLB miss on data write */
+		case 0xe:	/* TLB miss on data read or read-modify-write */
+			is_tlb_miss = true;
+			break;
+
+		default:
+			break;
+	}
+
+	if (is_tlb_miss)
+	{
+		if (MCF_MMU_MMUSR & 1)		/* did the last fault hit in TLB? */
+		{
+			/*
+			 * if yes, then we already mapped that page during a previous turn and this is in fact a bus error
+			 */
+			is_tlb_miss = false;
+		}
+		else
+		{
+			fault_address = MCF_MMU_MMUAR;	/* retrieve fault access address from MMU */
+			if (fault_address > FASTRAM_END)
+			{
+				is_tlb_miss = false;	/* this is a bus error */
+			}
+			else	/* map this page */
+			{
+				mmutr_miss(fault_address);
+				return true;
+			}
+		}
+	}
+	return is_tlb_miss;
+}
+
+
 void mmutr_miss(uint32_t address)
 {
 	dbg("MMU TLB MISS at 0x%08x\r\n", address);
 	flush_and_invalidate_caches();
 
-	switch (address)
-	{
-		case keyctl:
-		case keybd:
-			/* do something to emulate the IKBD access */
-			dbg("IKBD access\r\n");
-			break;
+	/* add missed page to TLB */
+	MCF_MMU_MMUTR = (address & 0xfff00000) | /* virtual aligned to 1M */
+					MCF_MMU_MMUTR_SG |		/* shared global */
+					MCF_MMU_MMUTR_V;		/* valid */
 
-		case midictl:
-		case midi:
-			/* do something to emulate MIDI access */
-			dbg("MIDI ACIA access\r\n");
-			break;
+	MCF_MMU_MMUDR = (address & 0xfff00000) |	/* physical aligned to 1M */
+					MCF_MMU_MMUDR_SZ(0) |	/* 1 MB page size */
+					MCF_MMU_MMUDR_CM(0x1) |	/* cacheable copyback */
+					MCF_MMU_MMUDR_R |		/* read access enable */
+					MCF_MMU_MMUDR_W |		/* write access enable */
+					MCF_MMU_MMUDR_X;		/* execute access enable */
 
-		default:
-			/* add missed page to TLB */
-			MCF_MMU_MMUTR = (address & 0xfff00000) | /* virtual aligned to 1M */
-							MCF_MMU_MMUTR_SG |		/* shared global */
-							MCF_MMU_MMUTR_V;		/* valid */
+	MCF_MMU_MMUOR = MCF_MMU_MMUOR_ACC |		/* access TLB, data */
+					MCF_MMU_MMUOR_UAA;		/* update allocation address field */
 
-			MCF_MMU_MMUDR = (address & 0xfff00000) |	/* physical aligned to 1M */
-							MCF_MMU_MMUDR_SZ(0) |	/* 1 MB page size */
-							MCF_MMU_MMUDR_CM(0x1) |	/* cacheable copyback */
-							MCF_MMU_MMUDR_R |		/* read access enable */
-							MCF_MMU_MMUDR_W |		/* write access enable */
-							MCF_MMU_MMUDR_X;		/* execute access enable */
-
-			MCF_MMU_MMUOR = MCF_MMU_MMUOR_ACC |		/* access TLB, data */
-							MCF_MMU_MMUOR_UAA;		/* update allocation address field */
-
-			MCF_MMU_MMUOR = MCF_MMU_MMUOR_ITLB | 	/* instruction */
-							MCF_MMU_MMUOR_ACC |     /* access TLB */
-							MCF_MMU_MMUOR_UAA;      /* update allocation address field */
-	}
+	MCF_MMU_MMUOR = MCF_MMU_MMUOR_ITLB | 	/* instruction */
+					MCF_MMU_MMUOR_ACC |     /* access TLB */
+					MCF_MMU_MMUOR_UAA;      /* update allocation address field */
 }
 
 

@@ -391,50 +391,40 @@ reset_vector:
 // cannot use the supervisor stack in here. Therefore we first switch to a safe stack
 // (RAMBAR0, the processor internal SRAM)
 access_exception:
-		move.w	#0x2700,sr			// disable interrupt
+		// no point in disabling interrupts within an exception handler
+		// move.w	#0x2700,sr			// disable interrupt
+
+
 		// save current SSP
 
 		move.l	sp,__SUP_SP			// defined in linker script: top of SRAM0
 		lea		__SUP_SP - 4,sp		// now we can savely use the stack
 
-		move.l	d0,-(sp)			// ++ vr
-		move.l	a0,-(sp)
+		// save gcc scratch registers, others will be handled by called function
+		lea		-4*4(sp),sp
+		movem.l	d0-d1/a0-a1,(sp)
 
-		move.l	__SUP_SP,a0			// original stack frame
-		move.w	(a0),d0			// get format_status word from stack
-		andi.l	#0x0c03,d0			// mask out fault status bits
-		cmpi.l	#0x0401,d0			// TLB miss on opword of instruction fetch?
-		beq		access_exception_mmu			// yes
-		cmpi.l	#0x0402,d0			// TLB miss on extension word of instruction fetch?
-		beq		access_exception_mmu			// yes
-		cmpi.l	#0x0802,d0			// TLB miss on data write?
-		beq		access_exception_mmu			// yes
-		cmpi.l	#0x0c02,d0			// TLB miss on data read, or read-modify-write?
-		beq		access_exception_mmu			// yes
+		
+		move.l	__SUP_SP,a0			// original stack pointer
 
-		// revert stack trickery
+		move.l	4(a0),-(sp)			// format status word
+		move.l	(a0),-(sp)			// program counter at access error
 
+		jsr		_access_exception
+		lea		2*4(sp),sp			// adjust stack
+
+		tst.l	d0					// handled?
+		bne		bus_error
+
+		movem.l	(sp),d0-d1/a0-a1	// restore scratch registers
+		lea		4*4(sp),sp
+
+		
 		move.l	(sp)+,a0
 		move.l	(sp)+,d0
 		move.l	__SUP_SP,sp
 
 		bra		bus_error			// everything else is a classic bus error
-
-access_exception_mmu:
-		move.l	MCF_MMU_MMUSR,d0	// did the last fault hit in TLB?
-		btst	#1,d0				// yes, it did. So we already mapped that page
-		bne		bus_error			// and this must be a real bus error
-
-		move.l	MCF_MMU_MMUAR,d0
-		cmp.l	#__FASTRAM_END,d0	// above max User RAM area?
-		bge		bus_error			// -> bus error
-
-		lea		-5*4(sp),sp			// save gcc scratch registers
-		movem.l	d0-d1/a0-a2,(sp)
-
-		move.l	d0,-(sp)			// fault address
-		jsr		_mmutr_miss			// else we have an MMU TLB miss
-		addq.l	#4,sp
 
 		movem.l	(sp),d0-d1/a0-a2	// restore gcc scratch registers
 		lea		5*4(sp),sp
@@ -449,11 +439,16 @@ access_exception_mmu:
 		rte
 
 bus_error:
+
+		// revert stack trickery
+
+		move.l	(sp)+,a0
 		move.l	(sp)+,d0			// restore register
+		move.l	__SUP_SP,sp			// restore original stack
+
 		bra		std_exc_vec
 		
 zero_divide:
-		move.w	#0x2700,sr			// disable interrupt
 		move.l	a0,-(a7)
 		move.l	d0,-(a7)
 		move.l	12(a7),a0			// pc
