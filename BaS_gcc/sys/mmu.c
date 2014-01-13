@@ -410,8 +410,6 @@ bool access_exception(uint32_t pc, uint32_t format_status)
 	fault_status = (((format_status & 0xc000000) >> 24) |
 					((format_status & 0x30000) >> 16));
 
-	dbg("%s: pc=%p, format_status = %p, fault_status = 0x%x\r\n", __FUNCTION__, pc, format_status, fault_status);
-
 	/*
 	 * determine if access fault was caused by a TLB miss
 	 */
@@ -421,7 +419,7 @@ bool access_exception(uint32_t pc, uint32_t format_status)
 		case 0x6:	/* TLB miss on extension word of instruction fetch */
 		case 0xa:	/* TLB miss on data write */
 		case 0xe:	/* TLB miss on data read or read-modify-write */
-			dbg("%s: access fault because of TLB miss at %p\r\n", __FUNCTION__, pc);
+			dbg("%s: access fault because of TLB miss at %p. Fault status = %x\r\n", __FUNCTION__, pc, fault_status);
 			is_tlb_miss = true;
 			break;
 
