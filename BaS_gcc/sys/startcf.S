@@ -63,3 +63,6 @@ _rom_entry:
 
 		/* initialize any hardware specific issues */
 		bra    _initialize_hardware
+
+
+// vim: set syntax=asm68k :

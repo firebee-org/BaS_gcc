@@ -34,3 +34,5 @@ printf_helper:
 			lea			__MBAR+0x860C,a0	// PSCSTB0 transmitter buffer register
 			move.b		d0,(a0)				// send byte
 			rts
+
+// vim: set syntax=asm68k :
