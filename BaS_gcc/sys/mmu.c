@@ -447,7 +447,7 @@ bool access_exception(uint32_t pc, uint32_t format_status)
 			}
 			else	/* map this page */
 			{
-				mmutr_miss(fault_address);
+				mmu_map_page(fault_address, fault_address);
 				return true;
 			}
 		}
@@ -456,16 +456,18 @@ bool access_exception(uint32_t pc, uint32_t format_status)
 }
 
 
-void mmutr_miss(uint32_t address)
+void mmu_map_page(uint32_t virt, uint32_t phys)
 {
-	dbg("MMU TLB MISS accessing 0x%08x\r\n", address);
+	dbg("%s: map virt=%p to phys=%p\r\n", virt, phys);
 
-	/* add missed page to TLB */
-	MCF_MMU_MMUTR = (address & 0xfff00000) | /* virtual aligned to 1M */
+	/*
+	 * add page to TLB
+	 */
+	MCF_MMU_MMUTR = (virt & 0xfff00000) | 	/* virtual aligned to 1M */
 					MCF_MMU_MMUTR_SG |		/* shared global */
 					MCF_MMU_MMUTR_V;		/* valid */
 
-	MCF_MMU_MMUDR = (address & 0xfff00000) |	/* physical aligned to 1M */
+	MCF_MMU_MMUDR = (phys & 0xfff00000) |	/* physical aligned to 1M */
 					MCF_MMU_MMUDR_SZ(0) |	/* 1 MB page size */
 					MCF_MMU_MMUDR_CM(0x1) |	/* cacheable copyback */
 					MCF_MMU_MMUDR_R |		/* read access enable */

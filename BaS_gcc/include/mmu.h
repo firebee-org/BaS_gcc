@@ -35,6 +35,6 @@ extern long video_tlb;
 extern long video_sbt;
 
 extern void mmu_init(void);
-extern void mmutr_miss(uint32_t address);
+extern void mmu_map_page(uint32_t virt, uint32_t phys);
 
 #endif /* _MMU_H_ */
