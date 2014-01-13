@@ -463,31 +463,6 @@ zd_end:
 		move.l	(a7)+,a0		
 		rte
 		
-#ifdef _NOT_USED_	
-linea:	
-		move.w	#0x2700,sr			// disable interrupt
-		halt
-		nop
-		nop
-linef:	
-		move.w	#0x2700,sr			// disable interrupt
-		halt
-		nop
-		nop
-format:
-		move.w	#0x2700,sr			// disable interrupt
-		halt
-		nop
-		nop
-
-//floating point		
-flpoow:
-		move.w	#0x2700,sr			// disable interrupt
-		halt
-		nop
-		nop
-#endif /* _NOT_USED */
-
 irq1:
 		irq		0x64,1,0x02
 
