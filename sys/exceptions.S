@@ -266,7 +266,7 @@ init_vec_loop:
 		lea		reset_vector(pc),a1	// set reset vector
 		move.l	a1,0x04(a0)
 
-		lea		access(pc),a1		// set illegal access exception handler
+		lea		access_exception(pc),a1		// set illegal access exception handler
 		move.l	a1,0x08(a0)
 		
 		.extern	_get_bas_drivers
@@ -383,24 +383,44 @@ reset_vector:
 		beq		std_exc_vec			// yes->
 		jmp		_rom_entry	 		// no, cold start machine
 
-access:
+//
+// Triggered when code tries to access a memory area that is not known to the MMU yet.
+// This is either a "classic" bus error or the MMU hit a "legal" page not yet mapped.
+//
+// CAVEAT: if this happens due to the supervisor stack crossing a page boundary, we
+// cannot use the supervisor stack in here. Therefore we first switch to a safe stack
+// (RAMBAR0, the processor internal SRAM)
+access_exception:
 		move.w	#0x2700,sr			// disable interrupt
-		move.l	d0,-(sp)			// ++ vr
+		// save current SSP
 
-		move.w	4(sp),d0			// get format_status word from stack
+		move.l	sp,__SUP_SP			// defined in linker script: top of SRAM0
+		lea		__SUP_SP - 4,sp		// now we can savely use the stack
+
+		move.l	d0,-(sp)			// ++ vr
+		move.l	a0,-(sp)
+
+		move.l	__SUP_SP,a0			// original stack frame
+		move.w	(a0),d0			// get format_status word from stack
 		andi.l	#0x0c03,d0			// mask out fault status bits
 		cmpi.l	#0x0401,d0			// TLB miss on opword of instruction fetch?
-		beq		access_mmu			// yes
+		beq		access_exception_mmu			// yes
 		cmpi.l	#0x0402,d0			// TLB miss on extension word of instruction fetch?
-		beq		access_mmu			// yes
+		beq		access_exception_mmu			// yes
 		cmpi.l	#0x0802,d0			// TLB miss on data write?
-		beq		access_mmu			// yes
+		beq		access_exception_mmu			// yes
 		cmpi.l	#0x0c02,d0			// TLB miss on data read, or read-modify-write?
-		beq		access_mmu			// yes
+		beq		access_exception_mmu			// yes
+
+		// revert stack trickery
+
+		move.l	(sp)+,a0
+		move.l	(sp)+,d0
+		move.l	__SUP_SP,sp
 
 		bra		bus_error			// everything else is a classic bus error
 
-access_mmu:
+access_exception_mmu:
 		move.l	MCF_MMU_MMUSR,d0	// did the last fault hit in TLB?
 		btst	#1,d0				// yes, it did. So we already mapped that page
 		bne		bus_error			// and this must be a real bus error
@@ -419,7 +439,12 @@ access_mmu:
 		movem.l	(sp),d0-d1/a0-a2	// restore gcc scratch registers
 		lea		5*4(sp),sp
 
-		move.l	(sp)+,d0			// restore register
+		// revert stack trickery
+
+		move.l	(sp)+,a0
+		move.l	(sp)+,d0
+		move.l	__SUP_SP,sp
+
 
 		rte
 
@@ -1008,3 +1033,5 @@ _lowlevel_isr_handler:
 		movem.l	(sp),d0-d1/a0-a1	// restore registers
 		unlk	a6					// cleanup stack
 		rte
+
+// vim: set syntax=asm68k :
