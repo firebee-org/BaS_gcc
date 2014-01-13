@@ -61,3 +61,5 @@ _xhdi_sd_install:
 		move.l	#_xhdi_vec,d0	// return our BaS vector to TOS
 		move.l	d0,a0			//
 		rte
+
+// vim: set syntax=asm68k :
