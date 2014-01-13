@@ -441,7 +441,7 @@ bool access_exception(uint32_t pc, uint32_t format_status)
 		else
 		{
 			fault_address = MCF_MMU_MMUAR;	/* retrieve fault access address from MMU */
-			if (fault_address > FASTRAM_END)
+			if (fault_address >= FASTRAM_END)
 			{
 				is_tlb_miss = false;	/* this is a bus error */
 			}
@@ -459,7 +459,6 @@ bool access_exception(uint32_t pc, uint32_t format_status)
 void mmutr_miss(uint32_t address)
 {
 	dbg("MMU TLB MISS accessing 0x%08x\r\n", address);
-	flush_and_invalidate_caches();
 
 	/* add missed page to TLB */
 	MCF_MMU_MMUTR = (address & 0xfff00000) | /* virtual aligned to 1M */
