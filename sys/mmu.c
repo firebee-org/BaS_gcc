@@ -60,12 +60,12 @@
 #error "unknown machine!"
 #endif /* MACHINE_FIREBEE */
 
-//#define DEBUG_MMU
-#ifdef DEBUG_MMU
+#define DBG_MMU
+#ifdef DBG_MMU
 #define dbg(format, arg...) do { xprintf("DEBUG: " format, ##arg);} while(0)
 #else
 #define dbg(format, arg...) do {;} while (0)
-#endif /* DEBUG_MMU */
+#endif /* DBG_MMU */
 
 /*
  * set ASID register
@@ -404,11 +404,13 @@ bool access_exception(uint32_t pc, uint32_t format_status)
 	int fault_status;
 	uint32_t fault_address;
 	bool is_tlb_miss = false;	/* assume access error is not a TLB miss */
-	extern uint8_t __FASTRAM_END[];
-	uint32_t FASTRAM_END = (uint32_t) &__FASTRAM_END[0];
+	extern uint8_t _FASTRAM_END[];
+	uint32_t FASTRAM_END = (uint32_t) &_FASTRAM_END[0];
 
-	fault_status = (((format_status & 0xc000000) >> 26) |
+	fault_status = (((format_status & 0xc000000) >> 24) |
 					((format_status & 0x30000) >> 16));
+
+	dbg("%s: pc=%p, format_status = %p, fault_status = 0x%x\r\n", __FUNCTION__, pc, format_status, fault_status);
 
 	/*
 	 * determine if access fault was caused by a TLB miss
@@ -419,6 +421,7 @@ bool access_exception(uint32_t pc, uint32_t format_status)
 		case 0x6:	/* TLB miss on extension word of instruction fetch */
 		case 0xa:	/* TLB miss on data write */
 		case 0xe:	/* TLB miss on data read or read-modify-write */
+			dbg("%s: access fault because of TLB miss at %p\r\n", __FUNCTION__, pc);
 			is_tlb_miss = true;
 			break;
 
@@ -449,13 +452,13 @@ bool access_exception(uint32_t pc, uint32_t format_status)
 			}
 		}
 	}
-	return is_tlb_miss;
+	return false;
 }
 
 
 void mmutr_miss(uint32_t address)
 {
-	dbg("MMU TLB MISS at 0x%08x\r\n", address);
+	dbg("MMU TLB MISS accessing 0x%08x\r\n", address);
 	flush_and_invalidate_caches();
 
 	/* add missed page to TLB */

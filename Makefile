@@ -32,6 +32,7 @@ NATIVECC=gcc
 INCLUDE=-Iinclude
 CFLAGS=-mcpu=5474 \
 		-Wall \
+		-g \
 		-Os \
 		-fomit-frame-pointer \
 		-ffreestanding \
@@ -246,7 +247,7 @@ define EX_TEMPLATE
 $(1)_MAPFILE=$(1)/$$(basename $$(FLASH_EXEC)).map
 $(1)/$$(FLASH_EXEC): $(1)/$(LIBBAS) $(LDCSRC)
 	$(CPP) $(INCLUDE) -DOBJDIR=$(1)/objs -P -DFORMAT_ELF=$(FORMAT_ELF) -D$$(MACHINE) $(LDCSRC) -o $(1)/$$(LDCFILE)
-	$(LD) --oformat $$(FORMAT) -Map $$($(1)_MAPFILE) --cref -T $(1)/$$(LDCFILE) -o $$@
+	$(LD) -g --oformat $$(FORMAT) -Map $$($(1)_MAPFILE) --cref -T $(1)/$$(LDCFILE) -o $$@
 ifeq ($(COMPILE_ELF),Y)
 	$(OBJCOPY) -O srec $$@ $$(basename $$@).s19
 else
