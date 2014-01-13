@@ -467,8 +467,8 @@ irq1:
 		irq		0x64,1,0x02
 
 irq2:				// hbl
-								//		move.b	#3,2(a7)
-								//		rte
+		//		move.b	#3,2(a7)
+		//		rte
 		irq		0x68,2,0x04
 
 irq3:
@@ -518,7 +518,7 @@ irq7text:
 		.dc.b	13,10,0
 
 #elif MACHINE_FIREBEE			/* these handlers are only meaningful for the Firebee */
-irq5:							// irq5 is tied to PCI INTC# and PCI INTD# on the M5484LITE
+irq5:
 		irq		0x74,5,0x20
 
 irq6:	// MFP interrupt from FPGA
