@@ -391,14 +391,10 @@ reset_vector:
 // cannot use the supervisor stack in here. Therefore we first switch to a safe stack
 // (RAMBAR0, the processor internal SRAM)
 access_exception:
-		// no point in disabling interrupts within an exception handler
-		// move.w	#0x2700,sr			// disable interrupt
-
-
 		// save current SSP
 
 		move.l	sp,__SUP_SP			// defined in linker script: top of SRAM0
-		lea		__SUP_SP - 4,sp		// now we can savely use the stack
+		lea		__SUP_SP - 4,sp		// now we can savely use this as stack
 
 		// save gcc scratch registers, others will be handled by called function
 		lea		-4*4(sp),sp
@@ -407,32 +403,20 @@ access_exception:
 		
 		move.l	__SUP_SP,a0			// original stack pointer
 
-		move.l	4(a0),-(sp)			// format status word
-		move.l	(a0),-(sp)			// program counter at access error
+		move.l	(a0),-(sp)			// format status word
+		move.l	4(a0),-(sp)			// program counter at access error
 
-		jsr		_access_exception
+		jsr		_access_exception	// note the undescore
 		lea		2*4(sp),sp			// adjust stack
 
 		tst.l	d0					// handled?
-		bne		bus_error
+		beq		bus_error			// no
 
 		movem.l	(sp),d0-d1/a0-a1	// restore scratch registers
 		lea		4*4(sp),sp
 
-		
-		move.l	(sp)+,a0
-		move.l	(sp)+,d0
-		move.l	__SUP_SP,sp
-
-		bra		bus_error			// everything else is a classic bus error
-
-		movem.l	(sp),d0-d1/a0-a2	// restore gcc scratch registers
-		lea		5*4(sp),sp
-
 		// revert stack trickery
 
-		move.l	(sp)+,a0
-		move.l	(sp)+,d0
 		move.l	__SUP_SP,sp
 
 
@@ -440,10 +424,11 @@ access_exception:
 
 bus_error:
 
+		movem.l	(sp),d0-d1/a0-a1	// restore scratch registers
+		lea		4*4(sp),sp
+
 		// revert stack trickery
 
-		move.l	(sp)+,a0
-		move.l	(sp)+,d0			// restore register
 		move.l	__SUP_SP,sp			// restore original stack
 
 		bra		std_exc_vec
