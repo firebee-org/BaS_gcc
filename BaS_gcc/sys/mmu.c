@@ -407,6 +407,9 @@ bool access_exception(uint32_t pc, uint32_t format_status)
 	extern uint8_t _FASTRAM_END[];
 	uint32_t FASTRAM_END = (uint32_t) &_FASTRAM_END[0];
 
+	/*
+	 * extract fault status from format_status exception stack field
+	 */
 	fault_status = (((format_status & 0xc000000) >> 24) |
 					((format_status & 0x30000) >> 16));
 

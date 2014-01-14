@@ -88,31 +88,29 @@ int register_interrupt_handler(uint8_t source, uint8_t level, uint8_t priority, 
 	return 0;
 }
 
-#ifndef UIF_MAX_ISR_ENTRY
-#define UIF_MAX_ISR_ENTRY   (20)
+#ifndef MAX_ISR_ENTRY
+#define MAX_ISR_ENTRY   (20)
 #endif
 
 
 typedef struct
 {
 	int     vector;
-	int     type;
 	int     (*handler)(void *, void *);
 	void    *hdev;
 	void    *harg;
 } ISRENTRY;
 
-ISRENTRY isrtab[UIF_MAX_ISR_ENTRY];
+ISRENTRY isrtab[MAX_ISR_ENTRY];
 
 
 void isr_init(void)
 {
 	int index;
 
-	for (index = 0; index < UIF_MAX_ISR_ENTRY; index++)
+	for (index = 0; index < MAX_ISR_ENTRY; index++)
 	{
 		isrtab[index].vector = 0;
-		isrtab[index].type = 0;
 		isrtab[index].handler = 0;
 		isrtab[index].hdev = 0;
 		isrtab[index].harg = 0;
@@ -120,8 +118,7 @@ void isr_init(void)
 }
 
 
-int isr_register_handler(int type, int vector, 
-		int (*handler)(void *, void *), void *hdev, void *harg)
+int isr_register_handler(int vector, int (*handler)(void *, void *), void *hdev, void *harg)
 {
 	/*
 	 * This function places an interrupt handler in the ISR table,
@@ -133,28 +130,24 @@ int isr_register_handler(int type, int vector,
 	 */
 	int index;
 
-	if ((vector == 0) || 
-			((type != ISR_DBUG_ISR) && (type != ISR_USER_ISR)) ||
-			(handler == NULL))
+	if ((vector == 0) || (handler == NULL))
 	{
-		dbg("%s: illegal type, vector or handler!\r\n", __FUNCTION__);
+		dbg("%s: illegal vector or handler!\r\n", __FUNCTION__);
 		return false;
 	}
 
-	for (index = 0; index < UIF_MAX_ISR_ENTRY; index++)
+	for (index = 0; index < MAX_ISR_ENTRY; index++)
 	{
-		if ((isrtab[index].vector == vector) &&
-				(isrtab[index].type == type))
+		if (isrtab[index].vector == vector) 
 		{
-			/* only one entry of each type per vector */
-			dbg("%s: already set handler with this type and vector (%d, %d)\r\n", __FUNCTION__, type, vector);
+			/* one cross each, only! */
+			dbg("%s: already set handler with this vector (%d, %d)\r\n", __FUNCTION__, vector);
 			return false;
 		}
 
 		if (isrtab[index].vector == 0)
 		{
 			isrtab[index].vector = vector;
-			isrtab[index].type = type;
 			isrtab[index].handler = handler;
 			isrtab[index].hdev = hdev;
 			isrtab[index].harg = harg;
@@ -167,21 +160,19 @@ int isr_register_handler(int type, int vector,
 	return false;   /* no available slots */
 }
 
-void isr_remove_handler(int type, int (*handler)(void *, void *))
+void isr_remove_handler(int (*handler)(void *, void *))
 {
 	/*
 	 * This routine removes from the ISR table all
-	 * entries that matches 'type' and 'handler'.
+	 * entries that matches 'handler'.
 	 */
 	int index;
 
-	for (index = 0; index < UIF_MAX_ISR_ENTRY; index++)
+	for (index = 0; index < MAX_ISR_ENTRY; index++)
 	{
-		if ((isrtab[index].handler == handler) && 
-				(isrtab[index].type == type))
+		if (isrtab[index].handler == handler) 
 		{
 			isrtab[index].vector = 0;
-			isrtab[index].type = 0;
 			isrtab[index].handler = 0;
 			isrtab[index].hdev = 0;
 			isrtab[index].harg = 0;
@@ -189,7 +180,7 @@ void isr_remove_handler(int type, int (*handler)(void *, void *))
 			return;
 		}
 	}
-	dbg("%s: no such handler registered (type=%d, handler=%p\r\n", __FUNCTION__, type, handler);
+	dbg("%s: no such handler registered (handler=%p\r\n", __FUNCTION__, handler);
 }
 
 
@@ -205,10 +196,9 @@ bool isr_execute_handler(int vector)
 	/*
 	 * First locate a BaS Interrupt Service Routine handler.
 	 */
-	for (index = 0; index < UIF_MAX_ISR_ENTRY; index++)
+	for (index = 0; index < MAX_ISR_ENTRY; index++)
 	{
-		if ((isrtab[index].vector == vector) &&
-				(isrtab[index].type == ISR_DBUG_ISR))
+		if (isrtab[index].vector == vector) 
 		{
 			retval = true;
 		

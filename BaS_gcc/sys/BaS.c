@@ -264,7 +264,7 @@ void network_init(void)
 
 	isr_init();		/* need to call that explicitely, otherwise isr table might be full */
 
-	if (!isr_register_handler(ISR_DBUG_ISR, vector, handler, NULL, (void *) &nif1))
+	if (!isr_register_handler(vector, handler, NULL, (void *) &nif1))
 	{
 		dbg("%s: unable to register handler for vector %d\r\n", __FUNCTION__, vector);
 		return;
@@ -276,7 +276,7 @@ void network_init(void)
     handler = dma_interrupt_handler;
     vector = 112;
 
-    if (!isr_register_handler(ISR_DBUG_ISR, vector, handler, NULL,NULL))
+    if (!isr_register_handler(vector, handler, NULL,NULL))
 	{
 		dbg("%s: Error: Unable to register handler for vector %s\r\n", __FUNCTION__, vector);
 		return;

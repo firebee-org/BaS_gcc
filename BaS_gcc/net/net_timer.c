@@ -152,8 +152,7 @@ bool timer_init(uint8_t ch, uint8_t lvl, uint8_t pri)
 	/*
 	 * Register the timer interrupt handler
 	 */
-	if (!isr_register_handler(ISR_DBUG_ISR, 
-				TIMER_VECTOR(ch), 
+	if (!isr_register_handler(TIMER_VECTOR(ch), 
 				(int (*)(void *,void *)) timer_default_isr,
 				NULL, 
 				(void *) &net_timer[ch])
