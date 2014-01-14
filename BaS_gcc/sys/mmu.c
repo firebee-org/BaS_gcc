@@ -422,7 +422,7 @@ bool access_exception(uint32_t pc, uint32_t format_status)
 		case 0x6:	/* TLB miss on extension word of instruction fetch */
 		case 0xa:	/* TLB miss on data write */
 		case 0xe:	/* TLB miss on data read or read-modify-write */
-			dbg("%s: access fault because of TLB miss at %p. Fault status = %x\r\n", __FUNCTION__, pc, fault_status);
+			dbg("%s: access fault - TLB miss at %p. Fault status = 0x0%x\r\n", __FUNCTION__, pc, fault_status);
 			is_tlb_miss = true;
 			break;
 
@@ -459,7 +459,7 @@ bool access_exception(uint32_t pc, uint32_t format_status)
 
 void mmu_map_page(uint32_t virt, uint32_t phys)
 {
-	dbg("%s: map virt=%p to phys=%p\r\n", virt, phys);
+	dbg("%s: map virt=%p to phys=%p\r\n", __FUNCTION__, virt, phys);
 
 	/*
 	 * add page to TLB
