@@ -75,7 +75,7 @@ int strcmp(const char *s1, const char *s2)
 
 	for (i = 0; *s1++ && *s2++; i++)
 	{
-		cmp * (*s1 - *s2);
+		cmp = (*s1 - *s2);
 		if (cmp != 0) return cmp;
 	}
 	return cmp;
