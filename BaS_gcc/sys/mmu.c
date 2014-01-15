@@ -196,7 +196,35 @@ void mmu_init(void)
 	
 	set_asid(0);			/* do not use address extension (ASID provides virtual 48 bit addresses */
 
+	/*
+	 * need to set data ACRs in a way that supervisor access to all memory regions
+	 * becomes possible. Otherways it might be that the supervisor stack ends up in an unmapped
+	 * region when further MMU TLB entries force a page steal. This would lead to a double
+	 * fault since the CPU wouldn't be able to push its exception stack frame during an access
+	 * exception
+	 */
+	
 	/* set data access attributes in ACR0 and ACR1 */
+
+	set_acr0(ACR_W(0) |						/* read and write accesses permitted */
+			ACR_SP(0) |						/* supervisor and user mode access permitted */
+			ACR_CM(ACR_CM_CACHEABLE_WT) |	/* cacheable, write through */
+			ACR_AMM(1) | 					/* region 13 MByte */
+			ACR_S(ACR_S_SUPERVISOR_MODE) |	/* memory only visible from supervisor mode */
+			ACR_E(1) |						/* enable ACR */
+			ACR_ADMSK(0x0c) |				/* cover 13 MByte from 0x0 */
+			ACR_BA(0));						/* start from 0x0 */
+
+	set_acr1(ACR_W(0) |						/* read and write accesses permitted */
+			ACR_SP(0) |						/* supervisor and user mode access permitted */
+			ACR_CM(ACR_CM_CACHEABLE_WT) |	/* cacheable, write through */
+			ACR_AMM(0) | 					/* region > 16 MByte */
+			ACR_S(ACR_S_SUPERVISOR_MODE) |	/* memory only visible from supervisor mode */
+			ACR_E(1) |						/* enable ACR */
+			ACR_ADMSK(0x1f) |				/* cover 495 MByte from 0x0f00000 */
+			ACR_BA(0x0f));					/* start from 0xf000000 */
+
+#ifdef _NOT_USED_
 	set_acr0(ACR_W(0) |								/* read and write accesses permitted */
 			ACR_SP(0) |								/* supervisor and user mode access permitted */
 			ACR_CM(ACR_CM_CACHE_INH_PRECISE) |		/* cache inhibit, precise */
@@ -225,7 +253,9 @@ void mmu_init(void)
 			ACR_E(1) |
 			ACR_ADMSK(0x1f) |
 			ACR_BA(0x60000000));
-	
+
+#endif /* _NOT_USED_ */
+
 	/* set instruction access attributes in ACR2 and ACR3 */
 
 	//set_acr2(0xe007c400);
