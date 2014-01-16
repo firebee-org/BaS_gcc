@@ -447,6 +447,8 @@ bool access_exception(uint32_t pc, uint32_t format_status)
 		}
 		else
 		{
+			uint32_t flags;
+
 			fault_address = MCF_MMU_MMUAR;	/* retrieve fault access address from MMU */
 			if (fault_address >= FASTRAM_END)
 			{
@@ -454,7 +456,8 @@ bool access_exception(uint32_t pc, uint32_t format_status)
 			}
 			else	/* map this page */
 			{
-				mmu_map_page(fault_address & 0xfff00000, fault_address & 0xfff00000);
+				mmu_map_page(fault_address & 0xfff00000, fault_address & 0xfff00000,
+							MMU_PAGE_SIZE_1M, flags);
 				return true;
 			}
 		}
@@ -463,7 +466,7 @@ bool access_exception(uint32_t pc, uint32_t format_status)
 }
 
 
-void mmu_map_page(uint32_t virt, uint32_t phys)
+void mmu_map_page(uint32_t virt, uint32_t phys, uint32_t map_size, uint32_t map_flags)
 {
 	dbg("%s: map virt=%p to phys=%p\r\n", __FUNCTION__, virt, phys);
 
