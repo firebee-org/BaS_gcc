@@ -191,8 +191,6 @@ void mmu_init(void)
 {
 	extern uint8_t _MMUBAR[];
 	uint32_t MMUBAR = (uint32_t) &_MMUBAR[0];
-	extern uint8_t _TOS[];
-	uint32_t TOS = (uint32_t) &_TOS[0];
 	
 	set_asid(0);			/* do not use address extension (ASID provides virtual 48 bit addresses */
 
@@ -212,7 +210,7 @@ void mmu_init(void)
 			ACR_AMM(1) | 					/* region 13 MByte */
 			ACR_S(ACR_S_SUPERVISOR_MODE) |	/* memory only visible from supervisor mode */
 			ACR_E(1) |						/* enable ACR */
-			ACR_ADMSK(0x0c) |				/* cover 13 MByte from 0x0 */
+			ACR_ADMSK(0x0d) |				/* cover 13 MByte from 0x0 */
 			ACR_BA(0));						/* start from 0x0 */
 
 	set_acr1(ACR_W(0) |						/* read and write accesses permitted */
@@ -222,7 +220,7 @@ void mmu_init(void)
 			ACR_S(ACR_S_SUPERVISOR_MODE) |	/* memory only visible from supervisor mode */
 			ACR_E(1) |						/* enable ACR */
 			ACR_ADMSK(0x1f) |				/* cover 495 MByte from 0x0f00000 */
-			ACR_BA(0x0f));					/* start from 0xf000000 */
+			ACR_BA(0x0f000000));					/* start from 0xf000000 */
 
 
 	/*
@@ -311,26 +309,6 @@ void mmu_init(void)
 	video_sbt = 0x0;						/* clear time */
 #endif /* MACHINE_FIREBEE */
 
-	/*
-	 * Make the TOS (in SDRAM) read-only
-	 * This maps virtual 0x00e0'0000 - 0x00ef'ffff to the same virtual address
-	 */
-	MCF_MMU_MMUTR = TOS |					/* virtual address */
-					MCF_MMU_MMUTR_SG |		/* shared global */
-					MCF_MMU_MMUTR_V;		/* valid */
-	MCF_MMU_MMUDR = TOS |					/* physical address */
-					MCF_MMU_MMUDR_SZ(0) |	/* 1 MB page size */
-					MCF_MMU_MMUDR_CM(0x1) |	/* cachable copyback */
-					MCF_MMU_MMUDR_R |		/* read access enable */
-					//MCF_MMU_MMUDR_W |		/* write access enable (FIXME: for now) */
-					MCF_MMU_MMUDR_X |		/* execute access enable */
-					MCF_MMU_MMUDR_LK;		/* lock entry */
-	MCF_MMU_MMUOR = MCF_MMU_MMUOR_ACC |		/* access TLB, data */
-					MCF_MMU_MMUOR_UAA;		/* update allocation address field */
-	MCF_MMU_MMUOR = MCF_MMU_MMUOR_ITLB | 	/* instruction */
-					MCF_MMU_MMUOR_ACC |     /* access TLB */
-					MCF_MMU_MMUOR_UAA;      /* update allocation address field */
-
 #if MACHINE_FIREBEE
 	/*
 	 * Map FireBee I/O area (0xfff0'0000 - 0xffff'ffff physical) to the Falcon-compatible I/O
@@ -355,28 +333,6 @@ void mmu_init(void)
 					MCF_MMU_MMUOR_UAA;      /* update allocation address field */
 #endif /* MACHINE_FIREBEE */
 
-	/*
-	 * Map (locked) the second last MB of physical SDRAM (this is where BaS .data and .bss reside) to the same
-	 * virtual address. This is also used when BaS is in RAM
-	 */
-
-	MCF_MMU_MMUTR = (SDRAM_START + SDRAM_SIZE - 0x00200000) |	/* virtual address */
-					MCF_MMU_MMUTR_SG |		/* shared global */
-					MCF_MMU_MMUTR_V;		/* valid */
-	MCF_MMU_MMUDR = (SDRAM_START + SDRAM_SIZE - 0x00200000) |	/* physical address */
-					MCF_MMU_MMUDR_SZ(0) |	/* 1 MB page size */
-					MCF_MMU_MMUDR_CM(0x0) |	/* cacheable writethrough */
-					MCF_MMU_MMUDR_SP |		/* supervisor protect */
-					MCF_MMU_MMUDR_R |		/* read access enable */
-					MCF_MMU_MMUDR_W |		/* write access enable */
-					MCF_MMU_MMUDR_X |		/* execute access enable */
-					MCF_MMU_MMUDR_LK;		/* lock entry */
-	MCF_MMU_MMUOR = MCF_MMU_MMUOR_ACC |		/* access TLB, data */
-					MCF_MMU_MMUOR_UAA;		/* update allocation address field */
-	MCF_MMU_MMUOR = MCF_MMU_MMUOR_ITLB | 	/* instruction */
-					MCF_MMU_MMUOR_ACC |     /* access TLB */
-					MCF_MMU_MMUOR_UAA;      /* update allocation address field */
-					
 	/*
 	 * Map (locked) the very last MB of physical SDRAM (this is where the driver buffers reside) to the same
 	 * virtual address. Used uncached for drivers.
@@ -447,10 +403,28 @@ bool access_exception(uint32_t pc, uint32_t format_status)
 		}
 		else
 		{
+			extern uint8_t _RAMBAR0[];
+			extern uint8_t _RAMBAR1[];
+			extern uint8_t _SYS_SRAM[];
+			extern uint8_t _SYS_SRAM_SIZE[];
+
 			uint32_t flags;
 
+			/* TODO: MBAR, MMUBAR, PCI MEMORY, PCI IO, DMA BUFFERS */
 			fault_address = MCF_MMU_MMUAR;	/* retrieve fault access address from MMU */
-			if (fault_address >= FASTRAM_END)
+			if (fault_address >= _RAMBAR0 && fault_address <= _RAMBAR0 + (uint32_t) _RAMBAR0_SIZE)
+			{
+				mmu_map_page(fault_address & 0xfffff400, fault_address & 0xfffff400, MMU_PAGE_SIZE_1K, flags);
+			}
+			else if (fault_address >= _RAMBAR1 && fault_address <= _RAMBAR1 + (uint32_t) _RAMBAR1_SIZE)
+			{
+				mmu_map_page(fault_address & 0xfffff400, fault_address & 0xfffff400, MMU_PAGE_SIZE_1K, flags);
+			}
+			else if (fault_address >= _SYS_SRAM && fault_address <= _SYS_SRAM + (uint32_t) _SYS_SRAM_SIZE)
+			{
+				mmu_map_page(fault_address & 0xfffff400, fault_address & 0xfffff400, MMU_PAGE_SIZE_1K, flags);
+			}
+			else if (fault_address >= FASTRAM_END)
 			{
 				is_tlb_miss = false;	/* this is a bus error */
 			}
@@ -478,7 +452,7 @@ void mmu_map_page(uint32_t virt, uint32_t phys, uint32_t map_size, uint32_t map_
 					MCF_MMU_MMUTR_V;		/* valid */
 
 	MCF_MMU_MMUDR = phys |					/* physical address */
-					MCF_MMU_MMUDR_SZ(0) |	/* 1 MB page size */
+					MCF_MMU_MMUDR_SZ(map_size) |	/* 1 MB page size */
 					MCF_MMU_MMUDR_CM(0x1) |	/* cacheable copyback */
 					MCF_MMU_MMUDR_R |		/* read access enable */
 					MCF_MMU_MMUDR_W |		/* write access enable */
