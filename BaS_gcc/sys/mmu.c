@@ -224,53 +224,29 @@ void mmu_init(void)
 			ACR_ADMSK(0x1f) |				/* cover 495 MByte from 0x0f00000 */
 			ACR_BA(0x0f));					/* start from 0xf000000 */
 
-#ifdef _NOT_USED_
-	set_acr0(ACR_W(0) |								/* read and write accesses permitted */
-			ACR_SP(0) |								/* supervisor and user mode access permitted */
-			ACR_CM(ACR_CM_CACHE_INH_PRECISE) |		/* cache inhibit, precise */
-			ACR_AMM(0) |							/* control region > 16 MB */
-			ACR_S(ACR_S_ALL) |						/* match addresses in user and supervisor mode */
-			ACR_E(1) |								/* enable ACR */
-#if MACHINE_FIREBEE
-			ACR_ADMSK(0x3f) |						/* cover 1GB area from 0xc0000000 to 0xffffffff */
-			ACR_BA(0xc0000000));					/* (equals area from 3 to 4 GB */
-#elif MACHINE_M5484LITE
-			ACR_ADMSK(0x7f) |						/* cover 2 GB area from 0x80000000 to 0xffffffff */
-			ACR_BA(0x80000000));
-#endif /* MACHINE_FIREBEE */
-	
-	// set_acr1(0x601fc000);
-	set_acr1(ACR_W(0) |
-			ACR_SP(0) |
-			ACR_CM(0) |
-#if MACHINE_FIREBEE
-			ACR_CM(ACR_CM_CACHEABLE_WT) |			/* video RAM on the Firebee */
-#elif MACHINE_M5484LITE
-			ACR_CM(ACR_CM_CACHE_INH_PRECISE) |		/* Compact Flash on the M548xLITE */
-#endif /* MACHINE_FIREBEE */
-			ACR_AMM(0) |
-			ACR_S(ACR_S_ALL) |
-			ACR_E(1) |
-			ACR_ADMSK(0x1f) |
-			ACR_BA(0x60000000));
 
-#endif /* _NOT_USED_ */
+	/*
+	 * set instruction access attributes in ACR2 and ACR3. This is the same as above, basically:
+	 * enable supervisor access to all SDRAM
+	 */
 
-	/* set instruction access attributes in ACR2 and ACR3 */
-
-	//set_acr2(0xe007c400);
 	set_acr2(ACR_W(0) |
 			ACR_SP(0) |
-			ACR_CM(0) |
 			ACR_CM(ACR_CM_CACHEABLE_WT) |
 			ACR_AMM(1) |
-			ACR_S(ACR_S_ALL) |
+			ACR_S(ACR_S_SUPERVISOR_MODE) |
 			ACR_E(1) |
-			ACR_ADMSK(0x7) |
-			ACR_BA(0xe0000000));
+			ACR_ADMSK(0x0c) |
+			ACR_BA(0x0));
 
-	/* disable ACR3 */
-	set_acr3(0x0);
+	set_acr3(ACR_W(0) |
+			ACR_SP(0) |
+			ACR_CM(ACR_CM_CACHEABLE_WT) |
+			ACR_AMM(0) |
+			ACR_S(ACR_S_SUPERVISOR_MODE) |
+			ACR_E(1) |
+			ACR_ADMSK(0x1f) |
+			ACR_BA(0x0f)); 
 
 	set_mmubar(MMUBAR + 1);		/* set and enable MMUBAR */
 
