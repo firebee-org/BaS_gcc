@@ -28,6 +28,11 @@
 
 #define SCA_PAGE_ID		6	/* indicates video memory page */
 
+#define MMU_PAGE_SIZE_1M	0
+#define MMU_PAGE_SIZE_4K	1
+#define MMU_PAGE_SIZE_8K	2
+#define MMU_PAGE_SIZE_1K	3
+
 /*
  * global variables from linker script
  */
@@ -35,6 +40,6 @@ extern long video_tlb;
 extern long video_sbt;
 
 extern void mmu_init(void);
-extern void mmu_map_page(uint32_t virt, uint32_t phys);
+extern void mmu_map_page(uint32_t virt, uint32_t phys, uint32_t map_size, uint32_t map_flags);
 
 #endif /* _MMU_H_ */
