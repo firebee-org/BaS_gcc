@@ -24,26 +24,6 @@
  * Copyright 2013        M. Froeschle
  */
 
-#define ACR_BA(x)                   ((x) & 0xffff0000)
-#define ACR_ADMSK(x)                (((x) & 0xffff) << 16)
-#define ACR_E(x)                    (((x) & 1) << 15)
-
-#define ACR_S(x)                    (((x) & 3) << 13)
-#define ACR_S_USERMODE              0
-#define ACR_S_SUPERVISOR_MODE       1
-#define ACR_S_ALL                   2
-
-#define ACR_AMM(x)                  (((x) & 1) << 10)
-
-#define ACR_CM(x)                   (((x) & 3) << 5)
-#define ACR_CM_CACHEABLE_WT         0x0
-#define ACR_CM_CACHEABLE_CB         0x1
-#define ACR_CM_CACHE_INH_PRECISE    0x2
-#define ACR_CM_CACHE_INH_IMPRECISE  0x3
-
-#define ACR_SP(x)           (((x) & 1) << 3)
-#define ACR_W(x)            (((x) & 1) << 2)
-
 #include <stdint.h>
 #include "bas_printf.h"
 #include "bas_types.h"
