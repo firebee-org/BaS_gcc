@@ -387,50 +387,30 @@ reset_vector:
 // Triggered when code tries to access a memory area that is not known to the MMU yet.
 // This is either a "classic" bus error or the MMU hit a "legal" page not yet mapped.
 //
-// CAVEAT: if this happens due to the supervisor stack crossing a page boundary, we
-// cannot use the supervisor stack in here. Therefore we first switch to a safe stack
-// (RAMBAR0, the processor internal SRAM)
 access_exception:
-		// save current SSP
-
-		move.l	sp,__SUP_SP			// defined in linker script: top of SRAM0
-		lea		__SUP_SP - 4,sp		// now we can savely use this as stack
-
 		// save gcc scratch registers, others will be handled by called function
 		lea		-4*4(sp),sp
 		movem.l	d0-d1/a0-a1,(sp)
 
 		
-		move.l	__SUP_SP,a0			// original stack pointer
+		lea		4*4(sp),a0			// original stack pointer
 
 		move.l	(a0),-(sp)			// format status word
 		move.l	4(a0),-(sp)			// program counter at access error
 
-		jsr		_access_exception	// note the undescore
+		jsr		_access_exception	// note the underscore
 		lea		2*4(sp),sp			// adjust stack
 
 		tst.l	d0					// handled?
-		beq		bus_error			// no
 
 		movem.l	(sp),d0-d1/a0-a1	// restore scratch registers
 		lea		4*4(sp),sp
 
-		// revert stack trickery
-
-		move.l	__SUP_SP,sp
-
+		beq		bus_error			// no
 
 		rte
 
 bus_error:
-
-		movem.l	(sp),d0-d1/a0-a1	// restore scratch registers
-		lea		4*4(sp),sp
-
-		// revert stack trickery
-
-		move.l	__SUP_SP,sp			// restore original stack
-
 		bra		std_exc_vec
 		
 zero_divide:
