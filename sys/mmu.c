@@ -338,6 +338,49 @@ void mmu_init(void)
 
 
 /*
+ * TODO: this would be nicer in an include file
+ */
+extern uint8_t _MBAR[];
+extern uint8_t _RAMBAR0[];
+extern uint8_t _RAMBAR1[];
+extern uint8_t _SYS_SRAM[];
+extern uint8_t _SYS_SRAM_SIZE[];
+
+static struct mmu_mapping
+{
+	uint32_t phys;
+	uint32_t virt;
+	uint32_t length;
+	uint32_t pagesize;
+	uint32_t flags;
+} memory_map[] =
+{
+	{
+		_RAMBAR0,
+		_RAMBAR0,
+		_RAMBAR0_SIZE,
+		MMU_PAGE_SIZE_1K,
+		MMU_CACHE_WRITETHROUGH,
+	},
+	{
+		_RAMBAR1,
+		_RAMBAR1,
+		_RAMBAR1_SIZE,
+		MMU_PAGE_SIZE_1K,
+		MMU_CACHE_WRITETHROUGH,
+	},
+	{
+		_SYS_SRAM,
+		_SYS_SRAM,
+		_SYS_SRAM_SIZE,
+		MMU_PAGE_SIZE_1K,
+		MMU_CACHE_WRITETHROUGH,
+	}
+};
+
+static int num_mmu_maps = sizeof(memory_map) / sizeof(struct mmu_mapping);
+
+/*
  * handle an access error 
  * upper level routine called from access_exception inside exceptions.S
  */
@@ -383,11 +426,6 @@ bool access_exception(uint32_t pc, uint32_t format_status)
 		}
 		else
 		{
-			extern uint8_t _RAMBAR0[];
-			extern uint8_t _RAMBAR1[];
-			extern uint8_t _SYS_SRAM[];
-			extern uint8_t _SYS_SRAM_SIZE[];
-
 			uint32_t flags;
 
 			/* TODO: MBAR, MMUBAR, PCI MEMORY, PCI IO, DMA BUFFERS */
