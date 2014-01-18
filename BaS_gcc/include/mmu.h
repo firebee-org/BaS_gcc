@@ -41,13 +41,8 @@
 #define ACR_AMM(x)                  (((x) & 1) << 10)
 
 #define ACR_CM(x)                   (((x) & 3) << 5)
-#define ACR_CM_CACHEABLE_WT         0x0
-#define ACR_CM_CACHEABLE_CB         0x1
-#define ACR_CM_CACHE_INH_PRECISE    0x2
-#define ACR_CM_CACHE_INH_IMPRECISE  0x3
-
-#define ACR_SP(x)           (((x) & 1) << 3)
-#define ACR_W(x)            (((x) & 1) << 2)
+#define ACR_SP(x)					(((x) & 1) << 3)
+#define ACR_W(x)					(((x) & 1) << 2)
 
 
 /*
@@ -65,12 +60,31 @@
 #define MMU_PAGE_SIZE_1K	3
 
 /*
- * MMU cache modes
+ * cache modes
  */
-#define MMU_CACHE_WRITETHROUGH		0
-#define MMU_CACHE_COPYBACK			1
-#define MMU_CACHE_NOCACHE_PRECISE	2
-#define MMU_CACHE_NOCACHE_IMPRECISE	3
+#define CACHE_WRITETHROUGH		0
+#define CACHE_COPYBACK			1
+#define CACHE_NOCACHE_PRECISE	2
+#define CACHE_NOCACHE_IMPRECISE	3
+
+
+/*
+ * page flags
+ */
+#define SV_PROTECT				1
+#define SV_USER					0
+
+#define ACCESS_READ		(1 << 0)
+#define	ACCESS_WRITE	(1 << 1)
+#define ACCESS_EXECUTE	(1 << 2)
+
+struct map_flags
+{
+	unsigned cache_mode:2;
+	unsigned protection:1;
+	unsigned access:3;
+	unsigned unused:26;
+};
 
 /*
  * global variables from linker script
@@ -79,6 +93,6 @@ extern long video_tlb;
 extern long video_sbt;
 
 extern void mmu_init(void);
-extern void mmu_map_page(uint32_t virt, uint32_t phys, uint32_t map_size, uint32_t map_flags);
+extern void mmu_map_page(uint32_t virt, uint32_t phys, uint32_t map_size, struct map_flags flags);
 
 #endif /* _MMU_H_ */

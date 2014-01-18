@@ -27,5 +27,43 @@
 
 #include <stdint.h>
 #include <MCF5475.h>
-
 #include <wait.h>
+
+uint32_t get_timer(void)
+{
+	return MCF_SLT_SCNT(0);
+}
+/*
+ * wait for the specified number of us on slice timer 0. Replaces the original routines that had
+ * the number of useconds to wait for hardcoded in their name.
+ */
+void wait(uint32_t us)
+{
+	int32_t target = MCF_SLT_SCNT(0) - (us * (SYSCLK / 1000));
+
+	while (MCF_SLT_SCNT(0) - target > 0);
+}
+
+/*
+ * same as above, but with milliseconds wait time
+ */
+void wait_ms(uint32_t ms)
+{
+	wait(ms * 1000);
+}
+/*
+ * the same as above, with a checker function which gets called while
+ * busy waiting and allows for an early return if it returns true
+ */
+bool waitfor(uint32_t us, checker_func condition)
+{
+	int32_t target = MCF_SLT_SCNT(0) - (us * (SYSCLK / 1000));
+	bool res;
+
+	do
+	{
+		if ((res = (*condition)()))
+			return res;
+	} while (MCF_SLT_SCNT(0) - target > 0);
+	return false;
+}
