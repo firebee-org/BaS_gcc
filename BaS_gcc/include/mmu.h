@@ -56,10 +56,21 @@
 
 #define SCA_PAGE_ID		6	/* indicates video memory page */
 
+/*
+ * MMU page sizes
+ */
 #define MMU_PAGE_SIZE_1M	0
 #define MMU_PAGE_SIZE_4K	1
 #define MMU_PAGE_SIZE_8K	2
 #define MMU_PAGE_SIZE_1K	3
+
+/*
+ * MMU cache modes
+ */
+#define MMU_CACHE_WRITETHROUGH		0
+#define MMU_CACHE_COPYBACK			1
+#define MMU_CACHE_NOCACHE_PRECISE	2
+#define MMU_CACHE_NOCACHE_IMPRECISE	3
 
 /*
  * global variables from linker script
