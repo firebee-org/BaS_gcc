@@ -82,8 +82,9 @@ struct map_flags
 {
 	unsigned cache_mode:2;
 	unsigned protection:1;
+	unsigned page_id:8;
 	unsigned access:3;
-	unsigned unused:26;
+	unsigned unused:18;
 };
 
 /*

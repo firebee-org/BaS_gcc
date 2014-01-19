@@ -57,18 +57,18 @@ inline uint32_t set_asid(uint32_t value)
 	uint32_t ret = rt_asid;
 
 	__asm__ __volatile__(
-		"movec		%[value],ASID\n\t"
-		: /* no output */
-		: [value] "r" (value)
-		: 
-	);
+			"movec		%[value],ASID\n\t"
+			: /* no output */
+			: [value] "r" (value)
+			: 
+			);
 
 	rt_asid = value;
 
 	return ret;
 }
 
-							
+
 /*
  * set ACRx register
  * saves new value to rt_acrx and returns former value
@@ -77,13 +77,13 @@ inline uint32_t set_acr0(uint32_t value)
 {
 	extern uint32_t rt_acr0;
 	uint32_t ret = rt_acr0;
-	
+
 	__asm__ __volatile__(
-		"movec		%[value],ACR0\n\t"
-		: /* not output */
-		: [value] "r" (value)
-		:
-	);
+			"movec		%[value],ACR0\n\t"
+			: /* not output */
+			: [value] "r" (value)
+			:
+			);
 	rt_acr0 = value;
 
 	return ret;
@@ -97,13 +97,13 @@ inline uint32_t set_acr1(uint32_t value)
 {
 	extern uint32_t rt_acr1;
 	uint32_t ret = rt_acr1;
-	
+
 	__asm__ __volatile__(
-		"movec		%[value],ACR1\n\t"
-		: /* not output */
-		: [value] "r" (value)
-		:
-	);
+			"movec		%[value],ACR1\n\t"
+			: /* not output */
+			: [value] "r" (value)
+			:
+			);
 	rt_acr1 = value;
 
 	return ret;
@@ -118,13 +118,13 @@ inline uint32_t set_acr2(uint32_t value)
 {
 	extern uint32_t rt_acr2;
 	uint32_t ret = rt_acr2;
-	
+
 	__asm__ __volatile__(
-		"movec		%[value],ACR2\n\t"
-		: /* not output */
-		: [value] "r" (value)
-		:
-	);
+			"movec		%[value],ACR2\n\t"
+			: /* not output */
+			: [value] "r" (value)
+			:
+			);
 	rt_acr2 = value;
 
 	return ret;
@@ -138,13 +138,13 @@ inline uint32_t set_acr3(uint32_t value)
 {
 	extern uint32_t rt_acr3;
 	uint32_t ret = rt_acr3;
-	
+
 	__asm__ __volatile__(
-		"movec		%[value],ACR3\n\t"
-		: /* not output */
-		: [value] "r" (value)
-		:
-	);
+			"movec		%[value],ACR3\n\t"
+			: /* not output */
+			: [value] "r" (value)
+			:
+			);
 	rt_acr3 = value;
 
 	return ret;
@@ -156,11 +156,11 @@ inline uint32_t set_mmubar(uint32_t value)
 	uint32_t ret = rt_mmubar;
 
 	__asm__ __volatile__(
-		"movec		%[value],MMUBAR\n\t"
-		: /* no output */
-		: [value] "r" (value)
-		: /* no clobber */
-	);
+			"movec		%[value],MMUBAR\n\t"
+			: /* no output */
+			: [value] "r" (value)
+			: /* no clobber */
+			);
 	rt_mmubar = value;
 	NOP();
 
@@ -171,7 +171,7 @@ void mmu_init(void)
 {
 	extern uint8_t _MMUBAR[];
 	uint32_t MMUBAR = (uint32_t) &_MMUBAR[0];
-	
+
 	set_asid(0);			/* do not use address extension (ASID provides virtual 48 bit addresses */
 
 	/*
@@ -181,7 +181,7 @@ void mmu_init(void)
 	 * fault since the CPU wouldn't be able to push its exception stack frame during an access
 	 * exception
 	 */
-	
+
 	/* set data access attributes in ACR0 and ACR1 */
 
 	set_acr0(ACR_W(0) |						/* read and write accesses permitted */
@@ -193,6 +193,7 @@ void mmu_init(void)
 			ACR_ADMSK(0x0d) |				/* cover 13 MByte from 0x0 */
 			ACR_BA(0));						/* start from 0x0 */
 
+set_acr0(0);
 	set_acr1(ACR_W(0) |						/* read and write accesses permitted */
 			ACR_SP(0) |						/* supervisor and user mode access permitted */
 			ACR_CM(CACHE_WRITETHROUGH) |	/* cacheable, write through */
@@ -200,7 +201,7 @@ void mmu_init(void)
 			ACR_S(ACR_S_SUPERVISOR_MODE) |	/* memory only visible from supervisor mode */
 			ACR_E(1) |						/* enable ACR */
 			ACR_ADMSK(0x1f) |				/* cover 495 MByte from 0x0f00000 */
-			ACR_BA(0x0f000000));			/* start from 0xf000000 */
+			ACR_BA(0x00100000));			/* start from 0xf000000 */
 
 
 	/*
@@ -242,38 +243,39 @@ extern uint8_t _RAMBAR1[];
 extern uint8_t _SYS_SRAM[];
 extern uint8_t _SYS_SRAM_SIZE[];
 
-static struct mmu_mapping
+struct mmu_mapping
 {
 	uint32_t phys;
 	uint32_t virt;
 	uint32_t length;
 	uint32_t pagesize;
 	struct map_flags flags;
-} memory_map[] =
+};
+
+static struct mmu_mapping memory_map[] =
 {
 	/* map system vectors supervisor-protected */
 	{
 		0,
 		0,
-		0x1000,
+		0x800,
 		MMU_PAGE_SIZE_1K,
-		{CACHE_WRITETHROUGH, SV_PROTECT, ACCESS_READ | ACCESS_WRITE | ACCESS_EXECUTE},
-	},
-	/* fill up first megabyte with user-writable pages. First another 4k area */
-	{
-		0x1000,
-		0x1000,
-		0x1000,
-		MMU_PAGE_SIZE_1K,
-		{CACHE_WRITETHROUGH, SV_USER, ACCESS_READ | ACCESS_WRITE | ACCESS_EXECUTE},
+		{CACHE_WRITETHROUGH, SV_USER, 0, ACCESS_READ | ACCESS_WRITE | ACCESS_EXECUTE},
 	},
 	{
-		/* when filled, we can switch to 8k pages */
-		0x2000,
-		0x2000,
-		0xfe00,
+		0x800,
+		0x800,
+		0x800,
+		MMU_PAGE_SIZE_1K,
+		{CACHE_WRITETHROUGH, SV_USER, 0, ACCESS_READ | ACCESS_WRITE | ACCESS_EXECUTE},
+	},
+	{
+		/* when the first 4k are filled with 1k pages, we can switch to 8k pages */
+		0x1000,
+		0x1000,
+		0xff000,
 		MMU_PAGE_SIZE_8K,
-		{CACHE_WRITETHROUGH, SV_USER, ACCESS_READ | ACCESS_WRITE | ACCESS_EXECUTE},
+		{CACHE_WRITETHROUGH, SV_USER, 0, ACCESS_READ | ACCESS_WRITE | ACCESS_EXECUTE},
 	},
 	{
 		/* arrived at a 1Meg border, we can switch to 1Meg pages */
@@ -281,15 +283,15 @@ static struct mmu_mapping
 		0x100000,
 		0xc00000,
 		MMU_PAGE_SIZE_1M,
-		{ CACHE_WRITETHROUGH, SV_USER, ACCESS_READ | ACCESS_WRITE | ACCESS_EXECUTE},
+		{ CACHE_WRITETHROUGH, SV_USER, 0, ACCESS_READ | ACCESS_WRITE | ACCESS_EXECUTE},
 	},
 	{
 		/* Falcon video memory. Needs special care */
 		0xd00000,
 		0x60d00000,
 		0x100000,
-		MMU_PAGE_SIZE_1M,
-		{ CACHE_WRITETHROUGH, SV_USER, ACCESS_READ | ACCESS_WRITE | ACCESS_EXECUTE},
+		MMU_PAGE_SIZE_8K,
+		{ CACHE_WRITETHROUGH, SV_USER, SCA_PAGE_ID, ACCESS_READ | ACCESS_WRITE | ACCESS_EXECUTE},
 	}, 
 	{
 		/* ROM */
@@ -297,35 +299,39 @@ static struct mmu_mapping
 		0xe00000,
 		0x100000,
 		MMU_PAGE_SIZE_1M,
-		{ CACHE_WRITETHROUGH, SV_USER, ACCESS_READ | ACCESS_EXECUTE},
+		{ CACHE_WRITETHROUGH, SV_USER, 0, ACCESS_READ | ACCESS_EXECUTE},
 	},
 	{
+		/* MBAR */
 		(uint32_t) _MBAR,
 		(uint32_t) _MBAR,
 		0x100000,
 		MMU_PAGE_SIZE_1M,
-		{ CACHE_NOCACHE_PRECISE, SV_PROTECT, ACCESS_READ | ACCESS_WRITE },
+		{ CACHE_NOCACHE_PRECISE, SV_PROTECT, 0, ACCESS_READ | ACCESS_WRITE },
 	},
 	{
+		/* RAMBAR0 */
 		(uint32_t) _RAMBAR0,
 		(uint32_t) _RAMBAR0,
 		(uint32_t) _RAMBAR0_SIZE,
 		MMU_PAGE_SIZE_1K,
-		{ CACHE_WRITETHROUGH, SV_PROTECT, ACCESS_READ | ACCESS_WRITE | ACCESS_EXECUTE},
+		{ CACHE_WRITETHROUGH, SV_PROTECT, 0, ACCESS_READ | ACCESS_WRITE | ACCESS_EXECUTE},
 	},
 	{
+		/* RAMBAR1 */
 		(uint32_t) _RAMBAR1,
 		(uint32_t) _RAMBAR1,
 		(uint32_t) _RAMBAR1_SIZE,
 		MMU_PAGE_SIZE_1K,
-		{ CACHE_WRITETHROUGH, SV_PROTECT, ACCESS_READ | ACCESS_WRITE | ACCESS_EXECUTE},
+		{ CACHE_WRITETHROUGH, SV_PROTECT, 0, ACCESS_READ | ACCESS_WRITE | ACCESS_EXECUTE},
 	},
 	{
+		/* SYSTEM SRAM */
 		(uint32_t) _SYS_SRAM,
 		(uint32_t) _SYS_SRAM,
 		(uint32_t) _SYS_SRAM_SIZE,
 		MMU_PAGE_SIZE_8K,
-		{ CACHE_WRITETHROUGH, SV_PROTECT, ACCESS_READ | ACCESS_WRITE | ACCESS_EXECUTE },
+		{ CACHE_WRITETHROUGH, SV_PROTECT, 0, ACCESS_READ | ACCESS_WRITE | ACCESS_EXECUTE },
 	},
 	{
 		/* Firebee FPGA registers */
@@ -333,21 +339,21 @@ static struct mmu_mapping
 		(uint32_t) 0xf0000000,
 		(uint32_t) 0x08000000,
 		MMU_PAGE_SIZE_1M,
-		{ CACHE_NOCACHE_PRECISE, SV_PROTECT, ACCESS_READ | ACCESS_WRITE },
+		{ CACHE_NOCACHE_PRECISE, SV_PROTECT, 0, ACCESS_READ | ACCESS_WRITE },
 	},
 	{
 		/* Falcon I/O registers */
-		(uint32_t) 0xffff0000,
-		(uint32_t) 0xffff0000,
-		(uint32_t) 0x10000,
+		(uint32_t) 0xfff00000,
+		(uint32_t) 0xfff00000,
+		(uint32_t) 0x100000,
 		MMU_PAGE_SIZE_1M,
-		{ CACHE_NOCACHE_PRECISE, SV_PROTECT, ACCESS_READ | ACCESS_WRITE },
+		{ CACHE_NOCACHE_PRECISE, SV_PROTECT, 0, ACCESS_READ | ACCESS_WRITE },
 	},
 	{
 		/* the same, but different mapping */
-		(uint32_t) 0x00ff0000,
-		(uint32_t) 0xffff0000,
-		(uint32_t) 0x10000,
+		(uint32_t) 0x00f00000,
+		(uint32_t) 0xfff00000,
+		(uint32_t) 0x100000,
 		MMU_PAGE_SIZE_1M,
 		{ CACHE_NOCACHE_PRECISE, SV_PROTECT, ACCESS_READ | ACCESS_WRITE },
 	}
@@ -357,10 +363,12 @@ static int num_mmu_maps = sizeof(memory_map) / sizeof(struct mmu_mapping);
 
 static struct mmu_mapping *lookup_mapping(uint32_t address)
 {
-	int i; /*
+	int i;
+
+	/*
 	 * dumb, for now
 	 */
-	
+
 	for (i = 0; i < num_mmu_maps; i++)
 	{
 		if (address >= memory_map[i].phys && address <= memory_map[i].phys + memory_map[i].length - 1)
@@ -377,7 +385,6 @@ bool access_exception(uint32_t pc, uint32_t format_status)
 {
 	int fault_status;
 	uint32_t fault_address;
-	bool is_tlb_miss = false;	/* assume access error is not a TLB miss */
 
 	/*
 	 * extract fault status from format_status exception stack field
@@ -394,51 +401,53 @@ bool access_exception(uint32_t pc, uint32_t format_status)
 		case 0x8020000:	/* TLB miss on data write */
 		case 0xc020000:	/* TLB miss on data read or read-modify-write */
 			//dbg("%s: access fault - TLB miss at %p. Fault status = 0x0%x\r\n", __FUNCTION__, pc, fault_status);
-			is_tlb_miss = true;
 			break;
 
 		default:
-			break;
+			return false;
 	}
 
-	if (is_tlb_miss)
+	if (MCF_MMU_MMUSR & 1)		/* did the last fault hit in TLB? */
 	{
-		if (MCF_MMU_MMUSR & 1)		/* did the last fault hit in TLB? */
-		{
-			/*
-			 * if yes, then we already mapped that page during a previous turn and this is in fact a bus error
-			 */
-			is_tlb_miss = false;
-		}
-		else
-		{
-			struct mmu_mapping *map;
+		/*
+		 * if yes, then we already mapped that page during a previous turn and this is in fact a bus error
+		 */
+		return false;
+	}
+	else
+	{
+		struct mmu_mapping *map;
 
-			fault_address = MCF_MMU_MMUAR;
+		fault_address = MCF_MMU_MMUAR;
 
-			if ((map = lookup_mapping(fault_address)) != NULL)
+		if ((map = lookup_mapping(fault_address)) != NULL)
+		{
+			uint32_t mask;
+
+			switch (map->pagesize)
 			{
-				uint32_t mask;
-
-				switch (map->pagesize)
-				{
-					case MMU_PAGE_SIZE_1M:
-						mask = ~(0x100000 - 1);
-						break;
-					case MMU_PAGE_SIZE_4K:
-						mask = ~(0x1000 - 1);
-						break;
-					case MMU_PAGE_SIZE_8K:
-						mask = ~(0x2000 - 1);
-						break;
-					case MMU_PAGE_SIZE_1K:
-						mask = ~(0x400 - 1);
-						break;
-				}
-
-				mmu_map_page(map->phys & mask, map->virt & mask, map->pagesize, map->flags);
-				return true;
+				case MMU_PAGE_SIZE_1M:
+					mask = ~(0x100000 - 1);
+					break;
+				case MMU_PAGE_SIZE_4K:
+					mask = ~(0x1000 - 1);
+					break;
+				case MMU_PAGE_SIZE_8K:
+					mask = ~(0x2000 - 1);
+					break;
+				case MMU_PAGE_SIZE_1K:
+					mask = ~(0x400 - 1);
+					break;
 			}
+
+			mmu_map_page(map->phys & mask, map->virt & mask, map->pagesize, map->flags);
+
+			if (map->flags.page_id == SCA_PAGE_ID)
+			{
+				video_tlb = 0x2000;
+				video_sbt = 0x0;
+			}
+			return true;
 		}
 	}
 	return false;
@@ -447,28 +456,29 @@ bool access_exception(uint32_t pc, uint32_t format_status)
 
 void mmu_map_page(uint32_t virt, uint32_t phys, uint32_t map_size, struct map_flags flags)
 {
-	//dbg("%s: map virt=%p to phys=%p\r\n", __FUNCTION__, virt, phys);
 
 	/*
 	 * add page to TLB
 	 */
 	MCF_MMU_MMUTR = virt |					/* virtual address */
-					MCF_MMU_MMUTR_SG |		/* shared global */
-					MCF_MMU_MMUTR_V;		/* valid */
+		MCF_MMU_MMUTR_ID(flags.page_id) |
+		MCF_MMU_MMUTR_SG |		/* shared global */
+		MCF_MMU_MMUTR_V;		/* valid */
 
 	MCF_MMU_MMUDR = phys |					/* physical address */
-					MCF_MMU_MMUDR_SZ(map_size) |	/* 1 MB page size */
-					MCF_MMU_MMUDR_CM(flags.cache_mode) |
-					(flags.access & ACCESS_READ ? MCF_MMU_MMUDR_R : 0) |		/* read access enable */
-					(flags.access & ACCESS_WRITE ? MCF_MMU_MMUDR_W : 0) |		/* write access enable */
-					(flags.access & ACCESS_EXECUTE ? MCF_MMU_MMUDR_X : 0);		/* execute access enable */
+		MCF_MMU_MMUDR_SZ(map_size) |	/* 1 MB page size */
+		MCF_MMU_MMUDR_CM(flags.cache_mode) |
+		(flags.access & ACCESS_READ ? MCF_MMU_MMUDR_R : 0) |		/* read access enable */
+		(flags.access & ACCESS_WRITE ? MCF_MMU_MMUDR_W : 0) |		/* write access enable */
+		(flags.access & ACCESS_EXECUTE ? MCF_MMU_MMUDR_X : 0);		/* execute access enable */
 
 	MCF_MMU_MMUOR = MCF_MMU_MMUOR_ACC |		/* access TLB, data */
-					MCF_MMU_MMUOR_UAA;		/* update allocation address field */
+		MCF_MMU_MMUOR_UAA;		/* update allocation address field */
 
 	MCF_MMU_MMUOR = MCF_MMU_MMUOR_ITLB | 	/* instruction */
-					MCF_MMU_MMUOR_ACC |     /* access TLB */
-					MCF_MMU_MMUOR_UAA;      /* update allocation address field */
+		MCF_MMU_MMUOR_ACC |     /* access TLB */
+		MCF_MMU_MMUOR_UAA;      /* update allocation address field */
+	dbg("%s: mapped virt=%p to phys=%p\r\n", __FUNCTION__, virt, phys);
 }
 
 
