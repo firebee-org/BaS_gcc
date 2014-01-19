@@ -193,7 +193,6 @@ void mmu_init(void)
 			ACR_ADMSK(0x0d) |				/* cover 13 MByte from 0x0 */
 			ACR_BA(0));						/* start from 0x0 */
 
-set_acr0(0);
 	set_acr1(ACR_W(0) |						/* read and write accesses permitted */
 			ACR_SP(0) |						/* supervisor and user mode access permitted */
 			ACR_CM(CACHE_WRITETHROUGH) |	/* cacheable, write through */
@@ -237,10 +236,8 @@ set_acr0(0);
 /*
  * TODO: this would be nicer in an include file
  */
-extern uint8_t _MBAR[];
-extern uint8_t _RAMBAR0[];
-extern uint8_t _RAMBAR1[];
 extern uint8_t _SYS_SRAM[];
+#define SYS_SRAM_ADDRESS ((uint32_t) &_SYS_SRAM[0])
 extern uint8_t _SYS_SRAM_SIZE[];
 
 struct mmu_mapping
@@ -303,32 +300,32 @@ static struct mmu_mapping memory_map[] =
 	},
 	{
 		/* MBAR */
-		(uint32_t) _MBAR,
-		(uint32_t) _MBAR,
+		MBAR_ADDRESS,
+		MBAR_ADDRESS,
 		0x100000,
 		MMU_PAGE_SIZE_1M,
 		{ CACHE_NOCACHE_PRECISE, SV_PROTECT, 0, ACCESS_READ | ACCESS_WRITE },
 	},
 	{
 		/* RAMBAR0 */
-		(uint32_t) _RAMBAR0,
-		(uint32_t) _RAMBAR0,
+		RAMBAR0_ADDRESS,
+		RAMBAR0_ADDRESS,
 		(uint32_t) _RAMBAR0_SIZE,
 		MMU_PAGE_SIZE_1K,
 		{ CACHE_WRITETHROUGH, SV_PROTECT, 0, ACCESS_READ | ACCESS_WRITE | ACCESS_EXECUTE},
 	},
 	{
 		/* RAMBAR1 */
-		(uint32_t) _RAMBAR1,
-		(uint32_t) _RAMBAR1,
+		RAMBAR1_ADDRESS,
+		RAMBAR1_ADDRESS,
 		(uint32_t) _RAMBAR1_SIZE,
 		MMU_PAGE_SIZE_1K,
 		{ CACHE_WRITETHROUGH, SV_PROTECT, 0, ACCESS_READ | ACCESS_WRITE | ACCESS_EXECUTE},
 	},
 	{
 		/* SYSTEM SRAM */
-		(uint32_t) _SYS_SRAM,
-		(uint32_t) _SYS_SRAM,
+		SYS_SRAM_ADDRESS,
+		SYS_SRAM_ADDRESS,
 		(uint32_t) _SYS_SRAM_SIZE,
 		MMU_PAGE_SIZE_8K,
 		{ CACHE_WRITETHROUGH, SV_PROTECT, 0, ACCESS_READ | ACCESS_WRITE | ACCESS_EXECUTE },
