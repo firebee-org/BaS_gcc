@@ -404,7 +404,7 @@ bool access_exception(uint32_t pc, uint32_t format_status)
 			return false;
 	}
 
-	if (MCF_MMU_MMUSR & 1)		/* did the last fault hit in TLB? */
+	if (MCF_MMU_MMUSR & 2)		/* did the last fault hit in TLB? */
 	{
 		/*
 		 * if yes, then we already mapped that page during a previous turn and this is in fact a bus error
