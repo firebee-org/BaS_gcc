@@ -45,7 +45,7 @@ CFLAGS_OPTIMIZED = -mcpu=5474 \
 		-fleading-underscore \
 		-Wa,--register-prefix-optional
 
-TRGTDIRS= ./firebee ./m5484lite
+TRGTDIRS= ./firebee ./m5484lite ./m54455
 OBJDIRS=$(patsubst %, %/objs,$(TRGTDIRS))
 TOOLDIR=util
 
