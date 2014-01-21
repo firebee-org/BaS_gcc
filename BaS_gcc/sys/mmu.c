@@ -257,14 +257,14 @@ static struct mmu_mapping memory_map[] =
 		0,
 		0x800,
 		MMU_PAGE_SIZE_1K,
-		{CACHE_WRITETHROUGH, SV_USER, 0, ACCESS_READ | ACCESS_WRITE | ACCESS_EXECUTE},
+		{ CACHE_WRITETHROUGH, SV_USER, 0, ACCESS_READ | ACCESS_WRITE | ACCESS_EXECUTE },
 	},
 	{
 		0x800,
 		0x800,
 		0x800,
 		MMU_PAGE_SIZE_1K,
-		{CACHE_WRITETHROUGH, SV_USER, 0, ACCESS_READ | ACCESS_WRITE | ACCESS_EXECUTE},
+		{ CACHE_WRITETHROUGH, SV_USER, 0, ACCESS_READ | ACCESS_WRITE | ACCESS_EXECUTE },
 	},
 	{
 		/* when the first 4k are filled with 1k pages, we can switch to 8k pages */
@@ -272,7 +272,7 @@ static struct mmu_mapping memory_map[] =
 		0x1000,
 		0xff000,
 		MMU_PAGE_SIZE_8K,
-		{CACHE_WRITETHROUGH, SV_USER, 0, ACCESS_READ | ACCESS_WRITE | ACCESS_EXECUTE},
+		{ CACHE_WRITETHROUGH, SV_USER, 0, ACCESS_READ | ACCESS_WRITE | ACCESS_EXECUTE },
 	},
 	{
 		/* arrived at a 1Meg border, we can switch to 1Meg pages */
@@ -280,7 +280,7 @@ static struct mmu_mapping memory_map[] =
 		0x100000,
 		0xc00000,
 		MMU_PAGE_SIZE_1M,
-		{ CACHE_WRITETHROUGH, SV_USER, 0, ACCESS_READ | ACCESS_WRITE | ACCESS_EXECUTE},
+		{ CACHE_WRITETHROUGH, SV_USER, 0, ACCESS_READ | ACCESS_WRITE | ACCESS_EXECUTE },
 	},
 	{
 		/* Falcon video memory. Needs special care */
@@ -288,7 +288,7 @@ static struct mmu_mapping memory_map[] =
 		0x60d00000,
 		0x100000,
 		MMU_PAGE_SIZE_8K,
-		{ CACHE_WRITETHROUGH, SV_USER, SCA_PAGE_ID, ACCESS_READ | ACCESS_WRITE | ACCESS_EXECUTE},
+		{ CACHE_WRITETHROUGH, SV_USER, SCA_PAGE_ID, ACCESS_READ | ACCESS_WRITE | ACCESS_EXECUTE },
 	}, 
 	{
 		/* ROM */
@@ -296,7 +296,7 @@ static struct mmu_mapping memory_map[] =
 		0xe00000,
 		0x100000,
 		MMU_PAGE_SIZE_1M,
-		{ CACHE_WRITETHROUGH, SV_USER, 0, ACCESS_READ | ACCESS_EXECUTE},
+		{ CACHE_WRITETHROUGH, SV_USER, 0, ACCESS_READ | ACCESS_EXECUTE },
 	},
 	{
 		/* MBAR */
@@ -312,7 +312,7 @@ static struct mmu_mapping memory_map[] =
 		RAMBAR0_ADDRESS,
 		(uint32_t) _RAMBAR0_SIZE,
 		MMU_PAGE_SIZE_1K,
-		{ CACHE_WRITETHROUGH, SV_PROTECT, 0, ACCESS_READ | ACCESS_WRITE | ACCESS_EXECUTE},
+		{ CACHE_WRITETHROUGH, SV_PROTECT, 0, ACCESS_READ | ACCESS_WRITE | ACCESS_EXECUTE },
 	},
 	{
 		/* RAMBAR1 */
@@ -320,7 +320,7 @@ static struct mmu_mapping memory_map[] =
 		RAMBAR1_ADDRESS,
 		(uint32_t) _RAMBAR1_SIZE,
 		MMU_PAGE_SIZE_1K,
-		{ CACHE_WRITETHROUGH, SV_PROTECT, 0, ACCESS_READ | ACCESS_WRITE | ACCESS_EXECUTE},
+		{ CACHE_WRITETHROUGH, SV_PROTECT, 0, ACCESS_READ | ACCESS_WRITE | ACCESS_EXECUTE },
 	},
 	{
 		/* SYSTEM SRAM */
@@ -347,7 +347,7 @@ static struct mmu_mapping memory_map[] =
 		{ CACHE_NOCACHE_PRECISE, SV_PROTECT, 0, ACCESS_READ | ACCESS_WRITE },
 	},
 	{
-		/* the same, but different mapping */
+		/* the same, but different virtual address */
 		(uint32_t) 0x00f00000,
 		(uint32_t) 0xfff00000,
 		(uint32_t) 0x100000,
@@ -358,7 +358,7 @@ static struct mmu_mapping memory_map[] =
 
 static int num_mmu_maps = sizeof(memory_map) / sizeof(struct mmu_mapping);
 
-static struct mmu_mapping *lookup_mapping(uint32_t address)
+static struct mmu_mapping *lookup_mapping(uint32_t virt)
 {
 	int i;
 
@@ -368,7 +368,7 @@ static struct mmu_mapping *lookup_mapping(uint32_t address)
 
 	for (i = 0; i < num_mmu_maps; i++)
 	{
-		if (address >= memory_map[i].phys && address <= memory_map[i].phys + memory_map[i].length - 1)
+		if (virt >= memory_map[i].virt && virt <= memory_map[i].virt + memory_map[i].length - 1)
 			return &memory_map[i];
 	}
 	return NULL;
@@ -459,22 +459,22 @@ void mmu_map_page(uint32_t virt, uint32_t phys, uint32_t map_size, struct map_fl
 	 */
 	MCF_MMU_MMUTR = virt |					/* virtual address */
 		MCF_MMU_MMUTR_ID(flags.page_id) |
-		MCF_MMU_MMUTR_SG |		/* shared global */
-		MCF_MMU_MMUTR_V;		/* valid */
+		MCF_MMU_MMUTR_SG |					/* shared global */
+		MCF_MMU_MMUTR_V;					/* valid */
 
 	MCF_MMU_MMUDR = phys |					/* physical address */
-		MCF_MMU_MMUDR_SZ(map_size) |	/* 1 MB page size */
+		MCF_MMU_MMUDR_SZ(map_size) |		/* 1 MB page size */
 		MCF_MMU_MMUDR_CM(flags.cache_mode) |
 		(flags.access & ACCESS_READ ? MCF_MMU_MMUDR_R : 0) |		/* read access enable */
 		(flags.access & ACCESS_WRITE ? MCF_MMU_MMUDR_W : 0) |		/* write access enable */
 		(flags.access & ACCESS_EXECUTE ? MCF_MMU_MMUDR_X : 0);		/* execute access enable */
 
 	MCF_MMU_MMUOR = MCF_MMU_MMUOR_ACC |		/* access TLB, data */
-		MCF_MMU_MMUOR_UAA;		/* update allocation address field */
+		MCF_MMU_MMUOR_UAA;					/* update allocation address field */
 
 	MCF_MMU_MMUOR = MCF_MMU_MMUOR_ITLB | 	/* instruction */
-		MCF_MMU_MMUOR_ACC |     /* access TLB */
-		MCF_MMU_MMUOR_UAA;      /* update allocation address field */
+		MCF_MMU_MMUOR_ACC |     			/* access TLB */
+		MCF_MMU_MMUOR_UAA;      			/* update allocation address field */
 	dbg("%s: mapped virt=%p to phys=%p\r\n", __FUNCTION__, virt, phys);
 }
 
