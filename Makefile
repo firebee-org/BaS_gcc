@@ -170,21 +170,24 @@ clean:
 
 # flags for targets
 m5484lite/bas.$(EXE): MACHINE=MACHINE_M5484LITE
+m54455/bas.$(EXE): MACHINE=MACHINE_M54455
 firebee/bas.$(EXE): MACHINE=MACHINE_FIREBEE
 m5484lite/ram.$(EXE): MACHINE=MACHINE_M5484LITE
+m54455/ram.$(EXE): MACHINE=MACHINE_M54455
 firebee/ram.$(EXE): MACHINE=MACHINE_FIREBEE
 m5484lite/basflash.$(EXE): MACHINE=MACHINE_M5484LITE
+m54455/basflash.$(EXE): MACHINE=MACHINE_M54455
 firebee/basflash.$(EXE): MACHINE=MACHINE_FIREBEE
 
 #
 # generate pattern rules for different object files
 #
 define CC_TEMPLATE
-ifeq (firebee,$(1))
-	MACHINE=MACHINE_FIREBEE
-else
-	MACHINE=MACHINE_M5484LITE
-endif
+#ifeq (firebee,$(1))
+	#MACHINE=MACHINE_FIREBEE
+#else
+	#MACHINE=MACHINE_M5484LITE
+#endif
 
 # always optimize x86 emulator objects
 $(1)/objs/x86decode.o:	CFLAGS=$(CFLAGS_OPTIMIZED)

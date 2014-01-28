@@ -18,10 +18,14 @@
 #include "usb.h"
 #include "exceptions.h"		/* set_ipl() */
 
-#if MACHINE_FIREBEE
+#if defined(MACHINE_FIREBEE)
 #include "firebee.h"
-#elif MACHINE_M5484LITE
+#elif defined(MACHINE_M5484LITE)
 #include "m5484l.h"
+#elif defined(MACHINE_M54455)
+#include "m54455.h"
+#else
+#error "unknown machine!"
 #endif
 
 //#define DBG_DM
