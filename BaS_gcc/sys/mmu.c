@@ -184,23 +184,23 @@ void mmu_init(void)
 
 	/* set data access attributes in ACR0 and ACR1 */
 
-	set_acr0(ACR_W(0) |						/* read and write accesses permitted */
-			ACR_SP(0) |						/* supervisor and user mode access permitted */
-			ACR_CM(CACHE_WRITETHROUGH) |	/* cacheable, write through */
-			ACR_AMM(1) | 					/* region 13 MByte */
+	set_acr0(ACR_WRITE_PROTECT(0) |			/* read and write accesses permitted */
+			ACR_SUPERVISOR_PROTECT(0) |		/* supervisor and user mode access permitted */
+			ACR_CACHE_MODE(CACHE_WRITETHROUGH) |	/* cacheable, write through */
+			ACR_ADDRESS_MASK_MODE(1) | 		/* region 13 MByte */
 			ACR_S(ACR_S_SUPERVISOR_MODE) |	/* memory only visible from supervisor mode */
 			ACR_E(1) |						/* enable ACR */
-			ACR_ADMSK(0x0d) |				/* cover 13 MByte from 0x0 */
+			ACR_ADMSK(0x0d) |				/* cover 12 MByte from 0x0 */
 			ACR_BA(0));						/* start from 0x0 */
 
-	set_acr1(ACR_W(0) |						/* read and write accesses permitted */
-			ACR_SP(0) |						/* supervisor and user mode access permitted */
-			ACR_CM(CACHE_WRITETHROUGH) |	/* cacheable, write through */
-			ACR_AMM(0) | 					/* region > 16 MByte */
+	set_acr1(ACR_WRITE_PROTECT(0) |			/* read and write accesses permitted */
+			ACR_SUPERVISOR_PROTECT(0) |		/* supervisor and user mode access permitted */
+			ACR_CACHE_MODE(CACHE_WRITETHROUGH) |	/* cacheable, write through */
+			ACR_ADDRESS_MASK_MODE(0) | 		/* region > 16 MByte */
 			ACR_S(ACR_S_SUPERVISOR_MODE) |	/* memory only visible from supervisor mode */
 			ACR_E(1) |						/* enable ACR */
-			ACR_ADMSK(0x1f) |				/* cover 495 MByte from 0x0f00000 */
-			ACR_BA(0x00100000));			/* start from 0xf000000 */
+			ACR_ADMSK(0x1f) |				/* cover 495 MByte from 0x1000000 */
+			ACR_BA(0x01000000));			/* all Fast RAM */
 
 
 	/*
@@ -208,19 +208,19 @@ void mmu_init(void)
 	 * enable supervisor access to all SDRAM
 	 */
 
-	set_acr2(ACR_W(0) |
-			ACR_SP(0) |
-			ACR_CM(CACHE_WRITETHROUGH) |
-			ACR_AMM(1) |
+	set_acr2(ACR_WRITE_PROTECT(0) |
+			ACR_SUPERVISOR_PROTECT(0) |
+			ACR_CACHE_MODE(CACHE_WRITETHROUGH) |
+			ACR_ADDRESS_MASK_MODE(1) |
 			ACR_S(ACR_S_SUPERVISOR_MODE) |
 			ACR_E(1) |
 			ACR_ADMSK(0x0c) |
 			ACR_BA(0x0));
 
-	set_acr3(ACR_W(0) |
-			ACR_SP(0) |
-			ACR_CM(CACHE_WRITETHROUGH) |
-			ACR_AMM(0) |
+	set_acr3(ACR_WRITE_PROTECT(0) |
+			ACR_SUPERVISOR_PROTECT(0) |
+			ACR_CACHE_MODE(CACHE_WRITETHROUGH) |
+			ACR_ADDRESS_MASK_MODE(0) |
 			ACR_S(ACR_S_SUPERVISOR_MODE) |
 			ACR_E(1) |
 			ACR_ADMSK(0x1f) |

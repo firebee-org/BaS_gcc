@@ -38,11 +38,11 @@
 #define ACR_S_SUPERVISOR_MODE       1
 #define ACR_S_ALL                   2
 
-#define ACR_AMM(x)                  (((x) & 1) << 10)
+#define ACR_ADDRESS_MASK_MODE(x)	(((x) & 1) << 10)
 
-#define ACR_CM(x)                   (((x) & 3) << 5)
-#define ACR_SP(x)					(((x) & 1) << 3)
-#define ACR_W(x)					(((x) & 1) << 2)
+#define ACR_CACHE_MODE(x)			(((x) & 3) << 5)
+#define ACR_SUPERVISOR_PROTECT(x)	(((x) & 1) << 3)
+#define ACR_WRITE_PROTECT(x)		(((x) & 1) << 2)
 
 
 /*
