@@ -212,3 +212,25 @@ bool isr_execute_handler(int vector)
 	return retval;
 }
 
+void pic_interrupt_handler(void)
+{
+	uint8_t rcv_byte;
+
+	rcv_byte = MCF_PSC3_PSCRB_8BIT;
+	if (rcv_byte == 2)	// PIC requests RTC data
+	{
+		uint8_t *rtc_reg= (uint8_t *) 0xffff8961;
+		uint8_t *rtc_data = (uint8_t *) 0xffff8963;
+		int index = 0;
+
+		xprintf("PIC interrupt requesting RTC data\r\n");
+
+		MCF_PSC3_PSCTB_8BIT = 0x82;		// header byte to PIC
+		do
+		{
+			*rtc_reg = 0;
+			MCF_PSC3_PSCTB_8BIT = *rtc_data;
+		} while (index++ < 64);
+	}
+}
+

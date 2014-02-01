@@ -457,7 +457,7 @@ irq3:
 irq4:				// vbl
 		irq		0x70,4,0x10
 
-#if MACHINE_M5484LITE_notyet				// handlers for M5484LITE
+#if MACHINE_M5484LITE				// handlers for M5484LITE
 
 irq5:								// irq5 is tied to PCI INTC# and PCI INTD# on the M5484LITE
 		move.w	#0x2700,sr			// disable interrupts
@@ -642,45 +642,13 @@ irq6_1:
 		lea		MCF_GPIO_PODR_FEC1L,a5
 		bset.b	#4,(a5)					// led off
 irq6_2:
-// test auf protect mode ---------------------
-		move.b	DIP_SWITCHa,d0
-		btst	#7,d0 
-		bne		irq6_3				// ja->
-// -------------------------------------------		
-		move.l	0xF0020000,a5		// vector holen
+		move.l	0xf0020000,a5		// vector holen
 		add.l	_rt_vbr,a5			// basis
 		move.l	(a5),d0				// vector holen
 		move.l	4(a7),a5			// a5 zurück
 		move.l	d0,4(a7)			// vector eintragen
 		move.l	(a7)+,d0			// d0 zurück
 		move	#0x2600,sr
-		rts
-irq6_3:
-		move.l	usp,a5				// usp holen  
-		tst.b	_rt_mod				// supervisor? 
-		bne		sev_sup6			// ja -> 
-		mov3q.l	#-1,_rt_mod			// auf supervisor setzen
-		move.l	a5,_rt_usp			// rt_usp speichern 
-		move.l	_rt_ssp,a5			// rt_ssp holen
-		move.l	12(a7),-(a5)		// pc transferieren 
-		move.l	8(a7),-(a5)			// sr transferieren 
-		move.l	a5,usp				// usp setzen
-		move.l  0xF0020000,a5		// vector holen: intack routine
-		add.l	_rt_vbr,a5			// virtuelle VBR des Systems
-		move.l	(a5),12(a7)			// hier gehts weiter
-		movem.l	(a7),d0/a5			// register zurück
-		addq.l	#8,a7
-		move.b	#6,2(a7)			// intmaske setzen
-		rte 						// und weg 
-sev_sup6:
-		move.l	12(a7),-(a5)		// pc transferieren 
-		move.l	8(a7),-(a5)			// sr,vec
-		bset	#5,2(a5)			// auf super setzen
-		move.l	a5,usp				// usp setzen
-		move.l  0xF0020000,a5		// vector holen: intack routine
-		add.l	_rt_vbr,a5			// virtuelle VBR des Systems
-		move.l	(a5),12(a7)			// hier gehts weiter
-		movem.l	(a7),d0/a5			// register zurück
 		rts
 
 		.data
@@ -781,36 +749,16 @@ irq7:
  * psc3 com PIC MCF
  */
 handler_psc3:
+		.extern _pic_interrupt_handler
+
 		move.w	#0x2700,sr			// disable interrupt
-		lea		-20(a7),a7
-		movem.l	d0-d2/a0/a3,(a7)	
-		lea		MCF_PSC3_PSCRB_8BIT,a3
-		move.b	(a3),d1
-		cmp.b	#2,d1				// anforderung rtc daten?
-		bne		psc3_fertig
+		lea		-4 * 4(sp),sp		// save gcc scratch registers
+		movem.l	d0-d1/a0-a1,(sp)
 
-		lea	MCF_PSC0_PSCTB_8BIT,a0		// ++ vr
-		mchar	move.l,'\P,'\I,'C,' ,(a0)
-		mchar	move.l,'I,'N,'T,'\ ,(a0)
-		mchar	move.l,'R,'T,'C,'!,(a0)
-		mchar 	move.l,0x0d,0x0a,0,0,(a0)
+		jsr		_pic_interrupt_handler	// call high level interrupt handler
 
-		lea		0xffff8961,a0
-		lea		MCF_PSC3_PSCTB_8BIT,a3
-		clr.l	d1	
-		moveq	#64,d2
-		move.b	#0x82,(a3)			// header: rtcd mcf->pic
-loop_sr2:
-		move.b  d1,(a0)
-		move.b	2(a0),d0
-		move.b	d0,(a3)
-		addq.l	#1,d1
-		cmp.b	d1,d2
-		bne		loop_sr2
-psc3_fertig:
-		movem.l	(a7),d0-d2/a0/a3	// restore saved registers
-		lea		20(a7),a7
-		RTE
+		movem.l	(sp),d0-d1/a0-a1	// restore registers
+		rte
 
 /*
  * general purpose timer 0 (GPT0): video change, later also others. GPT0 is used as
