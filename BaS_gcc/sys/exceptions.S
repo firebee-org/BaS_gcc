@@ -841,6 +841,7 @@ video_copy_data:
 		lea		15 * 4(sp),sp		// adjust stack
 
 #else
+
 video_copy_data_loop:
 		move.l	(a0)+,(a1)+			// copy video page contents to real screen
 		move.l	(a0)+,(a1)+
@@ -867,6 +868,7 @@ video_copy_data_loop:
 		move.l	d1,MCF_MMU_MMUDR
 		move.l	d2,MCF_MMU_MMUOR					// setzen vidoe maped to 60xxx only data  
 		nop
+
 video_chg_2page:
 // test of adjacent page is needed also
 		move.l	d3,d0
