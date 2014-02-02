@@ -234,3 +234,23 @@ void pic_interrupt_handler(void)
 	}
 }
 
+void video_addr_timeout(void)
+{
+	dbg("%s:\r\n", __FUNCTION__);
+}
+
+extern int32_t video_sbt;
+
+bool irq6_interrupt_handler(uint32_t sf1, uint32_t sf2)
+{
+	MCF_EPORT_EPFR = 0x40;	/* clear int6 from edge port */
+
+	dbg("%s: irq6!\r\n", __FUNCTION__);
+
+	if (video_sbt != 0 && (video_sbt - 0x70000000) > MCF_SLT0_SCNT)
+	{
+		video_addr_timeout();
+	}
+
+	return false;
+}

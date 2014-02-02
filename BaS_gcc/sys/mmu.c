@@ -169,70 +169,6 @@ inline uint32_t set_mmubar(uint32_t value)
 	return ret;
 }
 
-void mmu_init(void)
-{
-	extern uint8_t _MMUBAR[];
-	uint32_t MMUBAR = (uint32_t) &_MMUBAR[0];
-
-	set_asid(0);			/* do not use address extension (ASID provides virtual 48 bit addresses */
-
-	/*
-	 * need to set data ACRs in a way that supervisor access to all memory regions
-	 * becomes possible. Otherways it might be that the supervisor stack ends up in an unmapped
-	 * region when further MMU TLB entries force a page steal. This would lead to a double
-	 * fault since the CPU wouldn't be able to push its exception stack frame during an access
-	 * exception
-	 */
-
-	/* set data access attributes in ACR0 and ACR1 */
-
-	set_acr0(ACR_WRITE_PROTECT(0) |			/* read and write accesses permitted */
-			ACR_SUPERVISOR_PROTECT(0) |		/* supervisor and user mode access permitted */
-			ACR_CACHE_MODE(CACHE_WRITETHROUGH) |	/* cacheable, write through */
-			ACR_ADDRESS_MASK_MODE(1) | 		/* region 13 MByte */
-			ACR_S(ACR_S_SUPERVISOR_MODE) |	/* memory only visible from supervisor mode */
-			ACR_E(1) |						/* enable ACR */
-			ACR_ADMSK(0x0d) |				/* cover 12 MByte from 0x0 */
-			ACR_BA(0));						/* start from 0x0 */
-
-	set_acr1(ACR_WRITE_PROTECT(0) |			/* read and write accesses permitted */
-			ACR_SUPERVISOR_PROTECT(0) |		/* supervisor and user mode access permitted */
-			ACR_CACHE_MODE(CACHE_WRITETHROUGH) |	/* cacheable, write through */
-			ACR_ADDRESS_MASK_MODE(0) | 		/* region > 16 MByte */
-			ACR_S(ACR_S_SUPERVISOR_MODE) |	/* memory only visible from supervisor mode */
-			ACR_E(1) |						/* enable ACR */
-			ACR_ADMSK(0x1f) |				/* cover 495 MByte from 0x1000000 */
-			ACR_BA(0x01000000));			/* all Fast RAM */
-
-
-	/*
-	 * set instruction access attributes in ACR2 and ACR3. This is the same as above, basically:
-	 * enable supervisor access to all SDRAM
-	 */
-
-	set_acr2(ACR_WRITE_PROTECT(0) |
-			ACR_SUPERVISOR_PROTECT(0) |
-			ACR_CACHE_MODE(CACHE_WRITETHROUGH) |
-			ACR_ADDRESS_MASK_MODE(1) |
-			ACR_S(ACR_S_SUPERVISOR_MODE) |
-			ACR_E(1) |
-			ACR_ADMSK(0x0c) |
-			ACR_BA(0x0));
-
-	set_acr3(ACR_WRITE_PROTECT(0) |
-			ACR_SUPERVISOR_PROTECT(0) |
-			ACR_CACHE_MODE(CACHE_WRITETHROUGH) |
-			ACR_ADDRESS_MASK_MODE(0) |
-			ACR_S(ACR_S_SUPERVISOR_MODE) |
-			ACR_E(1) |
-			ACR_ADMSK(0x1f) |
-			ACR_BA(0x0f)); 
-
-	set_mmubar(MMUBAR + 1);		/* set and enable MMUBAR */
-
-	/* clear all MMU TLB entries */
-	MCF_MMU_MMUOR = MCF_MMU_MMUOR_CA;
-}
 
 
 /*
@@ -241,6 +177,7 @@ void mmu_init(void)
 extern uint8_t _SYS_SRAM[];
 #define SYS_SRAM_ADDRESS ((uint32_t) &_SYS_SRAM[0])
 extern uint8_t _SYS_SRAM_SIZE[];
+extern uint8_t _FASTRAM_END[];
 
 struct mmu_mapping
 {
@@ -250,6 +187,20 @@ struct mmu_mapping
 	uint32_t pagesize;
 	struct map_flags flags;
 };
+
+static struct mmu_mapping locked_map[] =
+{
+	{
+		/* Falcon video memory. Needs special care */
+		0xd00000,
+		0x60d00000,
+		0x100000,
+		MMU_PAGE_SIZE_1M,
+		{ CACHE_WRITETHROUGH, SV_USER, SCA_PAGE_ID, ACCESS_READ | ACCESS_WRITE | ACCESS_EXECUTE },
+	}, 
+};
+
+static int num_locked_mmu_maps = sizeof(locked_map) / sizeof(struct mmu_mapping);
 
 static struct mmu_mapping memory_map[] =
 {
@@ -284,14 +235,7 @@ static struct mmu_mapping memory_map[] =
 		MMU_PAGE_SIZE_1M,
 		{ CACHE_WRITETHROUGH, SV_USER, 0, ACCESS_READ | ACCESS_WRITE | ACCESS_EXECUTE },
 	},
-	{
-		/* Falcon video memory. Needs special care */
-		0xd00000,
-		0x60d00000,
-		0x100000,
-		MMU_PAGE_SIZE_8K,
-		{ CACHE_WRITETHROUGH, SV_USER, SCA_PAGE_ID, ACCESS_READ | ACCESS_WRITE | ACCESS_EXECUTE },
-	}, 
+	/* Falcon video ram left out intentionally here (see above) */
 	{
 		/* ROM */
 		0xe00000,
@@ -299,6 +243,14 @@ static struct mmu_mapping memory_map[] =
 		0x100000,
 		MMU_PAGE_SIZE_1M,
 		{ CACHE_WRITETHROUGH, SV_USER, 0, ACCESS_READ | ACCESS_EXECUTE },
+	},
+	{
+		/* FASTRAM */
+		0x1000000,
+		0x1000000,
+		_FASTRAM_END - 0x1000000,
+		MMU_PAGE_SIZE_1M,
+		{ CACHE_WRITETHROUGH, SV_USER, 0, ACCESS_READ | ACCESS_WRITE | ACCESS_EXECUTE },
 	},
 	{
 		/* MBAR */
@@ -376,6 +328,84 @@ static struct mmu_mapping *lookup_mapping(uint32_t virt)
 	return NULL;
 }
 
+void mmu_init(void)
+{
+	extern uint8_t _MMUBAR[];
+	uint32_t MMUBAR = (uint32_t) &_MMUBAR[0];
+	int i;
+
+	set_asid(0);			/* do not use address extension (ASID provides virtual 48 bit addresses */
+
+	/*
+	 * need to set data ACRs in a way that supervisor access to all memory regions
+	 * becomes possible. Otherways it might be that the supervisor stack ends up in an unmapped
+	 * region when further MMU TLB entries force a page steal. This would lead to a double
+	 * fault since the CPU wouldn't be able to push its exception stack frame during an access
+	 * exception
+	 */
+
+	/* set data access attributes in ACR0 and ACR1 */
+
+	set_acr0(ACR_WRITE_PROTECT(0) |			/* read and write accesses permitted */
+			ACR_SUPERVISOR_PROTECT(0) |		/* supervisor and user mode access permitted */
+			ACR_CACHE_MODE(CACHE_WRITETHROUGH) |	/* cacheable, write through */
+			ACR_ADDRESS_MASK_MODE(1) | 		/* region 13 MByte */
+			ACR_S(ACR_S_SUPERVISOR_MODE) |	/* memory only visible from supervisor mode */
+			ACR_E(1) |						/* enable ACR */
+			ACR_ADMSK(0x0a) |				/* cover 12 MByte from 0x0 */
+			ACR_BA(0));						/* start from 0x0 */
+
+	set_acr1(ACR_WRITE_PROTECT(0) |			/* read and write accesses permitted */
+			ACR_SUPERVISOR_PROTECT(0) |		/* supervisor and user mode access permitted */
+			ACR_CACHE_MODE(CACHE_WRITETHROUGH) |	/* cacheable, write through */
+			ACR_ADDRESS_MASK_MODE(0) | 		/* region > 16 MByte */
+			ACR_S(ACR_S_SUPERVISOR_MODE) |	/* memory only visible from supervisor mode */
+			ACR_E(1) |						/* enable ACR */
+			ACR_ADMSK(0x1f) |				/* cover 495 MByte from 0x1000000 */
+			ACR_BA(0x01000000));			/* all Fast RAM */
+
+
+	/*
+	 * set instruction access attributes in ACR2 and ACR3. This is the same as above, basically:
+	 * enable supervisor access to all SDRAM
+	 */
+
+	set_acr2(ACR_WRITE_PROTECT(0) |
+			ACR_SUPERVISOR_PROTECT(0) |
+			ACR_CACHE_MODE(CACHE_WRITETHROUGH) |
+			ACR_ADDRESS_MASK_MODE(1) |
+			ACR_S(ACR_S_SUPERVISOR_MODE) |
+			ACR_E(1) |
+			ACR_ADMSK(0x0c) |
+			ACR_BA(0x0));
+
+	set_acr3(ACR_WRITE_PROTECT(0) |
+			ACR_SUPERVISOR_PROTECT(0) |
+			ACR_CACHE_MODE(CACHE_WRITETHROUGH) |
+			ACR_ADDRESS_MASK_MODE(0) |
+			ACR_S(ACR_S_SUPERVISOR_MODE) |
+			ACR_E(1) |
+			ACR_ADMSK(0x1f) |
+			ACR_BA(0x0f)); 
+
+	set_mmubar(MMUBAR + 1);		/* set and enable MMUBAR */
+
+	/* clear all MMU TLB entries */
+	MCF_MMU_MMUOR = MCF_MMU_MMUOR_CA;
+
+	/* map locked TLB entries */
+	for (i = 0; i < num_locked_mmu_maps; i++)
+	{
+		mmu_map_page(locked_map[i].virt, locked_map[i].phys, locked_map->pagesize, locked_map->flags);
+
+		if (locked_map[i].flags.page_id == SCA_PAGE_ID)
+		{
+			video_tlb = 0x2000;
+			video_sbt = 0x0;
+		}
+	}
+}
+
 /*
  * handle an access error 
  * upper level routine called from access_exception inside exceptions.S
@@ -384,11 +414,13 @@ bool access_exception(uint32_t pc, uint32_t format_status)
 {
 	int fault_status;
 	uint32_t fault_address;
+	uint32_t mmu_status;
 
 	/*
 	 * extract fault status from format_status exception stack field
 	 */
 	fault_status = format_status & 0xc030000;
+	mmu_status = MCF_MMU_MMUSR;
 
 	/*
 	 * determine if access fault was caused by a TLB miss
@@ -397,8 +429,11 @@ bool access_exception(uint32_t pc, uint32_t format_status)
 	{
 		case 0x4010000:	/* TLB miss on opword of instruction fetch */
 		case 0x4020000:	/* TLB miss on extension word of instruction fetch */
+			fault_address = pc;
+			break;
 		case 0x8020000:	/* TLB miss on data write */
 		case 0xc020000:	/* TLB miss on data read or read-modify-write */
+			fault_address = MCF_MMU_MMUAR;
 			//dbg("%s: access fault - TLB miss at %p. Fault status = 0x0%x\r\n", __FUNCTION__, pc, fault_status);
 			break;
 
@@ -406,7 +441,8 @@ bool access_exception(uint32_t pc, uint32_t format_status)
 			return false;
 	}
 
-	if (MCF_MMU_MMUSR & 2)		/* did the last fault hit in TLB? */
+
+	if (mmu_status & MCF_MMU_MMUSR_HIT)		/* did the last fault hit in TLB? */
 	{
 		/*
 		 * if yes, then we already mapped that page during a previous turn and this is in fact a bus error
@@ -417,7 +453,6 @@ bool access_exception(uint32_t pc, uint32_t format_status)
 	{
 		struct mmu_mapping *map;
 
-		fault_address = MCF_MMU_MMUAR;
 
 		if ((map = lookup_mapping(fault_address)) != NULL)
 		{
@@ -439,13 +474,7 @@ bool access_exception(uint32_t pc, uint32_t format_status)
 					break;
 			}
 
-			mmu_map_page(map->phys & mask, map->virt & mask, map->pagesize, map->flags);
-
-			if (map->flags.page_id == SCA_PAGE_ID)
-			{
-				video_tlb = 0x2000;
-				video_sbt = 0x0;
-			}
+			mmu_map_page(fault_address & mask, fault_address & mask, map->pagesize, map->flags);
 			return true;
 		}
 	}
