@@ -236,7 +236,21 @@ void pic_interrupt_handler(void)
 
 void video_addr_timeout(void)
 {
+	uint32_t addr;
+
 	dbg("%s:\r\n", __FUNCTION__);
+	flush_and_invalidate_cashes();
+
+	do
+	{
+		MCF_MMU_MMUAR = addr;
+		MCF_MMU_MMUOR =
+				MCF_MMU_MMUOR_STLB |
+				MCF_MMU_MMUOR_RW |
+				MCF_MMU_MMUOR_ACC;
+		NOP();
+
+	} while (1);
 }
 
 extern int32_t video_sbt;
