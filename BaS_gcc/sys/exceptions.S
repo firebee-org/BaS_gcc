@@ -187,27 +187,11 @@
 		.equ	MCD_TT_FLAGS_RL, 0x1
 		.equ	MCD_TT_FLAGS_SP, 0x4
 		.equ	DMA_ALWAYS, 0
-//---------------------------------------------------
-/*********************************************************************
-*
-* General Purpose Timers (GPT)
-*
-*********************************************************************/
 
 /* Register read/write macros */
 #define MCF_GPT0_GMS                         __MBAR+0x800
-
-/*********************************************************************
-*
-* Slice Timers (SLT)
-*
-*********************************************************************/
-
 #define MCF_SLT0_SCNT                        __MBAR+0x908
 
-/**********************************************************/
-// macros
-/**********************************************************/
 		.altmacro
 		.macro	irq	vector,int_mask,clr_int
 		move.w	#0x2700,sr			// disable interrupt
@@ -243,7 +227,7 @@
     		\st #\a << 24|\b<<16|\c<<8|\d,\tgt
     	.endm
 
-.text
+		.text
 _vec_init:
 		move.l	a2,-(sp)			// Backup registers
 
@@ -255,6 +239,7 @@ _vec_init:
 		movec	d0,VBR
 		move.l	d0,a0
 		move.l	a0,a2
+
 init_vec:
 		move.l	#256,d0
 		lea		std_exc_vec(pc),a1	// standard vector
