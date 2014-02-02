@@ -20,6 +20,8 @@
  *      Author: Markus Fröschle
  */
 
+#define DBG_EXC
+
 #include "startcf.h"
 #if MACHINE_FIREBEE
 #include "firebee.h"
@@ -388,6 +390,9 @@ reset_vector:
 // This is either a "classic" bus error or the MMU hit a "legal" page not yet mapped.
 //
 access_exception:
+		move.w	#0x2700,sr			// avoid us being interrupted by the video handler
+									// (this would probably overwrite the MMUAR register)
+
 		// save gcc scratch registers, others will be handled by called function
 		lea		-4*4(sp),sp
 		movem.l	d0-d1/a0-a1,(sp)
@@ -501,8 +506,40 @@ irq7text:
 irq5:
 		irq		0x74,5,0x20
 
+		.extern	_irq6_interrupt_handler	// highlevel C handler
+
 irq6:	// MFP interrupt from FPGA
-		move.w	#0x2700,sr			// disable interrupt
+		move.w	#0x2700,sr			// disable interrupts
+		
+		lea		-4 * 4(sp),sp		// save gcc scratch registers
+		movem.l	d0-d1/a0-a1,(sp)
+
+		move.l	4 * 4(sp),-(sp)		// push original exception stack frame
+		move.l	5 * 4(sp),-(sp)
+		jsr		_irq6_interrupt_handler		// call highlevel C handler
+		lea.l	2 * 4(sp),sp
+
+		tst.l	d0					// completely handled?
+
+		movem.l	(sp),d0-d1/a0-a1	// restore registers saved above
+		lea		4 * 4(sp),sp		// adjust stack
+
+		beq		irq6_os				// call OS handler
+		rte
+
+irq6_os:	// call native OS irq6 handler
+		move.l	a5,-(sp)			// save registers: TODO: this could be done more effective
+		move.l	d0,-(sp)
+		move.l	0xf0020000,a5		// fetch vector
+		add.l	_rt_vbr,a5			// add vector base
+		move.l	(a5),d0				// fetch handler
+		move.l	4(sp),a5			// restore a5
+		move.l	d0,4(sp)			// prepare indirect return
+		move.l	(sp)+,d0			// restore d0
+		move.w	#0x2600,sr			// set interrupt mask
+		rts
+
+#ifdef _NOT_USED_
 		subq.l	#8,a7
 		movem.l	d0/a5,(a7)			// save registers
 
@@ -720,6 +757,8 @@ acsi_dma_end:
 		move.l	(a7)+,d1
 		move.l	(a7)+,a1
 		rts
+
+#endif /* _NOT_USED_ */
 /*
  * irq 7 = pseudo bus error
  */
@@ -762,7 +801,7 @@ handler_psc3:
 
 /*
  * general purpose timer 0 (GPT0): video change, later also others. GPT0 is used as
- * input trigger. It is connected to the TIN0 signal of the FPGA and triggers everytime
+ * input trigger. It is connected to the TIN0 signal of the FPGA which triggers it everytime
  * vbasehi is written to, i.e. when the video base address gets changed
  */
 handler_gpt0:
@@ -781,6 +820,7 @@ handler_gpt0:
 		lea		MCF_SLT0_SCNT,a0
   		move.l	(a0),_video_sbt		// save time
 
+		bra		video_chg_end
 		// FIXME: don't we need to get out here?
 
 sca_other:
@@ -809,11 +849,12 @@ video_copy_data:
 		add.l	#0x60000000,a1
 		move.l	#0x10000,d4			// whole page
 
+#define _DO_CPU_COPY
 #ifndef _DO_CPU_COPY
 
 		// experiment: do video page copy using Coldfire DMA
 
-		lea 	-15 * 4(sp),sp
+		lea 	-4 * 4(sp),sp
 		movem.l	d0-d1/a0-a1,(sp)	// save gcc scratch registers
 
 		clr.l	-(sp)				// no special functions
@@ -838,7 +879,7 @@ video_copy_data:
 		bne		.wait_dma_finished
 
 		movem.l	(sp),d0-d1/a0-a1	// restore gcc scratch registers
-		lea		15 * 4(sp),sp		// adjust stack
+		lea		4 * 4(sp),sp		// adjust stack
 
 #else
 
