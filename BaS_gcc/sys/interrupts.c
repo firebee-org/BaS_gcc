@@ -30,6 +30,8 @@
 #include "exceptions.h"
 #include "interrupts.h"
 #include "bas_printf.h"
+#include "cache.h"
+#include "util.h"
 
 extern void (*rt_vbr[])(void);
 #define VBR	rt_vbr
@@ -234,12 +236,15 @@ void pic_interrupt_handler(void)
 	}
 }
 
+extern int32_t video_sbt;
+extern int32_t video_tlb;
+
 void video_addr_timeout(void)
 {
-	uint32_t addr;
+	uint32_t addr = 0x0L;
 
 	dbg("%s:\r\n", __FUNCTION__);
-	flush_and_invalidate_cashes();
+	flush_and_invalidate_caches();
 
 	do
 	{
@@ -249,11 +254,12 @@ void video_addr_timeout(void)
 				MCF_MMU_MMUOR_RW |
 				MCF_MMU_MMUOR_ACC;
 		NOP();
-
-	} while (1);
+		addr += 0x100000;
+	} while (addr < 0xd00000);
+	video_tlb = 0x2000;
+	video_sbt = 0;
 }
 
-extern int32_t video_sbt;
 
 bool irq6_interrupt_handler(uint32_t sf1, uint32_t sf2)
 {
