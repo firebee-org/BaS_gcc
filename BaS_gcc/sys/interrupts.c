@@ -30,6 +30,7 @@
 #include "exceptions.h"
 #include "interrupts.h"
 #include "bas_printf.h"
+#include "startcf.h"
 #include "cache.h"
 #include "util.h"
 
@@ -242,18 +243,67 @@ extern int32_t video_tlb;
 void video_addr_timeout(void)
 {
 	uint32_t addr = 0x0L;
+	uint32_t asid;
 
 	dbg("%s:\r\n", __FUNCTION__);
 	flush_and_invalidate_caches();
 
 	do
 	{
+		uint32_t tlb;
+		uint32_t page_attr;
+
+		/*
+		 * search tlb entry id for addr (if not available, the MMU
+		 * will provide a new one based on its LRU algorithm)
+		 */
 		MCF_MMU_MMUAR = addr;
 		MCF_MMU_MMUOR =
 				MCF_MMU_MMUOR_STLB |
 				MCF_MMU_MMUOR_RW |
 				MCF_MMU_MMUOR_ACC;
 		NOP();
+		tlb = (MCF_MMU_MMUOR >> 16) & 0xffff;
+
+		/*
+		 * retrieve tlb entry with the found TLB entry id
+		 */
+		MCF_MMU_MMUAR = tlb;
+		MCF_MMU_MMUOR =
+                MCF_MMU_MMUOR_STLB |
+				MCF_MMU_MMUOR_ADR |
+                MCF_MMU_MMUOR_RW |
+                MCF_MMU_MMUOR_ACC;
+		NOP();
+
+		asid = (MCF_MMU_MMUTR >> 2) & 0x1fff;	/* fetch ASID of page */;
+		if (asid != sca_page_ID)		/* check if screen area */
+		{
+			addr += 0x100000;
+			continue;					/* next page */
+		}
+
+		/* modify found TLB entry */
+		if (addr == 0x0)
+		{
+			page_attr =
+				MCF_MMU_MMUDR_LK |
+				MCF_MMU_MMUDR_SZ(0) |
+				MCF_MMU_MMUDR_CM(0) |
+				MCF_MMU_MMUDR_R |
+				MCF_MMU_MMUDR_W |
+				MCF_MMU_MMUDR_X;
+		}
+		else
+		{
+			page_attr =
+				MCF_MMU_MMUTR_SG |
+				MCF_MMU_MMUTR_V;
+		}
+
+		/* TODO: update MMU */
+
+
 		addr += 0x100000;
 	} while (addr < 0xd00000);
 	video_tlb = 0x2000;
