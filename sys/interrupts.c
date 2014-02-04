@@ -243,6 +243,8 @@ extern int32_t video_tlb;
 void video_addr_timeout(void)
 {
 	uint32_t addr = 0x0L;
+	uint32_t *src;
+	uint32_t *dst;
 	uint32_t asid;
 
 	dbg("%s:\r\n", __FUNCTION__);
@@ -300,8 +302,27 @@ void video_addr_timeout(void)
 				MCF_MMU_MMUTR_SG |
 				MCF_MMU_MMUTR_V;
 		}
+		
 
-		/* TODO: update MMU */
+		MCF_MMU_MMUTR = addr;
+		MCF_MMU_MMUDR = page_attr;
+		MCF_MMU_MMUOR =
+                MCF_MMU_MMUOR_STLB |
+				MCF_MMU_MMUOR_ADR |
+                MCF_MMU_MMUOR_ACC |
+				MCF_MMU_MMUOR_UAA;
+		NOP();
+
+		dst = 0x60000000 + addr;
+		src = addr;
+		while (dst < 0x60000000 + addr + 0x10000)
+		{
+			*dst++ = *src++;
+			*dst++ = *src++;
+			*dst++ = *src++;
+			*dst++ = *src++;
+		}
+
 
 
 		addr += 0x100000;
