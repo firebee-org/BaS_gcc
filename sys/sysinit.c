@@ -1055,7 +1055,7 @@ void initialize_hardware(void)
 	/*
 	 * Determine the processor revision
 	 */
-	xprintf(" (revision %d)\r\n",((MCF_SIU_JTAGID & MCF_SIU_JTAGID_REV) >> 28));
+	xprintf(" (revision %d)\r\n", ((MCF_SIU_JTAGID & MCF_SIU_JTAGID_REV) >> 28));
 
 	init_slt();
 	init_fbcs();
