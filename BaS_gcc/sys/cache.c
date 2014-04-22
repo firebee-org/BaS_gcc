@@ -81,25 +81,35 @@ void flush_icache_range(void *address, size_t size)
 	if (start_set > end_set) {
 		/* from the begining to the lowest address */
 		for (set = 0; set <= end_set; set += (0x10 - 3)) {
-			asm volatile("cpushl ic,(%0)\n\t"
-						"addq.l #1,%0\n\t"
-						"cpushl ic,(%0)\n\t"
-						"addq.l #1,%0\n\t"
-						"cpushl ic,(%0)\n\t"
-						"addq.l #1,%0\n\t"
-						"cpushl ic,(%0)" : "=a" (set) : "a" (set));
+            __asm__ __volatile__(
+                        "       cpushl  ic,(%[set])         \n\t"
+                        "       addq.l  #1,%[set]           \n\t"
+                        "       cpushl  ic,(%[set])         \n\t"
+                        "       addq.l  #1,%[set]           \n\t"
+                        "       cpushl  ic,(%[set])         \n\t"
+                        "       addq.l  #1,%[set]           \n\t"
+                        "       cpushl  ic,(%[set])         \n\t"
+                 : /* output parameters  */
+                 : [set] "a" (set)    /* input parameters */
+                 :
+            );
 		}
 		/* next loop will finish the cache ie pass the hole */
 		end_set = LAST_ICACHE_ADDR;
 	}
 	for (set = start_set; set <= end_set; set += (0x10 - 3)) {
-		asm volatile("cpushl ic,(%0)\n\t"
-					"addq.l #1,%0\n\t"
-					"cpushl ic,(%0)\n\t"
-					"addq%.l #1,%0\n\t"
-					"cpushl ic,(%0)\n\t"
-					"addq.l #1,%0\n\t"
-					"cpushl ic,(%0)" : "=a" (set) : "a" (set));
+        __asm__ __volatile__(
+                    "       cpushl  ic,(%[set])             \n\t"
+                    "       addq.l  #1,%[set]               \n\t"
+                    "       cpushl  ic,(%[set])             \n\t"
+                    "       addq.l  #1,%[set]               \n\t"
+                    "       cpushl  ic,(%[set])             \n\t"
+                    "       addq.l  #1,%[set]               \n\t"
+                    "       cpushl  ic,(%[set])"
+                    : /* output parameters */
+                    : [set] "a" (set)
+                    :
+         );
 	}
 }
 
@@ -121,25 +131,37 @@ void flush_dcache_range(void *address, size_t size)
 
 	if (start_set > end_set) {
 		/* from the begining to the lowest address */
-		for (set = 0; set <= end_set; set += (0x10 - 3)) {
-			asm volatile("cpushl dc,(%0)\n\t"
-						"addq.l #1,%0\n\t"
-						"cpushl dc,(%0)\n\t"
-						"addq.l #1,%0\n\t"
-						"cpushl dc,(%0)\n\t"
-						"addq.l #1,%0\n\t"
-						"cpushl dc,(%0)" : "=a" (set) : "a" (set));
+        for (set = 0; set <= end_set; set += (0x10 - 3))
+        {
+            __asm__ __volatile__(
+                        "       cpushl  dc,(%[set])         \n\t"
+                        "       addq.l  #1,%[set]           \n\t"
+                        "       cpushl  dc,(%[set])         \n\t"
+                        "       addq.l  #1,%[set]           \n\t"
+                        "       cpushl  dc,(%[set])         \n\t"
+                        "       addq.l  #1,%[set]           \n\t"
+                        "       cpushl  dc,(%[set])         \n\t"
+                        : /* output parameters */
+                        : [set] "a" (set)
+                        : /* clobbered registers */
+            );
 		}
 		/* next loop will finish the cache ie pass the hole */
 		end_set = LAST_DCACHE_ADDR;
 	}
-	for (set = start_set; set <= end_set; set += (0x10 - 3)) {
-		asm volatile("cpushl dc,(%0)\n\t"
-					"addq.l #1,%0\n\t"
-					"cpushl dc,(%0)\n\t"
-					"addq%.l #1,%0\n\t"
-					"cpushl dc,(%0)\n\t"
-					"addq.l #1,%0\n\t"
-					"cpushl dc,(%0)" : "=a" (set) : "a" (set));
+    for (set = start_set; set <= end_set; set += (0x10 - 3))
+    {
+        __asm__ __volatile__(
+                    "       cpushl      dc,(%[set])     \n\t"
+                    "       addq.l      #1,%[set]       \n\t"
+                    "       cpushl      dc,(%[set])     \n\t"
+                    "       addq%.l     #1,%[set]       \n\t"
+                    "       cpushl      dc,(%[set])     \n\t"
+                    "       addq.l      #1,%[set]       \n\t"
+                    "       cpushl      dc,(%[set])     \n\t"
+                    : /* output parameters */
+                    : [set] "a" (set)
+                    : /* clobbered registers */
+        );
 	}
 }

@@ -313,9 +313,9 @@ void video_addr_timeout(void)
 				MCF_MMU_MMUOR_UAA;
 		NOP();
 
-		dst = 0x60000000 + addr;
-		src = addr;
-		while (dst < 0x60000000 + addr + 0x10000)
+        dst = (uint32_t *) 0x60000000 + addr;
+        src = (uint32_t *) addr;
+        while (dst < (uint32_t *) 0x60000000 + addr + 0x10000)
 		{
 			*dst++ = *src++;
 			*dst++ = *src++;
