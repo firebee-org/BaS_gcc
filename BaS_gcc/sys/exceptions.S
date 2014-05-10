@@ -223,22 +223,22 @@
  * If anybody knows of any better way on how to do this - please do!
  *
  */
-    	.macro mchar  st,a,b,c,d,tgt
-    		\st #\a << 24|\b<<16|\c<<8|\d,\tgt
-    	.endm
+        .macro mchar  st,a,b,c,d,tgt
+            \st #\a << 24|\b<<16|\c<<8|\d,\tgt
+        .endm
 
-		.text
+        .text
 _vec_init:
-		move.l	a2,-(sp)			// Backup registers
+        move.l	a2,-(sp)			// Backup registers
 
- 		mov3q.l	#-1,_rt_mod			// rt_mod auf super
- 		clr.l	_rt_ssp
- 		clr.l	_rt_usp
- 		clr.l	_rt_vbr
-		move.l	#__RAMBAR0,d0		// exception vectors reside in rambar0
-		movec	d0,VBR
-		move.l	d0,a0
-		move.l	a0,a2
+        mov3q.l	#-1,_rt_mod			// rt_mod auf super
+        clr.l	_rt_ssp
+        clr.l	_rt_usp
+        clr.l	_rt_vbr
+        move.l	#__RAMBAR0,d0		// exception vectors reside in rambar0
+        movec	d0,VBR
+        move.l	d0,a0
+        move.l	a0,a2
 
 init_vec:
 		move.l	#256,d0
@@ -255,7 +255,7 @@ init_vec_loop:
 
 		lea		access_exception(pc),a1		// set illegal access exception handler
 		move.l	a1,0x08(a0)
-		
+
 		.extern	_get_bas_drivers
 // trap #0 (without any parameters for now) is used to provide BaS' driver addresses to the OS
 		lea		_get_bas_drivers(pc),a1
@@ -336,17 +336,17 @@ std_exc_vec:
 		beq		noprint
 		move.l	4 * 4 + 8 + 4(sp),-(sp)	// pc at exception
 		move.l	d0,-(sp)			// provide it to xprintf()
-		pea		exception_text		
+		pea		exception_text
 		jsr		_xprintf			// call xprintf()
 		add.l	#3*4,sp				// adjust stack
 noprint:
-		
+
 		movem.l	(sp),d0-d1/a0-a1	// restore registers
 		lea		4 * 4(sp),sp
 #endif /* DBG_EXC */
 
 		add.l	_rt_vbr,d0			// + VBR
-		move.l	d0,a5				
+		move.l	d0,a5
 		move.l	(a5),d0				// fetch exception routine address
 
 		move.l	4(sp),a5			// restore a5
@@ -382,7 +382,7 @@ access_exception:
 		lea		-4*4(sp),sp
 		movem.l	d0-d1/a0-a1,(sp)
 
-		
+
 		lea		4*4(sp),a0			// original stack pointer
 
 		move.l	(a0),-(sp)			// format status word
@@ -402,7 +402,7 @@ access_exception:
 
 bus_error:
 		bra		std_exc_vec
-		
+
 zero_divide:
 		move.l	a0,-(a7)
 		move.l	d0,-(a7)
@@ -430,9 +430,9 @@ zd_nal:	cmp.w	#0x3c,d0			// immediate?
 zd_end:
 		move.l	a0,12(a7)
 		move.l	(a7)+,d0
-		move.l	(a7)+,a0		
+		move.l	(a7)+,a0
 		rte
-		
+
 irq1:
 		irq		0x64,1,0x02
 
@@ -458,7 +458,7 @@ irq5:								// irq5 is tied to PCI INTC# and PCI INTD# on the M5484LITE
 		jsr		_irq5_handler		// call C handler routine
 
 		movem.l	(sp),d0-d1/a0-a1	// restore registers
-		lea		4*4(sp),sp			
+		lea		4*4(sp),sp
 
 		rte							// return from exception
 
@@ -466,7 +466,7 @@ irq5text:
 		.ascii	"IRQ5!"
 		.dc.b	13,10,0
 
-irq6:							
+irq6:
 		irq		0x74,5,0x20
 
 irq7:								// irq7 is tied to PCI INTA# and PCI INTB# on the M5484LITE
@@ -479,7 +479,7 @@ irq7:								// irq7 is tied to PCI INTA# and PCI INTB# on the M5484LITE
 		jsr		_irq7_handler		// call C handler routine
 
 		movem.l	(sp),d0-d1/a0-a1	// restore registers
-		lea		4*4(sp),sp			
+		lea		4*4(sp),sp
 
 		rte							// return from exception
 
@@ -495,7 +495,7 @@ irq5:
 
 irq6:	// MFP interrupt from FPGA
 		move.w	#0x2700,sr			// disable interrupts
-		
+
 		lea		-4 * 4(sp),sp		// save gcc scratch registers
 		movem.l	d0-d1/a0-a1,(sp)
 
@@ -509,7 +509,7 @@ irq6:	// MFP interrupt from FPGA
 		movem.l	(sp),d0-d1/a0-a1	// restore registers saved above
 		lea		4 * 4(sp),sp		// adjust stack
 
-		beq		irq6_os				// call OS handler
+		bra		irq6_os				// call OS handler
 		rte
 
 irq6_os:	// call native OS irq6 handler
@@ -535,36 +535,36 @@ irq6_os:	// call native OS irq6 handler
 		// move.b	#0x40,(a5)			// clear int6 from edge port
 
 // screen adr change timed out?
-		move.l	_video_sbt,d0
-  		beq		irq6_non_sca		// nothing to do if 0
-  		sub.l	#0x70000000,d0		// substract 14 seconds
-		lea		MCF_SLT0_SCNT,a5
-  		cmp.l	(a5),d0				// time reached?
-  		ble		irq6_non_sca		// not yet
+        move.l	_video_sbt,d0
+        beq		irq6_non_sca		// nothing to do if 0
+        sub.l	#0x70000000,d0		// substract 14 seconds
+        lea		MCF_SLT0_SCNT,a5
+        cmp.l	(a5),d0				// time reached?
+        ble		irq6_non_sca		// not yet
 
-  		lea		-28(a7),a7			// save more registers
-  		movem.l	d0-d4/a0-a1,(a7)	//
-  		clr.l	d3					// beginn mit 0
-		jsr		_flush_and_invalidate_caches
+        lea		-28(a7),a7			// save more registers
+        movem.l	d0-d4/a0-a1,(a7)	//
+        clr.l	d3					// beginn mit 0
+        jsr		_flush_and_invalidate_caches
 
  // eintrag suchen
  irq6_next_sca:
- 		move.l	d3,d0
-		move.l	d0,MCF_MMU_MMUAR	// addresse
- 		move.l	#0x106,d4
- 		move.l	d4,MCF_MMU_MMUOR	// suchen -> 
- 		nop
- 		move.l	MCF_MMU_MMUOR,d4
- 		clr.w	d4
- 		swap	d4
- 		move.l	d4,MCF_MMU_MMUAR
-		mvz.w	#0x10e,d4
- 		move.l	d4,MCF_MMU_MMUOR	// einträge holen aus mmu
- 		nop
- 		move.l	MCF_MMU_MMUTR,d4	// ID holen
- 		lsr.l	#2,d4				// bit 9 bis 2
- 		cmp.w	#sca_page_ID,d4		// ist screen change ID?
- 		bne		irq6_sca_pn			// nein -> page keine screen area next
+        move.l	d3,d0
+        move.l	d0,MCF_MMU_MMUAR	// addresse
+        move.l	#0x106,d4
+        move.l	d4,MCF_MMU_MMUOR	// suchen ->
+        nop
+        move.l	MCF_MMU_MMUOR,d4
+        clr.w	d4
+        swap	d4
+        move.l	d4,MCF_MMU_MMUAR
+        mvz.w	#0x10e,d4
+        move.l	d4,MCF_MMU_MMUOR	// einträge holen aus mmu
+        nop
+        move.l	MCF_MMU_MMUTR,d4	// ID holen
+        lsr.l	#2,d4				// bit 9 bis 2
+        cmp.w	#sca_page_ID,d4		// ist screen change ID?
+        bne		irq6_sca_pn			// nein -> page keine screen area next
 // eintrag �ndern
 		add.l	#std_mmutr,d0
 		move.l	d3,d1				// page 0?
@@ -574,10 +574,10 @@ irq6_os:	// call native OS irq6 handler
 irq6_sca_pn0:
 		add.l	#writethrough_mmudr|MCF_MMU_MMUDR_LK,d1	// page wt and locked
 irq6_sca_pn1c:
-		mvz.w	#0x10b,d2			// MMU update 
-		move.l	d0,MCF_MMU_MMUTR	
+		mvz.w	#0x10b,d2			// MMU update
+		move.l	d0,MCF_MMU_MMUTR
 		move.l	d1,MCF_MMU_MMUDR
-		move.l	d2,MCF_MMU_MMUOR	// setze tlb data only  
+		move.l	d2,MCF_MMU_MMUOR	// setze tlb data only
 		nop
 // page copy
 		move.l	d3,a0
@@ -616,7 +616,7 @@ wait_dma_finished:
 		cmp.l	#6,d0
 		bne		wait_dma_finished
 #else
-irq6_vcd0_loop:						
+irq6_vcd0_loop:
 		move.l	(a0)+,(a1)+			// page copy
 		move.l	(a0)+,(a1)+
 		move.l	(a0)+,(a1)+
@@ -632,18 +632,18 @@ irq6_sca_pn:
 
 		move.l	#0x2000,d0
 		move.l	d0,_video_tlb		// anfangszustand wieder herstellen
-  		clr.l	_video_sbt			// zeit löschen
+		clr.l	_video_sbt			// zeit löschen
 
-  		movem.l	(sp),d0-d4/a0-a1	// restore registers
-  		lea		7 * 4(sp),sp
+        movem.l	(sp),d0-d4/a0-a1	// restore registers
+        lea		7 * 4(sp),sp
 
 irq6_non_sca:
 // test auf acsi dma -----------------------------------------------------------------
-		lea		0xfffffa0b,a5
- 		bset	#7,-4(a5)			// int ena
-		btst.b	#7,(a5)				// acsi dma int?
-		beq		non_acsi_dma
-		bsr		acsi_dma
+        lea		0xfffffa0b,a5
+        bset	#7,-4(a5)			// int ena
+        btst.b	#7,(a5)				// acsi dma int?
+        beq		non_acsi_dma
+        bsr		acsi_dma
 non_acsi_dma:
 // ----------------------------------------------------------------------------------
 		tst.b	(a5)
@@ -652,7 +652,7 @@ non_acsi_dma:
 		bne		irq6_1
 		movem.l	(a7),d0/a5
 		addq.l	#8,a7
-		rte	
+		rte
 irq6_1:
 		lea		MCF_GPIO_PODR_FEC1L,a5
 		bclr.b	#4,(a5)					// led on
@@ -677,7 +677,7 @@ irq6_2:
 blinker:.long	0
 
 
-		.text
+        .text
 
 /*
  * pseudo dma
@@ -685,7 +685,7 @@ blinker:.long	0
 acsi_dma:							// atari dma
 		move.l  a1,-(a7)
 		move.l  d1,-(a7)
-		
+
 		lea	MCF_PSC0_PSCTB_8BIT,a1	// ++ vr
 		mchar move.l, 'D,'M','A,'\ ,(a1)
 		//move.l	#"DMA ",(a1)
@@ -696,33 +696,33 @@ acsi_dma:							// atari dma
 acsi_dma_start:
 		move.l	-12(a5),a1			// dma adresse
 		move.l	-8(a5),d0			// byt counter
-     	ble		acsi_dma_end
-     	btst.b	#0,-16(a5)			// write? (dma modus reg)
+		ble		acsi_dma_end
+		btst.b	#0,-16(a5)			// write? (dma modus reg)
 		bne		acsi_dma_wl			// ja->
 acsi_dma_rl:
- 		tst.b	-4(a5) 				// dma req?
-  		bpl		acsi_dma_finished	// nein->
-		move.l	(a5),(a1)+			// read 4 bytes	 
-		move.l	(a5),(a1)+			// read 4 bytes	 
-		move.l	(a5),(a1)+			// read 4 bytes	 
-		move.l	(a5),(a1)+			// read 4 bytes	
-		
- 		moveq	#'.',d1
- 		move.b	d1,MCF_PSC0_PSCTB_8BIT
+        tst.b	-4(a5) 				// dma req?
+        bpl		acsi_dma_finished	// nein->
+        move.l	(a5),(a1)+			// read 4 bytes
+        move.l	(a5),(a1)+			// read 4 bytes
+        move.l	(a5),(a1)+			// read 4 bytes
+        move.l	(a5),(a1)+			// read 4 bytes
 
-		sub.l	#16,d0				// byt counter -16
- 		bpl		acsi_dma_rl
-		bra		acsi_dma_finished	
+        moveq	#'.',d1
+        move.b	d1,MCF_PSC0_PSCTB_8BIT
+
+        sub.l	#16,d0				// byt counter -16
+        bpl		acsi_dma_rl
+        bra		acsi_dma_finished
 acsi_dma_wl:
- 		tst.b	-4(a5) 				// dma req?
-  		bpl		acsi_dma_finished	// nein->
-		move.l	(a1)+,(a5)			// write 4 byts
-		move.l	(a1)+,(a5)			// write 4 byts
-		move.l	(a1)+,(a5)			// write 4 byts
-		move.l	(a1)+,(a5)			// write 4 byts
-		
- 		moveq	#'.',d1
- 		move.b	d1,MCF_PSC0_PSCTB_8BIT
+        tst.b	-4(a5) 				// dma req?
+        bpl		acsi_dma_finished	// nein->
+        move.l	(a1)+,(a5)			// write 4 byts
+        move.l	(a1)+,(a5)			// write 4 byts
+        move.l	(a1)+,(a5)			// write 4 byts
+        move.l	(a1)+,(a5)			// write 4 byts
+
+        moveq	#'.',d1
+        move.b	d1,MCF_PSC0_PSCTB_8BIT
 
 		sub.l	#16,d0				// byt counter -16
 		bpl		acsi_dma_wl
@@ -730,15 +730,15 @@ acsi_dma_finished:
 		move.l	a1,-12(a5)			// adresse zur�ck
 		move.l	d0,-8(a5)			// byt counter zur�ck
 acsi_dma_end:
-		tst.b	-4(a5) 				// dma req?
- 		bmi		acsi_dma_start		// ja->
-		lea		0xfffffa0b,a5
-		bclr.b	#7,4(a5)			// clear int in service mfp
-		bclr.b	#7,(a5)				// clear int pending mfp 0xfffffa0b
-	
+        tst.b	-4(a5) 				// dma req?
+        bmi		acsi_dma_start		// ja->
+        lea		0xfffffa0b,a5
+        bclr.b	#7,4(a5)			// clear int in service mfp
+        bclr.b	#7,(a5)				// clear int pending mfp 0xfffffa0b
+
 		move.w	#0x0d0a,d1
 		move.w	d1,MCF_PSC0_PSCTB_8BIT
-		
+
 		move.l	(a7)+,d1
 		move.l	(a7)+,a1
 		rts
@@ -773,7 +773,7 @@ irq7:
  * psc3 com PIC MCF
  */
 handler_psc3:
-		.extern _pic_interrupt_handler
+        .extern _pic_interrupt_handler
 
 		move.w	#0x2700,sr			// disable interrupt
 		lea		-4 * 4(sp),sp		// save gcc scratch registers
@@ -790,7 +790,7 @@ handler_psc3:
  * vbasehi is written to, i.e. when the video base address gets changed
  */
 handler_gpt0:
-		move	#0x2700,sr			// disable interrupts
+        move	#0x2700,sr			// disable interrupts
 
 		lea		-28(a7),a7			// save registers
 		movem.l	d0-d4/a0-a1,(a7)
@@ -802,8 +802,8 @@ handler_gpt0:
 									// to 60d00000 (FPGA video memory)
 		blt		sca_other			//
 
-		lea		MCF_SLT0_SCNT,a0
-  		move.l	(a0),_video_sbt		// save time
+        lea		MCF_SLT0_SCNT,a0
+        move.l	(a0),_video_sbt		// save time
 
 		bra		video_chg_end
 		// FIXME: don't we need to get out here?
@@ -878,22 +878,22 @@ video_copy_data_loop:
 #endif
 
 // eintrag suchen
-		move.l	d0,MCF_MMU_MMUAR	// adress
- 		move.l	#0x106,d4
- 		move.l	d4,MCF_MMU_MMUOR	// search -> new one will be offered if not found
- 		nop
- 		move.l	MCF_MMU_MMUOR,d4
- 		clr.w	d4
- 		swap	d4
- 		move.l	d4,MCF_MMU_MMUAR
-		move.l	d0,d1
-		add.l	#MCF_MMU_MMUTR_ID(sca_page_ID)|std_mmutr,d0
-		add.l	#0x60000000|writethrough_mmudr|MCF_MMU_MMUDR_LK,d1
-		mvz.w	#0x10b,d2								// MMU update 
-		move.l	d0,MCF_MMU_MMUTR		
-		move.l	d1,MCF_MMU_MMUDR
-		move.l	d2,MCF_MMU_MMUOR					// setzen vidoe maped to 60xxx only data  
-		nop
+        move.l	d0,MCF_MMU_MMUAR	// adress
+        move.l	#0x106,d4
+        move.l	d4,MCF_MMU_MMUOR	// search -> new one will be offered if not found
+        nop
+        move.l	MCF_MMU_MMUOR,d4
+        clr.w	d4
+        swap	d4
+        move.l	d4,MCF_MMU_MMUAR
+        move.l	d0,d1
+        add.l	#MCF_MMU_MMUTR_ID(sca_page_ID)|std_mmutr,d0
+        add.l	#0x60000000|writethrough_mmudr|MCF_MMU_MMUDR_LK,d1
+        mvz.w	#0x10b,d2								// MMU update
+        move.l	d0,MCF_MMU_MMUTR
+        move.l	d1,MCF_MMU_MMUDR
+        move.l	d2,MCF_MMU_MMUOR					// setzen vidoe maped to 60xxx only data
+        nop
 
 video_chg_2page:
 // test of adjacent page is needed also
@@ -927,8 +927,8 @@ video_chg_end:
  * low-level interrupt service routine for routines registered with
  * isr_register_handler()
  */
- 		.global	_lowlevel_isr_handler
-		.extern	_isr_execute_handler
+        .global	_lowlevel_isr_handler
+        .extern	_isr_execute_handler
 
 _lowlevel_isr_handler:
 		move.w	#0x2700,sr			// disable interrupts

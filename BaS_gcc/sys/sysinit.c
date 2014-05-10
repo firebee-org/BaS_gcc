@@ -95,10 +95,10 @@ void init_gpio(void)
  	 *
 	 * for DMA operation
 	 */
-	MCF_PAD_PAR_DMA = MCF_PAD_PAR_DMA_PAR_DACK0(0b11) |
-			MCF_PAD_PAR_DMA_PAR_DACK1(0b11) |
-			MCF_PAD_PAR_DMA_PAR_DREQ1(0b11) |
-			MCF_PAD_PAR_DMA_PAR_DREQ0(0b11);
+	MCF_PAD_PAR_DMA = MCF_PAD_PAR_DMA_PAR_DACK0(0x3) |
+			MCF_PAD_PAR_DMA_PAR_DACK1(0x3) |
+			MCF_PAD_PAR_DMA_PAR_DREQ1(0x3) |
+			MCF_PAD_PAR_DMA_PAR_DREQ0(0x3);
 
 	/*
 	 * configure FEC0 pin assignment on GPIO module as FEC0
