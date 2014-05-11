@@ -509,7 +509,7 @@ irq6:	// MFP interrupt from FPGA
 		movem.l	(sp),d0-d1/a0-a1	// restore registers saved above
 		lea		4 * 4(sp),sp		// adjust stack
 
-		bra		irq6_os				// call OS handler
+		beq		irq6_os				// call OS handler
 		rte
 
 irq6_os:	// call native OS irq6 handler

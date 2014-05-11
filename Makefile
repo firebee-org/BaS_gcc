@@ -15,7 +15,7 @@ ifeq (Y,$(COMPILE_ELF))
 TCPREFIX=m68k-elf-
 EXE=elf
 FORMAT=elf32-m68k
-else 
+else
 TCPREFIX=m68k-atari-mint-
 EXE=s19
 FORMAT=srec
@@ -39,6 +39,7 @@ CFLAGS=-mcpu=5474 \
 		-Wa,--register-prefix-optional
 CFLAGS_OPTIMIZED = -mcpu=5474 \
 		-Wall \
+		-g3 \
 		-O2 \
 		-fomit-frame-pointer \
 		-ffreestanding \
@@ -135,7 +136,7 @@ CSRCS= \
 	x86pcibios.c \
 	\
 	basflash.c \
-	basflash_start.c 
+	basflash_start.c
 
 
 ASRCS= \
@@ -283,21 +284,21 @@ $(foreach DIR,$(TRGTDIRS),$(eval $(call EX_TEMPLATE,$(DIR))))
 
 indent: $(CSRCS)
 	indent $<
-	
+
 .PHONY: tags
 tags:
 	ctags $(patsubst %,%/*,$(VPATH))
-	
+
 .PHONY: printvars
 printvars:
 	@$(foreach V,$(.VARIABLES), $(if $(filter-out environment% default automatic, $(origin $V)),$(warning $V=$($V))))
 ifeq (MACHINE_M5484LITE,$$(MACHINE))
 	MNAME=m5484lite
 else ifeq (MACHINE_FIREBEE,$(MACHINE))
-   	MNAME=firebee
+	MNAME=firebee
 endif
 
 tools:
-	$(NATIVECC) $(INCLUDE) -c $(TOOLDIR)/s19header.c -o $(TOOLDIR)/s19header.o 
+	$(NATIVECC) $(INCLUDE) -c $(TOOLDIR)/s19header.c -o $(TOOLDIR)/s19header.o
 	$(NATIVECC) -o $(TOOLDIR)/s19header $(TOOLDIR)/s19header.o
 
