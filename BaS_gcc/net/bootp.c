@@ -11,9 +11,9 @@
 #include <stddef.h>
 #include "bas_printf.h"
 
-//#define DBG_BOOTP
+#define DBG_BOOTP
 #ifdef DBG_BOOTP
-#define dbg(format, arg...) do { xprintf("DEBUG: " format, ##arg); } while (0)
+#define dbg(format, arg...) do { xprintf("DEBUG: %s(): " format, __FUNCTION__, ##arg); } while (0)
 #else
 #define dbg(format, arg...) do { ; } while (0)
 #endif /* DBG_BOOTP */
@@ -94,7 +94,7 @@ void bootp_handler(NIF *nif, NBUF *nbuf)
 	struct bootp_packet *rx_p;
 	udp_frame_hdr *udpframe;
 
-	dbg("%s\n", __FUNCTION__);
+    dbg("\r\n");
 
 	rx_p = (struct bootp_packet *) &nbuf->data[nbuf->offset];
 	udpframe = (udp_frame_hdr *) &nbuf->data[nbuf->offset - UDP_HDR_SIZE];

@@ -26,7 +26,7 @@
 
 #define DBG_BCM
 #ifdef DBG_BCM
-#define dbg(format, arg...) do { xprintf("DEBUG: " format, ##arg); } while (0)
+#define dbg(format, arg...) do { xprintf("DEBUG %s(): " format, __FUNCTION__, ##arg); } while (0)
 #else
 #define dbg(format, arg...) do { ; } while (0)
 #endif /* DBG_BCM */
@@ -55,7 +55,7 @@ int bcm5222_init(uint8_t fec_ch, uint8_t phy_addr, uint8_t speed, uint8_t duplex
 
 	/* Initialize the MII interface */
 	fec_mii_init(fec_ch, SYSCLK / 1000);
-	dbg("%s: PHY reset\r\n", __FUNCTION__);
+    dbg("PHY reset\r\n");
 
 	/* Reset the PHY */
 	if (!fec_mii_write(fec_ch, phy_addr, BCM5222_CTRL, BCM5222_CTRL_RESET | BCM5222_CTRL_ANE))
@@ -71,7 +71,7 @@ int bcm5222_init(uint8_t fec_ch, uint8_t phy_addr, uint8_t speed, uint8_t duplex
 	if(timeout >= FEC_MII_TIMEOUT)
 		return 0;
 
-	dbg("%s: PHY reset OK\r\n", __FUNCTION__);
+    dbg("PHY reset OK\r\n");
 
 	settings = (BCM5222_AN_ADV_NEXT_PAGE | BCM5222_AN_ADV_PAUSE);
 
@@ -89,13 +89,13 @@ int bcm5222_init(uint8_t fec_ch, uint8_t phy_addr, uint8_t speed, uint8_t duplex
 	if (!fec_mii_write(fec_ch, phy_addr, BCM5222_AN_ADV, settings))
 		return 0;
 
-	dbg("%s: PHY Enable Auto-Negotiation\r\n", __FUNCTION__);
+    dbg("PHY Enable Auto-Negotiation\r\n");
 
 	/* Enable Auto-Negotiation */
 	if (!fec_mii_write(fec_ch, phy_addr, BCM5222_CTRL, (BCM5222_CTRL_ANE | BCM5222_CTRL_RESTART_AN)))
 		return 0;
 
-	dbg("%s: PHY Wait for auto-negotiation to complete\r\n", __FUNCTION__);
+    dbg("PHY Wait for auto-negotiation to complete\r\n");
 
 	/* Wait for auto-negotiation to complete */
 	for (timeout = 0; timeout < FEC_MII_TIMEOUT; timeout++)
@@ -108,7 +108,7 @@ int bcm5222_init(uint8_t fec_ch, uint8_t phy_addr, uint8_t speed, uint8_t duplex
 
 	if (timeout < FEC_MII_TIMEOUT)
 	{
-		dbg("%s: PHY auto-negociation complete\r\n", __FUNCTION__);
+        dbg("PHY auto-negociation complete\r\n");
 
 		/* Read Auxiliary Control/Status Register */
 		if (!fec_mii_read(fec_ch, phy_addr, BCM5222_ACSR, &settings))
@@ -116,7 +116,7 @@ int bcm5222_init(uint8_t fec_ch, uint8_t phy_addr, uint8_t speed, uint8_t duplex
 	}
 	else
 	{
-		dbg("%s: auto negotiation failed, PHY Set the default mode\r\n", __FUNCTION__);
+        dbg("auto negotiation failed, PHY Set the default mode\r\n");
 
 		/* Set the default mode (Full duplex, 100 Mbps) */
 		if (!fec_mii_write(fec_ch, phy_addr, BCM5222_ACSR, settings = (BCM5222_ACSR_100BTX | BCM5222_ACSR_FDX)))
@@ -129,17 +129,17 @@ int bcm5222_init(uint8_t fec_ch, uint8_t phy_addr, uint8_t speed, uint8_t duplex
 	else
 		fec_duplex(fec_ch, FEC_MII_HALF_DUPLEX);
 
-	dbg("%s: PHY Mode: ", __FUNCTION__);
+    dbg("PHY Mode: ");
 
 	if (settings & BCM5222_ACSR_100BTX)
-		dbg("%s: 100Mbps\r\n", __FUNCTION__);
+        dbg("100Mbps\r\n");
 	else
-		dbg("%s: 10Mbps\r\n", __FUNCTION__);
+        dbg("10Mbps\r\n");
 
 	if (settings & BCM5222_ACSR_FDX)
-		dbg("%s: Full-duplex\r\n", __FUNCTION__);
+        dbg("Full-duplex\r\n");
 	else
-		dbg("%s: Half-duplex\r\n", __FUNCTION__);
+        dbg("Half-duplex\r\n");
 
 	return 1;
 }

@@ -11,7 +11,7 @@
 #include "bas_printf.h"
 #include <stddef.h>
 
-//#define DBG_FECBD
+#define DBG_FECBD
 #ifdef DBG_FECBD
 #define dbg(format, arg...) do { xprintf("DEBUG: " format, ##arg); } while (0)
 #else
@@ -31,14 +31,14 @@
  * 
  */
 
-FECBD unaligned_bds[(2 * NRXBD) + (2 * NTXBD) + 1];
+static FECBD unaligned_bds[(2 * NRXBD) + (2 * NTXBD) + 1];
 
 /*
  * These pointers are used to reference into the chunck of data set 
  * aside for buffer descriptors
  */
-FECBD *RxBD;
-FECBD *TxBD;
+static FECBD *RxBD;
+static FECBD *TxBD;
 
 /*
  * Macros to easier access to the BD ring
@@ -65,7 +65,7 @@ void fecbd_init(uint8_t ch)
 	NBUF *nbuf;
 	int i;
 
-	dbg("%s:\r\n", __FUNCTION__);
+    dbg("\r\n");
 
 	/* 
 	 * Align Buffer Descriptors to 4-byte boundary 
@@ -73,7 +73,7 @@ void fecbd_init(uint8_t ch)
 	RxBD = (FECBD *)(((int) unaligned_bds + 3) & 0xFFFFFFFC);
 	TxBD = (FECBD *)((int) RxBD + (sizeof(FECBD) * 2 * NRXBD));
 
-	dbg("%s: initialise RX buffer descriptor ring\r\n", __FUNCTION__);
+    dbg("initialise RX buffer descriptor ring\r\n");
 
 	/* 
 	 * Initialize the Rx Buffer Descriptor ring 
@@ -84,7 +84,7 @@ void fecbd_init(uint8_t ch)
 		nbuf = nbuf_alloc();
 		if (nbuf == NULL)
 		{
-			dbg("%s: could not allocate network buffer\r\n", __FUNCTION__);
+            dbg("could not allocate network buffer\r\n");
 			return;
 		}
 
@@ -102,7 +102,7 @@ void fecbd_init(uint8_t ch)
 	 */
 	RxBD(ch, i - 1).status |= RX_BD_W;
 
-	dbg("%s: initialise TX buffer descriptor ring\r\n", __FUNCTION__);
+    dbg("initialise TX buffer descriptor ring\r\n");
 
 	/* 
 	 * Initialize the Tx Buffer Descriptor ring 
