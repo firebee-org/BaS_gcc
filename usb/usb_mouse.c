@@ -48,7 +48,7 @@ static int usb_mouse_probe(struct usb_device *dev, unsigned int ifnum);
 int usb_mouse_deregister(struct usb_device *dev)
 {
 	dev->irq_handle = NULL;
-	if(new != NULL)
+	if (new != NULL)
 	{
 		driver_mem_free(new);
 		new = NULL;
@@ -61,8 +61,9 @@ int usb_mouse_deregister(struct usb_device *dev)
 /* registering the mouse */
 int usb_mouse_register(struct usb_device *dev)
 {
-	if(!mouse_installed && (dev->devnum != -1) && (usb_mouse_probe(dev, 0) == 1))
-	{ /* Ok, we found a mouse */
+	if (!mouse_installed && (dev->devnum != -1) && (usb_mouse_probe(dev, 0) == 1))
+	{
+		/* Ok, we found a mouse */
 		mse_printf("USB MOUSE found (USB: %d, devnum: %d)\r\n", dev->usbnum, dev->devnum);
 		mouse_installed = 1;
 		dev->deregister = usb_mouse_deregister;
@@ -76,12 +77,12 @@ int usb_mouse_register(struct usb_device *dev)
 int drv_usb_mouse_init(void)
 {
 	int i, j;
-	if(mouse_installed)
+	if (mouse_installed)
 		return -1;
 	/* scan all USB Devices */
-	for(j = 0; j < USB_MAX_BUS; j++)
+	for (j = 0; j < USB_MAX_BUS; j++)
 	{
-		for(i = 0; i < USB_MAX_DEVICE; i++)
+		for (i = 0; i < USB_MAX_DEVICE; i++)
 		{
 			struct usb_device *dev = usb_get_dev_index(i, j); /* get device */
 			if (dev == NULL)
@@ -109,27 +110,27 @@ static int usb_mouse_irq(struct usb_device *dev)
 	int level;
 #endif
 	int i, change = 0;
-	if((dev->irq_status != 0) || (dev->irq_act_len < 3) || (dev->irq_act_len > 8))
+	if ((dev->irq_status != 0) || (dev->irq_act_len < 3) || (dev->irq_act_len > 8))
 	{
 		mse_printf("USB MOUSE error %lX, len %d\r\n", dev->irq_status, dev->irq_act_len);
 		return 1;
 	}
-	for(i = 0; i < dev->irq_act_len; i++)
+	for (i = 0; i < dev->irq_act_len; i++)
 	{
-		if(new[i] != old[i])
+		if (new[i] != old[i])
 		{
 			change = 1;
 			break;
 		}
 	}
-	if(change)
+	if (change)
 	{
 		char wheel = 0, buttons, old_buttons;
 		mse_printf("USB MOUSE len:%d %02X %02X %02X %02X %02X %02X\r\n", dev->irq_act_len, new[0], new[1], new[2], new[3], new[4], new[5]);
 #ifdef CONFIG_USB_INTERRUPT_POLLING
 		level = set_ipl(7); /* mask interrupts */
 #endif
-		if((dev->irq_act_len >= 6) && (new[0] == 1)) /* report-ID */
+		if ((dev->irq_act_len >= 6) && (new[0] == 1)) /* report-ID */
 		{
 			buttons = new[1];
 			old_buttons = old[1];
@@ -143,24 +144,24 @@ static int usb_mouse_irq(struct usb_device *dev)
 			buttons = new[0];
 			old_buttons = old[0];
 			new[0] = ((new[0] & 1) << 1) + ((new[0] & 2) >> 1) + 0xF8;
-			if(dev->irq_act_len >= 3)
+			if (dev->irq_act_len >= 3)
 				wheel = new[3];
 		}
-		if((buttons ^ old_buttons) & 4) /* 3rd button */
+		if ((buttons ^ old_buttons) & 4) /* 3rd button */
 		{
-		  if(buttons & 4)
+		  if (buttons & 4)
 		  {
 				usb_kbd_send_code(0x72); /* ENTER */
 				usb_kbd_send_code(0xF2);
 			}
 		}
-		if(wheel != 0) /* actually like Eiffel */
+		if (wheel != 0) /* actually like Eiffel */
 		{
 #define REPEAT_WHEEL 3
 			int i;
-			if(wheel > 0)
+			if (wheel > 0)
 			{
-				for(i = 0; i < REPEAT_WHEEL; i++)
+				for (i = 0; i < REPEAT_WHEEL; i++)
 				{
 					usb_kbd_send_code(0x48); /* UP */
 					usb_kbd_send_code(0xC8);
@@ -168,7 +169,7 @@ static int usb_mouse_irq(struct usb_device *dev)
 			}
 			else
 			{
-				for(i = 0; i < REPEAT_WHEEL; i++)
+				for (i = 0; i < REPEAT_WHEEL; i++)
 				{
 					usb_kbd_send_code(0x50); /* DOWN */
 					usb_kbd_send_code(0xD0);
@@ -197,24 +198,24 @@ static int usb_mouse_probe(struct usb_device *dev, unsigned int ifnum)
 	struct usb_interface_descriptor *iface;
 	struct usb_endpoint_descriptor *ep;
 	int pipe, maxp;
-	if(dev->descriptor.bNumConfigurations != 1)
+	if (dev->descriptor.bNumConfigurations != 1)
 		return 0;
 	iface = &dev->config.if_desc[ifnum];
-	if(iface->bInterfaceClass != 3)
+	if (iface->bInterfaceClass != 3)
 		return 0;
-	if(iface->bInterfaceSubClass != 1)
+	if (iface->bInterfaceSubClass != 1)
 		return 0;
-	if(iface->bInterfaceProtocol != 2)
+	if (iface->bInterfaceProtocol != 2)
 		return 0;
-	if(iface->bNumEndpoints != 1)
+	if (iface->bNumEndpoints != 1)
 		return 0;
 	ep = &iface->ep_desc[0];
-	if(!(ep->bEndpointAddress & 0x80))
+	if (!(ep->bEndpointAddress & 0x80))
 		return 0;
-	if((ep->bmAttributes & 3) != 3)
+	if ((ep->bmAttributes & 3) != 3)
 		return 0;
 	new = (unsigned char *)driver_mem_alloc(8);
-	if(new == NULL)
+	if (new == NULL)
 		return 0;
 	mse_printf("USB MOUSE found set protocol...\r\n");
 	/* ok, we found a USB Mouse, install it */

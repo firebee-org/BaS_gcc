@@ -48,6 +48,7 @@
 #include "bootp.h"
 #include "interrupts.h"
 #include "exceptions.h"
+#include "net_timer.h"
 
 //#define BAS_DEBUG
 #if defined(BAS_DEBUG)

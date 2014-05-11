@@ -145,7 +145,7 @@ __extension__                             \
 __extension__                                      \
 ({__asm__ volatile ("lea     -60(sp),sp\n\t"       \
                     "movem.l d0-d7/a0-a6,(sp)");   \
-  ((void (*)(void))addr)();                        \
+  ((void (*) (void)) addr)();                      \
   __asm__ volatile ("movem.l (sp),d0-d7/a0-a6\n\t" \
                     "lea     60(sp),sp");          \
 })

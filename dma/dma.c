@@ -39,7 +39,7 @@
 #error "unknown machine!"
 #endif /* MACHINE_FIREBEE */
 
-//#define DBG_DMA
+#define DBG_DMA
 #ifdef DBG_DMA
 #define dbg(format, arg...) do { xprintf("DEBUG: " format, ##arg); } while (0)
 #else
@@ -596,11 +596,15 @@ int dma_interrupt_handler(void *arg1, void *arg2)
 void *dma_memcpy(void *dst, void *src, size_t n)
 {
 	int ret;
-	volatile int32_t time;
-	volatile int32_t start;
-	volatile int32_t end;
+
+#ifdef DBG_DMA
+    int32_t time;
+    int32_t start;
+    int32_t end;
 
 	start = MCF_SLT0_SCNT;
+#endif /* DBG_DMA */
+
 	ret = MCD_startDma(1, src, 4, dst, 4, n, 4, DMA_ALWAYS, 0, MCD_SINGLE_DMA, 0);
 	if (ret == MCD_OK)
 	{
@@ -644,8 +648,10 @@ void *dma_memcpy(void *dst, void *src, size_t n)
 #endif
 	} while (ret != MCD_DONE);
 
+#ifdef DBG_DMA
 	end = MCF_SLT0_SCNT;
 	time = (start - end) / (SYSCLK / 1000) / 1000;
+#endif /* DBG_DMA */
 	dbg("%s: took %d ms (%f Mbytes/second)\r\n", __FUNCTION__, time, n / (float) time / 1000.0);
 
 	return dst;

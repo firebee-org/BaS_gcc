@@ -9,7 +9,6 @@
 #ifndef _IP_H
 #define _IP_H
 
-/********************************************************************/
 
 /* 32-bit IP Addresses */
 typedef uint8_t IP_ADDR[4];
@@ -57,7 +56,6 @@ typedef struct
 #define IP_HDR_OFFSET   ETH_HDR_LEN
 #define IP_HDR_SIZE     20  /* no options */
 
-/********************************************************************/
 
 typedef struct
 {
@@ -71,7 +69,6 @@ typedef struct
 	unsigned int    err;
 } IP_INFO;
 
-/********************************************************************/
 
 extern void ip_handler(NIF *nif, NBUF *nbf);
 uint16_t ip_chksum(uint16_t *data, int num);
