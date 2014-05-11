@@ -67,4 +67,5 @@ end
 
 tr
 ib
+add-symbol-file ../emutos/emutos2.img 0xe00000
 load firebee/ram.elf
