@@ -669,7 +669,8 @@ static bool i2c_bus_free(void)
 /*
  * TFP410 (DVI) on
  */
-void dvi_on(void) {
+void dvi_on(void)
+{
 	uint8_t receivedByte;
 	uint8_t dummyByte; /* only used for a dummy read */
 	int num_tries = 0;
@@ -678,9 +679,10 @@ void dvi_on(void) {
 
 	MCF_I2C_I2FDR = 0x3c;		/* divide system clock by 1280: 100kHz standard */
 
-	do {
+	do
+	{
 		/* disable all i2c interrupt routing targets */
-		MCF_I2C_I2ICR = 0x0; //~(MCF_I2C_I2ICR_IE | MCF_I2C_I2ICR_RE | MCF_I2C_I2ICR_TE | MCF_I2C_I2ICR_BNBE);
+		MCF_I2C_I2ICR = 0x0;	// ~(MCF_I2C_I2ICR_IE | MCF_I2C_I2ICR_RE | MCF_I2C_I2ICR_TE | MCF_I2C_I2ICR_BNBE);
 
 		/* disable i2c, disable i2c interrupts, slave, receive, i2c = acknowledge, no repeat start */
 		MCF_I2C_I2CR = 0x0;

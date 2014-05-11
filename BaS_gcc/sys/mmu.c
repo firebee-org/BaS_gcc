@@ -192,8 +192,8 @@ static struct mmu_mapping locked_map[] =
 {
 	{
 		/* Falcon video memory. Needs special care */
-		0xd00000,
 		0x60d00000,
+		0xd00000,
 		0x100000,
 		MMU_PAGE_SIZE_1M,
 		{ CACHE_WRITETHROUGH, SV_USER, SCA_PAGE_ID, ACCESS_READ | ACCESS_WRITE | ACCESS_EXECUTE },
@@ -429,8 +429,8 @@ bool access_exception(uint32_t pc, uint32_t format_status)
 	{
 		case 0x4010000:	/* TLB miss on opword of instruction fetch */
 		case 0x4020000:	/* TLB miss on extension word of instruction fetch */
-			fault_address = pc;
-			break;
+			//fault_address = pc;
+			//break;
 		case 0x8020000:	/* TLB miss on data write */
 		case 0xc020000:	/* TLB miss on data read or read-modify-write */
 			fault_address = MCF_MMU_MMUAR;
