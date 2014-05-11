@@ -2,7 +2,7 @@
  * File:		sysinit.c
  * Purpose:		Power-on Reset configuration of the Firebee board.
  *
- * Notes: 
+ * Notes:
  *
  * This file is part of BaS_gcc.
  *
@@ -60,7 +60,7 @@
 extern volatile long _VRAM;	/* start address of video ram from linker script */
 
 /*
- * init SLICE TIMER 0 
+ * init SLICE TIMER 0
  * all  = 32.538 sec = 30.736mHz
  * BYT0 = 127.1ms/tick = 7.876Hz   offset 0
  * BYT1 = 496.5us/tick = 2.014kHz  offset 1
@@ -89,10 +89,10 @@ void init_gpio(void)
 	 * configure all four 547x GPIO module DMA pins:
 	 *
 	 * /DACK1 - DMA acknowledge 1
- 	 * /DACK0 - DMA acknowledge 0
- 	 * /DREQ1 - DMA request 1
- 	 * /DREQ0 - DMA request 0
- 	 *
+	 * /DACK0 - DMA acknowledge 0
+	 * /DREQ1 - DMA request 1
+	 * /DREQ0 - DMA request 0
+	 *
 	 * for DMA operation
 	 */
 	MCF_PAD_PAR_DMA = MCF_PAD_PAR_DMA_PAR_DACK0(0x3) |
@@ -430,27 +430,27 @@ void init_fbcs()
 #if MACHINE_FIREBEE /* FBC setup for FireBee */
 	MCF_FBCS1_CSAR = 0xFFF00000;			/* ATARI I/O ADRESS */
 	MCF_FBCS1_CSCR = MCF_FBCS_CSCR_PS_16	/* 16BIT PORT */
-	    | MCF_FBCS_CSCR_WS(8)				/* DEFAULT 8WS */
-	    | MCF_FBCS_CSCR_AA;					/* AA */
+		| MCF_FBCS_CSCR_WS(8)				/* DEFAULT 8WS */
+		| MCF_FBCS_CSCR_AA;					/* AA */
 	MCF_FBCS1_CSMR = MCF_FBCS_CSMR_BAM_1M | MCF_FBCS_CSMR_V;
 
 	MCF_FBCS2_CSAR = 0xF0000000;			// NEUER I/O ADRESS-BEREICH
 	MCF_FBCS2_CSCR = MCF_FBCS_CSCR_PS_32	// 32BIT PORT
-	    | MCF_FBCS_CSCR_WS(8)				// DEFAULT 4WS
-	    | MCF_FBCS_CSCR_AA;					// AA
+		| MCF_FBCS_CSCR_WS(8)				// DEFAULT 4WS
+		| MCF_FBCS_CSCR_AA;					// AA
 	MCF_FBCS2_CSMR = (MCF_FBCS_CSMR_BAM_128M	// F000'0000-F7FF'FFFF
 			  | MCF_FBCS_CSMR_V);
 
 	MCF_FBCS3_CSAR = 0xF8000000;			// NEUER I/O ADRESS-BEREICH
 	MCF_FBCS3_CSCR = MCF_FBCS_CSCR_PS_16	// 16BIT PORT
-	    | MCF_FBCS_CSCR_AA;	// AA 
+		| MCF_FBCS_CSCR_AA;	// AA
 	MCF_FBCS3_CSMR = (MCF_FBCS_CSMR_BAM_64M	// F800'0000-FBFF'FFFF
 			  | MCF_FBCS_CSMR_V);
 
 	MCF_FBCS4_CSAR = 0x40000000;			// VIDEO RAM BEREICH, #FB_CS3 WIRD NICHT BENÜTZT, DECODE DIREKT AUF DEM FPGA
 	MCF_FBCS4_CSCR = MCF_FBCS_CSCR_PS_32	// 32BIT PORT
-	    | MCF_FBCS_CSCR_BSTR				// BURST READ ENABLE
-	    | MCF_FBCS_CSCR_BSTW;				// BURST WRITE ENABLE
+		| MCF_FBCS_CSCR_BSTR				// BURST READ ENABLE
+		| MCF_FBCS_CSCR_BSTW;				// BURST WRITE ENABLE
 	MCF_FBCS4_CSMR = MCF_FBCS_CSMR_BAM_1G	// 4000'0000-7FFF'FFFF
 			  | MCF_FBCS_CSMR_V;
 #elif MACHINE_M5484LITE
@@ -465,7 +465,7 @@ void init_fbcs()
 		| MCF_FBCS_CSCR_WS(32)
 		| MCF_FBCS_CSCR_ASET(1)
 		| MCF_FBCS_CSCR_AA;
-	MCF_FBCS5_CSMR = MCF_FBCS_CSMR_BAM_256M 
+	MCF_FBCS5_CSMR = MCF_FBCS_CSMR_BAM_256M
 		| MCF_FBCS_CSMR_V;
 #endif /* MACHINE_FIREBEE */
 
@@ -583,7 +583,7 @@ void init_video_ddr(void) {
 /*
  * probe for NEC compatible USB host controller and install if found
  */
-void init_usb(void) 
+void init_usb(void)
 {
 	extern struct pci_device_id ohci_usb_pci_table[];
 	extern struct pci_device_id ehci_usb_pci_table[];
@@ -673,7 +673,7 @@ void dvi_on(void) {
 	uint8_t receivedByte;
 	uint8_t dummyByte; /* only used for a dummy read */
 	int num_tries = 0;
-	
+
 	xprintf("DVI digital video output initialization: ");
 
 	MCF_I2C_I2FDR = 0x3c;		/* divide system clock by 1280: 100kHz standard */
@@ -817,16 +817,16 @@ void init_ac97(void) {
 	int va;
 	int vb;
 	int vc;
-	
+
 	xprintf("AC97 sound chip initialization: ");
 	MCF_PAD_PAR_PSC2 = MCF_PAD_PAR_PSC2_PAR_RTS2_RTS	// PSC2=TX,RX BCLK,CTS->AC'97
-	       | MCF_PAD_PAR_PSC2_PAR_CTS2_BCLK
+		   | MCF_PAD_PAR_PSC2_PAR_CTS2_BCLK
 			 | MCF_PAD_PAR_PSC2_PAR_TXD2
 			 | MCF_PAD_PAR_PSC2_PAR_RXD2;
 	MCF_PSC2_PSCMR1 = 0x0;
 	MCF_PSC2_PSCMR2 = 0x0;
 	MCF_PSC2_PSCIMR = 0x0300;
-	MCF_PSC2_PSCSICR = 0x03;	//AC97           
+	MCF_PSC2_PSCSICR = 0x03;	//AC97
 	MCF_PSC2_PSCRFCR = 0x0f000000;
 	MCF_PSC2_PSCTFCR = 0x0f000000;
 	MCF_PSC2_PSCRFAR = 0x00F0;
@@ -847,7 +847,7 @@ void init_ac97(void) {
 		{
 			MCF_PSC2_PSCTB_AC97 = 0x0;	//SLOT2-12:WR REG ALLES 0
 		}
-		
+
 		// read register
 		MCF_PSC2_PSCTB_AC97 = 0xc0000000;	//START SLOT1 + SLOT2, FIRST FRAME
 		MCF_PSC2_PSCTB_AC97 = 0x82000000;	//SLOT1:master volume
@@ -857,7 +857,7 @@ void init_ac97(void) {
 			MCF_PSC2_PSCTB_AC97 = 0x00000000;	//SLOT2-12:RD REG ALLES 0
 		}
 		wait(50);
-		
+
 		va = MCF_PSC2_PSCTB_AC97;
 		if ((va & 0x80000fff) == 0x80000800) {
 			vb = MCF_PSC2_PSCTB_AC97;
@@ -961,10 +961,10 @@ void initialize_hardware(void)
 		* (volatile uint32_t *) 0x43a = 0x237698aa;	/* memval2 TOS system variable */
 		* (volatile uint32_t *) 0x51a = 0x5555aaaa;	/* memval3 TOS system variable */
 
-	    /* TT-RAM */
+		/* TT-RAM */
 
-	    * (uint32_t *) 0x5a4 = FASTRAM_END; /* ramtop TOS system variable */
-	    * (uint32_t *) 0x5a8 = 0x1357bd13;  /* ramvalid TOS system variable */
+		* (uint32_t *) 0x5a4 = FASTRAM_END; /* ramtop TOS system variable */
+		* (uint32_t *) 0x5a8 = 0x1357bd13;  /* ramvalid TOS system variable */
 
 		/* Jump into FireTOS */
 		typedef void void_func(void);
@@ -977,7 +977,7 @@ void initialize_hardware(void)
 	init_serial();
 
 	xprintf("\n\n");
-	xprintf("%s BASIS system (BaS) v %d.%d (%s, %s)\r\n\r\n", 
+	xprintf("%s BASIS system (BaS) v %d.%d (%s, %s)\r\n\r\n",
 #if MACHINE_FIREBEE
 	"Firebee"
 #elif MACHINE_M5484LITE
@@ -1093,6 +1093,7 @@ void initialize_hardware(void)
 
 	/* the following only makes sense _after_ DDRAM has been initialized */
 	clear_bss_segment();
+	xprintf(".bss segment cleared\r\n");
 
 	if (BAS_LMA != BAS_IN_RAM)
 	{
@@ -1112,7 +1113,7 @@ void initialize_hardware(void)
 	init_video_ddr();
 	dvi_on();
 
-#ifdef _NOT_USED_ 
+#ifdef _NOT_USED_
 	/* experimental */
 	{
 		int i;
@@ -1138,7 +1139,7 @@ void initialize_hardware(void)
 	driver_mem_init();
 	init_pci();
 	video_init();
-	
+
 	/* do not try to init USB for now on the Firebee, it hangs the machine */
 #ifndef MACHINE_FIREBEE
 	//init_usb();

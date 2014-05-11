@@ -55,19 +55,19 @@
  */
 inline uint32_t set_asid(uint32_t value)
 {
-    extern long rt_asid;
-    uint32_t ret = rt_asid;
+	extern long rt_asid;
+	uint32_t ret = rt_asid;
 
-    __asm__ __volatile__(
-            "movec		%[value],ASID\n\t"
-            : /* no output */
-            : [value] "r" (value)
-            :
-            );
+	__asm__ __volatile__(
+			"movec		%[value],ASID\n\t"
+			: /* no output */
+			: [value] "r" (value)
+			:
+			);
 
-    rt_asid = value;
+	rt_asid = value;
 
-    return ret;
+	return ret;
 }
 
 
@@ -77,18 +77,18 @@ inline uint32_t set_asid(uint32_t value)
  */
 inline uint32_t set_acr0(uint32_t value)
 {
-    extern uint32_t rt_acr0;
-    uint32_t ret = rt_acr0;
+	extern uint32_t rt_acr0;
+	uint32_t ret = rt_acr0;
 
-    __asm__ __volatile__(
-            "movec		%[value],ACR0\n\t"
-            : /* not output */
-            : [value] "r" (value)
-            :
-            );
-    rt_acr0 = value;
+	__asm__ __volatile__(
+			"movec		%[value],ACR0\n\t"
+			: /* not output */
+			: [value] "r" (value)
+			:
+			);
+	rt_acr0 = value;
 
-    return ret;
+	return ret;
 }
 
 /*
@@ -97,18 +97,18 @@ inline uint32_t set_acr0(uint32_t value)
  */
 inline uint32_t set_acr1(uint32_t value)
 {
-    extern uint32_t rt_acr1;
-    uint32_t ret = rt_acr1;
+	extern uint32_t rt_acr1;
+	uint32_t ret = rt_acr1;
 
-    __asm__ __volatile__(
-            "movec		%[value],ACR1\n\t"
-            : /* not output */
-            : [value] "r" (value)
-            :
-            );
-    rt_acr1 = value;
+	__asm__ __volatile__(
+			"movec		%[value],ACR1\n\t"
+			: /* not output */
+			: [value] "r" (value)
+			:
+			);
+	rt_acr1 = value;
 
-    return ret;
+	return ret;
 }
 
 
@@ -118,18 +118,18 @@ inline uint32_t set_acr1(uint32_t value)
  */
 inline uint32_t set_acr2(uint32_t value)
 {
-    extern uint32_t rt_acr2;
-    uint32_t ret = rt_acr2;
+	extern uint32_t rt_acr2;
+	uint32_t ret = rt_acr2;
 
-    __asm__ __volatile__(
-            "movec		%[value],ACR2\n\t"
-            : /* not output */
-            : [value] "r" (value)
-            :
-            );
-    rt_acr2 = value;
+	__asm__ __volatile__(
+			"movec		%[value],ACR2\n\t"
+			: /* not output */
+			: [value] "r" (value)
+			:
+			);
+	rt_acr2 = value;
 
-    return ret;
+	return ret;
 }
 
 /*
@@ -138,35 +138,35 @@ inline uint32_t set_acr2(uint32_t value)
  */
 inline uint32_t set_acr3(uint32_t value)
 {
-    extern uint32_t rt_acr3;
-    uint32_t ret = rt_acr3;
+	extern uint32_t rt_acr3;
+	uint32_t ret = rt_acr3;
 
-    __asm__ __volatile__(
-            "movec		%[value],ACR3\n\t"
-            : /* not output */
-            : [value] "r" (value)
-            :
-            );
-    rt_acr3 = value;
+	__asm__ __volatile__(
+			"movec		%[value],ACR3\n\t"
+			: /* not output */
+			: [value] "r" (value)
+			:
+			);
+	rt_acr3 = value;
 
-    return ret;
+	return ret;
 }
 
 inline uint32_t set_mmubar(uint32_t value)
 {
-    extern uint32_t rt_mmubar;
-    uint32_t ret = rt_mmubar;
+	extern uint32_t rt_mmubar;
+	uint32_t ret = rt_mmubar;
 
-    __asm__ __volatile__(
-            "movec		%[value],MMUBAR\n\t"
-            : /* no output */
-            : [value] "r" (value)
-            : /* no clobber */
-            );
-    rt_mmubar = value;
-    NOP();
+	__asm__ __volatile__(
+			"movec		%[value],MMUBAR\n\t"
+			: /* no output */
+			: [value] "r" (value)
+			: /* no clobber */
+			);
+	rt_mmubar = value;
+	NOP();
 
-    return ret;
+	return ret;
 }
 
 
@@ -181,229 +181,229 @@ extern uint8_t _FASTRAM_END[];
 
 struct mmu_mapping
 {
-    uint32_t phys;
-    uint32_t virt;
-    uint32_t length;
-    uint32_t pagesize;
-    struct map_flags flags;
+	uint32_t phys;
+	uint32_t virt;
+	uint32_t length;
+	uint32_t pagesize;
+	struct map_flags flags;
 };
 
 static struct mmu_mapping locked_map[] =
 {
-    {
-        /* Falcon video memory. Needs special care */
-        0xd00000,
-        0x60d00000,
-        0x100000,
-        MMU_PAGE_SIZE_1M,
-        { CACHE_WRITETHROUGH, SV_USER, SCA_PAGE_ID, ACCESS_READ | ACCESS_WRITE | ACCESS_EXECUTE },
-    },
+	{
+		/* Falcon video memory. Needs special care */
+		0xd00000,
+		0x60d00000,
+		0x100000,
+		MMU_PAGE_SIZE_1M,
+		{ CACHE_WRITETHROUGH, SV_USER, SCA_PAGE_ID, ACCESS_READ | ACCESS_WRITE | ACCESS_EXECUTE },
+	},
 };
 
 static int num_locked_mmu_maps = sizeof(locked_map) / sizeof(struct mmu_mapping);
 
 static struct mmu_mapping memory_map[] =
 {
-    /* map system vectors supervisor-protected */
-    {
-        0,
-        0,
-        0x800,
-        MMU_PAGE_SIZE_1K,
-        { CACHE_WRITETHROUGH, SV_USER, 0, ACCESS_READ | ACCESS_WRITE | ACCESS_EXECUTE },
-    },
-    {
-        0x800,
-        0x800,
-        0x800,
-        MMU_PAGE_SIZE_1K,
-        { CACHE_WRITETHROUGH, SV_USER, 0, ACCESS_READ | ACCESS_WRITE | ACCESS_EXECUTE },
-    },
-    {
-        /* when the first 4k are filled with 1k pages, we can switch to 8k pages */
-        0x1000,
-        0x1000,
-        0xff000,
-        MMU_PAGE_SIZE_8K,
-        { CACHE_WRITETHROUGH, SV_USER, 0, ACCESS_READ | ACCESS_WRITE | ACCESS_EXECUTE },
-    },
-    {
-        /* arrived at a 1Meg border, we can switch to 1Meg pages */
-        0x100000,
-        0x100000,
-        0xc00000,
-        MMU_PAGE_SIZE_1M,
-        { CACHE_WRITETHROUGH, SV_USER, 0, ACCESS_READ | ACCESS_WRITE | ACCESS_EXECUTE },
-    },
-    /* Falcon video ram left out intentionally here (see above) */
-    {
-        /* ROM */
-        0xe00000,
-        0xe00000,
-        0x100000,
-        MMU_PAGE_SIZE_1M,
-        { CACHE_WRITETHROUGH, SV_USER, 0, ACCESS_READ | ACCESS_EXECUTE },
-    },
-    {
-        /* FASTRAM */
-        0x1000000,
-        0x1000000,
-        (uint32_t) _FASTRAM_END - 0x1000000,
-        MMU_PAGE_SIZE_1M,
-        { CACHE_WRITETHROUGH, SV_USER, 0, ACCESS_READ | ACCESS_WRITE | ACCESS_EXECUTE },
-    },
-    {
-        /* MBAR */
-        MBAR_ADDRESS,
-        MBAR_ADDRESS,
-        0x100000,
-        MMU_PAGE_SIZE_1M,
-        { CACHE_NOCACHE_PRECISE, SV_PROTECT, 0, ACCESS_READ | ACCESS_WRITE },
-    },
-    {
-        /* RAMBAR0 */
-        RAMBAR0_ADDRESS,
-        RAMBAR0_ADDRESS,
-        (uint32_t) _RAMBAR0_SIZE,
-        MMU_PAGE_SIZE_1K,
-        { CACHE_WRITETHROUGH, SV_PROTECT, 0, ACCESS_READ | ACCESS_WRITE | ACCESS_EXECUTE },
-    },
-    {
-        /* RAMBAR1 */
-        RAMBAR1_ADDRESS,
-        RAMBAR1_ADDRESS,
-        (uint32_t) _RAMBAR1_SIZE,
-        MMU_PAGE_SIZE_1K,
-        { CACHE_WRITETHROUGH, SV_PROTECT, 0, ACCESS_READ | ACCESS_WRITE | ACCESS_EXECUTE },
-    },
-    {
-        /* SYSTEM SRAM */
-        SYS_SRAM_ADDRESS,
-        SYS_SRAM_ADDRESS,
-        (uint32_t) _SYS_SRAM_SIZE,
-        MMU_PAGE_SIZE_8K,
-        { CACHE_WRITETHROUGH, SV_PROTECT, 0, ACCESS_READ | ACCESS_WRITE | ACCESS_EXECUTE },
-    },
-    {
-        /* Firebee FPGA registers */
-        (uint32_t) 0xf0000000,
-        (uint32_t) 0xf0000000,
-        (uint32_t) 0x08000000,
-        MMU_PAGE_SIZE_1M,
-        { CACHE_NOCACHE_PRECISE, SV_PROTECT, 0, ACCESS_READ | ACCESS_WRITE },
-    },
-    {
-        /* Falcon I/O registers */
-        (uint32_t) 0xfff00000,
-        (uint32_t) 0xfff00000,
-        (uint32_t) 0x100000,
-        MMU_PAGE_SIZE_1M,
-        { CACHE_NOCACHE_PRECISE, SV_PROTECT, 0, ACCESS_READ | ACCESS_WRITE },
-    },
-    {
-        /* the same, but different virtual address */
-        (uint32_t) 0x00f00000,
-        (uint32_t) 0xfff00000,
-        (uint32_t) 0x100000,
-        MMU_PAGE_SIZE_1M,
-        { CACHE_NOCACHE_PRECISE, SV_PROTECT, ACCESS_READ | ACCESS_WRITE },
-    }
+	/* map OS system vectors supervisor-protected */
+	{
+		0,
+		0,
+		0x800,
+		MMU_PAGE_SIZE_1K,
+		{ CACHE_WRITETHROUGH, SV_PROTECT, 0, ACCESS_READ | ACCESS_WRITE | ACCESS_EXECUTE },
+	},
+	{
+		0x800,
+		0x800,
+		0x800,
+		MMU_PAGE_SIZE_1K,
+		{ CACHE_WRITETHROUGH, SV_PROTECT, 0, ACCESS_READ | ACCESS_WRITE | ACCESS_EXECUTE },
+	},
+	{
+		/* when the first 4k are filled with 1k pages, we can switch to 8k pages */
+		0x1000,
+		0x1000,
+		0xff000,
+		MMU_PAGE_SIZE_8K,
+		{ CACHE_WRITETHROUGH, SV_USER, 0, ACCESS_READ | ACCESS_WRITE | ACCESS_EXECUTE },
+	},
+	{
+		/* arrived at a 1Meg border, we can switch to 1Meg pages */
+		0x100000,
+		0x100000,
+		0xc00000,
+		MMU_PAGE_SIZE_1M,
+		{ CACHE_WRITETHROUGH, SV_USER, 0, ACCESS_READ | ACCESS_WRITE | ACCESS_EXECUTE },
+	},
+	/* Falcon video ram left out intentionally here (see above) */
+	{
+		/* ROM */
+		0xe00000,
+		0xe00000,
+		0x100000,
+		MMU_PAGE_SIZE_1M,
+		{ CACHE_WRITETHROUGH, SV_USER, 0, ACCESS_READ | ACCESS_EXECUTE },
+	},
+	{
+		/* FASTRAM */
+		0x1000000,
+		0x1000000,
+		(uint32_t) _FASTRAM_END - 0x1000000,
+		MMU_PAGE_SIZE_1M,
+		{ CACHE_WRITETHROUGH, SV_USER, 0, ACCESS_READ | ACCESS_WRITE | ACCESS_EXECUTE },
+	},
+	{
+		/* MBAR */
+		MBAR_ADDRESS,
+		MBAR_ADDRESS,
+		0x100000,
+		MMU_PAGE_SIZE_1M,
+		{ CACHE_NOCACHE_PRECISE, SV_PROTECT, 0, ACCESS_READ | ACCESS_WRITE },
+	},
+	{
+		/* RAMBAR0 */
+		RAMBAR0_ADDRESS,
+		RAMBAR0_ADDRESS,
+		(uint32_t) _RAMBAR0_SIZE,
+		MMU_PAGE_SIZE_1K,
+		{ CACHE_WRITETHROUGH, SV_PROTECT, 0, ACCESS_READ | ACCESS_WRITE | ACCESS_EXECUTE },
+	},
+	{
+		/* RAMBAR1 */
+		RAMBAR1_ADDRESS,
+		RAMBAR1_ADDRESS,
+		(uint32_t) _RAMBAR1_SIZE,
+		MMU_PAGE_SIZE_1K,
+		{ CACHE_WRITETHROUGH, SV_PROTECT, 0, ACCESS_READ | ACCESS_WRITE | ACCESS_EXECUTE },
+	},
+	{
+		/* SYSTEM SRAM */
+		SYS_SRAM_ADDRESS,
+		SYS_SRAM_ADDRESS,
+		(uint32_t) _SYS_SRAM_SIZE,
+		MMU_PAGE_SIZE_8K,
+		{ CACHE_WRITETHROUGH, SV_PROTECT, 0, ACCESS_READ | ACCESS_WRITE | ACCESS_EXECUTE },
+	},
+	{
+		/* Firebee FPGA registers */
+		(uint32_t) 0xf0000000,
+		(uint32_t) 0xf0000000,
+		(uint32_t) 0x08000000,
+		MMU_PAGE_SIZE_1M,
+		{ CACHE_NOCACHE_PRECISE, SV_PROTECT, 0, ACCESS_READ | ACCESS_WRITE },
+	},
+	{
+		/* Falcon I/O registers */
+		(uint32_t) 0xfff00000,
+		(uint32_t) 0xfff00000,
+		(uint32_t) 0x100000,
+		MMU_PAGE_SIZE_1M,
+		{ CACHE_NOCACHE_PRECISE, SV_PROTECT, 0, ACCESS_READ | ACCESS_WRITE },
+	},
+	{
+		/* the same, but different virtual address */
+		(uint32_t) 0x00f00000,
+		(uint32_t) 0xfff00000,
+		(uint32_t) 0x100000,
+		MMU_PAGE_SIZE_1M,
+		{ CACHE_NOCACHE_PRECISE, SV_PROTECT, ACCESS_READ | ACCESS_WRITE },
+	}
 };
 
 static int num_mmu_maps = sizeof(memory_map) / sizeof(struct mmu_mapping);
 
 static struct mmu_mapping *lookup_mapping(uint32_t virt)
 {
-    int i;
+	int i;
 
-    /*
-     * dumb, for now
-     */
+	/*
+	 * dumb, for now
+	 */
 
-    for (i = 0; i < num_mmu_maps; i++)
-    {
-        if (virt >= memory_map[i].virt && virt <= memory_map[i].virt + memory_map[i].length - 1)
-            return &memory_map[i];
-    }
-    return NULL;
+	for (i = 0; i < num_mmu_maps; i++)
+	{
+		if (virt >= memory_map[i].virt && virt <= memory_map[i].virt + memory_map[i].length - 1)
+			return &memory_map[i];
+	}
+	return NULL;
 }
 
 void mmu_init(void)
 {
-    extern uint8_t _MMUBAR[];
-    uint32_t MMUBAR = (uint32_t) &_MMUBAR[0];
-    int i;
+	extern uint8_t _MMUBAR[];
+	uint32_t MMUBAR = (uint32_t) &_MMUBAR[0];
+	int i;
 
-    set_asid(0);			/* do not use address extension (ASID provides virtual 48 bit addresses */
+	set_asid(0);			/* do not use address extension (ASID provides virtual 48 bit addresses */
 
-    /*
-     * need to set data ACRs in a way that supervisor access to all memory regions
-     * becomes possible. Otherways it might be that the supervisor stack ends up in an unmapped
-     * region when further MMU TLB entries force a page steal. This would lead to a double
-     * fault since the CPU wouldn't be able to push its exception stack frame during an access
-     * exception
-     */
+	/*
+	 * need to set data ACRs in a way that supervisor access to all memory regions
+	 * becomes possible. Otherways it might be that the supervisor stack ends up in an unmapped
+	 * region when further MMU TLB entries force a page steal. This would lead to a double
+	 * fault since the CPU wouldn't be able to push its exception stack frame during an access
+	 * exception
+	 */
 
-    /* set data access attributes in ACR0 and ACR1 */
+	/* set data access attributes in ACR0 and ACR1 */
 
-    set_acr0(ACR_WRITE_PROTECT(0) |			/* read and write accesses permitted */
-            ACR_SUPERVISOR_PROTECT(0) |		/* supervisor and user mode access permitted */
-            ACR_CACHE_MODE(CACHE_WRITETHROUGH) |	/* cacheable, write through */
-            ACR_ADDRESS_MASK_MODE(1) | 		/* region 13 MByte */
-            ACR_S(ACR_S_SUPERVISOR_MODE) |	/* memory only visible from supervisor mode */
-            ACR_E(1) |						/* enable ACR */
-            ACR_ADMSK(0x0a) |				/* cover 12 MByte from 0x0 */
-            ACR_BA(0));						/* start from 0x0 */
+	set_acr0(ACR_WRITE_PROTECT(0) |			/* read and write accesses permitted */
+			ACR_SUPERVISOR_PROTECT(0) |		/* supervisor and user mode access permitted */
+			ACR_CACHE_MODE(CACHE_WRITETHROUGH) |	/* cacheable, write through */
+			ACR_ADDRESS_MASK_MODE(1) | 		/* region 13 MByte */
+			ACR_S(ACR_S_SUPERVISOR_MODE) |	/* memory only visible from supervisor mode */
+			ACR_E(1) |						/* enable ACR */
+			ACR_ADMSK(0x0a) |				/* cover 12 MByte from 0x0 */
+			ACR_BA(0));						/* start from 0x0 */
 
-    set_acr1(ACR_WRITE_PROTECT(0) |			/* read and write accesses permitted */
-            ACR_SUPERVISOR_PROTECT(0) |		/* supervisor and user mode access permitted */
-            ACR_CACHE_MODE(CACHE_WRITETHROUGH) |	/* cacheable, write through */
-            ACR_ADDRESS_MASK_MODE(0) | 		/* region > 16 MByte */
-            ACR_S(ACR_S_SUPERVISOR_MODE) |	/* memory only visible from supervisor mode */
-            ACR_E(1) |						/* enable ACR */
-            ACR_ADMSK(0x1f) |				/* cover 495 MByte from 0x1000000 */
-            ACR_BA(0x01000000));			/* all Fast RAM */
+	set_acr1(ACR_WRITE_PROTECT(0) |			/* read and write accesses permitted */
+			ACR_SUPERVISOR_PROTECT(0) |		/* supervisor and user mode access permitted */
+			ACR_CACHE_MODE(CACHE_WRITETHROUGH) |	/* cacheable, write through */
+			ACR_ADDRESS_MASK_MODE(0) | 		/* region > 16 MByte */
+			ACR_S(ACR_S_SUPERVISOR_MODE) |	/* memory only visible from supervisor mode */
+			ACR_E(1) |						/* enable ACR */
+			ACR_ADMSK(0x1f) |				/* cover 495 MByte from 0x1000000 */
+			ACR_BA(0x01000000));			/* all Fast RAM */
 
 
-    /*
-     * set instruction access attributes in ACR2 and ACR3. This is the same as above, basically:
-     * enable supervisor access to all SDRAM
-     */
+	/*
+	 * set instruction access attributes in ACR2 and ACR3. This is the same as above, basically:
+	 * enable supervisor access to all SDRAM
+	 */
 
-    set_acr2(ACR_WRITE_PROTECT(0) |
-            ACR_SUPERVISOR_PROTECT(0) |
-            ACR_CACHE_MODE(CACHE_WRITETHROUGH) |
-            ACR_ADDRESS_MASK_MODE(1) |
-            ACR_S(ACR_S_SUPERVISOR_MODE) |
-            ACR_E(1) |
-            ACR_ADMSK(0x0c) |
-            ACR_BA(0x0));
+	set_acr2(ACR_WRITE_PROTECT(0) |
+			ACR_SUPERVISOR_PROTECT(0) |
+			ACR_CACHE_MODE(CACHE_WRITETHROUGH) |
+			ACR_ADDRESS_MASK_MODE(1) |
+			ACR_S(ACR_S_SUPERVISOR_MODE) |
+			ACR_E(1) |
+			ACR_ADMSK(0x0c) |
+			ACR_BA(0x0));
 
-    set_acr3(ACR_WRITE_PROTECT(0) |
-            ACR_SUPERVISOR_PROTECT(0) |
-            ACR_CACHE_MODE(CACHE_WRITETHROUGH) |
-            ACR_ADDRESS_MASK_MODE(0) |
-            ACR_S(ACR_S_SUPERVISOR_MODE) |
-            ACR_E(1) |
-            ACR_ADMSK(0x1f) |
-            ACR_BA(0x0f));
+	set_acr3(ACR_WRITE_PROTECT(0) |
+			ACR_SUPERVISOR_PROTECT(0) |
+			ACR_CACHE_MODE(CACHE_WRITETHROUGH) |
+			ACR_ADDRESS_MASK_MODE(0) |
+			ACR_S(ACR_S_SUPERVISOR_MODE) |
+			ACR_E(1) |
+			ACR_ADMSK(0x1f) |
+			ACR_BA(0x0f));
 
-    set_mmubar(MMUBAR + 1);		/* set and enable MMUBAR */
+	set_mmubar(MMUBAR + 1);		/* set and enable MMUBAR */
 
-    /* clear all MMU TLB entries */
-    MCF_MMU_MMUOR = MCF_MMU_MMUOR_CA;
+	/* clear all MMU TLB entries */
+	MCF_MMU_MMUOR = MCF_MMU_MMUOR_CA;
 
-    /* map locked TLB entries */
-    for (i = 0; i < num_locked_mmu_maps; i++)
-    {
-        mmu_map_page(locked_map[i].virt, locked_map[i].phys, locked_map->pagesize, locked_map->flags);
+	/* map locked TLB entries */
+	for (i = 0; i < num_locked_mmu_maps; i++)
+	{
+		mmu_map_page(locked_map[i].virt, locked_map[i].phys, locked_map->pagesize, locked_map->flags);
 
-        if (locked_map[i].flags.page_id == SCA_PAGE_ID)
-        {
-            video_tlb = 0x2000;
-            video_sbt = 0x0;
-        }
-    }
+		if (locked_map[i].flags.page_id == SCA_PAGE_ID)
+		{
+			video_tlb = 0x2000;
+			video_sbt = 0x0;
+		}
+	}
 }
 
 /*
@@ -412,101 +412,105 @@ void mmu_init(void)
  */
 bool access_exception(uint32_t pc, uint32_t format_status)
 {
-    int fault_status;
-    uint32_t fault_address;
-    uint32_t mmu_status;
+	int fault_status;
+	uint32_t fault_address;
+	uint32_t mmu_status;
 
-    /*
-     * extract fault status from format_status exception stack field
-     */
-    fault_status = format_status & 0xc030000;
-    mmu_status = MCF_MMU_MMUSR;
+	/*
+	 * extract fault status from format_status exception stack field
+	 */
+	fault_status = format_status & 0xc030000;
+	mmu_status = MCF_MMU_MMUSR;
 
-    /*
-     * determine if access fault was caused by a TLB miss
-     */
-    switch (fault_status)
-    {
-        case 0x4010000:	/* TLB miss on opword of instruction fetch */
-        case 0x4020000:	/* TLB miss on extension word of instruction fetch */
-            fault_address = pc;
-            break;
-        case 0x8020000:	/* TLB miss on data write */
-        case 0xc020000:	/* TLB miss on data read or read-modify-write */
-            fault_address = MCF_MMU_MMUAR;
-            dbg("access fault - TLB miss at %p. Fault status = 0x0%x\r\n", pc, fault_status);
-            break;
+	/*
+	 * determine if access fault was caused by a TLB miss
+	 */
+	switch (fault_status)
+	{
+		case 0x4010000:	/* TLB miss on opword of instruction fetch */
+		case 0x4020000:	/* TLB miss on extension word of instruction fetch */
+			fault_address = pc;
+			break;
+		case 0x8020000:	/* TLB miss on data write */
+		case 0xc020000:	/* TLB miss on data read or read-modify-write */
+			fault_address = MCF_MMU_MMUAR;
+			/*
+			 * the following line must stay commented or we risk a double fault (debugging
+			 * output requiring itself a page mapping):
+			 */
+			// dbg("access fault - TLB miss at %p. Fault status = 0x0%x\r\n", pc, fault_status);
+			break;
 
-        default:
-            return false;
-    }
-
-
-    if (mmu_status & MCF_MMU_MMUSR_HIT)		/* did the last fault hit in TLB? */
-    {
-        /*
-         * if yes, then we already mapped that page during a previous turn and this is in fact a bus error
-         */
-        return false;
-    }
-    else
-    {
-        struct mmu_mapping *map;
+		default:
+			return false;
+	}
 
 
-        if ((map = lookup_mapping(fault_address)) != NULL)
-        {
-            uint32_t mask;
+	if (mmu_status & MCF_MMU_MMUSR_HIT)		/* did the last fault hit in TLB? */
+	{
+		/*
+		 * if yes, then we already mapped that page during a previous turn and this is in fact a bus error
+		 */
+		return false;
+	}
+	else
+	{
+		struct mmu_mapping *map;
 
-            switch (map->pagesize)
-            {
-                case MMU_PAGE_SIZE_1M:
-                    mask = ~(0x100000 - 1);
-                    break;
-                case MMU_PAGE_SIZE_4K:
-                    mask = ~(0x1000 - 1);
-                    break;
-                case MMU_PAGE_SIZE_8K:
-                    mask = ~(0x2000 - 1);
-                    break;
-                case MMU_PAGE_SIZE_1K:
-                    mask = ~(0x400 - 1);
-                    break;
-            }
 
-            mmu_map_page(fault_address & mask, fault_address & mask, map->pagesize, map->flags);
-            return true;
-        }
-    }
-    return false;
+		if ((map = lookup_mapping(fault_address)) != NULL)
+		{
+			uint32_t mask;
+
+			switch (map->pagesize)
+			{
+				case MMU_PAGE_SIZE_1M:
+					mask = ~(0x100000 - 1);
+					break;
+				case MMU_PAGE_SIZE_4K:
+					mask = ~(0x1000 - 1);
+					break;
+				case MMU_PAGE_SIZE_8K:
+					mask = ~(0x2000 - 1);
+					break;
+				case MMU_PAGE_SIZE_1K:
+					mask = ~(0x400 - 1);
+					break;
+			}
+
+			mmu_map_page(fault_address & mask, fault_address & mask, map->pagesize, map->flags);
+			return true;
+		}
+	}
+	return false;
 }
 
 
 void mmu_map_page(uint32_t virt, uint32_t phys, uint32_t map_size, struct map_flags flags)
 {
 
-    /*
-     * add page to TLB
-     */
-    MCF_MMU_MMUTR = virt |					/* virtual address */
-        MCF_MMU_MMUTR_ID(flags.page_id) |
-        MCF_MMU_MMUTR_SG |					/* shared global */
-        MCF_MMU_MMUTR_V;					/* valid */
+	/*
+	 * add page to TLB
+	 */
+	MCF_MMU_MMUTR = virt |					/* virtual address */
+		MCF_MMU_MMUTR_ID(flags.page_id) |
+		MCF_MMU_MMUTR_SG |					/* shared global */
+		MCF_MMU_MMUTR_V;					/* valid */
 
-    MCF_MMU_MMUDR = phys |					/* physical address */
-        MCF_MMU_MMUDR_SZ(map_size) |		/* 1 MB page size */
-        MCF_MMU_MMUDR_CM(flags.cache_mode) |
-        (flags.access & ACCESS_READ ? MCF_MMU_MMUDR_R : 0) |		/* read access enable */
-        (flags.access & ACCESS_WRITE ? MCF_MMU_MMUDR_W : 0) |		/* write access enable */
-        (flags.access & ACCESS_EXECUTE ? MCF_MMU_MMUDR_X : 0);		/* execute access enable */
+	MCF_MMU_MMUDR = phys |					/* physical address */
+		MCF_MMU_MMUDR_SZ(map_size) |		/* 1 MB page size */
+		MCF_MMU_MMUDR_CM(flags.cache_mode) |
+		(flags.access & ACCESS_READ ? MCF_MMU_MMUDR_R : 0) |		/* read access enable */
+		(flags.access & ACCESS_WRITE ? MCF_MMU_MMUDR_W : 0) |		/* write access enable */
+		(flags.access & ACCESS_EXECUTE ? MCF_MMU_MMUDR_X : 0);		/* execute access enable */
 
-    MCF_MMU_MMUOR = MCF_MMU_MMUOR_ACC |		/* access TLB, data */
-        MCF_MMU_MMUOR_UAA;					/* update allocation address field */
+	MCF_MMU_MMUOR = MCF_MMU_MMUOR_ACC |		/* access TLB, data */
+		MCF_MMU_MMUOR_UAA;					/* update allocation address field */
 
-    MCF_MMU_MMUOR = MCF_MMU_MMUOR_ITLB | 	/* instruction */
-        MCF_MMU_MMUOR_ACC |     			/* access TLB */
-        MCF_MMU_MMUOR_UAA;      			/* update allocation address field */
-    dbg("mapped virt=%p to phys=%p\r\n", virt, phys);
+	MCF_MMU_MMUOR = MCF_MMU_MMUOR_ITLB | 	/* instruction */
+		MCF_MMU_MMUOR_ACC |     			/* access TLB */
+		MCF_MMU_MMUOR_UAA;      			/* update allocation address field */
+	dbg("mapped virt=%p to phys=%p\r\n", virt, phys);
 }
 
 
