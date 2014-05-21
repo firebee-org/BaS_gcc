@@ -587,7 +587,168 @@ int32_t pci_unhook_interrupt(int32_t handle)
 	return PCI_SUCCESSFUL;
 }
 
+/*
+ * Not implemented PCI_BIOS functions
+ */
 
+uint8_t pci_fast_read_config_byte(int32_t handle, uint16_t reg)
+{
+	return PCI_FUNC_NOT_SUPPORTED;
+}
+
+uint16_t pci_fast_read_config_word(int32_t handle, uint16_t reg)
+{
+	return PCI_FUNC_NOT_SUPPORTED;
+}
+
+uint32_t pci_fast_read_config_longword(int32_t handle, uint16_t reg)
+{
+	return PCI_FUNC_NOT_SUPPORTED;
+}
+
+int32_t pci_special_cycle(uint16_t bus, uint32_t data)
+{
+	return PCI_FUNC_NOT_SUPPORTED;
+}
+
+int32_t pci_get_routing(int32_t handle)
+{
+	return PCI_FUNC_NOT_SUPPORTED;
+}
+
+int32_t pci_set_interrupt(int32_t handle)
+{
+	return PCI_FUNC_NOT_SUPPORTED;
+}
+
+int32_t pci_get_card_used(int32_t handle, uint32_t *address)
+{
+	return PCI_FUNC_NOT_SUPPORTED;
+}
+
+int32_t pci_set_card_used(int32_t handle, uint32_t *callback)
+{
+	return PCI_FUNC_NOT_SUPPORTED;
+}
+
+int32_t pci_read_mem_byte(int32_t handle, uint32_t offset, uint8_t *address)
+{
+	return PCI_FUNC_NOT_SUPPORTED;
+}
+
+int32_t pci_read_mem_word(int32_t handle, uint32_t offset, uint16_t *address)
+{
+	return PCI_FUNC_NOT_SUPPORTED;
+}
+
+int32_t pci_read_mem_longword(int32_t handle, uint32_t offset, uint32_t *address)
+{
+	return PCI_FUNC_NOT_SUPPORTED;
+}
+
+uint8_t pci_fast_read_mem_byte(int32_t handle, uint32_t offset)
+{
+	return PCI_FUNC_NOT_SUPPORTED;
+}
+
+uint16_t pci_fast_read_mem_word(int32_t handle, uint32_t offset)
+{
+	return PCI_FUNC_NOT_SUPPORTED;
+}
+
+uint32_t pci_fast_read_mem_longword(int32_t handle, uint32_t offset)
+{
+	return PCI_FUNC_NOT_SUPPORTED;
+}
+
+int32_t pci_write_mem_byte(int32_t handle, uint32_t offset, uint16_t val)
+{
+	return PCI_FUNC_NOT_SUPPORTED;
+}
+
+int32_t pci_write_mem_word(int32_t handle, uint32_t offset, uint16_t val)
+{
+	return PCI_FUNC_NOT_SUPPORTED;
+}
+
+int32_t pci_write_mem_longword(int32_t handle, uint32_t offset, uint32_t val)
+{
+	return PCI_FUNC_NOT_SUPPORTED;
+}
+
+int32_t pci_read_io_byte(int32_t handle, uint32_t offset, uint8_t *address)
+{
+	return PCI_FUNC_NOT_SUPPORTED;
+}
+
+int32_t pci_read_io_word(int32_t handle, uint32_t offset, uint16_t *address)
+{
+	return PCI_FUNC_NOT_SUPPORTED;
+}
+
+int32_t pci_read_io_longword(int32_t handle, uint32_t offset, uint32_t *address)
+{
+	return PCI_FUNC_NOT_SUPPORTED;
+}
+
+uint8_t pci_fast_read_io_byte(int32_t handle, uint32_t offset)
+{
+	return PCI_FUNC_NOT_SUPPORTED;
+}
+
+uint16_t pci_fast_read_io_word(int32_t handle, uint32_t offset)
+{
+	return PCI_FUNC_NOT_SUPPORTED;
+}
+
+uint32_t pci_fast_read_io_longword(int32_t handle, uint32_t offset)
+{
+	return PCI_FUNC_NOT_SUPPORTED;
+}
+
+int32_t pci_write_io_byte(int32_t handle, uint32_t offset, uint16_t val)
+{
+	return PCI_FUNC_NOT_SUPPORTED;
+}
+
+int32_t pci_write_io_word(int32_t handle, uint32_t offset, uint16_t val)
+{
+	return PCI_FUNC_NOT_SUPPORTED;
+}
+
+int32_t pci_write_io_longword(int32_t handle, uint32_t offset, uint32_t val)
+{
+	return PCI_FUNC_NOT_SUPPORTED;
+}
+
+int32_t pci_get_machine_id(void)
+{
+	return PCI_FUNC_NOT_SUPPORTED;
+}
+
+int32_t pci_get_pagesize(void)
+{
+	return PCI_FUNC_NOT_SUPPORTED;
+}
+
+int32_t pci_virt_to_bus(int32_t handle, uint32_t address, PCI_CONV_ADR *pointer)
+{
+	return PCI_FUNC_NOT_SUPPORTED;
+}
+int32_t pci_bus_to_virt(int32_t handle, uint32_t address, PCI_CONV_ADR *pointer)
+{
+	return PCI_FUNC_NOT_SUPPORTED;
+}
+
+int32_t pci_virt_to_phys(uint32_t address, PCI_CONV_ADR *pointer)
+{
+	return PCI_FUNC_NOT_SUPPORTED;
+}
+
+int32_t pci_phys_to_virt(uint32_t address, PCI_CONV_ADR *pointer)
+{
+	return PCI_FUNC_NOT_SUPPORTED;
+}
 
 /*
  * pci_device_config()

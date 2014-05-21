@@ -30,6 +30,7 @@
 #include "dma.h"
 #include "driver_vec.h"
 #include "driver_mem.h"
+#include "pci.h"
 
 /*
  * driver interface struct for the SD card BaS driver
@@ -70,6 +71,58 @@ static struct dma_driver_interface dma_interface =
 extern const struct fb_info *info_fb;
 
 /*
+ * driver interface struct for the PCI_BIOS BaS driver
+ */
+static struct pci_bios_interface pci_interface = 
+{
+	.subjar = 0,
+	.version = 0x00010000,
+	.find_pci_device = wrapper_find_pci_device,
+	.find_pci_classcode = wrapper_find_pci_classcode,
+	.read_config_byte = wrapper_read_config_byte,
+	.read_config_word = wrapper_read_config_word,
+	.read_config_longword = wrapper_read_config_longword,
+	.fast_read_config_byte = wrapper_fast_read_config_byte,
+	.fast_read_config_word = wrapper_fast_read_config_word,
+	.fast_read_config_longword = wrapper_fast_read_config_longword,
+	.write_config_byte = wrapper_write_config_byte,
+	.write_config_word = wrapper_write_config_word,
+	.write_config_longword = wrapper_write_config_longword,
+	.hook_interrupt = wrapper_hook_interrupt,
+	.unhook_interrupt = wrapper_unhook_interrupt,
+	.special_cycle = wrapper_special_cycle,
+	.get_routing = wrapper_get_routing,
+	.set_interrupt = wrapper_set_interrupt,
+	.get_resource = wrapper_get_resource,
+	.get_card_used = wrapper_get_card_used,
+	.set_card_used = wrapper_set_card_used,
+	.read_mem_byte = wrapper_read_mem_byte,
+	.read_mem_word = wrapper_read_mem_word,
+	.read_mem_longword = wrapper_read_mem_longword,
+	.fast_read_mem_byte = wrapper_fast_read_mem_byte,
+	.fast_read_mem_word = wrapper_fast_read_mem_word,
+	.fast_read_mem_longword = wrapper_fast_read_mem_longword,
+	.write_mem_byte = wrapper_write_mem_byte,
+	.write_mem_word = wrapper_write_mem_word,
+	.write_mem_longword = wrapper_write_mem_longword,
+	.read_io_byte = wrapper_read_io_byte,
+	.read_io_word = wrapper_read_io_word,
+	.read_io_longword = wrapper_read_io_longword,
+	.fast_read_io_byte = wrapper_fast_read_io_byte,
+	.fast_read_io_word = wrapper_fast_read_io_word,
+	.fast_read_io_longword = wrapper_fast_read_io_longword,
+	.write_io_byte = wrapper_write_io_byte,
+	.write_io_word = wrapper_write_io_word,
+	.write_io_longword = wrapper_write_io_longword,
+	.get_machine_id = wrapper_get_machine_id,
+	.get_pagesize = wrapper_get_pagesize,
+	.virt_to_bus = wrapper_virt_to_bus,
+	.bus_to_virt = wrapper_bus_to_virt,
+	.virt_to_phys = wrapper_virt_to_phys,
+	.phys_to_virt = wrapper_phys_to_virt,
+};
+
+/*
  * driver interface struct for the BaS framebuffer video driver
  */
 static struct framebuffer_driver_interface framebuffer_interface =
@@ -105,7 +158,14 @@ static struct generic_interface interfaces[] =
 		.revision = 1,
 		.interface.fb = &framebuffer_interface,
 	},
-
+	{
+		.type = PCI_DRIVER,
+		.name = "PCI",
+		.description = "BaS PCI_BIOS driver",
+		.version = 0,
+		.revision = 1,
+		.interface.pci = &pci_interface,
+	},
 	/* insert new drivers here */
 
 	{
