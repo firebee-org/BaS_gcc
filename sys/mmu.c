@@ -306,7 +306,7 @@ static struct mmu_mapping memory_map[] =
 		(uint32_t) 0xfff00000,
 		(uint32_t) 0x100000,
 		MMU_PAGE_SIZE_1M,
-		{ CACHE_NOCACHE_PRECISE, SV_PROTECT, ACCESS_READ | ACCESS_WRITE },
+		{ CACHE_NOCACHE_PRECISE, SV_PROTECT, 0, ACCESS_READ | ACCESS_WRITE },
 	}
 };
 
