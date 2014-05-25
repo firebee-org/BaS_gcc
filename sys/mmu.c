@@ -307,6 +307,22 @@ static struct mmu_mapping memory_map[] =
 		(uint32_t) 0x100000,
 		MMU_PAGE_SIZE_1M,
 		{ CACHE_NOCACHE_PRECISE, SV_PROTECT, 0, ACCESS_READ | ACCESS_WRITE },
+	},
+	{
+		/* PCI memory */
+		(uint32_t) PCI_MEMORY_OFFSET,
+		(uint32_t) PCI_MEMORY_OFFSET,
+		(uint32_t) PCI_MEMORY_SIZE,
+		MMU_PAGE_SIZE_1M,
+		{ CACHE_NOCACHE_PRECISE, SV_PROTECT, 0, ACCESS_READ | ACCESS_WRITE },
+	},
+	{
+		/* PCI I/O */
+		(uint32_t) PCI_IO_OFFSET,
+		(uint32_t) PCI_IO_OFFSET,
+		(uint32_t) PCI_IO_SIZE,
+		MMU_PAGE_SIZE_1M,
+		{ CACHE_NOCACHE_PRECISE, SV_PROTECT, 0, ACCESS_READ | ACCESS_WRITE },
 	}
 };
 
