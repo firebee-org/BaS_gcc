@@ -1,3 +1,4 @@
+
 /*
  * This object file must be the first to be linked,
  * so it will be placed at the very beginning of the ROM.
@@ -64,6 +65,3 @@ _rom_entry:
 
 		/* initialize any hardware specific issues */
 		bra    _initialize_hardware
-
-
-// vim: set syntax=asm68k :

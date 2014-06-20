@@ -55,7 +55,9 @@
 #include "usb.h"
 #include "video.h"
 
-#define UNUSED(x) (void)(x)               /* Unused variable         */
+#define UNUSED(x) (void)(x)				/* Unused variable         */
+
+bool fpga_configured = false;			/* for FPGA JTAG configuration */
 
 extern volatile long _VRAM;	/* start address of video ram from linker script */
 
@@ -207,20 +209,6 @@ void init_gpio(void)
 						MCF_PAD_PAR_TIMER_PAR_TOUT3 |
 						MCF_PAD_PAR_TIMER_PAR_TIN2(MCF_PAD_PAR_TIMER_PAR_TIN2_IRQ2) |
 						MCF_PAD_PAR_TIMER_PAR_TOUT2;
-
-#if defined(MACHINE_FIREBEE)
-	/*
-	 * Configure GPIO FEC1L port directions (needed to load FPGA configuration)
-	 */
-	MCF_GPIO_PDDR_FEC1L = 0 |								/* bit 7 = input */
-						  0	|								/* bit 6 = input */
-						  0 | 								/* bit 5 = input */
-						  MCF_GPIO_PDDR_FEC1L_PDDR_FEC1L4 |	/* bit 4 = LED => output */
-						  MCF_GPIO_PDDR_FEC1L_PDDR_FEC1L3 |	/* bit 3 = PRG_DQ0 => output */
-						  MCF_GPIO_PDDR_FEC1L_PDDR_FEC1L2 |	/* bit 2 = FPGA_CONFIG => output */
-						  MCF_GPIO_PDDR_FEC1L_PDDR_FEC1L1 |	/* bit 1 = PRG_CLK (FPGA) => output */
-						  0;								/* bit 0 => input */
-#endif /* MACHINE_FIREBEE */
 }
 
 /*
@@ -1109,33 +1097,11 @@ void initialize_hardware(void)
 #if MACHINE_FIREBEE
 	if (coldboot) /* does not work with BDM */
 		;
-	init_fpga();
+	fpga_configured = init_fpga();
 
 	init_pll();
 	init_video_ddr();
 	dvi_on();
-
-#ifdef _NOT_USED_
-	/* experimental */
-	{
-		int i;
-		uint32_t *scradr = (uint32_t *) 0xd00000;
-
-		for (i = 0; i < 100; i++)
-		{
-			uint32_t *p = scradr;
-
-			for (p = scradr; p < scradr + 1024 * 150L; p++)
-			{
-				*p = 0xffffffff;
-			}
-			for (p = scradr; p < scradr + 1024 * 150L; p++)
-			{
-				*p = 0x0;
-			}
-		}
-	}
-#endif /* _NOT_USED_ */
 
 #endif /* MACHINE_FIREBEE */
 	driver_mem_init();
