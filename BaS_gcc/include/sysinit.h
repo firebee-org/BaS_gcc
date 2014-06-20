@@ -28,12 +28,16 @@
 #ifndef __SYSINIT_H__
 #define __SYSINIT_H__
 
+#include <stdbool.h>
+
 /* function(s) from init_fpga.c */
-extern void init_fpga(void);
+extern bool init_fpga(void);
 extern void init_usb(void);
 
 /* fault_vectors */
 extern void setup_vectors(void);
+
+extern bool fpga_configured;
 
 #endif /* __SYSINIT_H__ */
 

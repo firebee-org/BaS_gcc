@@ -38,59 +38,50 @@ extern uint8_t _FPGA_FLASH_DATA[];
 extern uint8_t _FPGA_FLASH_DATA_SIZE[];
 #define FPGA_FLASH_DATA_SIZE	((uint32_t) &_FPGA_FLASH_DATA_SIZE[0])
 
-
-#ifdef _NOT_USED_
-void test_longword(void)
+void config_gpio_for_fpga_config(void)
 {
-	uint32_t *fpga_data = (uint32_t *) FPGA_FLASH_DATA;
-	const uint32_t *fpga_flash_data_end = (uint32_t *) FPGA_FLASH_DATA + FPGA_FLASH_DATA_SIZE;
-	do
-	{
-		uint32_t value = *fpga_data++;
-		xprintf("LONGWORDS: addr=%p, value=%08x\r", fpga_data, value);
-	} while (fpga_data < fpga_flash_data_end);
-	xprintf("finished. \r\n");
+#if defined(MACHINE_FIREBEE)
+	/*
+	 * Configure GPIO FEC1L port directions (needed to load FPGA configuration)
+	 */
+	MCF_GPIO_PDDR_FEC1L = 0 |								/* bit 7 = input */
+						  0	|								/* bit 6 = input */
+						  0 | 								/* bit 5 = input */
+						  MCF_GPIO_PDDR_FEC1L_PDDR_FEC1L4 |	/* bit 4 = LED => output */
+						  MCF_GPIO_PDDR_FEC1L_PDDR_FEC1L3 |	/* bit 3 = PRG_DQ0 => output */
+						  MCF_GPIO_PDDR_FEC1L_PDDR_FEC1L2 |	/* bit 2 = FPGA_CONFIG => output */
+						  MCF_GPIO_PDDR_FEC1L_PDDR_FEC1L1 |	/* bit 1 = PRG_CLK (FPGA) => output */
+						  0;								/* bit 0 => input */
+#endif /* MACHINE_FIREBEE */
 }
 
-void test_word(void)
+void config_gpio_for_jtag_config(void)
 {
-	uint16_t *fpga_data = (uint16_t *) FPGA_FLASH_DATA;
-	const uint16_t *fpga_flash_data_end = (uint16_t *) FPGA_FLASH_DATA + FPGA_FLASH_DATA_SIZE;
-
-	do
-	{
-		uint16_t value = *fpga_data++;
-		xprintf("WORDS: addr=%p, value=%04x\r", fpga_data, value);
-	} while (fpga_data < fpga_flash_data_end);
-	xprintf("finished. \r\n");
+	/*
+	 * configure FEC1L port directions to enable external JTAG configuration download to FPGA
+	 */
+	MCF_GPIO_PDDR_FEC1L = 0 |
+						  MCF_GPIO_PDDR_FEC1L_PDDR_FEC1L4;	/* bit 4 = LED => output */
+															/* all other bits = input */
+	/*
+	 * unfortunately, the GPIO module cannot trigger interrupts. That means FPGA_CONFIG needs to be polled to detect
+	 * external FPGA (re)configuration and reset the system in that case. Could be done from the OS as well...
+	 */
 }
-
-void test_byte(void)
-{
-	uint8_t *fpga_data = (uint8_t *) FPGA_FLASH_DATA;
-	const uint8_t *fpga_flash_data_end = (uint8_t *) FPGA_FLASH_DATA + FPGA_FLASH_DATA_SIZE;
-
-	do
-	{
-		uint8_t value = *fpga_data++;
-		xprintf("LONGWORDS: addr=%p, value=%08x\r", fpga_data, value);
-	} while (fpga_data < fpga_flash_data_end);
-	xprintf("finished. \r\n");
-}
-#endif /* _NOT_USED_ */
 
 /*
  * load FPGA
  */
-void init_fpga(void)
+bool init_fpga(void)
 {
 	uint8_t *fpga_data;
 	volatile int32_t time, start, end;
 	int i;
 
 	xprintf("FPGA load config... ");
-	start = MCF_SLT0_SCNT; 
+	start = MCF_SLT0_SCNT;
 
+	config_gpio_for_fpga_config();
 	MCF_GPIO_PODR_FEC1L &= ~FPGA_CLOCK;		/* FPGA clock => low */
 
 	/* pulling FPGA_CONFIG to low resets the FPGA */
@@ -109,7 +100,7 @@ void init_fpga(void)
 	 * configuration cycle consists of 3 stages�reset, configuration, and initialization.
 	 * While nCONFIG is low, the device is in reset. When the device comes out of reset,
 	 * nCONFIG must be at a logic high level in order for the device to release the open-drain
- 	 * nSTATUS pin. After nSTATUS is released, it is pulled high by a pull-up resistor and the FPGA
+	 * nSTATUS pin. After nSTATUS is released, it is pulled high by a pull-up resistor and the FPGA
 	 * is ready to receive configuration data. Before and during configuration, all user I/O pins
 	 * are tri-stated. Stratix series, Arria series, and Cyclone series have weak pull-up resistors
 	 * on the I/O pins which are on, before and during configuration.
@@ -159,11 +150,12 @@ void init_fpga(void)
 #endif /* _NOT_USED_ */
 		end = MCF_SLT0_SCNT;
 		time = (start - end) / (SYSCLK / 1000) / 1000;
-		
+
 		xprintf("finished (took %f seconds).\r\n", time / 1000.0);
+		config_gpio_for_jtag_config();
+		return true;
 	}
-	else
-	{
-		xprintf("FAILED!\r\n");
-	}
+	xprintf("FAILED!\r\n");
+	config_gpio_for_jtag_config();
+	return false;
 }

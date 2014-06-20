@@ -48,26 +48,25 @@
 		.extern _irq7_handler
 
 /* Register read/write macros */
-#define MCF_MMU_MMUCR            			__MMUBAR
-#define MCF_MMU_MMUOR                       __MMUBAR+0x04
-#define MCF_MMU_MMUSR                       __MMUBAR+0x08
-#define MCF_MMU_MMUAR                       __MMUBAR+0x10
-#define MCF_MMU_MMUTR                       __MMUBAR+0x14
-#define MCF_MMU_MMUDR                       __MMUBAR+0x18
+#define MCF_MMU_MMUCR            	__MMUBAR
+#define MCF_MMU_MMUOR			__MMUBAR+0x04
+#define MCF_MMU_MMUSR                   __MMUBAR+0x08
+#define MCF_MMU_MMUAR                   __MMUBAR+0x10
+#define MCF_MMU_MMUTR                   __MMUBAR+0x14
+#define MCF_MMU_MMUDR                   __MMUBAR+0x18
 
-#define MCF_EPORT_EPPAR                     __MBAR+0xF00
-#define MCF_EPORT_EPDDR                     __MBAR+0xF04
-#define MCF_EPORT_EPIER                     __MBAR+0xF05
-#define MCF_EPORT_EPDR                      __MBAR+0xF08
-#define MCF_EPORT_EPPDR                     __MBAR+0xF09
-#define MCF_EPORT_EPFR                      __MBAR+0xF0C
+#define MCF_EPORT_EPPAR                 __MBAR+0xF00
+#define MCF_EPORT_EPDDR                 __MBAR+0xF04
+#define MCF_EPORT_EPIER                 __MBAR+0xF05
+#define MCF_EPORT_EPDR                  __MBAR+0xF08
+#define MCF_EPORT_EPPDR                 __MBAR+0xF09
+#define MCF_EPORT_EPFR                  __MBAR+0xF0C
 
-#define MCF_GPIO_PODR_FEC1L                 __MBAR+0xA07
+#define MCF_GPIO_PODR_FEC1L             __MBAR+0xA07
+#define MCF_PSC0_PSCTB_8BIT             __MBAR+0x860C
 
-#define MCF_PSC0_PSCTB_8BIT                 __MBAR+0x860C
-
-#define MCF_PSC3_PSCRB_8BIT                 __MBAR+0x890C
-#define MCF_PSC3_PSCTB_8BIT                 __MBAR+0x890C
+#define MCF_PSC3_PSCRB_8BIT             __MBAR+0x890C
+#define MCF_PSC3_PSCTB_8BIT             __MBAR+0x890C
 
 		.global	_vec_init
 
