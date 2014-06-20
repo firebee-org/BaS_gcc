@@ -364,47 +364,56 @@ void mmu_init(void)
 
 	set_acr0(ACR_WRITE_PROTECT(0) |			/* read and write accesses permitted */
 			ACR_SUPERVISOR_PROTECT(0) |		/* supervisor and user mode access permitted */
-			ACR_CACHE_MODE(CACHE_WRITETHROUGH) |	/* cacheable, write through */
-			ACR_ADDRESS_MASK_MODE(1) | 		/* region 13 MByte */
-			ACR_S(ACR_S_SUPERVISOR_MODE) |	/* memory only visible from supervisor mode */
+			ACR_CACHE_MODE(CACHE_NOCACHE_PRECISE) |	/* cache inhibit, precise */
+			ACR_ADDRESS_MASK_MODE(0) | 		/* region > 16 MByte */
+			ACR_S(ACR_S_ALL) |				/* memory visible in user and supervisor mode */
 			ACR_E(1) |						/* enable ACR */
-			ACR_ADMSK(0x0a) |				/* cover 12 MByte from 0x0 */
-			ACR_BA(0));						/* start from 0x0 */
+#if defined(MACHINE_FIREBEE)
+			ACR_ADMSK(0x3f) |				/* cover 1 GB area from 0xc0000000 to 0xffffffff */
+			ACR_BA(0xc0000000));			/* equals area from 3 to 4 GB */
+#elif defined(MACHINE_M5484LITE)
+			ACR_ADMSK(0x7f) |				/* cover 2 GB area from 0x80000000 to 0xffffffff */
+			ACR_BA(0x80000000));
+#elif defined(MACHINE_M54455)
+			ACR_ADMSK(0x7f) |				/* cover 2 GB area from 0x80000000 to 0xffffffff */
+			ACR_BA(0x80000000));
+#else
+#error unknown machine
+#endif /* MACHINE_FIREBEE */
 
 	set_acr1(ACR_WRITE_PROTECT(0) |			/* read and write accesses permitted */
 			ACR_SUPERVISOR_PROTECT(0) |		/* supervisor and user mode access permitted */
-			ACR_CACHE_MODE(CACHE_WRITETHROUGH) |	/* cacheable, write through */
+#if defined(MACHINE_FIREBEE)
+			ACR_CACHE_MODE(CACHE_WRITETHROUGH) |	/* video RAM on the Firebee */
+#elif defined(MACHINE_M5484LITE)
+			ACR_CACHE_MODE(CACHE_NOCACHE_PRECISE) |	/* Compact Flash on the M548xLITE */
+#elif defined(MACHINE_M54455)
+			ACR_CACHE_MODE(CACHE_NOCACHE_PRECISE) |	/* FIXME: not clear yet */
+#else
+#error unknown machine
+#endif
 			ACR_ADDRESS_MASK_MODE(0) | 		/* region > 16 MByte */
-			ACR_S(ACR_S_SUPERVISOR_MODE) |	/* memory only visible from supervisor mode */
+			ACR_S(ACR_S_ALL) |				/* memory visible from user and supervisor mode */
 			ACR_E(1) |						/* enable ACR */
-			ACR_ADMSK(0x1f) |				/* cover 495 MByte from 0x1000000 */
-			ACR_BA(0x01000000));			/* all Fast RAM */
+			ACR_ADMSK(0x1f) |
+			ACR_BA(0x60000000));
 
 
 	/*
-	 * set instruction access attributes in ACR2 and ACR3. This is the same as above, basically:
-	 * enable supervisor access to all SDRAM
+	 * set instruction access attributes in ACR2 and ACR3.
 	 */
 
 	set_acr2(ACR_WRITE_PROTECT(0) |
 			ACR_SUPERVISOR_PROTECT(0) |
 			ACR_CACHE_MODE(CACHE_WRITETHROUGH) |
 			ACR_ADDRESS_MASK_MODE(1) |
-			ACR_S(ACR_S_SUPERVISOR_MODE) |
+			ACR_S(ACR_S_ALL) |
 			ACR_E(1) |
-			ACR_ADMSK(0x0c) |
-			ACR_BA(0x0));
+			ACR_ADMSK(0x07) |
+			ACR_BA(0xe0000000));
 
-	set_acr3(ACR_WRITE_PROTECT(0) |
-			ACR_SUPERVISOR_PROTECT(0) |
-			ACR_CACHE_MODE(CACHE_WRITETHROUGH) |
-			ACR_ADDRESS_MASK_MODE(0) |
-			ACR_S(ACR_S_SUPERVISOR_MODE) |
-			ACR_E(1) |
-			ACR_ADMSK(0x1f) |
-			ACR_BA(0x0f));
-
-	set_mmubar(MMUBAR + 1);		/* set and enable MMUBAR */
+	set_acr3(0);							/* disable ACR3 */
+	set_mmubar(MMUBAR + 1);					/* set and enable MMUBAR */
 
 	/* clear all MMU TLB entries */
 	MCF_MMU_MMUOR = MCF_MMU_MMUOR_CA;
