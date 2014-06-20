@@ -178,7 +178,7 @@ extern uint8_t _SYS_SRAM[];
 #define SYS_SRAM_ADDRESS ((uint32_t) &_SYS_SRAM[0])
 extern uint8_t _SYS_SRAM_SIZE[];
 extern uint8_t _FASTRAM_END[];
-extern uint32_t TOS;
+extern uint32_t _TOS;
 
 struct mmu_mapping
 {
@@ -208,9 +208,9 @@ static struct mmu_mapping locked_map[] =
 		{ CACHE_WRITETHROUGH, SV_USER, SCA_PAGE_ID, ACCESS_READ | ACCESS_WRITE | ACCESS_EXECUTE },
 	},
     {
-        /* TOS in SDRAM */
-        TOS,
-        TOS,
+        /* TOS in RAM */
+        (uint32_t) &_TOS,
+        (uint32_t) &_TOS,
         0x100000,
         MMU_PAGE_SIZE_1M,
         { CACHE_COPYBACK, SV_USER, 0, ACCESS_READ | ACCESS_EXECUTE },
