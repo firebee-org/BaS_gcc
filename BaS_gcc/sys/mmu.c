@@ -178,6 +178,7 @@ extern uint8_t _SYS_SRAM[];
 #define SYS_SRAM_ADDRESS ((uint32_t) &_SYS_SRAM[0])
 extern uint8_t _SYS_SRAM_SIZE[];
 extern uint8_t _FASTRAM_END[];
+extern uint32_t TOS;
 
 struct mmu_mapping
 {
@@ -190,6 +191,14 @@ struct mmu_mapping
 
 static struct mmu_mapping locked_map[] =
 {
+    {
+        /* first Megabyte of physical memory */
+        0x0,                /* physical address */
+        0x0,                /* virtual address */
+        0x100000,           /* 1 MByte */
+        MMU_PAGE_SIZE_1M,
+        { CACHE_COPYBACK, SV_USER, 0, ACCESS_READ | ACCESS_WRITE | ACCESS_EXECUTE },
+    },
 	{
 		/* Falcon video memory. Needs special care */
 		0x60d00000,
@@ -198,6 +207,38 @@ static struct mmu_mapping locked_map[] =
 		MMU_PAGE_SIZE_1M,
 		{ CACHE_WRITETHROUGH, SV_USER, SCA_PAGE_ID, ACCESS_READ | ACCESS_WRITE | ACCESS_EXECUTE },
 	},
+    {
+        /* TOS in SDRAM */
+        TOS,
+        TOS,
+        0x100000,
+        MMU_PAGE_SIZE_1M,
+        { CACHE_COPYBACK, SV_USER, 0, ACCESS_READ | ACCESS_EXECUTE },
+    },
+    {
+        /* Firebee I/O area */
+        0xfff00000,
+        0x00f00000,
+        0x100000,
+        MMU_PAGE_SIZE_1M,
+        { CACHE_NOCACHE_PRECISE, SV_USER, 0, ACCESS_READ | ACCESS_WRITE },
+    },
+    {
+        /* BaS in RAM */
+        SDRAM_START + SDRAM_SIZE - 0x00200000,
+        SDRAM_START + SDRAM_SIZE - 0x00200000,
+        0x100000,
+        MMU_PAGE_SIZE_1M,
+        { CACHE_WRITETHROUGH, SV_PROTECT, 0, ACCESS_READ | ACCESS_WRITE | ACCESS_EXECUTE },
+    },
+    {
+        /* driver memory */
+        SDRAM_START + SDRAM_SIZE - 0x00100000,
+        SDRAM_START + SDRAM_SIZE - 0x00100000,
+        0x100000,
+        MMU_PAGE_SIZE_1M,
+        { CACHE_NOCACHE_PRECISE, SV_PROTECT, ACCESS_READ | ACCESS_WRITE | ACCESS_EXECUTE },
+    },
 };
 
 static int num_locked_mmu_maps = sizeof(locked_map) / sizeof(struct mmu_mapping);
