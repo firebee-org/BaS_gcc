@@ -96,20 +96,20 @@ static inline bool pic_rxready(void)
 
 void write_pic_byte(uint8_t value)
 {
-    /* Wait until the transmitter is ready or 1000us are passed */
+	/* Wait until the transmitter is ready or 1000us are passed */
 	waitfor(1000, pic_txready);
 
-    /* Transmit the byte */
-    *(volatile uint8_t*)(&MCF_PSC3_PSCTB_8BIT) = value; // Really 8-bit
+	/* Transmit the byte */
+	*(volatile uint8_t*)(&MCF_PSC3_PSCTB_8BIT) = value; // Really 8-bit
 }
 
 uint8_t read_pic_byte(void)
 {
-    /* Wait until a byte has been received or 1000us are passed */
+	/* Wait until a byte has been received or 1000us are passed */
 	waitfor(1000, pic_rxready);
 
-    /* Return the received byte */
-    return *(volatile uint8_t*)(&MCF_PSC3_PSCTB_8BIT); // Really 8-bit
+	/* Return the received byte */
+	return *(volatile uint8_t*)(&MCF_PSC3_PSCTB_8BIT); // Really 8-bit
 }
 
 void pic_init(void)
@@ -271,13 +271,13 @@ void network_init(void)
 		return;
 	}
 
-    /*
-     * Register the DMA interrupt handler
-     */
-    handler = dma_interrupt_handler;
-    vector = 112;
+	/*
+	 * Register the DMA interrupt handler
+	 */
+	handler = dma_interrupt_handler;
+	vector = 112;
 
-    if (!isr_register_handler(vector, handler, NULL,NULL))
+	if (!isr_register_handler(vector, handler, NULL,NULL))
 	{
 		dbg("%s: Error: Unable to register handler for vector %s\r\n", __FUNCTION__, vector);
 		return;
@@ -291,10 +291,10 @@ void network_init(void)
 	memcpy(nif1.hwa, mac, 6);
 	memcpy(nif1.broadcast, bc, 6);
 
-	dbg("%s: ethernet address is %02X:%02X:%02X:%02X:%02X:%02X\r\n", __FUNCTION__, 
+	dbg("%s: ethernet address is %02X:%02X:%02X:%02X:%02X:%02X\r\n", __FUNCTION__,
 				nif1.hwa[0], nif1.hwa[1], nif1.hwa[2],
 				nif1.hwa[3], nif1.hwa[4], nif1.hwa[5]);
-	
+
 	timer_init(TIMER_NETWORK, TMR_INTC_LVL, TMR_INTC_PRI);
 
 	arp_init(&arp_info);
@@ -346,16 +346,16 @@ void BaS(void)
 	MCF_MMU_MMUCR = MCF_MMU_MMUCR_EN;			/* MMU on */
 	NOP();										/* force pipeline sync */
 	xprintf("finished\r\n");
-	
+
 	#ifdef MACHINE_FIREBEE
 	xprintf("IDE reset: ");
 	/* IDE reset */
 	* (volatile uint8_t *) (0xffff8802 - 2) = 14;
 	* (volatile uint8_t *) (0xffff8802 - 0) = 0x80;
 	wait(1);
-	
+
 	* (volatile uint8_t *) (0xffff8802 - 0) = 0;
-	
+
 	xprintf("finished\r\n");
 	xprintf("enable video: ");
 	/*
@@ -384,22 +384,22 @@ void BaS(void)
 #ifdef _NOT_USED_
 	screen_init();
 
-	    /* experimental */
-    {
-        int i;
-        uint32_t *scradr = 0xd00000;
+		/* experimental */
+	{
+		int i;
+		uint32_t *scradr = 0xd00000;
 
-        for (i = 0; i < 100; i++)
-        {
-            uint32_t *p = scradr;
-
-            for (p = scradr; p < scradr + 1024 * 150L; p++)
-            {
-				*p = 0xffffffff;
-		    }
+		for (i = 0; i < 100; i++)
+		{
+			uint32_t *p = scradr;
 
 			for (p = scradr; p < scradr + 1024 * 150L; p++)
-		    {
+			{
+				*p = 0xffffffff;
+			}
+
+			for (p = scradr; p < scradr + 1024 * 150L; p++)
+			{
 				*p = 0x0;
 			}
 		}
@@ -442,10 +442,11 @@ void BaS(void)
 
 	/* Jump into the OS */
 	typedef void void_func(void);
-	typedef struct {
+	struct rom_header
+	{
 		void *initial_sp;
 		void_func *initial_pc;
-	} ROM_HEADER;
+	};
 
 	xprintf("BaS initialization finished, enable interrupts\r\n");
 	enable_coldfire_interrupts();
@@ -454,6 +455,6 @@ void BaS(void)
 	network_init();
 
 	xprintf("call EmuTOS\r\n");
-	ROM_HEADER* os_header = (ROM_HEADER*)TOS;
+	struct rom_header *os_header = (struct rom_header *) TOS;
 	os_header->initial_pc();
 }
