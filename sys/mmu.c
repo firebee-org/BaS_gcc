@@ -393,14 +393,6 @@ void mmu_init(void)
 
 	set_asid(0);			/* do not use address extension (ASID provides virtual 48 bit addresses */
 
-	/*
-	 * need to set data ACRs in a way that supervisor access to all memory regions
-	 * becomes possible. Otherways it might be that the supervisor stack ends up in an unmapped
-	 * region when further MMU TLB entries force a page steal. This would lead to a double
-	 * fault since the CPU wouldn't be able to push its exception stack frame during an access
-	 * exception
-	 */
-
 	/* set data access attributes in ACR0 and ACR1 */
 
 	set_acr0(ACR_WRITE_PROTECT(0) |			/* read and write accesses permitted */
