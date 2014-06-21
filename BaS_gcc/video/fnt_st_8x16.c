@@ -7,6 +7,7 @@
  * option any later version.  See doc/license.txt for details.
  */
 
+#include "bas_types.h"
 #include "font.h"
 
 static const uint16_t off_table[] =
