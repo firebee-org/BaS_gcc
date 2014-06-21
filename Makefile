@@ -124,6 +124,7 @@ CSRCS= \
 	radeon_accel.c \
 	radeon_cursor.c \
 	radeon_monitor.c \
+	fnt_st_8x16.c \
 	\
 	x86decode.c \
 	x86sys.c \
