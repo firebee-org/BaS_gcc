@@ -23,7 +23,7 @@ MEMORY
 	*/
    bas_ram (WX) : ORIGIN = SDRAM_START + SDRAM_SIZE - 0x00200000, LENGTH = 0x00100000
    /*
-    * driver_ram is an uncached, reserved memory area for drivers (e.g. USB) that need this type of memory
+	* driver_ram is an uncached, reserved memory area for drivers (e.g. USB) that need this type of memory
 	*/
    driver_ram (WX) : ORIGIN = SDRAM_START + SDRAM_SIZE - 0x00100000, LENGTH = 0x00100000
 }
@@ -44,8 +44,8 @@ SECTIONS
 		OBJDIR/exceptions.o(.text)
 		OBJDIR/driver_vec.o(.text)
 		OBJDIR/interrupts.o(.text)
-		OBJDIR/mmu.o(.text)		
-		
+		OBJDIR/mmu.o(.text)
+
 		OBJDIR/BaS.o(.text)
 		OBJDIR/pci.o(.text)
 		OBJDIR/usb.o(.text)
@@ -108,7 +108,7 @@ SECTIONS
 		OBJDIR/xhdi_sd.o(.text)
 		OBJDIR/xhdi_interface.o(.text)
 		OBJDIR/xhdi_vec.o(.text)
-		
+
 #ifdef COMPILE_RAM
 		/*
 		 * if we compile to RAM anyway, there is no need to copy anything
@@ -118,7 +118,7 @@ SECTIONS
 		*(.data)
 		__BAS_DATA_END = .;
 		__BAS_BSS_START = .;
-		*(.bss)	
+		*(.bss)
 		__BAS_BSS_END = .;
 #endif /* COMPILE_RAM */
 
@@ -140,7 +140,7 @@ SECTIONS
 		*(.data)
 		__BAS_DATA_END = .;
 		__BAS_BSS_START = .;
-		*(.bss)	
+		*(.bss)
 		__BAS_BSS_END = .;
 
 		. = ALIGN(16);
@@ -153,16 +153,16 @@ SECTIONS
 		_driver_mem_buffer = .;
 		//. = . + DRIVER_MEM_BUFFER_SIZE;
 	} > driver_ram
-	
+
 	/*
 	 * Global memory map
 	 */
 
 	/* SDRAM Initialization */
- 	___SDRAM                = SDRAM_START;
- 	___SDRAM_SIZE           = SDRAM_SIZE;
+	___SDRAM                = SDRAM_START;
+	___SDRAM_SIZE           = SDRAM_SIZE;
 	_SDRAM_VECTOR_TABLE		= ___SDRAM;
-	
+
 	/* ST-RAM */
 	__STRAM                 = ___SDRAM;
 	__STRAM_END             = __TOS;
@@ -173,7 +173,7 @@ SECTIONS
 	/* FastRAM */
 	__FASTRAM               = 0x10000000;
 	__TARGET_ADDRESS		= TARGET_ADDRESS;
-	
+
 #if TARGET_ADDRESS == BOOTFLASH_BASE_ADDRESS
 	__FASTRAM_END           = __BAS_IN_RAM;
 #else
@@ -183,7 +183,7 @@ SECTIONS
 
 	/* Init CS0 (BootFLASH @ E000_0000 - E07F_FFFF 8Mbytes) */
 	___BOOT_FLASH           = BOOTFLASH_BASE_ADDRESS;
- 	___BOOT_FLASH_SIZE      = BOOTFLASH_SIZE;
+	___BOOT_FLASH_SIZE      = BOOTFLASH_SIZE;
 
 #if TARGET_ADDRESS == BOOTFLASH_BASE_ADDRESS
 	/* BaS */
@@ -203,35 +203,40 @@ SECTIONS
 	__EMUTOS_SIZE           = 0x00100000;
 
 	/* where FPGA data lives in flash */
-	__FPGA_FLASH_DATA 		= 0xe0700000;
-	__FPGA_FLASH_DATA_SIZE 	= 0x100000;
+	__FPGA_CONFIG 		= 0xe0700000;
+	__FPGA_CONFIG_SIZE 	= 0x100000;
 
 	/* VIDEO RAM BASIS */
 	__VRAM                  = 0x60000000;
 
 	/* Memory mapped registers */
- 	__MBAR                  = 0xFF000000;
-	
+	__MBAR                  = 0xFF000000;
+
 	/* 32KB on-chip System SRAM */
- 	__SYS_SRAM              = __MBAR + 0x10000;
+	__SYS_SRAM              = __MBAR + 0x10000;
 	__SYS_SRAM_SIZE         = 0x00008000;
 
 	/* MMU memory mapped registers */
- 	__MMUBAR                = 0xFF040000;
+	__MMUBAR                = 0xFF040000;
 
 	/*
-	 * 4KB on-chip Core SRAM0: -> exception table 
+	 * 4KB on-chip Core SRAM0: -> exception table
 	 */
- 	__RAMBAR0               = 0xFF100000;
- 	__RAMBAR0_SIZE          = 0x00001000;
+	__RAMBAR0               = 0xFF100000;
+	__RAMBAR0_SIZE          = 0x00001000;
 
 	/* 4KB on-chip Core SRAM1 */
- 	__RAMBAR1               = 0xFF101000;
- 	__RAMBAR1_SIZE          = 0x00001000;
- 	__SUP_SP                = __RAMBAR0 + __RAMBAR0_SIZE - 4;
+	__RAMBAR1               = 0xFF101000;
+	__RAMBAR1_SIZE          = 0x00001000;
+	__SUP_SP                = __RAMBAR1 + __RAMBAR1_SIZE - 4;
 
+	/*
+	 * this flag (if 1) indicates that FPGA configuration has been loaded through JTAG
+	 * and shouldn't be overwritten on boot
+	 */
+	__FPGA_JTAG_LOADED		= __RAMBAR1;
 	/* system variables */
-	
+
 	/* RAMBAR0 0 to 0x7FF -> exception vectors */
 	_rt_mod    = __RAMBAR0 + 0x800;
 	_rt_ssp    = __RAMBAR0 + 0x804;

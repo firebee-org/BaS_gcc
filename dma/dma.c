@@ -39,7 +39,7 @@
 #error "unknown machine!"
 #endif /* MACHINE_FIREBEE */
 
-#define DBG_DMA
+// #define DBG_DMA
 #ifdef DBG_DMA
 #define dbg(format, arg...) do { xprintf("DEBUG: " format, ##arg); } while (0)
 #else
@@ -58,13 +58,13 @@ struct dma_channel
 static char used_reqs[32] =
 {
 	DMA_ALWAYS,  DMA_DSPI_RXFIFO, DMA_DSPI_TXFIFO, DMA_DREQ0,
-    DMA_PSC0_RX, DMA_PSC0_TX, DMA_USB_EP0,  DMA_USB_EP1,
-    DMA_USB_EP2,  DMA_USB_EP3,  DMA_PCI_TX,  DMA_PCI_RX,
-    DMA_PSC1_RX, DMA_PSC1_TX, DMA_I2C_RX,  DMA_I2C_TX,
-    0,           0,           0,           0,
-    0,           0,           0,           0,
-    0,           0,           0,           0,
-    0,           0,           0,           0
+	DMA_PSC0_RX, DMA_PSC0_TX, DMA_USB_EP0,  DMA_USB_EP1,
+	DMA_USB_EP2,  DMA_USB_EP3,  DMA_PCI_TX,  DMA_PCI_RX,
+	DMA_PSC1_RX, DMA_PSC1_TX, DMA_I2C_RX,  DMA_I2C_TX,
+	0,           0,           0,           0,
+	0,           0,           0,           0,
+	0,           0,           0,           0,
+	0,           0,           0,           0
 };
 
 static struct dma_channel dma_channel[NCHANNELS] =
@@ -225,7 +225,7 @@ int dma_set_initiator(int initiator)
 			else /* No empty slots */
 			{
 				dbg("%s: no free slot\r\n", __FUNCTION__);
-				
+
 				return 1;
 			}
 			break;
@@ -530,7 +530,7 @@ int dma_get_channel(int requestor)
 }
 
 /*
- * Remove the channel being initiated by the given requestor from 
+ * Remove the channel being initiated by the given requestor from
  * the active list
  *
  * Parameters:
@@ -551,8 +551,8 @@ void dma_free_channel(int requestor)
 	}
 }
 
-/* 
- * This is the catch-all interrupt handler for the mult-channel DMA 
+/*
+ * This is the catch-all interrupt handler for the mult-channel DMA
  */
 int dma_interrupt_handler(void *arg1, void *arg2)
 {
@@ -560,8 +560,8 @@ int dma_interrupt_handler(void *arg1, void *arg2)
 
 	(void) set_ipl(7);
 
-	/* 
-	 * Determine which interrupt(s) triggered by AND'ing the 
+	/*
+	 * Determine which interrupt(s) triggered by AND'ing the
 	 * pending interrupts with those that aren't masked.
 	 */
 	interrupts = MCF_DMA_DIPR & ~MCF_DMA_DIMR;
@@ -598,9 +598,9 @@ void *dma_memcpy(void *dst, void *src, size_t n)
 	int ret;
 
 #ifdef DBG_DMA
-    int32_t time;
-    int32_t start;
-    int32_t end;
+	int32_t time;
+	int32_t start;
+	int32_t end;
 
 	start = MCF_SLT0_SCNT;
 #endif /* DBG_DMA */
