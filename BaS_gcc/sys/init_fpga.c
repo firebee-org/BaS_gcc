@@ -33,10 +33,16 @@
 #define FPGA_DATA0		(1 << 3)
 #define FPGA_CONF_DONE	(1 << 5)
 
-extern uint8_t _FPGA_FLASH_DATA[];
-#define FPGA_FLASH_DATA	&_FPGA_FLASH_DATA[0]
-extern uint8_t _FPGA_FLASH_DATA_SIZE[];
-#define FPGA_FLASH_DATA_SIZE	((uint32_t) &_FPGA_FLASH_DATA_SIZE[0])
+extern uint8_t _FPGA_CONFIG[];
+#define FPGA_FLASH_DATA	&_FPGA_CONFIG[0]
+extern uint8_t _FPGA_CONFIG_SIZE[];
+#define FPGA_FLASH_DATA_SIZE	((uint32_t) &_FPGA_CONFIG_SIZE[0])
+
+/*
+ * flag located in processor SRAM1 that indicates that the FPGA configuration has
+ * been loaded through JTAG. init_fpga() will honour this and not overwrite config.
+ */
+extern int32_t _FPGA_JTAG_LOADED;
 
 void config_gpio_for_fpga_config(void)
 {
@@ -78,7 +84,15 @@ bool init_fpga(void)
 	volatile int32_t time, start, end;
 	int i;
 
-	xprintf("FPGA load config... ");
+	xprintf("FPGA load config (_FPGA_JTAG_LOADED = %x)...", _FPGA_JTAG_LOADED);
+	if (_FPGA_JTAG_LOADED == 1)
+	{
+		xprintf("detected _FPGA_JTAG_LOADED flag. Not overwriting FPGA config.\r\n");
+
+		/* reset the flag so that next boot will load config again from flash */
+		_FPGA_JTAG_LOADED = 0;
+		return true;
+	}
 	start = MCF_SLT0_SCNT;
 
 	config_gpio_for_fpga_config();

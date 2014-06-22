@@ -32,7 +32,7 @@
 #error Unknown machine!
 #endif
 
-#define DBG_FEC
+// #define DBG_FEC
 #ifdef DBG_FEC
 #define dbg(format, arg...) do { xprintf("DEBUG: %s(): " format, __FUNCTION__, ##arg); } while (0)
 #else
@@ -237,33 +237,33 @@ void fec_log_init(uint8_t ch)
  */
 void fec_log_dump(uint8_t ch)
 {
-    dbg("\r\n   FEC%d Log\r\n", __FUNCTION__, ch);
-    dbg("   ---------------\r\n", __FUNCTION__);
-    dbg(" Total: %4d\r\n", fec_log[ch].total);
-    dbg(" hberr: %4d\r\n", fec_log[ch].hberr);
-    dbg(" babr:  %4d\r\n", fec_log[ch].babr);
-    dbg(" babt:  %4d\r\n", fec_log[ch].babt);
-    dbg(" gra:   %4d\r\n", fec_log[ch].gra);
-    dbg(" txf:   %4d\r\n", fec_log[ch].txf);
-    dbg(" mii:   %4d\r\n", fec_log[ch].mii);
-    dbg(" lc:    %4d\r\n", fec_log[ch].lc);
-    dbg(" rl:    %4d\r\n", fec_log[ch].rl);
-    dbg(" xfun:  %4d\r\n", fec_log[ch].xfun);
-    dbg(" xferr: %4d\r\n", fec_log[ch].xferr);
-    dbg(" rferr: %4d\r\n", fec_log[ch].rferr);
-    dbg(" dtxf:  %4d\r\n", fec_log[ch].dtxf);
-    dbg(" drxf:  %4d\r\n", fec_log[ch].drxf);
-    dbg(" \r\nRFSW:\r\n");
-    dbg(" inv:   %4d\r\n", fec_log[ch].rfsw_inv);
-    dbg(" m:     %4d\r\n", fec_log[ch].rfsw_m);
-    dbg(" bc:    %4d\r\n", fec_log[ch].rfsw_bc);
-    dbg(" mc:    %4d\r\n", fec_log[ch].rfsw_mc);
-    dbg(" lg:    %4d\r\n", fec_log[ch].rfsw_lg);
-    dbg(" no:    %4d\r\n", fec_log[ch].rfsw_no);
-    dbg(" cr:    %4d\r\n", fec_log[ch].rfsw_cr);
-    dbg(" ov:    %4d\r\n", fec_log[ch].rfsw_ov);
-    dbg(" tr:    %4d\r\n", fec_log[ch].rfsw_tr);
-    dbg(" ---------------\r\n\r\n");
+	dbg("\r\n   FEC%d Log\r\n", __FUNCTION__, ch);
+	dbg("   ---------------\r\n", __FUNCTION__);
+	dbg(" Total: %4d\r\n", fec_log[ch].total);
+	dbg(" hberr: %4d\r\n", fec_log[ch].hberr);
+	dbg(" babr:  %4d\r\n", fec_log[ch].babr);
+	dbg(" babt:  %4d\r\n", fec_log[ch].babt);
+	dbg(" gra:   %4d\r\n", fec_log[ch].gra);
+	dbg(" txf:   %4d\r\n", fec_log[ch].txf);
+	dbg(" mii:   %4d\r\n", fec_log[ch].mii);
+	dbg(" lc:    %4d\r\n", fec_log[ch].lc);
+	dbg(" rl:    %4d\r\n", fec_log[ch].rl);
+	dbg(" xfun:  %4d\r\n", fec_log[ch].xfun);
+	dbg(" xferr: %4d\r\n", fec_log[ch].xferr);
+	dbg(" rferr: %4d\r\n", fec_log[ch].rferr);
+	dbg(" dtxf:  %4d\r\n", fec_log[ch].dtxf);
+	dbg(" drxf:  %4d\r\n", fec_log[ch].drxf);
+	dbg(" \r\nRFSW:\r\n");
+	dbg(" inv:   %4d\r\n", fec_log[ch].rfsw_inv);
+	dbg(" m:     %4d\r\n", fec_log[ch].rfsw_m);
+	dbg(" bc:    %4d\r\n", fec_log[ch].rfsw_bc);
+	dbg(" mc:    %4d\r\n", fec_log[ch].rfsw_mc);
+	dbg(" lg:    %4d\r\n", fec_log[ch].rfsw_lg);
+	dbg(" no:    %4d\r\n", fec_log[ch].rfsw_no);
+	dbg(" cr:    %4d\r\n", fec_log[ch].rfsw_cr);
+	dbg(" ov:    %4d\r\n", fec_log[ch].rfsw_ov);
+	dbg(" tr:    %4d\r\n", fec_log[ch].rfsw_tr);
+	dbg(" ---------------\r\n\r\n");
 }
 
 /*
@@ -544,13 +544,13 @@ void fec_rx_start(uint8_t ch, int8_t *rxbd)
 	 * Make the initiator assignment
 	 */
 	res = dma_set_initiator(DMA_FEC_RX(ch));
-    dbg("dma_set_initiator(DMA_FEC_RX(%d)): %d\r\n", ch, res);
+	dbg("dma_set_initiator(DMA_FEC_RX(%d)): %d\r\n", ch, res);
 
 	/*
 	 * Grab the initiator number
 	 */
 	initiator = dma_get_initiator(DMA_FEC_RX(ch));
-    dbg("dma_get_initiator(DMA_FEC_RX(%d)) = %d\r\n", ch, initiator);
+	dbg("dma_get_initiator(DMA_FEC_RX(%d)) = %d\r\n", ch, initiator);
 
 	/*
 	 * Determine the DMA channel running the task for the
@@ -558,7 +558,7 @@ void fec_rx_start(uint8_t ch, int8_t *rxbd)
 	 */
 	channel = dma_set_channel(DMA_FEC_RX(ch),
 			(ch == 0) ? fec0_rx_frame : fec1_rx_frame);
-    dbg("DMA channel for FEC%1d: %d\r\n", ch, channel);
+	dbg("DMA channel for FEC%1d: %d\r\n", ch, channel);
 
 	/*
 	 * Start the Rx DMA task
@@ -572,18 +572,18 @@ void fec_rx_start(uint8_t ch, int8_t *rxbd)
 			0,
 			initiator,
 			FECRX_DMA_PRI(ch),
-			0 
-			| MCD_FECRX_DMA   
+			0
+			| MCD_FECRX_DMA
 			| MCD_INTERRUPT
-			| MCD_TT_FLAGS_CW 
+			| MCD_TT_FLAGS_CW
 			| MCD_TT_FLAGS_RL
 			| MCD_TT_FLAGS_SP
 			,
-			0 
+			0
 			| MCD_NO_CSUM
 			| MCD_NO_BYTE_SWAP
 			);
-    dbg("Rx DMA task for FEC%1d started\r\n", ch);
+	dbg("Rx DMA task for FEC%1d started\r\n", ch);
 }
 
 /*
@@ -607,13 +607,13 @@ void fec_rx_continue(uint8_t ch)
 	 */
 	channel = dma_get_channel(DMA_FEC_RX(ch));
 
-    dbg("RX DMA channel for FEC%1d is %d\r\n", ch, channel);
+	dbg("RX DMA channel for FEC%1d is %d\r\n", ch, channel);
 
 	/*
 	 * Continue/restart the DMA task
 	 */
 	MCD_continDma(channel);
-    dbg("RX dma on channel %d continued\r\n", channel);
+	dbg("RX dma on channel %d continued\r\n", channel);
 }
 
 /*
@@ -642,9 +642,9 @@ void fec_rx_stop (uint8_t ch)
 	/* Kill the FEC Rx DMA task */
 	MCD_killDma(channel);
 
-	/* 
-	 * Free up the FEC requestor from the software maintained 
-	 * initiator list 
+	/*
+	 * Free up the FEC requestor from the software maintained
+	 * initiator list
 	 */
 	dma_free_initiator(DMA_FEC_RX(ch));
 
@@ -656,7 +656,7 @@ void fec_rx_stop (uint8_t ch)
 }
 
 /*
- * Receive Frame interrupt handler - this handler is called by the 
+ * Receive Frame interrupt handler - this handler is called by the
  * DMA interrupt handler indicating that a packet was successfully
  * transferred out of the Rx FIFO.
  *
@@ -671,7 +671,7 @@ void fec_rx_frame(uint8_t ch, NIF *nif)
 	NBUF *cur_nbuf, *new_nbuf;
 	int keep;
 
-    dbg("started\r\n");
+	dbg("started\r\n");
 
 	while ((pRxBD = fecbd_rx_alloc(ch)) != NULL)
 	{
@@ -684,7 +684,7 @@ void fec_rx_frame(uint8_t ch, NIF *nif)
 		 *  - No undefined bits should be set
 		 *  - The upper 5 bits of the length should be cleared
 		 */
-		if (!(pRxBD->status & RX_BD_L) || (pRxBD->status & 0x0608) 
+		if (!(pRxBD->status & RX_BD_L) || (pRxBD->status & 0x0608)
 				|| (pRxBD->length & 0xF800))
 		{
 			keep = false;
@@ -716,8 +716,8 @@ void fec_rx_frame(uint8_t ch, NIF *nif)
 
 		if (keep)
 		{
-			/* 
-			 * Pull the network buffer off the Rx ring queue 
+			/*
+			 * Pull the network buffer off the Rx ring queue
 			 */
 			cur_nbuf = nbuf_remove(NBUF_RX_RING);
 
@@ -733,7 +733,7 @@ void fec_rx_frame(uint8_t ch, NIF *nif)
 			new_nbuf = nbuf_alloc();
 			if (new_nbuf == NULL)
 			{
-                dbg("nbuf_alloc() failed\n");
+				dbg("nbuf_alloc() failed\n");
 
 				/*
 				 * Can't allocate a new network buffer, so we
@@ -767,7 +767,7 @@ void fec_rx_frame(uint8_t ch, NIF *nif)
 
 
 			/*
-			 * Let the DMA know that there is a new Rx BD (in case the 
+			 * Let the DMA know that there is a new Rx BD (in case the
 			 * ring was full and the DMA was waiting for an empty one)
 			 */
 			fec_rx_continue(ch);
@@ -778,7 +778,7 @@ void fec_rx_frame(uint8_t ch, NIF *nif)
 			eth_hdr = (ETH_HDR *) cur_nbuf->data;
 
 			/*
-			 * Pass the received packet up the network stack if the 
+			 * Pass the received packet up the network stack if the
 			 * protocol is supported in our network interface (NIF)
 			 */
 			if (nif_protocol_exist(nif, eth_hdr->type))
@@ -789,12 +789,12 @@ void fec_rx_frame(uint8_t ch, NIF *nif)
 			else
 			{
 				nbuf_free(cur_nbuf);
-                dbg("got unsupported packet %d, trashed it\r\n", eth_hdr->type);
+				dbg("got unsupported packet %d, trashed it\r\n", eth_hdr->type);
 			}
 		}
-		else 
+		else
 		{
-			/* 
+			/*
 			 * This frame isn't a keeper
 			 * Reset the status and length, but don't need to get another
 			 * buffer since we are trashing the data in the current one
@@ -804,7 +804,7 @@ void fec_rx_frame(uint8_t ch, NIF *nif)
 			pRxBD->status |= RX_BD_E;
 
 			/*
-			 * Move the current buffer from the beginning to the end of the 
+			 * Move the current buffer from the beginning to the end of the
 			 * Rx ring queue
 			 */
 			cur_nbuf = nbuf_remove(NBUF_RX_RING);
@@ -853,13 +853,13 @@ void fec_tx_start(uint8_t ch, int8_t *txbd)
 	 * Make the initiator assignment
 	 */
 	res = dma_set_initiator(DMA_FEC_TX(ch));
-    dbg("dma_set_initiator(%d) = %d\r\n", ch, res);
+	dbg("dma_set_initiator(%d) = %d\r\n", ch, res);
 
 	/*
 	 * Grab the initiator number
 	 */
 	initiator = dma_get_initiator(DMA_FEC_TX(ch));
-    dbg("dma_get_initiator(%d) = %d\r\n", ch, initiator);
+	dbg("dma_get_initiator(%d) = %d\r\n", ch, initiator);
 
 
 	/*
@@ -868,7 +868,7 @@ void fec_tx_start(uint8_t ch, int8_t *txbd)
 	 */
 	channel = dma_set_channel(DMA_FEC_TX(ch),
 			(ch == 0) ? fec0_tx_frame : fec1_tx_frame);
-    dbg("dma_set_channel(%d, ...) = %d\r\n", ch, channel);
+	dbg("dma_set_channel(%d, ...) = %d\r\n", ch, channel);
 
 	/*
 	 * Start the Tx DMA task
@@ -882,18 +882,18 @@ void fec_tx_start(uint8_t ch, int8_t *txbd)
 			0,
 			initiator,
 			FECTX_DMA_PRI(ch),
-			0 
-			| MCD_FECTX_DMA   
+			0
+			| MCD_FECTX_DMA
 			| MCD_INTERRUPT
-			| MCD_TT_FLAGS_CW 
+			| MCD_TT_FLAGS_CW
 			| MCD_TT_FLAGS_RL
 			| MCD_TT_FLAGS_SP
 			,
-			0 
+			0
 			| MCD_NO_CSUM
 			| MCD_NO_BYTE_SWAP
 			);
-    dbg("DMA tx task started\r\n");
+	dbg("DMA tx task started\r\n");
 }
 
 /*
@@ -916,13 +916,13 @@ void fec_tx_continue(uint8_t ch)
 	 * selected FEC
 	 */
 	channel = dma_get_channel(DMA_FEC_TX(ch));
-    dbg("dma_get_channel(DMA_FEC_TX(%d)) = %d\r\n", ch, channel);
+	dbg("dma_get_channel(DMA_FEC_TX(%d)) = %d\r\n", ch, channel);
 
 	/*
 	 * Continue/restart the DMA task
 	 */
 	MCD_continDma(channel);
-    dbg("DMA TX task continue\r\n");
+	dbg("DMA TX task continue\r\n");
 }
 
 /*
@@ -969,9 +969,9 @@ void fec_tx_stop(uint8_t ch)
 	/* Kill the FEC Tx DMA task */
 	MCD_killDma(channel);
 
-	/* 
-	 * Free up the FEC requestor from the software maintained 
-	 * initiator list 
+	/*
+	 * Free up the FEC requestor from the software maintained
+	 * initiator list
 	 */
 	dma_free_initiator(DMA_FEC_TX(ch));
 
@@ -983,7 +983,7 @@ void fec_tx_stop(uint8_t ch)
 }
 
 /*
- * Trasmit Frame interrupt handler - this handler is called by the 
+ * Trasmit Frame interrupt handler - this handler is called by the
  * DMA interrupt handler indicating that a packet was successfully
  * transferred to the Tx FIFO.
  *
@@ -996,7 +996,7 @@ void fec_tx_frame(uint8_t ch)
 	NBUF *pNbuf;
 	bool is_empty = true;
 
-    dbg("\r\n");
+	dbg("\r\n");
 	while ((pTxBD = fecbd_tx_free(ch)) != NULL)
 	{
 		fec_log[ch].dtxf++;
@@ -1010,7 +1010,7 @@ void fec_tx_frame(uint8_t ch)
 		 * Free up the network buffer that was just transmitted
 		 */
 		nbuf_free(pNbuf);
-        dbg("free buffer %p from TX ring\r\n", pNbuf);
+		dbg("free buffer %p from TX ring\r\n", pNbuf);
 
 		/*
 		 * Re-initialize the Tx BD
@@ -1019,9 +1019,9 @@ void fec_tx_frame(uint8_t ch)
 		pTxBD->length = 0;
 		is_empty = false;
 
-	}    
+	}
 	if (is_empty)
-        dbg("transmit queue was empty!\r\n");
+		dbg("transmit queue was empty!\r\n");
 }
 
 void fec0_tx_frame(void)
@@ -1044,7 +1044,7 @@ void fec1_tx_frame(void)
  *  dst     Destination MAC Address
  *  src     Source MAC Address
  *  type    Ethernet Frame Type
- *  length  Number of bytes to be transmitted (doesn't include type, 
+ *  length  Number of bytes to be transmitted (doesn't include type,
  *          src, or dest byte count)
  *  pkt     Pointer packet network buffer
  *
@@ -1059,14 +1059,14 @@ int fec_send(uint8_t ch, NIF *nif, uint8_t *dst, uint8_t *src, uint16_t type, NB
 	/* Check the length */
 	if ((nbuf->length + ETH_HDR_LEN) > ETH_MTU)
 	{
-        dbg("nbuf->length (%d) + ETH_HDR_LEN (%d) exceeds ETH_MTU (%d)\r\n",
-                nbuf->length, ETH_HDR_LEN, ETH_MTU);
+		dbg("nbuf->length (%d) + ETH_HDR_LEN (%d) exceeds ETH_MTU (%d)\r\n",
+				nbuf->length, ETH_HDR_LEN, ETH_MTU);
 		return 0;
 	}
 
-	/* 
-	 * Copy the destination address, source address, and Ethernet 
-	 * type into the packet 
+	/*
+	 * Copy the destination address, source address, and Ethernet
+	 * type into the packet
 	 */
 	memcpy(&nbuf->data[0],  dst,   6);
 	memcpy(&nbuf->data[6],  src,   6);
@@ -1082,7 +1082,7 @@ int fec_send(uint8_t ch, NIF *nif, uint8_t *dst, uint8_t *src, uint16_t type, NB
 	 */
 	nbuf_add(NBUF_TX_RING, nbuf);
 
-	/* 
+	/*
 	 * Setup the buffer descriptor for transmission
 	 */
 	pTxBD->data = nbuf->data;
@@ -1192,7 +1192,7 @@ static void fec_irq_handler(uint8_t ch)
 	event = eir & MCF_FEC_EIMR(ch);
 
 	if (event != eir)
-        dbg("pending but not enabled: 0x%08x\r\n", (event ^ eir));
+		dbg("pending but not enabled: 0x%08x\r\n", (event ^ eir));
 
 	/*
 	 * Clear the event(s) in the EIR immediately
@@ -1203,8 +1203,8 @@ static void fec_irq_handler(uint8_t ch)
 	{
 		fec_log[ch].total++;
 		fec_log[ch].rferr++;
-        dbg("RFERR\r\n");
-        dbg("FECRFSR%d = 0x%08x\r\n", ch, MCF_FEC_FECRFSR(ch));
+		dbg("RFERR\r\n");
+		dbg("FECRFSR%d = 0x%08x\r\n", ch, MCF_FEC_FECRFSR(ch));
 		//fec_eth_stop(ch);
 	}
 
@@ -1212,14 +1212,14 @@ static void fec_irq_handler(uint8_t ch)
 	{
 		fec_log[ch].total++;
 		fec_log[ch].xferr++;
-        dbg("XFERR\r\n");
+		dbg("XFERR\r\n");
 	}
 
 	if (event & MCF_FEC_EIR_XFUN)
 	{
 		fec_log[ch].total++;
 		fec_log[ch].xfun++;
-        dbg("XFUN\r\n");
+		dbg("XFUN\r\n");
 		//fec_eth_stop(ch);
 	}
 
@@ -1227,54 +1227,54 @@ static void fec_irq_handler(uint8_t ch)
 	{
 		fec_log[ch].total++;
 		fec_log[ch].rl++;
-        dbg("RL\r\n");
+		dbg("RL\r\n");
 	}
 
 	if (event & MCF_FEC_EIR_LC)
 	{
 		fec_log[ch].total++;
 		fec_log[ch].lc++;
-        dbg("LC\r\n");
+		dbg("LC\r\n");
 	}
 
 	if (event & MCF_FEC_EIR_MII)
 	{
 		fec_log[ch].mii++;
-        dbg("MII\r\n");
+		dbg("MII\r\n");
 	}
 
 	if (event & MCF_FEC_EIR_TXF)
 	{
 		fec_log[ch].txf++;
-        dbg("TXF\r\n");
+		dbg("TXF\r\n");
 		fec_log_dump(0);
 	}
 
 	if (event & MCF_FEC_EIR_GRA)
 	{
 		fec_log[ch].gra++;
-        dbg("GRA\r\n");
+		dbg("GRA\r\n");
 	}
 
 	if (event & MCF_FEC_EIR_BABT)
 	{
 		fec_log[ch].total++;
 		fec_log[ch].babt++;
-        dbg("BABT\r\n");
+		dbg("BABT\r\n");
 	}
 
 	if (event & MCF_FEC_EIR_BABR)
 	{
 		fec_log[ch].total++;
 		fec_log[ch].babr++;
-        dbg("BABR\r\n");
+		dbg("BABR\r\n");
 	}
 
 	if (event & MCF_FEC_EIR_HBERR)
 	{
 		fec_log[ch].total++;
 		fec_log[ch].hberr++;
-        dbg("HBERR\r\n");
+		dbg("HBERR\r\n");
 	}
 }
 
@@ -1344,9 +1344,9 @@ void fec_eth_setup(uint8_t ch, uint8_t trcvr, uint8_t speed, uint8_t duplex, con
 		 */
 #if defined(MACHINE_FIREBEE)
 		if (am79c874_init(0, 0, speed, duplex))
-            dbg("PHY init completed\r\n");
+			dbg("PHY init completed\r\n");
 		else
-            dbg("PHY init failed\r\n");
+			dbg("PHY init failed\r\n");
 #elif defined(MACHINE_M548X)
 		bcm_5222_init(0, 0, speed, duplex);
 #else
@@ -1399,7 +1399,7 @@ void fec_eth_stop(uint8_t ch)
 	 */
 	level = set_ipl(7);
 
-    dbg("fec %d stopped\r\n", ch);
+	dbg("fec %d stopped\r\n", ch);
 	/*
 	 * Gracefully disable the receiver and transmitter
 	 */
@@ -1421,12 +1421,12 @@ void fec_eth_stop(uint8_t ch)
 	fec_log_dump(ch);
 #endif
 
-	/* 
+	/*
 	 * Flush the network buffers
 	 */
 	nbuf_flush();
 
-	/* 
+	/*
 	 * Restore interrupt level
 	 */
 	set_ipl(level);
