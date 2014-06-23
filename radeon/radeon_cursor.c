@@ -44,6 +44,8 @@
  *
  */
 
+#include "bas_types.h"
+#include "bas_printf.h"
 #include "radeonfb.h"
 
 #define DBG_RADEON
