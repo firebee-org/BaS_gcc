@@ -538,12 +538,19 @@ void fec_rx_start(uint8_t ch, int8_t *rxbd)
 {
 	uint32_t initiator;
 	int channel;
+#ifdef DBG_FEC
 	int res;
+#endif
 
 	/*
 	 * Make the initiator assignment
 	 */
-	res = dma_set_initiator(DMA_FEC_RX(ch));
+#if defined(DBG_FEC)
+    res =
+#else
+    (void)
+#endif
+    dma_set_initiator(DMA_FEC_RX(ch));
 	dbg("dma_set_initiator(DMA_FEC_RX(%d)): %d\r\n", ch, res);
 
 	/*
@@ -844,15 +851,21 @@ void fec_tx_start(uint8_t ch, int8_t *txbd)
 {
 	uint32_t initiator;
 	int channel;
-	int result;
 	void fec0_tx_frame(void);
 	void fec1_tx_frame(void);
+#ifdef DBG_FEC
 	int res;
+#endif
 
 	/*
 	 * Make the initiator assignment
 	 */
-	res = dma_set_initiator(DMA_FEC_TX(ch));
+#ifdef DBG_FEC
+    res =
+#else
+    (void)
+#endif
+    dma_set_initiator(DMA_FEC_TX(ch));
 	dbg("dma_set_initiator(%d) = %d\r\n", ch, res);
 
 	/*
@@ -1284,7 +1297,7 @@ static void fec_irq_handler(uint8_t ch)
  */
 int fec0_interrupt_handler(void* arg1, void* arg2)
 {
-	(void) arg1;
+    (void) arg1;    /* not used */
 	(void) arg2;
 
 	fec_irq_handler(0);
@@ -1294,7 +1307,7 @@ int fec0_interrupt_handler(void* arg1, void* arg2)
 
 int fec1_interrupt_handler(void* arg1, void* arg2)
 {
-	(void) arg1;
+    (void) arg1;    /* not used */
 	(void) arg2;
 
 	fec_irq_handler(1);
