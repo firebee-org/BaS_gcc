@@ -50,7 +50,7 @@
 
 #define DBG_RADEON
 #ifdef DBG_RADEON
-#define dbg(format, arg...) do { xprintf("DEBUG: " format, ##arg); } while (0)
+#define dbg(format, arg...) do { xprintf("DEBUG %s(): " format, __FUNCTION__, ##arg); } while (0)
 #else
 #define dbg(format, arg...) do { ; } while (0)
 #endif /* DBG_RADEON */
@@ -68,13 +68,13 @@
 #define CURSOR_SWAPPING_DECL_MMIO
 #define CURSOR_SWAPPING_DECL	    unsigned long  __surface_cntl=0;
 #define CURSOR_SWAPPING_START() \
-	if(rinfo->big_endian) \
+    if (rinfo->big_endian) \
     OUTREG(SURFACE_CNTL, \
 	   ((__surface_cntl = INREG(SURFACE_CNTL)) | \
 	    NONSURF_AP0_SWP_32BPP) & \
 	   ~NONSURF_AP0_SWP_16BPP);
 #define CURSOR_SWAPPING_END() \
-	if(rinfo->big_endian) \
+    if (rinfo->big_endian) \
 	(OUTREG(SURFACE_CNTL, __surface_cntl));
 
 /* Set cursor foreground and background colors */
@@ -90,7 +90,7 @@ void radeon_set_cursor_colors(struct fb_info *info, int bg, int fg)
 	fg |= 0xff000000;
 	bg |= 0xff000000;
 	/* Don't recolour the image if we don't have to. */
-	if(fg == rinfo->cursor_fg && bg == rinfo->cursor_bg)
+    if (fg == rinfo->cursor_fg && bg == rinfo->cursor_bg)
 		return;
 	CURSOR_SWAPPING_START();
 
@@ -116,11 +116,11 @@ void radeon_set_cursor_position(struct fb_info *info, int x, int y)
 	struct fb_var_screeninfo *mode = &info->var;
 	int xorigin = 0;
 	int yorigin = 0;
-	if(mode->vmode & FB_VMODE_DOUBLE)
+    if (mode->vmode & FB_VMODE_DOUBLE)
 		y <<= 1;
-	if(x < 0)
+    if (x < 0)
 		xorigin = 1 - x;
-	if(y < 0)
+    if (y < 0)
 	  yorigin = 1 - y;
 
 //	DPRINTVALHEX("radeonfb: RADEONSetCursorPosition: cursor_start ",rinfo->cursor_start);
@@ -132,10 +132,10 @@ void radeon_set_cursor_position(struct fb_info *info, int x, int y)
 	OUTREG(CUR_HORZ_VERT_POSN, (CUR_LOCK | ((xorigin ? 0 : x) << 16) | (yorigin ? 0 : y)));
 	OUTREG(CUR_OFFSET, rinfo->cursor_start + yorigin * 256);
 	rinfo->cursor_x = (unsigned long)x;
-	if(mode->vmode & FB_VMODE_DOUBLE)
-		rinfo->cursor_y = (unsigned long)y >> 1;
+    if (mode->vmode & FB_VMODE_DOUBLE)
+        rinfo->cursor_y = (unsigned long) y >> 1;
 	else
-		rinfo->cursor_y = (unsigned long)y;
+        rinfo->cursor_y = (unsigned long) y;
 }
 
 /*
@@ -315,7 +315,7 @@ long radeon_cursor_init(struct fb_info *info)
 	int size_bytes = CURSOR_WIDTH * 4 * CURSOR_HEIGHT;
 	unsigned long fbarea = offscreen_alloc(rinfo->info, size_bytes + 256);
 
-	dbg("radeonfb: %s: fbarea: %p\r\n", __FUNCTION__, fbarea);
+    dbg("radeonfb: %s: fbarea: %p\r\n", fbarea);
 
     if (!fbarea)
 		rinfo->cursor_start = 0;

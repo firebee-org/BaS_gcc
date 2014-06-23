@@ -18,7 +18,7 @@
 
 #define DBG_MODES
 #ifdef DBG_MODES
-#define dbg(format, arg...) do { xprintf("DEBUG: " format, ##arg); } while (0)
+#define dbg(format, arg...) do { xprintf("DEBUG: " format, __FUNCTION__, ##arg); } while (0)
 #else
 #define dbg(format, arg...) do { ; } while (0)
 #endif /* DBG_MODES */

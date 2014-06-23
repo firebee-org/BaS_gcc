@@ -11,7 +11,12 @@
  * option any later version.  See doc/license.txt for details.
  */
 
-#define DBG_VIDEL 0
+#define DBG_VIDEL
+#ifdef DBG_VIDEL
+#define dbg(format, arg...) do { xprintf("DEBUG: %s(): " format, __FUNCTION__, ##arg); } while (0)
+#else
+#define dbg(format, arg...) do { ; } while (0)
+#endif /* DBG_VIDEL */
 
 #include <stdint.h>
 #include <stdbool.h>
@@ -300,14 +305,14 @@ static uint16_t get_videl_bpp(void)
 
 static uint16_t get_videl_width(void)
 {
-    return (*(volatile uint16_t *)0xffff8210) * 16 / get_videl_bpp();
+    return ( * (volatile uint16_t *) 0xffff8210) * 16 / get_videl_bpp();
 }
 
 static uint16_t get_videl_height(void)
 {
-    uint16_t vdb = *(volatile uint16_t *)0xffff82a8;
-    uint16_t vde = *(volatile uint16_t *)0xffff82aa;
-    uint16_t vmode = *(volatile uint16_t *)0xffff82c2;
+    uint16_t vdb = * (volatile uint16_t *) 0xffff82a8;
+    uint16_t vde = * (volatile uint16_t *) 0xffff82aa;
+    uint16_t vmode = * (volatile uint16_t *) 0xffff82c2;
 
     /* visible y resolution:
      * Graphics display starts at line VDB and ends at line
@@ -332,11 +337,14 @@ const VMODE_ENTRY *lookup_videl_mode(int16_t mode,int16_t monitor)
 {
     const VMODE_ENTRY *vmode_init_table, *p;
 
-    if (mode&VIDEL_VGA) {
+    if (mode&VIDEL_VGA)
+    {
         vmode_init_table = vga_init_table;
         /* ignore bits that don't affect initialisation data */
         mode &= ~(VIDEL_VERTICAL|VIDEL_PAL);
-    } else {
+    }
+    else
+    {
         vmode_init_table = nonvga_init_table;
     }
 
@@ -368,34 +376,38 @@ static int16_t determine_width(int16_t mode)
 /*
  * determine vctl based on video mode and monitor type
  */
-static int16_t determine_vctl(int16_t mode,int16_t monitor)
+static int16_t determine_vctl(int16_t mode, int16_t monitor)
 {
     int16_t vctl;
 
-    if (mode&VIDEL_VGA) {
-        vctl = (mode&VIDEL_80COL) ? 0x08 : 0x04;
-        if (mode&VIDEL_VERTICAL)
+    if (mode & VIDEL_VGA)
+    {
+        vctl = (mode & VIDEL_80COL) ? 0x08 : 0x04;
+        if (mode & VIDEL_VERTICAL)
             vctl |= 0x01;
-    } else {
-        vctl = (mode&VIDEL_80COL) ? 0x04 : 0x00;
-        if (mode&VIDEL_VERTICAL)
+    }
+    else
+    {
+        vctl = (mode & VIDEL_80COL) ? 0x04 : 0x00;
+        if (mode & VIDEL_VERTICAL)
             vctl |= 0x02;
     }
 
-    if (!(mode&VIDEL_COMPAT))
+    if (!(mode & VIDEL_COMPAT))
         return vctl;
 
-    switch(mode&VIDEL_BPPMASK) {
-    case VIDEL_1BPP:
-        if (!(mode&VIDEL_VGA) && (monitor == MON_MONO))
-            vctl = 0x08;
-        break;
-    case VIDEL_2BPP:
-        vctl = (mode&VIDEL_VGA)? 0x09 : 0x04;
-        break;
-    case VIDEL_4BPP:
-        vctl = (mode&VIDEL_VGA)? 0x05 : 0x00;
-        break;
+    switch (mode & VIDEL_BPPMASK)
+    {
+        case VIDEL_1BPP:
+            if (!(mode & VIDEL_VGA) && (monitor == MON_MONO))
+                vctl = 0x08;
+            break;
+        case VIDEL_2BPP:
+            vctl = (mode & VIDEL_VGA)? 0x09 : 0x04;
+            break;
+        case VIDEL_4BPP:
+            vctl = (mode & VIDEL_VGA)? 0x05 : 0x00;
+            break;
     }
 
     return vctl;
@@ -407,25 +419,28 @@ static int16_t determine_vctl(int16_t mode,int16_t monitor)
  */
 static int16_t determine_regc0(int16_t mode,int16_t monitor)
 {
-    if (mode&VIDEL_VGA)
+    if (mode & VIDEL_VGA)
         return 0x0186;
 
-    if (!(mode&VIDEL_COMPAT))
-        return (monitor==MON_TV)?0x0183:0x0181;
+    if (!(mode & VIDEL_COMPAT))
+        return (monitor == MON_TV) ? 0x0183 : 0x0181;
 
     /* handle ST-compatible modes */
-    if ((mode&(VIDEL_80COL|VIDEL_BPPMASK)) == (VIDEL_80COL|VIDEL_1BPP)) {  /* 80-column, 2-colour */
-        switch(monitor) {
-        case MON_MONO:
-            return 0x0080;
-        case MON_TV:
-            return 0x0183;
-        default:
-            return 0x0181;
+    if ((mode & (VIDEL_80COL | VIDEL_BPPMASK)) == (VIDEL_80COL | VIDEL_1BPP))
+    {
+        /* 80-column, 2-colour */
+        switch(monitor)
+        {
+            case MON_MONO:
+                return 0x0080;
+            case MON_TV:
+                return 0x0183;
+            default:
+                return 0x0181;
         }
     }
 
-    return (monitor==MON_TV)?0x0083:0x0081;
+    return (monitor == MON_TV) ? 0x0083 : 0x0081;
 }
 
 
@@ -445,7 +460,7 @@ static int set_videl_vga(int16_t mode)
     if (!p)
         return -1;
 
-    videlregs[0x0a] = (mode&VIDEL_PAL) ? 2 : 0; /* video sync to 50Hz if PAL */
+    videlregs[0x0a] = (mode & VIDEL_PAL) ? 2 : 0; /* video sync to 50Hz if PAL */
 
     // FIXME: vsync() can't work if the screen is initially turned off
     //vsync(); /* wait for vbl so we're not interrupted :-) */
@@ -476,28 +491,30 @@ static int set_videl_vga(int16_t mode)
     videlword(0xc0) = determine_regc0(mode,monitor);
     videlword(0x66) = 0x0000;           /* clear SPSHIFT */
 
-    switch(mode&VIDEL_BPPMASK) {        /* set SPSHIFT / ST shift */
-    case VIDEL_1BPP:                    /* 2 colours (mono) */
-        if (monitor == MON_MONO)
-            videlregs[0x60] = 0x02;
-        else videlword(0x66) = 0x0400;
-        break;
-    case VIDEL_2BPP:                    /* 4 colours */
-        videlregs[0x60] = 0x01;
-        videlword(0x10) = linewidth;        /* writing to the ST shifter has    */
-        videlword(0xc2) = vctl;             /* just overwritten these registers */
-        break;
-    case VIDEL_4BPP:                    /* 16 colours */
-        /* if not ST-compatible, SPSHIFT was already set correctly above */
-        if (mode&VIDEL_COMPAT)
-            videlregs[0x60] = 0x00;         /* else set ST shifter */
-        break;
-    case VIDEL_8BPP:                    /* 256 colours */
-        videlword(0x66) = 0x0010;
-        break;
-    case VIDEL_TRUECOLOR:               /* 65536 colours (Truecolor) */
-        videlword(0x66) = 0x0100;
-        break;
+    switch(mode & VIDEL_BPPMASK)
+    {
+        /* set SPSHIFT / ST shift */
+        case VIDEL_1BPP:                    /* 2 colours (mono) */
+            if (monitor == MON_MONO)
+                videlregs[0x60] = 0x02;
+            else videlword(0x66) = 0x0400;
+            break;
+        case VIDEL_2BPP:                    /* 4 colours */
+            videlregs[0x60] = 0x01;
+            videlword(0x10) = linewidth;        /* writing to the ST shifter has    */
+            videlword(0xc2) = vctl;             /* just overwritten these registers */
+            break;
+        case VIDEL_4BPP:                    /* 16 colours */
+            /* if not ST-compatible, SPSHIFT was already set correctly above */
+            if (mode & VIDEL_COMPAT)
+                videlregs[0x60] = 0x00;         /* else set ST shifter */
+            break;
+        case VIDEL_8BPP:                    /* 256 colours */
+            videlword(0x66) = 0x0010;
+            break;
+        case VIDEL_TRUECOLOR:               /* 65536 colours (Truecolor) */
+            videlword(0x66) = 0x0100;
+            break;
     }
 
     return 0;
@@ -518,8 +535,8 @@ int16_t vsetmode(int16_t mode)
     if (mode == -1)
         return current_video_mode;
 
-#if DBG_VIDEL
-    kprintf("vsetmode(0x%04x)\n", mode);
+#ifdef DBG_VIDEL
+    xprintf("vsetmode(0x%04x)\n", mode);
 #endif
 
     if (set_videl_vga(mode) < 0)    /* invalid mode */
@@ -577,26 +594,30 @@ int32_t vgetsize(int16_t mode)
     monitor = vmontype();
 
     mode &= VIDEL_VALID;        /* ignore invalid bits */
-    if ((mode&VIDEL_BPPMASK) > VIDEL_TRUECOLOR) {   /* fixup invalid bpp */
+    if ((mode & VIDEL_BPPMASK) > VIDEL_TRUECOLOR)
+    {
+        /* fixup invalid bpp */
         mode &= ~VIDEL_BPPMASK;
         mode |= VIDEL_TRUECOLOR;
     }
 
-    p = lookup_videl_mode(mode,monitor);
-    if (!p) {                   /* invalid mode */
-        if (mode&VIDEL_COMPAT)
+    p = lookup_videl_mode(mode, monitor);
+    if (!p)
+    {
+        /* invalid mode */
+        if (mode & VIDEL_COMPAT)
             return ST_VRAM_SIZE;
         mode &= ~(VIDEL_OVERSCAN|VIDEL_PAL);/* ignore less-important bits */
-        p = lookup_videl_mode(mode,monitor);/* & try again */
+        p = lookup_videl_mode(mode, monitor);/* & try again */
         if (!p)                             /* "can't happen" */
             return FALCON_VRAM_SIZE;
     }
 
-    vctl = determine_vctl(mode,monitor);
+    vctl = determine_vctl(mode, monitor);
     height = p->vde - p->vdb;
-    if (!(vctl&0x02))
+    if (!(vctl & 0x02))
         height >>= 1;
-    if (vctl&0x01)
+    if (vctl & 0x01)
         height >>= 1;
 
     return (int32_t)determine_width(mode) * 2 * height;
@@ -605,18 +626,21 @@ int32_t vgetsize(int16_t mode)
 /*
  * convert from Falcon palette format to STe palette format
  */
-#define falc2ste(a) ((((a)>>1)&0x08)|(((a)>>5)&0x07))
+#define falc2ste(a) ((((a) >> 1) & 0x08) | (((a) >> 5) & 0x07))
+
 static void convert2ste(int16_t *ste,int32_t *falcon)
 {
-    union {
+    union
+    {
         int32_t l;
         uint8_t b[4];
     } u;
     int i;
 
-    for (i = 0; i < 16; i++) {
+    for (i = 0; i < 16; i++)
+    {
         u.l = *falcon++;
-        *ste++ = (falc2ste(u.b[0])<<8) | (falc2ste(u.b[1])<<4) | falc2ste(u.b[3]);
+        *ste++ = (falc2ste(u.b[0]) << 8) | (falc2ste(u.b[1]) << 4) | falc2ste(u.b[3]);
     }
 }
 
@@ -629,10 +653,10 @@ static int use_ste_palette(int16_t videomode)
     if (vmontype() == MON_MONO)                     /* always for ST mono monitor */
         return true;
 
-    if ((videomode&VIDEL_BPPMASK) == VIDEL_2BPP)    /* always for 4-colour modes */
+    if ((videomode & VIDEL_BPPMASK) == VIDEL_2BPP)    /* always for 4-colour modes */
         return true;
 
-    if ((videomode&VIDEL_COMPAT) && ((videomode&VIDEL_BPPMASK) == VIDEL_4BPP))
+    if ((videomode & VIDEL_COMPAT) && ((videomode & VIDEL_BPPMASK) == VIDEL_4BPP))
         return true;                                /* and for ST low */
 
     return false;
@@ -652,10 +676,11 @@ static int use_ste_palette(int16_t videomode)
  * address | 0x01      load first 16 Falcon palette regs from address
  *       0 | 0x01      load 256 Falcon palette regs from falcon_shadow_palette[]
  */
-int16_t vsetrgb(int16_t index,int16_t count,int32_t *rgb)
+int16_t vsetrgb(int16_t index,int16_t count, int32_t *rgb)
 {
     int32_t *shadow, *source;
-    union {
+    union
+    {
         int32_t l;
         uint8_t b[4];
     } u;
@@ -664,8 +689,8 @@ int16_t vsetrgb(int16_t index,int16_t count,int32_t *rgb)
     if ((index < 0) || (count <= 0))
         return -1; /* Generic error */
 
-    limit = (get_videl_bpp()<=4) ? 16 : 256;
-    if ((index+count) > limit)
+    limit = (get_videl_bpp() <= 4) ? 16 : 256;
+    if ((index + count) > limit)
         return -1; /* Generic error */
 
     /*
@@ -674,7 +699,7 @@ int16_t vsetrgb(int16_t index,int16_t count,int32_t *rgb)
      */
     shadow = falcon_shadow_palette + index;
     source = rgb;
-    while(count--) {
+    while (count--) {
         u.l = *source++;
         u.b[0] = u.b[1];                 /* shift R & G */
         u.b[1] = u.b[2];
@@ -696,7 +721,7 @@ int16_t vsetrgb(int16_t index,int16_t count,int32_t *rgb)
         return 0; /* OK */
     }
 
-    colorptr = (limit==256) ? (int16_t *) 0x01L : (int16_t *) ((int32_t) falcon_shadow_palette|0x01L);
+    colorptr = (limit == 256) ? (int16_t *) 0x01L : (int16_t *) ((int32_t) falcon_shadow_palette|0x01L);
 
 	set_palette(colorptr);
     return 0; /* OK */
@@ -708,7 +733,8 @@ int16_t vsetrgb(int16_t index,int16_t count,int32_t *rgb)
 int16_t vgetrgb(int16_t index,int16_t count,int32_t *rgb)
 {
     int32_t *shadow;
-    union {
+    union
+    {
         int32_t l;
         uint8_t b[4];
     } u;
@@ -717,12 +743,13 @@ int16_t vgetrgb(int16_t index,int16_t count,int32_t *rgb)
     if ((index < 0) || (count <= 0))
         return -1; /* Generic error */
 
-    limit = (get_videl_bpp()<=4) ? 16 : 256;
-    if ((index+count) > limit)
+    limit = (get_videl_bpp() <= 4) ? 16 : 256;
+    if ((index + count) > limit)
         return -1; /* Generic error */
 
     shadow = falcon_shadow_palette + index;
-    while(count--) {
+    while (count--)
+    {
         u.l = *shadow++;
         u.b[2] = u.b[1];        /* shift R & G right*/
         u.b[1] = u.b[0];
@@ -769,7 +796,7 @@ int16_t vfixmode(int16_t mode)
     if (mode & VIDEL_VGA)                       /* if mode has VGA set, */
         mode ^= (VIDEL_VERTICAL | VIDEL_VGA);   /* clear it & flip vertical */
     if (mode & VIDEL_COMPAT) {
-        if ((mode&VIDEL_BPPMASK) == VIDEL_1BPP)
+        if ((mode & VIDEL_BPPMASK) == VIDEL_1BPP)
             mode |= VIDEL_VERTICAL;         /* set vertical for ST high */
         else mode &= ~VIDEL_VERTICAL;       /* clear it for ST medium, low  */
     }
@@ -786,7 +813,7 @@ int16_t videl_check_moderez(int16_t moderez)
 
     current_mode = get_videl_mode();
     return_mode = vfixmode(moderez);/* adjust */
-    return (return_mode==current_mode)?0:return_mode;
+    return (return_mode == current_mode) ? 0 : return_mode;
 }
 
 uint32_t videl_vram_size(void)
@@ -832,7 +859,7 @@ void initialise_falcon_palette(int16_t mode)
      * although it is probably not important since we don't use those
      * registers.
      */
-    limit = ((mode&VIDEL_BPPMASK)==VIDEL_8BPP) ? 256 : 16;
+    limit = ((mode & VIDEL_BPPMASK) == VIDEL_8BPP) ? 256 : 16;
     for (i = 0; i < limit; i++)
         fcol_regs[i] = falcon_shadow_palette[i];
 
@@ -840,7 +867,7 @@ void initialise_falcon_palette(int16_t mode)
      * if appropriate, set up the STe shadow & real palette registers
      */
     if (use_ste_palette(mode)) {
-        convert2ste(ste_shadow_palette,falcon_shadow_palette);
+        convert2ste(ste_shadow_palette, falcon_shadow_palette);
         for (i = 0; i < 16; i++)
             col_regs[i] = ste_shadow_palette[i];
     }
