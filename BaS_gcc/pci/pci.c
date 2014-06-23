@@ -35,7 +35,7 @@
 
 //#define DEBUG_PCI
 #ifdef DEBUG_PCI
-#define dbg(format, arg...) do { xprintf("DEBUG: " format "", ##arg); } while (0)
+#define dbg(format, arg...) do { xprintf("DEBUG: " format, __FUNCTION__, ##arg); } while (0)
 #else
 #define dbg(format, arg...) do { ; } while (0)
 #endif /* DEBUG_PCI */
@@ -162,7 +162,7 @@ static int32_t pci_get_interrupt_cause(int32_t *handles)
 			return handle;
 		}
 	}
-	dbg("%s: no interrupt cause found\r\n", __FUNCTION__);
+    dbg("%s: no interrupt cause found\r\n");
 	return -1;
 }
 
@@ -189,7 +189,7 @@ void irq5_handler(void)
 		newvalue = pci_call_interrupt_chain(handle, value);
 		if (newvalue == value)
 		{
-			dbg("%s: interrupt not handled!\r\n", __FUNCTION__);
+            dbg("%s: interrupt not handled!\r\n");
 		}
 	}
 }
@@ -211,7 +211,7 @@ void irq7_handler(void)
 		newvalue = pci_call_interrupt_chain(handle, value);
 		if (newvalue == value)
 		{
-			dbg("%s: interrupt not handled!\r\n", __FUNCTION__);
+            dbg("%s: interrupt not handled!\r\n");
 		}
 	}
 }
@@ -649,7 +649,7 @@ static void pci_device_config(uint16_t bus, uint16_t device, uint16_t function)
 			 */
 			struct pci_rd *rd = &descriptors[barnum]; 
 
-			dbg("%s: address = %08x\r\n", __FUNCTION__, address);
+            dbg("%s: address = %08x\r\n", address);
 			if (IS_PCI_MEM_BAR(address))
 			{
 				/* adjust base address to card's alignment requirements */
@@ -738,10 +738,10 @@ static void pci_device_config(uint16_t bus, uint16_t device, uint16_t function)
 
 		/* write it to PCIERBAR and enable ROM */
 		pci_write_config_longword(handle, PCIERBAR, swpl(address | 1));
-		dbg("%s: set PCIERBAR on device 0x%02x to 0x%08x\r\n", __FUNCTION__, handle, address | 1);
+        dbg("%s: set PCIERBAR on device 0x%02x to 0x%08x\r\n", handle, address | 1);
 
 		/* read value back just to be sure */
-		dbg("%s: PCIERBAR = %p\r\n", __FUNCTION__, swpl(pci_read_config_longword(handle, PCIERBAR)));
+        dbg("%s: PCIERBAR = %p\r\n", swpl(pci_read_config_longword(handle, PCIERBAR)));
 
 
 		rd->next = sizeof(struct pci_rd);
