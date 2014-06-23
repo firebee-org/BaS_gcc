@@ -81,7 +81,7 @@
 void radeon_set_cursor_colors(struct fb_info *info, int bg, int fg)
 {
 	struct radeonfb_info *rinfo = info->par;
-	unsigned long *pixels = (unsigned long *)((unsigned long) rinfo->fb_base+rinfo->cursor_start);
+    unsigned long *pixels = (unsigned long *)((unsigned long) rinfo->fb_base + rinfo->cursor_start);
 	int pixel, i;
 	CURSOR_SWAPPING_DECL_MMIO
 	CURSOR_SWAPPING_DECL
@@ -93,12 +93,14 @@ void radeon_set_cursor_colors(struct fb_info *info, int bg, int fg)
 	if(fg == rinfo->cursor_fg && bg == rinfo->cursor_bg)
 		return;
 	CURSOR_SWAPPING_START();
-	/* Note: We assume that the pixels are either fully opaque or fully
+
+    /*
+     * Note: We assume that the pixels are either fully opaque or fully
 	 * transparent, so we won't premultiply them, and we can just
 	 * check for non-zero pixel values; those are either fg or bg
 	 */
-	for(i = 0; i < CURSOR_WIDTH * CURSOR_HEIGHT; i++, pixels++)
-		if((pixel = *pixels))
+    for (i = 0; i < CURSOR_WIDTH * CURSOR_HEIGHT; i++, pixels++)
+        if ((pixel = *pixels))
 			*pixels = (pixel == rinfo->cursor_fg) ? fg : bg;
 	CURSOR_SWAPPING_END();
 	rinfo->cursor_fg = fg;
@@ -120,10 +122,12 @@ void radeon_set_cursor_position(struct fb_info *info, int x, int y)
 		xorigin = 1 - x;
 	if(y < 0)
 	  yorigin = 1 - y;
+
 //	DPRINTVALHEX("radeonfb: RADEONSetCursorPosition: cursor_start ",rinfo->cursor_start);
 //	DPRINTVAL(" x ",x);
 //	DPRINTVAL(" y ",y);
 //	DPRINT("\r\n");
+
 	OUTREG(CUR_HORZ_VERT_OFF, (CUR_LOCK  | (xorigin << 16) | yorigin));
 	OUTREG(CUR_HORZ_VERT_POSN, (CUR_LOCK | ((xorigin ? 0 : x) << 16) | (yorigin ? 0 : y)));
 	OUTREG(CUR_OFFSET, rinfo->cursor_start + yorigin * 256);
@@ -134,7 +138,8 @@ void radeon_set_cursor_position(struct fb_info *info, int x, int y)
 		rinfo->cursor_y = (unsigned long)y;
 }
 
-/* Copy cursor image from `image' to video memory.  RADEONSetCursorPosition
+/*
+ * Copy cursor image from `image' to video memory.  RADEONSetCursorPosition
  * will be called after this, so we can ignore xorigin and yorigin.
  */
 void radeon_load_cursor_image(struct fb_info *info, unsigned short *mask, unsigned short *data, int zoom)
@@ -145,11 +150,14 @@ void radeon_load_cursor_image(struct fb_info *info, unsigned short *mask, unsign
 	unsigned short chunk, mchunk;
 	unsigned long i, j, k;
 	CURSOR_SWAPPING_DECL
+
 //	DPRINTVALHEX("radeonfb: RADEONLoadCursorImage: cursor_start ",rinfo->cursor_start);
-//	DPRINT("\r\n");	
+//	DPRINT("\r\n");
+
 	save = INREG(CRTC_GEN_CNTL) & ~(unsigned long) (3 << 20);
 	save |= (unsigned long) (2 << 20);
 	OUTREG(CRTC_GEN_CNTL, save & (unsigned long)~CRTC_CUR_EN);
+
 	/*
 	 * Convert the bitmap to ARGB32.
 	 */
@@ -159,22 +167,22 @@ void radeon_load_cursor_image(struct fb_info *info, unsigned short *mask, unsign
 	{
 	case 1:
 	default:
-		for(i = 0; i < CURSOR_HEIGHT; i++)
+        for (i = 0; i < CURSOR_HEIGHT; i++)
 		{
-			if(i < 16)
+            if (i < 16)
 			{
 				mchunk = *mask++;
 				chunk = *data++;
 			}
 			else
 				mchunk = chunk = 0;
-			for(j = 0; j < CURSOR_WIDTH / ARGB_PER_CHUNK; j++)
+            for (j = 0; j < CURSOR_WIDTH / ARGB_PER_CHUNK; j++)
 			{
-				for(k = 0; k < ARGB_PER_CHUNK; k++, chunk <<= 1, mchunk <<= 1)
+                for (k = 0; k < ARGB_PER_CHUNK; k++, chunk <<= 1, mchunk <<= 1)
 				{
-					if(mchunk & 0x8000)
+                    if (mchunk & 0x8000)
 					{
-						if(chunk & 0x8000)
+                        if (chunk & 0x8000)
 							*d++ = 0xff000000; /* Black, fully opaque. */				
 						else
 							*d++ = 0xffffffff; /* White, fully opaque. */
@@ -186,13 +194,13 @@ void radeon_load_cursor_image(struct fb_info *info, unsigned short *mask, unsign
 		}
 		break;
 	case 2:
-		for(i = 0; i < CURSOR_HEIGHT; i++)
+        for (i = 0; i < CURSOR_HEIGHT; i++)
 		{
-			if(i < 16*2)
+            if (i < 16*2)
 			{
 				mchunk = *mask;
 				chunk = *data;
-				if((i & 1) == 1)
+                if ((i & 1) == 1)
 				{
 					mask++;
 					data++;
@@ -200,13 +208,13 @@ void radeon_load_cursor_image(struct fb_info *info, unsigned short *mask, unsign
 			}
 			else
 				mchunk = chunk = 0;
-			for(j = 0; j < CURSOR_WIDTH / ARGB_PER_CHUNK; j+=2)
+            for (j = 0; j < CURSOR_WIDTH / ARGB_PER_CHUNK; j+=2)
 			{
-				for(k = 0; k < ARGB_PER_CHUNK; k++, chunk <<= 1, mchunk <<= 1)
+                for (k = 0; k < ARGB_PER_CHUNK; k++, chunk <<= 1, mchunk <<= 1)
 				{
-					if(mchunk & 0x8000)
+                    if (mchunk & 0x8000)
 					{
-						if(chunk & 0x8000)
+                        if (chunk & 0x8000)
 						{
 							*d++ = 0xff000000; /* Black, fully opaque. */				
 							*d++ = 0xff000000; 
@@ -227,13 +235,13 @@ void radeon_load_cursor_image(struct fb_info *info, unsigned short *mask, unsign
 		}
 		break;
 	case 4:
-		for(i = 0; i < CURSOR_HEIGHT; i++)
+        for (i = 0; i < CURSOR_HEIGHT; i++)
 		{
-			if(i < 16*4)
+            if (i < 16 * 4)
 			{
 				mchunk = *mask;
 				chunk = *data;
-				if((i & 3) == 3)
+                if ((i & 3) == 3)
 				{
 					mask++;
 					data++;
@@ -241,13 +249,13 @@ void radeon_load_cursor_image(struct fb_info *info, unsigned short *mask, unsign
 			}
 			else
 				mchunk = chunk = 0;
-			for(j = 0; j < CURSOR_WIDTH / ARGB_PER_CHUNK; j+=4)
+            for (j = 0; j < CURSOR_WIDTH / ARGB_PER_CHUNK; j+=4)
 			{
-				for(k = 0; k < ARGB_PER_CHUNK; k++, chunk <<= 1, mchunk <<= 1)
+                for (k = 0; k < ARGB_PER_CHUNK; k++, chunk <<= 1, mchunk <<= 1)
 				{
-					if(mchunk & 0x8000)
+                    if (mchunk & 0x8000)
 					{
-						if(chunk & 0x8000)
+                        if (chunk & 0x8000)
 						{
 							*d++ = 0xff000000; /* Black, fully opaque. */				
 							*d++ = 0xff000000; 
@@ -284,6 +292,7 @@ void radeon_load_cursor_image(struct fb_info *info, unsigned short *mask, unsign
 void radeon_hide_cursor(struct fb_info *info)
 {
 	struct radeonfb_info *rinfo = info->par;
+
 //	DPRINT("radeonfb: RADEONHideCursor\r\n");
 	OUTREGP(CRTC_GEN_CNTL, 0, ~CRTC_CUR_EN);
 	rinfo->cursor_show = 0;
@@ -293,6 +302,7 @@ void radeon_hide_cursor(struct fb_info *info)
 void radeon_show_cursor(struct fb_info *info)
 {
 	struct radeonfb_info *rinfo = info->par;
+
 //	DPRINT("radeonfb: RADEONShowCursor\r\n");
 	OUTREGP(CRTC_GEN_CNTL, CRTC_CUR_EN, ~CRTC_CUR_EN);
 	rinfo->cursor_show = 1;
@@ -307,7 +317,7 @@ long radeon_cursor_init(struct fb_info *info)
 
 	dbg("radeonfb: %s: fbarea: %p\r\n", __FUNCTION__, fbarea);
 
-	if(!fbarea)
+    if (!fbarea)
 		rinfo->cursor_start = 0;
 	else
 	{
