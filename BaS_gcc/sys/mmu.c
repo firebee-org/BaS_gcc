@@ -206,8 +206,8 @@ void mmu_init(void)
 			ACR_S(ACR_S_ALL) |						/* match addresses in user and supervisor mode */
 			ACR_E(1) |								/* enable ACR */
 #if defined(MACHINE_FIREBEE)
-			ACR_ADMSK(0x3f) |						/* cover 1GB area from 0xc0000000 to 0xffffffff */
-			ACR_BA(0xc0000000));					/* (equals area from 3 to 4 GB */
+			ACR_ADMSK(0x7f) |						/* cover 2GB area from 0x80000000 to 0xffffffff */
+			ACR_BA(0x80000000));					/* (equals area from 3 to 4 GB */
 #elif defined(MACHINE_M5484LITE)
 			ACR_ADMSK(0x7f) |						/* cover 2 GB area from 0x80000000 to 0xffffffff */
 			ACR_BA(0x80000000));
