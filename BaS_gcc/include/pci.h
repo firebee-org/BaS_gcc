@@ -243,9 +243,93 @@ extern int32_t pci_write_config_longword(int32_t handle, int offset, uint32_t va
 extern int32_t pci_write_config_word(int32_t handle, int offset, uint16_t value);
 extern int32_t pci_write_config_byte(int32_t handle, int offset, uint8_t value);
 
-extern struct pci_rd *pci_get_resource(int32_t handle);
 extern int32_t pci_hook_interrupt(int32_t handle, void *interrupt_handler, void *parameter);
 extern int32_t pci_unhook_interrupt(int32_t handle);
+
+extern struct pci_rd *pci_get_resource(int32_t handle);
+
+/*
+ * Not implemented PCI_BIOS functions
+ */
+extern uint8_t pci_fast_read_config_byte(int32_t handle, uint16_t reg);
+extern uint16_t pci_fast_read_config_word(int32_t handle, uint16_t reg);
+extern uint32_t pci_fast_read_config_longword(int32_t handle, uint16_t reg);
+extern int32_t pci_special_cycle(uint16_t bus, uint32_t data);
+extern int32_t pci_get_routing(int32_t handle);
+extern int32_t pci_set_interrupt(int32_t handle);
+extern int32_t pci_get_card_used(int32_t handle, uint32_t *address);
+extern int32_t pci_set_card_used(int32_t handle, uint32_t *callback);
+extern int32_t pci_read_mem_byte(int32_t handle, uint32_t offset, uint8_t *address);
+extern int32_t pci_read_mem_word(int32_t handle, uint32_t offset, uint16_t *address);
+extern int32_t pci_read_mem_longword(int32_t handle, uint32_t offset, uint32_t *address);
+extern uint8_t pci_fast_read_mem_byte(int32_t handle, uint32_t offset);
+extern uint16_t pci_fast_read_mem_word(int32_t handle, uint32_t offset);
+extern uint32_t pci_fast_read_mem_longword(int32_t handle, uint32_t offset);
+extern int32_t pci_write_mem_byte(int32_t handle, uint32_t offset, uint16_t val);
+extern int32_t pci_write_mem_word(int32_t handle, uint32_t offset, uint16_t val);
+extern int32_t pci_write_mem_longword(int32_t handle, uint32_t offset, uint32_t val);
+extern int32_t pci_read_io_byte(int32_t handle, uint32_t offset, uint8_t *address);
+extern int32_t pci_read_io_word(int32_t handle, uint32_t offset, uint16_t *address);
+extern int32_t pci_read_io_longword(int32_t handle, uint32_t offset, uint32_t *address);
+extern uint8_t pci_fast_read_io_byte(int32_t handle, uint32_t offset);
+extern uint16_t pci_fast_read_io_word(int32_t handle, uint32_t offset);
+extern uint32_t pci_fast_read_io_longword(int32_t handle, uint32_t offset);
+extern int32_t pci_write_io_byte(int32_t handle, uint32_t offset, uint16_t val);
+extern int32_t pci_write_io_word(int32_t handle, uint32_t offset, uint16_t val);
+extern int32_t pci_write_io_longword(int32_t handle, uint32_t offset, uint32_t val);
+extern int32_t pci_get_machine_id(void);
+extern int32_t pci_get_pagesize(void);
+extern int32_t pci_virt_to_bus(int32_t handle, uint32_t address, PCI_CONV_ADR *pointer);
+extern int32_t pci_bus_to_virt(int32_t handle, uint32_t address, PCI_CONV_ADR *pointer);
+extern int32_t pci_virt_to_phys(uint32_t address, PCI_CONV_ADR *pointer);
+extern int32_t pci_phys_to_virt(uint32_t address, PCI_CONV_ADR *pointer);
+
+/*
+ * prototypes for PCI wrapper routines
+ */
+extern int32_t wrapper_find_pci_device(uint32_t id, uint16_t index);
+extern int32_t wrapper_find_pci_classcode(uint32_t class, uint16_t index);
+extern int32_t wrapper_read_config_byte(int32_t handle, uint16_t reg, uint8_t *address);
+extern int32_t wrapper_read_config_word(int32_t handle, uint16_t reg, uint16_t *address);
+extern int32_t wrapper_read_config_longword(int32_t handle, uint16_t reg, uint32_t *address);
+extern uint8_t wrapper_fast_read_config_byte(int32_t handle, uint16_t reg);
+extern uint16_t wrapper_fast_read_config_word(int32_t handle, uint16_t reg);
+extern uint32_t wrapper_fast_read_config_longword(int32_t handle, uint16_t reg);
+extern int32_t wrapper_write_config_byte(int32_t handle, uint16_t reg, uint16_t val);
+extern int32_t wrapper_write_config_word(int32_t handle, uint16_t reg, uint16_t val);
+extern int32_t wrapper_write_config_longword(int32_t handle, uint16_t reg, uint32_t val);
+extern int32_t wrapper_hook_interrupt(int32_t handle, uint32_t *routine, uint32_t *parameter);
+extern int32_t wrapper_unhook_interrupt(int32_t handle);
+extern int32_t wrapper_special_cycle(uint16_t bus, uint32_t data);
+extern int32_t wrapper_get_routing(int32_t handle);
+extern int32_t wrapper_set_interrupt(int32_t handle);
+extern int32_t wrapper_get_resource(int32_t handle);
+extern int32_t wrapper_get_card_used(int32_t handle, uint32_t *address);
+extern int32_t wrapper_set_card_used(int32_t handle, uint32_t *callback);
+extern int32_t wrapper_read_mem_byte(int32_t handle, uint32_t offset, uint8_t *address);
+extern int32_t wrapper_read_mem_word(int32_t handle, uint32_t offset, uint16_t *address);
+extern int32_t wrapper_read_mem_longword(int32_t handle, uint32_t offset, uint32_t *address);
+extern uint8_t wrapper_fast_read_mem_byte(int32_t handle, uint32_t offset);
+extern uint16_t wrapper_fast_read_mem_word(int32_t handle, uint32_t offset);
+extern uint32_t wrapper_fast_read_mem_longword(int32_t handle, uint32_t offset);
+extern int32_t wrapper_write_mem_byte(int32_t handle, uint32_t offset, uint16_t val);
+extern int32_t wrapper_write_mem_word(int32_t handle, uint32_t offset, uint16_t val);
+extern int32_t wrapper_write_mem_longword(int32_t handle, uint32_t offset, uint32_t val);
+extern int32_t wrapper_read_io_byte(int32_t handle, uint32_t offset, uint8_t *address);
+extern int32_t wrapper_read_io_word(int32_t handle, uint32_t offset, uint16_t *address);
+extern int32_t wrapper_read_io_longword(int32_t handle, uint32_t offset, uint32_t *address);
+extern uint8_t wrapper_fast_read_io_byte(int32_t handle, uint32_t offset);
+extern uint16_t wrapper_fast_read_io_word(int32_t handle, uint32_t offset);
+extern uint32_t wrapper_fast_read_io_longword(int32_t handle, uint32_t offset);
+extern int32_t wrapper_write_io_byte(int32_t handle, uint32_t offset, uint16_t val);
+extern int32_t wrapper_write_io_word(int32_t handle, uint32_t offset, uint16_t val);
+extern int32_t wrapper_write_io_longword(int32_t handle, uint32_t offset, uint32_t val);
+extern int32_t wrapper_get_machine_id(void);
+extern int32_t wrapper_get_pagesize(void);
+extern int32_t wrapper_virt_to_bus(int32_t handle, uint32_t address, PCI_CONV_ADR *pointer);
+extern int32_t wrapper_bus_to_virt(int32_t handle, uint32_t address, PCI_CONV_ADR *pointer);
+extern int32_t wrapper_virt_to_phys(uint32_t address, PCI_CONV_ADR *pointer);
+extern int32_t wrapper_phys_to_virt(uint32_t address, PCI_CONV_ADR *pointer);
 
 #define PCI_MK_CONF_ADDR(bus, device, function)	(MCF_PCI_PCICAR_E | \
 												((bus) << 16) | \
