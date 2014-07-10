@@ -144,7 +144,8 @@ ASRCS= \
 	startcf.S \
 	printf_helper.S \
 	exceptions.S \
-	xhdi_vec.S
+	xhdi_vec.S \
+	pci_wrappers.S
 
 SRCS=$(ASRCS) $(CSRCS)
 COBJS=$(patsubst %.c,%.o,$(CSRCS))

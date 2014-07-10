@@ -27,15 +27,17 @@
 
 #include "xhdi_sd.h"
 #include "MCD_dma.h"
+#include "pci.h"
 
 enum driver_type
 {
-	END_OF_DRIVERS,		/* marks end of driver list */
-	BLOCKDEV_DRIVER,
-	CHARDEV_DRIVER,
-	VIDEO_DRIVER,
+//	BLOCKDEV_DRIVER,
+//	CHARDEV_DRIVER,
 	XHDI_DRIVER,
 	MCD_DRIVER,
+	VIDEO_DRIVER,
+	PCI_DRIVER,
+	END_OF_DRIVERS,		/* marks end of driver list */
 };
 
 struct generic_driver_interface
@@ -204,12 +206,66 @@ struct framebuffer_driver_interface
 	struct fb_info **framebuffer_info;	/* pointer to an fb_info struct (defined in include/fb.h) */
 };
 
+struct pci_bios_interface {
+	uint32_t subjar;
+	uint32_t version;
+	/* Although we declare this functions as standard gcc functions (cdecl),
+	 * they expect paramenters inside registers (fastcall) unsupported by gcc m68k.
+	 * Caller will take care of parameters passing convention.
+	 */
+	int32_t (*find_pci_device)	(uint32_t id, uint16_t index);
+	int32_t (*find_pci_classcode)	(uint32_t class, uint16_t index);
+	int32_t (*read_config_byte)	(int32_t handle, uint16_t reg, uint8_t *address);
+	int32_t (*read_config_word)	(int32_t handle, uint16_t reg, uint16_t *address);
+	int32_t (*read_config_longword)	(int32_t handle, uint16_t reg, uint32_t *address);
+	uint8_t (*fast_read_config_byte)	(int32_t handle, uint16_t reg);
+	uint16_t (*fast_read_config_word)	(int32_t handle, uint16_t reg);
+	uint32_t (*fast_read_config_longword)	(int32_t handle, uint16_t reg);
+	int32_t (*write_config_byte)	(int32_t handle, uint16_t reg, uint16_t val);
+	int32_t (*write_config_word)	(int32_t handle, uint16_t reg, uint16_t val);
+	int32_t (*write_config_longword)	(int32_t handle, uint16_t reg, uint32_t val);
+	int32_t (*hook_interrupt)	(int32_t handle, uint32_t *routine, uint32_t *parameter);
+	int32_t (*unhook_interrupt)	(int32_t handle);
+	int32_t (*special_cycle)	(uint16_t bus, uint32_t data);
+	int32_t (*get_routing)	(int32_t handle);
+	int32_t (*set_interrupt)	(int32_t handle);
+	int32_t (*get_resource)	(int32_t handle);
+	int32_t (*get_card_used)	(int32_t handle, uint32_t *address);
+	int32_t (*set_card_used)	(int32_t handle, uint32_t *callback);
+	int32_t (*read_mem_byte)	(int32_t handle, uint32_t offset, uint8_t *address);
+	int32_t (*read_mem_word)	(int32_t handle, uint32_t offset, uint16_t *address);
+	int32_t (*read_mem_longword)	(int32_t handle, uint32_t offset, uint32_t *address);
+	uint8_t (*fast_read_mem_byte)	(int32_t handle, uint32_t offset);
+	uint16_t (*fast_read_mem_word)	(int32_t handle, uint32_t offset);
+	uint32_t (*fast_read_mem_longword)	(int32_t handle, uint32_t offset);
+	int32_t (*write_mem_byte)	(int32_t handle, uint32_t offset, uint16_t val);
+	int32_t (*write_mem_word)	(int32_t handle, uint32_t offset, uint16_t val);
+	int32_t (*write_mem_longword)	(int32_t handle, uint32_t offset, uint32_t val);
+	int32_t (*read_io_byte)	(int32_t handle, uint32_t offset, uint8_t *address);
+	int32_t (*read_io_word)	(int32_t handle, uint32_t offset, uint16_t *address);
+	int32_t (*read_io_longword)	(int32_t handle, uint32_t offset, uint32_t *address);
+	uint8_t (*fast_read_io_byte)	(int32_t handle, uint32_t offset);
+	uint16_t (*fast_read_io_word)	(int32_t handle, uint32_t offset);
+	uint32_t (*fast_read_io_longword)	(int32_t handle, uint32_t offset);
+	int32_t (*write_io_byte)	(int32_t handle, uint32_t offset, uint16_t val);
+	int32_t (*write_io_word)	(int32_t handle, uint32_t offset, uint16_t val);
+	int32_t (*write_io_longword)	(int32_t handle, uint32_t offset, uint32_t val);
+	int32_t (*get_machine_id)	(void);
+	int32_t (*get_pagesize)	(void);
+	int32_t (*virt_to_bus)	(int32_t handle, uint32_t address, PCI_CONV_ADR *pointer);
+	int32_t (*bus_to_virt)	(int32_t handle, uint32_t address, PCI_CONV_ADR *pointer);
+	int32_t (*virt_to_phys)	(uint32_t address, PCI_CONV_ADR *pointer);
+	int32_t (*phys_to_virt)	(uint32_t address, PCI_CONV_ADR *pointer);
+//	int32_t reserved[2];
+};
+
 union interface
 {
 	struct generic_driver_interface *gdi;
 	struct xhdi_driver_interface *xhdi;
 	struct dma_driver_interface *dma;
 	struct framebuffer_driver_interface *fb;
+	struct pci_bios_interface *pci;
 };
 
 struct generic_interface

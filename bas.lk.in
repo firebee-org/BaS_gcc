@@ -48,6 +48,7 @@ SECTIONS
 
 		OBJDIR/BaS.o(.text)
 		OBJDIR/pci.o(.text)
+		OBJDIR/pci_wrappers.o(.text)
 		OBJDIR/usb.o(.text)
 		OBJDIR/driver_mem.o(.text)
 		OBJDIR/usb_mouse.o(.text)
