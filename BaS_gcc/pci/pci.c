@@ -35,7 +35,7 @@
 
 //#define DEBUG_PCI
 #ifdef DEBUG_PCI
-#define dbg(format, arg...) do { xprintf("DEBUG: " format, __FUNCTION__, ##arg); } while (0)
+#define dbg(format, arg...) do { xprintf("DEBUG: %s(): " format, __FUNCTION__, ##arg); } while (0)
 #else
 #define dbg(format, arg...) do { ; } while (0)
 #endif /* DEBUG_PCI */
