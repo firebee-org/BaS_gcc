@@ -5,7 +5,7 @@
 
 #include "driver_vec.h"
 
-#define FPGA_JTAG_LOADED_FLAG               ((volatile int32_t *) 0xFF101000)
+#define FPGA_JTAG_LOADED_FLAG               ((volatile bool *) 0xFF101000)
 
 #define _MBAR                               ((volatile uint8_t *) 0xFF000000)
 #define MCF_GPIO_PDDR_FEC1L                 ((volatile uint8_t *)(&_MBAR[0xA17]))
@@ -30,7 +30,7 @@ static inline uint32_t set_ipl(uint32_t ipl)
         "		lsr.l	#8,%[ret]\r\n"			/* shift them to position */
         : [ret] "=&d" (ret)		/* output */
         : [ipl] "d" (ipl)		/* input */
-        : "d0"	/* clobber */
+        : "d0", "cc"	/* clobber */
     );
 
     return ret;
@@ -53,8 +53,11 @@ void wait_for_jtag(void)
     while (!(*MCF_GPIO_PPDSDR_FEC1L & FPGA_CONFIG));        /* wait for JTAG config load starting */
     while (!(*MCF_GPIO_PPDSDR_FEC1L & FPGA_CONF_DONE));     /* wait for JTAG config load finished */
 
-    *FPGA_JTAG_LOADED_FLAG = 1;     /* indicate jtag loaded FPGA config to BaS */
+    *FPGA_JTAG_LOADED_FLAG = true;     /* indicate jtag loaded FPGA config to BaS */
 
+    /*
+     * reboot after configuration finished
+     */
     __asm__ __volatile__(
         "jmp    0xE0000000\n\t"
     );
