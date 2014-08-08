@@ -551,52 +551,45 @@ static volatile uint8_t *pll_base = (volatile uint8_t *) 0xf0000600;
 
 void pll_write(int type, int param, int data)
 {
-    wait_pll();
-    * (volatile uint16_t *) (pll_base + ((param << 6) | (type << 2))) = data;
+	wait_pll();
+	* (volatile uint16_t *) (pll_base + ((param << 6) | (type << 2))) = data;
 }
+
+struct pll_init
+{
+	int type;
+	int param;
+	int data;
+};
+
+static struct pll_init pll_values[] =
+{
+	{ PLL_COUNTER_TYPE_CPLF, PLL_COUNTER_PARAM_LF_R, 27 },	/* loopfilter R */
+	{ PLL_COUNTER_TYPE_CPLF, PLL_COUNTER_PARAM_LF_C, 1 },	/* charge pump 1 */
+	{ PLL_COUNTER_TYPE_N, PLL_COUNTER_PARAM_HC, 12 },		/* N counter high */
+	{ PLL_COUNTER_TYPE_N, PLL_COUNTER_PARAM_LC, 12 },		/* N counter low */
+	{ PLL_COUNTER_TYPE_C1, PLL_COUNTER_PARAM_BP, 1 },		/* c1 bypass */
+	{ PLL_COUNTER_TYPE_C2, PLL_COUNTER_PARAM_BP, 1 },		/* c2 bypass */
+	{ PLL_COUNTER_TYPE_C3, PLL_COUNTER_PARAM_BP, 1 },		/* c3 bypass */
+	{ PLL_COUNTER_TYPE_C0, PLL_COUNTER_PARAM_HC, 1 },		/* c0 high */
+	{ PLL_COUNTER_TYPE_C0, PLL_COUNTER_PARAM_LC, 1 },		/* c0 low */
+	{ PLL_COUNTER_TYPE_M, PLL_COUNTER_PARAM_MODE, 1 },		/* M odd division */
+	{ PLL_COUNTER_TYPE_M, PLL_COUNTER_PARAM_LC, 1 },		/* M low = 1 */
+	{ PLL_COUNTER_TYPE_M, PLL_COUNTER_PARAM_HC, 145 }		/* M high = 145 = 146 MHz */
+
+};
+static int num_pll_values = sizeof(pll_values) / sizeof(struct pll_init);
 
 void init_pll(void)
 {
+	int i;
+
 	xprintf("FPGA PLL initialization: ");
 
-    pll_write(PLL_COUNTER_TYPE_CPLF, PLL_COUNTER_PARAM_LF_R, 27);
-    // wait_pll();
-    // volatile uint16_t *) (pll_base + 0x48) = 27;	/* loopfilter  r */
-
-	wait_pll();
-	* (volatile uint16_t *) (pll_base + 0x08) = 1;		/* charge pump 1 */
-
-	wait_pll();
-	* (volatile uint16_t *) (pll_base + 0x00) = 12;		/* N counter high = 12 */
-
-	wait_pll();
-	* (volatile uint16_t *) (pll_base + 0x40) = 12;		/* N counter low = 12 */
-
-	wait_pll();
-	* (volatile uint16_t *) (pll_base + 0x114) = 1;		/* ck1 bypass */
-
-	wait_pll();
-	* (volatile uint16_t *) (pll_base + 0x118) = 1;		/* ck2 bypass */
-
-	wait_pll();
-	* (volatile uint16_t *) (pll_base + 0x11c) = 1;		/* ck3 bypass */
-
-	wait_pll();
-	* (volatile uint16_t *) (pll_base + 0x10) = 1;		/* ck0 high  = 1 */
-
-	wait_pll();
-	* (volatile uint16_t *) (pll_base + 0x50) = 1;		/* ck0 low = 1 */
-
-	wait_pll();
-	* (volatile uint16_t *) (pll_base + 0x144) = 1;		/* M odd division */
-
-	wait_pll();
-	* (volatile uint16_t *) (pll_base + 0x44) = 1;		/* M low = 1 */
-
-	wait_pll();
-	* (volatile uint16_t *) (pll_base + 0x04) = 145;	/* M high = 145 = 146 MHz */
-
-	wait_pll();
+	for (i = 0; i < num_pll_values; i++)
+	{
+		pll_write(pll_values[i].type, pll_values[i].param, pll_values[i].data);
+	}
 
 	* (volatile uint8_t *) 0xf0000800 = 0;				/* set */
 
