@@ -482,12 +482,86 @@ void wait_pll(void)
 
 static volatile uint8_t *pll_base = (volatile uint8_t *) 0xf0000600;
 
+/*
+ * the altpll_reconfig component is connected to the Bus as follows:
+ *
+ * 9 bit data:
+ * 876543210 (this _is_ actually the last part of the address written or read!)
+ * | ||  |
+ * | |+--+- counter_type
+ * +-+----- counter_param
+ *
+ * 9 bit data
+ * 876543210
+ * +-------+- data_in
+ *
+ * counter_type selects which counter should be affected by data_in:
+ * 0000 - N
+ * 0001 - M
+ * 0010 - CP/LF (charge pump/loop filter)
+ * 0011 - VCO (voltage controlled oscillator)
+ * 0100 - C0
+ * 0101 - C1
+ * 0110 - C2
+ * 0111 - C3
+ * 1000 - C4
+ *
+ * counter_param selects which part of the selected counter_type is set/read and how many
+ * bits are used/valid:
+ *
+ * for counter_type N, M, C0-C4:
+ * 000 - high count, 8 bit
+ * 001 - low count, 8 bit
+ * 100 - bypass, 1 bit
+ * 101 - mode (odd/even division), 1 bit
+ *
+ * for counter_type CP/LF:
+ * 101 - charge pump unused, 5 bit
+ * 000 - charge pump current, 3 bit
+ * 100 - loop filter unused, 1 bit
+ * 001 - loop filter resistor, 5 bit
+ * 010 - loop filter capacitance, 2 bit
+ *
+ * for counter_type VCO:
+ * 000 - VCO post scale, 1 bit
+ */
+
+#define PLL_COUNTER_TYPE_N      0
+#define PLL_COUNTER_TYPE_M      1
+#define PLL_COUNTER_TYPE_CPLF   2
+#define PLL_COUNTER_TYPE_VCO    3
+#define PLL_COUNTER_TYPE_C0     4
+#define PLL_COUNTER_TYPE_C1     5
+#define PLL_COUNTER_TYPE_C2     6
+#define PLL_COUNTER_TYPE_C3     7
+#define PLL_COUNTER_TYPE_C4     8
+
+#define PLL_COUNTER_PARAM_HC    0
+#define PLL_COUNTER_PARAM_LC    1
+#define PLL_COUNTER_PARAM_BP    4
+#define PLL_COUNTER_PARAM_MODE  5
+
+#define PLL_COUNTER_PARAM_CP_U  5
+#define PLL_COUNTER_PARAM_CP_C  0
+#define PLL_COUNTER_PARAM_LF_U  4
+#define PLL_COUNTER_PARAM_LF_R  1
+#define PLL_COUNTER_PARAM_LF_C  2
+
+#define PLL_COUNTER_PARAM_VCO_PS    0
+
+void pll_write(int type, int param, int data)
+{
+    wait_pll();
+    * (volatile uint16_t *) (pll_base + ((param << 6) | (type << 2))) = data;
+}
+
 void init_pll(void)
 {
 	xprintf("FPGA PLL initialization: ");
 
-	wait_pll();
-	* (volatile uint16_t *) (pll_base + 0x48) = 27;	/* loopfilter  r */
+    pll_write(PLL_COUNTER_TYPE_CPLF, PLL_COUNTER_PARAM_LF_R, 27);
+    // wait_pll();
+    // volatile uint16_t *) (pll_base + 0x48) = 27;	/* loopfilter  r */
 
 	wait_pll();
 	* (volatile uint16_t *) (pll_base + 0x08) = 1;		/* charge pump 1 */

@@ -27,6 +27,13 @@
 #include "bas_printf.h"
 #include "wait.h"
 
+#define FPGA_DEBUG
+#if defined(FPGA_DEBUG)
+#define dbg(format, arg...) do { xprintf("DEBUG: %s(): " format, __FUNCTION__, ##arg); } while (0)
+#else
+#define dbg(format, arg...) do { ; } while (0)
+#endif
+
 #define FPGA_STATUS		(1 << 0)
 #define FPGA_CLOCK		(1 << 1)
 #define FPGA_CONFIG		(1 << 2)
@@ -42,7 +49,7 @@ extern uint8_t _FPGA_CONFIG_SIZE[];
  * flag located in processor SRAM1 that indicates that the FPGA configuration has
  * been loaded through JTAG. init_fpga() will honour this and not overwrite config.
  */
-extern int32_t _FPGA_JTAG_LOADED;
+extern bool _FPGA_JTAG_LOADED;
 
 void config_gpio_for_fpga_config(void)
 {
@@ -84,10 +91,10 @@ bool init_fpga(void)
 	volatile int32_t time, start, end;
 	int i;
 
-	xprintf("FPGA load config (_FPGA_JTAG_LOADED = %x)...", _FPGA_JTAG_LOADED);
+    dbg("FPGA load config (_FPGA_JTAG_LOADED = %x)...", _FPGA_JTAG_LOADED);
 	if (_FPGA_JTAG_LOADED == 1)
 	{
-		xprintf("detected _FPGA_JTAG_LOADED flag. Not overwriting FPGA config.\r\n");
+        dbg("detected _FPGA_JTAG_LOADED flag. Not overwriting FPGA config.\r\n");
 
 		/* reset the flag so that next boot will load config again from flash */
 		_FPGA_JTAG_LOADED = 0;
