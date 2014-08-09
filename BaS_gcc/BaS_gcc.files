@@ -229,3 +229,6 @@ COPYING.LESSER
 dump.bdm
 mcf5474.gdb
 Makefile
+tos/jtagwait/Makefile
+tos/jtagwait/sources/jtagwait.c
+tos/jtagwait/include/driver_vec.h

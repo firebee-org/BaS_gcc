@@ -236,6 +236,7 @@ SECTIONS
 	 * and shouldn't be overwritten on boot
 	 */
 	__FPGA_JTAG_LOADED		= __RAMBAR1;
+	__FPGA_JTAG_VALID		= __RAMBAR1 + 4;
 	/* system variables */
 
 	/* RAMBAR0 0 to 0x7FF -> exception vectors */

@@ -244,7 +244,7 @@ void init_serial(void)
 	MCF_PSC0_PSCOPSET = 0x01;
 	MCF_PSC0_PSCCR = 0x05;
 
-#ifdef MACHINE_FIREBEE	/* PSC3 is not connected to anything on the LITE board */
+#if defined(MACHINE_FIREBEE)	/* PSC3 is not connected to anything on the LITE board */
 	/* PSC3: PIC */
 	MCF_PSC3_PSCSICR = 0;	// UART
 	MCF_PSC3_PSCCSR = 0xDD;
@@ -480,7 +480,11 @@ void wait_pll(void)
 	} while ((* (volatile int16_t *) 0xf0000800 < 0) && MCF_SLT0_SCNT > trgt);
 }
 
-static volatile uint8_t *pll_base = (volatile uint8_t *) 0xf0000600;
+
+volatile uint8_t *pll_base = (volatile uint8_t *) 0xf0000600;
+
+//#define _OLD_CODE_ /* use old PLL initialization code */
+#ifndef _OLD_CODE_
 
 /*
  * the altpll_reconfig component is connected to the Bus as follows:
@@ -562,7 +566,7 @@ struct pll_init
 	int data;
 };
 
-static struct pll_init pll_values[] =
+struct pll_init pll_values[] =
 {
 	{ PLL_COUNTER_TYPE_CPLF, PLL_COUNTER_PARAM_LF_R, 27 },	/* loopfilter R */
 	{ PLL_COUNTER_TYPE_CPLF, PLL_COUNTER_PARAM_LF_C, 1 },	/* charge pump 1 */
@@ -576,9 +580,9 @@ static struct pll_init pll_values[] =
 	{ PLL_COUNTER_TYPE_M, PLL_COUNTER_PARAM_MODE, 1 },		/* M odd division */
 	{ PLL_COUNTER_TYPE_M, PLL_COUNTER_PARAM_LC, 1 },		/* M low = 1 */
 	{ PLL_COUNTER_TYPE_M, PLL_COUNTER_PARAM_HC, 145 }		/* M high = 145 = 146 MHz */
-
 };
-static int num_pll_values = sizeof(pll_values) / sizeof(struct pll_init);
+int num_pll_values = sizeof(pll_values) / sizeof(struct pll_init);
+#endif /* _OLD_CODE_ */
 
 void init_pll(void)
 {
@@ -586,10 +590,51 @@ void init_pll(void)
 
 	xprintf("FPGA PLL initialization: ");
 
+#ifndef _OLD_CODE_
 	for (i = 0; i < num_pll_values; i++)
 	{
 		pll_write(pll_values[i].type, pll_values[i].param, pll_values[i].data);
 	}
+
+#else /* _OLD_CODE_ */
+	wait_pll();
+	* (volatile uint16_t *) (pll_base + 0x48) = 27;	/* loopfilter  r */
+
+	wait_pll();
+	* (volatile uint16_t *) (pll_base + 0x08) = 1;		/* charge pump 1 */
+
+	wait_pll();
+	* (volatile uint16_t *) (pll_base + 0x00) = 12;		/* N counter high = 12 */
+
+	wait_pll();
+	 * (volatile uint16_t *) (pll_base + 0x40) = 12;		/* N counter low = 12 */
+
+	wait_pll();
+	* (volatile uint16_t *) (pll_base + 0x114) = 1;		/* ck1 bypass */
+
+	wait_pll();
+	* (volatile uint16_t *) (pll_base + 0x118) = 1;		/* ck2 bypass */
+
+	wait_pll();
+	* (volatile uint16_t *) (pll_base + 0x11c) = 1;		/* ck3 bypass */
+
+	wait_pll();
+	* (volatile uint16_t *) (pll_base + 0x10) = 1;		/* ck0 high  = 1 */
+
+	wait_pll();
+	* (volatile uint16_t *) (pll_base + 0x50) = 1;		/* ck0 low = 1 */
+
+	wait_pll();
+	* (volatile uint16_t *) (pll_base + 0x144) = 1;		/* M odd division */
+
+	wait_pll();
+	* (volatile uint16_t *) (pll_base + 0x44) = 1;		/* M low = 1 */
+
+	wait_pll();
+	* (volatile uint16_t *) (pll_base + 0x04) = 145;	/* M high = 145 = 146 MHz */
+
+	wait_pll();
+#endif /* _OLD_CODE_ */
 
 	* (volatile uint8_t *) 0xf0000800 = 0;				/* set */
 
@@ -629,7 +674,7 @@ void init_video_ddr(void) {
 	_VRAM = 0000070022;	/* load MR dll on */
 	NOP();
 
-	* (uint32_t *) 0xf0000400 = 0x01070002; /* fifo on, refresh on, ddrcs und cke on, video dac on */
+	* (uint32_t *) 0xf0000400 = 0x01070002; /* fifo on, refresh on, ddrcs and cke on, video dac on */
 
 	xprintf("finished\r\n");
 }
@@ -655,19 +700,19 @@ void init_usb(void)
 		if (handle > 0)
 		{
 			uint32_t id = 0;
-			uint32_t class = 0;
+			uint32_t pci_class = 0;
 
 			id = pci_read_config_longword(handle, PCIIDR);
-			class = pci_read_config_longword(handle, PCIREV);
+			pci_class = pci_read_config_longword(handle, PCIREV);
 
-			if (PCI_CLASS_CODE(class) == PCI_CLASS_SERIAL_USB)
+			if (PCI_CLASS_CODE(pci_class) == PCI_CLASS_SERIAL_USB)
 			{
 				xprintf("serial USB found at bus=0x%x, dev=0x%x, fnc=0x%x (0x%x)\r\n",
 						PCI_BUS_FROM_HANDLE(handle),
 						PCI_DEVICE_FROM_HANDLE(handle),
 						PCI_FUNCTION_FROM_HANDLE(handle),
 						handle);
-				if (PCI_SUBCLASS(class) == PCI_CLASS_SERIAL_USB_EHCI)
+				if (PCI_SUBCLASS(pci_class) == PCI_CLASS_SERIAL_USB_EHCI)
 				{
 					board = ehci_usb_pci_table;
 					while (board->vendor)
@@ -682,7 +727,7 @@ void init_usb(void)
 						board++;
 					}
 				}
-				if (PCI_SUBCLASS(class) == PCI_CLASS_SERIAL_USB_OHCI)
+				if (PCI_SUBCLASS(pci_class) == PCI_CLASS_SERIAL_USB_OHCI)
 				{
 					board = ohci_usb_pci_table;
 					while (board->vendor)
@@ -1176,9 +1221,9 @@ void initialize_hardware(void)
 	video_init();
 
 	/* do not try to init USB for now on the Firebee, it hangs the machine */
-#ifndef MACHINE_FIREBEE
-	//init_usb();
-#endif
+//#ifndef MACHINE_FIREBEE
+	init_usb();
+//#endif
 
 #if MACHINE_FIREBEE
 	init_ac97();

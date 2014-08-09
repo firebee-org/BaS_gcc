@@ -33,18 +33,24 @@ APP=jtagwait.prg
 TEST_APP=$(APP)
 
 CFLAGS=\
-	-Os\
+	-O0\
 	-g\
 	-Wl,-Map,mapfile\
+	-Wl,--defsym -Wl,__MBAR=0xff000000\
+	-Wl,--defsym -Wl,__MMUBAR=0xff040000\
+	-Wl,--defsym -Wl,__FPGA_JTAG_LOADED=0xff101000\
+	-Wl,--defsym -Wl,__FPGA_JTAG_VALID=0xff101004\
 	-Wall
-	
+
 SRCDIR=sources
 INCDIR=include
 INCLUDE+=-I$(INCDIR)
 
 CSRCS=\
-	$(SRCDIR)/jtagwait.c
-ASRCS=
+	$(SRCDIR)/jtagwait.c \
+	$(SRCDIR)/bas_printf.c
+
+ASRCS=$(SRCDIR)/printf_helper.S
 
 COBJS=$(patsubst $(SRCDIR)/%.o,%.o,$(patsubst %.c,%.o,$(CSRCS)))
 AOBJS=$(patsubst $(SRCDIR)/%.o,%.o,$(patsubst %.S,%.o,$(ASRCS)))
@@ -91,7 +97,7 @@ clean:
 .PHONY: printvars
 printvars:
 	@$(foreach V,$(.VARIABLES), $(if $(filter-out environment% default automatic, $(origin $V)),$(warning $V=$($V))))
-	 
+
 ifneq (clean,$(MAKECMDGOALS))
 -include $(DEPEND)
 endif
