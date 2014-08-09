@@ -94,7 +94,7 @@ bool init_fpga(void)
 	int i;
 
 	dbg("FPGA load config\r\n(_FPGA_JTAG_LOADED = %x, _FPGA_JTAG_VALID = %x)...\r\n", _FPGA_JTAG_LOADED, _FPGA_JTAG_VALID);
-	if (_FPGA_JTAG_LOADED == true)
+	if (_FPGA_JTAG_LOADED == true && _FPGA_JTAG_VALID == VALID_JTAG)
 	{
 		dbg("detected _FPGA_JTAG_LOADED flag. Not overwriting FPGA config.\r\n");
 
