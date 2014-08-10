@@ -64,7 +64,7 @@
 
 //#define DEBUG_MMU
 #ifdef DEBUG_MMU
-#define dbg(format, arg...) do { xprintf("DEBUG: " format, ##arg);} while(0)
+#define dbg(format, arg...) do { xprintf("DEBUG (%s()): " format, __FUNCTION__, ##arg);} while(0)
 #else
 #define dbg(format, arg...) do {;} while (0)
 #endif /* DEBUG_MMU */
