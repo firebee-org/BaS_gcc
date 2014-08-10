@@ -156,12 +156,15 @@ LIBBAS=libbas.a
 
 LIBS=$(patsubst %,%/$(LIBBAS),$(TRGTDIRS))
 
-all: fls ram bfl lib
+all: fls ram bfl lib tos
 fls: $(patsubst %,%/$(FLASH_EXEC),$(TRGTDIRS))
 ram: $(patsubst %,%/$(RAM_EXEC),$(TRGTDIRS))
 bfl: $(patsubst %,%/$(BASFLASH_EXEC),$(TRGTDIRS))
 lib: $(LIBS)
 
+.PHONY: tos
+tos:
+	(cd tos; make)
 
 .PHONY: clean
 clean:
