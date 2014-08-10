@@ -15,6 +15,10 @@ extern long	_FPGA_JTAG_VALID;
 #define FPGA_CONFIG                     	(1 << 2)
 #define FPGA_CONF_DONE                      (1 << 5)
 
+#define SRAM1_START     0xff101000
+#define SRAM1_END       SRAM1_START + 0x1000
+#define SAFE_STACK      SRAM1_END - 4
+
 long bas_start = 0xe0000000;
 
 void wait_for_jtag(void)
@@ -23,11 +27,11 @@ void wait_for_jtag(void)
 
     /* set supervisor stack to end of SRAM1 */
     __asm__ __volatile__ (
-        "		move	#0x2700,sr\n\t"							/* disable interrupts */
-        "		move.l	#0xff101000 + 0x1000 - 4,d0\n\t"		/* 4KB on-chip core SRAM1 */
-        "		move.l	d0,sp\n\t"								/* set stack pointer */
+        "		move	#0x2700,sr\n\t"			/* disable interrupts */
+        "		move.l	%[stack],d0\n\t"		/* 4KB on-chip core SRAM1 */
+        "		move.l	d0,sp\n\t"				/* set stack pointer */
         :
-        :
+        : [stack] "i" (SAFE_STACK)
         : "d0", "cc"	/* clobber */
     );
 
@@ -46,19 +50,19 @@ void wait_for_jtag(void)
                           MCF_GPIO_PDDR_FEC1L_PDDR_FEC1L4;	/* bit 4 = LED => output */
                                                             /* all other bits = input */
 
-    xprintf("waiting for JTAG configuration start\r\n");
     /*
-     * now that this GPIO ports have been switched to input, we can poll for FPGA config
+     * now that GPIO ports have been switched to input, we can poll for FPGA config
      * started from the JTAG interface (CONF_DONE goes low) and finish (CONF_DONE goes high)
      */
+    xprintf("waiting for JTAG configuration start\r\n");
     while ((MCF_GPIO_PPDSDR_FEC1L & FPGA_CONF_DONE));		/* wait for JTAG config load started */
 
-    xprintf("waiting for JTAG configuration finished\r\n");
+    xprintf("waiting for JTAG configuration to finish\r\n");
     while (!(MCF_GPIO_PPDSDR_FEC1L & FPGA_CONF_DONE));     /* wait for JTAG config load finished */
 
     xprintf("JTAG configuration finished.\r\n");
-    _FPGA_JTAG_LOADED = true;     /* indicate jtag loaded FPGA config to BaS */
-    _FPGA_JTAG_VALID = VALID_JTAG;
+    _FPGA_JTAG_LOADED = true;       /* indicate jtag loaded FPGA config to BaS */
+    _FPGA_JTAG_VALID = VALID_JTAG;  /* set magic word to indicate _FPGA_JTAG_LOADED is valid */
 
     /* wait */
     xprintf("wait a little to let things settle...\r\n");
@@ -95,7 +99,7 @@ int main(int argc, char *argv[])
              */
             bas_start = (long) addr;
 
-            printf("BaS start address set to %p\r\n", addr);
+            printf("BaS start address set to %p\r\n", (void *) bas_start);
         }
         else
         {
