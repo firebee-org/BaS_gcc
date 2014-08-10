@@ -42,6 +42,17 @@ uint32_t cacr_get(void)
 	return rt_cacr;
 }
 
+void disable_data_cache(void)
+{
+    flush_and_invalidate_caches();
+    cacr_set(cacr_get() | CF_CACR_DCINVA);
+}
+
+void enable_data_cache(void)
+{
+    cacr_set(cacr_get() & ~CF_CACR_DCINVA);
+}
+
 void flush_and_invalidate_caches(void)
 {
     __asm__ __volatile__(
