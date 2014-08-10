@@ -1089,6 +1089,9 @@ void initialize_hardware(void)
 #endif
 	, MAJOR_VERSION, MINOR_VERSION, __DATE__, __TIME__);
 
+	extern char *rom_header;
+
+	xprintf("running from %p\r\n\r\n", &rom_header);
 	/*
 	 * Determine cause(s) of Reset
 	 */

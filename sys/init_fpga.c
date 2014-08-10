@@ -79,7 +79,7 @@ void config_gpio_for_jtag_config(void)
 						  MCF_GPIO_PDDR_FEC1L_PDDR_FEC1L4;	/* bit 4 = LED => output */
 															/* all other bits = input */
 	/*
-	 * unfortunately, the GPIO module cannot trigger interrupts. That means FPGA_CONFIG needs to be polled to detect
+	 * unfortunately, the GPIO module cannot trigger interrupts. That means CONF_DONE needs to be polled to detect
 	 * external FPGA (re)configuration and reset the system in that case. Could be done from the OS as well...
 	 */
 }
