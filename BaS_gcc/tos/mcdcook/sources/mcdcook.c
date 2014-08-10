@@ -105,8 +105,8 @@ int main(int argc, char *argv[])
 					ifc->version, ifc->revision);
 			if (ifc->type == MCD_DRIVER)
 			{
-				setcookie(COOKIE_DMAC, ifc->interface.dma);
-				printf("\r\nDMAC cookie set to %p\r\n", ifc->interface.dma);
+                setcookie(COOKIE_DMAC, (uint32_t) ifc->interface.dma);
+                printf("\r\nDMAC cookie set to %p\r\n", ifc->interface.dma);
 			}
 			ifc++;
 		}
@@ -114,7 +114,7 @@ int main(int argc, char *argv[])
 	Super(ssp);
 	
 	while (Cconis()) Cconin();	/* eat keys */
-	printf("press any key to continue\n\r");
+    // printf("press any key to continue\n\r");
 	// while (! Cconis());
 	return 0;
 }
