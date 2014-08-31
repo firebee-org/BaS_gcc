@@ -16,7 +16,7 @@ struct driver_table *get_bas_drivers(void)
 		:						/* no inputs */
 		:						/* clobbered */
 	);
-	
+
 	return ret;
 }
 
@@ -30,7 +30,7 @@ void setcookie(uint32_t cookie, uint32_t value)
 	uint32_t *cookiejar = (uint32_t *) Supexec(cookieptr);
 	int num_slots;
 	int max_slots;
-	
+
 	num_slots = max_slots = 0;
 	do
 	{
@@ -42,7 +42,7 @@ void setcookie(uint32_t cookie, uint32_t value)
 		cookiejar = &(cookiejar[2]);
 		num_slots++;
 	} while (cookiejar[-2]);
-	
+
 	/*
 	 * Here we are at the end of the list and did not find our cookie.
 	 * Let's check if there is any space left and append our value to the
@@ -51,7 +51,7 @@ void setcookie(uint32_t cookie, uint32_t value)
 	 */
 	if (cookiejar[-1])
 		max_slots = cookiejar[-1];
-	 
+
 	if (max_slots > num_slots)
 	{
 		 /* relief, there is space left, extend the list */
@@ -76,6 +76,7 @@ static char *dt_to_str(enum driver_type dt)
 		case VIDEO_DRIVER:    return "video/framebuffer driver";
 		case XHDI_DRIVER:     return "XHDI compatible hard disk driver";
 		case MCD_DRIVER:	  return "multichannel DMA driver";
+		case PCI_DRIVER:	  return "PCI interface driver";
 		default:              return "unknown driver type";
 	}
 }
@@ -86,7 +87,7 @@ int main(int argc, char *argv[])
 	void *ssp;
 
 	(void) Cconws("retrieve BaS driver interface\r\n");
-	
+
 	ssp = (void *) Super(0L);
 	dt = get_bas_drivers();
 	if (dt)
@@ -105,16 +106,16 @@ int main(int argc, char *argv[])
 					ifc->version, ifc->revision);
 			if (ifc->type == MCD_DRIVER)
 			{
-                setcookie(COOKIE_DMAC, (uint32_t) ifc->interface.dma);
-                printf("\r\nDMAC cookie set to %p\r\n", ifc->interface.dma);
+				setcookie(COOKIE_DMAC, (uint32_t) ifc->interface.dma);
+				printf("\r\nDMAC cookie set to %p\r\n", ifc->interface.dma);
 			}
 			ifc++;
 		}
 	}
 	Super(ssp);
-	
+
 	while (Cconis()) Cconin();	/* eat keys */
-    // printf("press any key to continue\n\r");
+	// printf("press any key to continue\n\r");
 	// while (! Cconis());
 	return 0;
 }
