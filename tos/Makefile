@@ -6,6 +6,6 @@ tos: jtagwait mcdcook
 jtagwait:
 	(cd $@; make)
 
-mcdcook:
+bascook:
 	(cd $@; make)
 	
