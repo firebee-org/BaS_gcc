@@ -31,7 +31,7 @@ CC=$(CROSSBINDIR)gcc
 STRIP=$(CROSSBINDIR)strip
 STACK=$(CROSSBINDIR)stack
 
-APP=mcdcook.prg
+APP=bascook.prg
 TEST_APP=$(APP)
 
 CFLAGS=\
@@ -43,7 +43,7 @@ CFLAGS=\
 SRCDIR=sources
 
 CSRCS=\
-	$(SRCDIR)/mcdcook.c
+	$(SRCDIR)/bascook.c
 ASRCS=
 
 COBJS=$(patsubst $(SRCDIR)/%.o,%.o,$(patsubst %.c,%.o,$(CSRCS)))
