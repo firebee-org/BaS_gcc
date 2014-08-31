@@ -21,7 +21,9 @@ endif
 DEPEND=depend
 TOPDIR= ../..
 
-INCLUDE=-I$(TOPDIR)/../libcmini/include -nostdlib
+BAS_INCLUDE=-I$(TOPDIR)/../BaS_gcc/include
+
+INCLUDE=-I$(TOPDIR)/../libcmini/include $(BAS_INCLUDE) -nostdlib
 LIBS=-lcmini -nostdlib -lgcc
 CC=$(PREFIX)/bin/gcc
 
@@ -37,10 +39,8 @@ CFLAGS=\
 	-g\
 	-Wl,-Map,mapfile\
 	-Wall
-	
+
 SRCDIR=sources
-INCDIR=include
-INCLUDE+=-I$(INCDIR)
 
 CSRCS=\
 	$(SRCDIR)/mcdcook.c
@@ -50,20 +50,16 @@ COBJS=$(patsubst $(SRCDIR)/%.o,%.o,$(patsubst %.c,%.o,$(CSRCS)))
 AOBJS=$(patsubst $(SRCDIR)/%.o,%.o,$(patsubst %.S,%.o,$(ASRCS)))
 OBJS=$(COBJS) $(AOBJS)
 
-TRGTDIRS=. ./m68020-60 ./m5475 ./mshort ./m68020-60/mshort ./m5475/mshort
+TRGTDIRS=.
 OBJDIRS=$(patsubst %,%/objs,$(TRGTDIRS))
 
 #
 # multilib flags. These must match m68k-atari-mint-gcc -print-multi-lib output
 #
-m68020-60/$(APP):CFLAGS += -m68020-60
-m5475/$(APP):CFLAGS += -mcpu=5475
-mshort/$(APP):CFLAGS += -mshort
-m68020-60/mshort/$(APP): CFLAGS += -m68020-60 -mshort
-m5475/mshort/$(APP): CFLAGS += -mcpu=5475 -mshort
+$(APP):CFLAGS += -mcpu=5475
 
-ctest: $(TEST_APP)
-all:$(patsubst %,%/$(APP),$(TRGTDIRS))
+all: $(TEST_APP)
+
 #
 # generate pattern rules for multilib object files.
 #
@@ -76,7 +72,7 @@ $(1)/objs/%.o:$(SRCDIR)/%.S
 
 $(1)_OBJS=$(patsubst %,$(1)/objs/%,$(OBJS))
 $(1)/$(APP): $$($(1)_OBJS)
-	$(CC) $$(CFLAGS) -o $$@ $(TOPDIR)/../libcmini/$(1)/startup.o $$($(1)_OBJS) -L$(TOPDIR)/../libcmini/$(1) $(LIBS)
+	$(CC) $$(CFLAGS) -o $$@ $(TOPDIR)/../libcmini/m5475/startup.o $$($(1)_OBJS) -L$(TOPDIR)/../libcmini/m5475 $(LIBS)
 	$(STRIP) $$@
 endef
 $(foreach DIR,$(TRGTDIRS),$(eval $(call CC_TEMPLATE,$(DIR))))
@@ -95,23 +91,7 @@ clean:
 .PHONY: printvars
 printvars:
 	@$(foreach V,$(.VARIABLES), $(if $(filter-out environment% default automatic, $(origin $V)),$(warning $V=$($V))))
-	 
+
 ifneq (clean,$(MAKECMDGOALS))
 -include $(DEPEND)
 endif
-
-test: $(TEST_APP)
-	$(HATARI) --grab -w --tos $(TOPDIR)/../emutos/etos512k.img \
-	--machine falcon -s 14 --cpuclock 32 --cpulevel 3 --vdi true --vdi-planes 4 \
-	--vdi-width 640 --vdi-height 480 -d . $(APP)
-
-ftest: $(TEST_APP)
-	$(HATARI) --grab -w --tos /usr/share/hatari/TOS404.IMG \
-	--machine falcon --cpuclock 32 --cpulevel 3 \
-	-d . $(APP)
-	
-sttest: $(TEST_APP)
-	$(HATARI) --grab -w --tos "/usr/share/hatari/tos106de.img" \
-	--machine st --cpuclock 32 --cpulevel 3  --vdi true --vdi-planes 4 \
-	--vdi-width 640 --vdi-height 480 \
-	-d . $(APP)

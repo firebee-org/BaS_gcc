@@ -234,7 +234,6 @@ tos/jtagwait/sources/jtagwait.c
 tos/jtagwait/include/driver_vec.h
 tos/mcdcook/Makefile
 tos/mcdcook/sources/mcdcook.c
-tos/mcdcook/include/driver_vec.h
 tos/jtagwait/include/bas_printf.h
 tos/jtagwait/include/bas_string.h
 tos/jtagwait/include/MCF5475_CLOCK.h

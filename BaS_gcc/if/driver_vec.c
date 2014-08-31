@@ -35,7 +35,7 @@
 /*
  * driver interface struct for the SD card BaS driver
  */
-static struct xhdi_driver_interface xhdi_call_interface = 
+static struct xhdi_driver_interface xhdi_call_interface =
 {
 	xhdi_call
 };
@@ -73,7 +73,7 @@ extern const struct fb_info *info_fb;
 /*
  * driver interface struct for the PCI_BIOS BaS driver
  */
-static struct pci_bios_interface pci_interface = 
+static struct pci_bios_interface pci_interface =
 {
 	.subjar = 0,
 	.version = 0x00010000,
@@ -140,7 +140,7 @@ static struct generic_interface interfaces[] =
 		.description = "BaS SD Card driver",
 		.version = 0,
 		.revision = 1,
-		.interface.xhdi = &xhdi_call_interface 
+		.interface.xhdi = &xhdi_call_interface
 	},
 	{
 		.type = MCD_DRIVER,
@@ -181,7 +181,7 @@ static struct driver_table bas_drivers =
 	.bas_version = MAJOR_VERSION,
 	.bas_revision = MINOR_VERSION,
 	.remove_handler = NULL,
-	.interfaces = { interfaces }
+	.interfaces = interfaces
 };
 
 void __attribute__((interrupt)) get_bas_drivers(void)
