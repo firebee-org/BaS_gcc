@@ -266,3 +266,4 @@ tos/jtagwait/sources/bas_string.c
 tos/jtagwait/sources/printf_helper.S
 tos/bascook/Makefile
 tos/bascook/sources/bascook.c
+tos/Makefile
