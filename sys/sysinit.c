@@ -55,7 +55,7 @@
 #include "usb.h"
 #include "video.h"
 
-#define DEBUG_SYSINIT
+// #define DEBUG_SYSINIT
 #ifdef DEBUG_SYSINIT
 #define dbg(format, arg...) do { xprintf("DEBUG: %s(): " format, __FUNCTION__, ##arg); } while (0)
 #else
@@ -711,7 +711,7 @@ void init_usb(void)
 
 			id = pci_read_config_longword(handle, PCIIDR);
 			pci_class = pci_read_config_longword(handle, PCIREV);
-            dbg("compare class code %d to %d\r\n", PCI_CLASS_CODE(pci_class), PCI_CLASS_SERIAL_USB);
+			dbg("compare class code 0x%x to 0x%x\r\n", PCI_CLASS_CODE(pci_class), PCI_CLASS_SERIAL_USB);
 			if (PCI_CLASS_CODE(pci_class) == PCI_CLASS_SERIAL_USB)
 			{
 				xprintf("serial USB found at bus=0x%x, dev=0x%x, fnc=0x%x (0x%x)\r\n",
@@ -719,17 +719,17 @@ void init_usb(void)
 						PCI_DEVICE_FROM_HANDLE(handle),
 						PCI_FUNCTION_FROM_HANDLE(handle),
 						handle);
-                dbg("compare %d against %d\r\n", PCI_SUBCLASS(pci_class), PCI_CLASS_SERIAL_USB_EHCI);
+				dbg("compare subclass code 0x%x against 0x%x\r\n", PCI_SUBCLASS(pci_class), PCI_CLASS_SERIAL_USB_EHCI);
 				if (PCI_SUBCLASS(pci_class) == PCI_CLASS_SERIAL_USB_EHCI)
 				{
 					board = ehci_usb_pci_table;
 					while (board->vendor)
 					{
-                        dbg("compare vendor id %d against %d\r\n", board->vendor, PCI_VENDOR_ID(id));
-                        dbg("compare device id %d against %d\r\n", board->device, PCI_DEVICE_ID(id));
+						dbg("compare vendor id 0x%x against 0x%x\r\n", board->vendor, PCI_VENDOR_ID(id));
+						dbg("compare device id 0x%x against 0x%x\r\n", board->device, PCI_DEVICE_ID(id));
 						if ((board->vendor == PCI_VENDOR_ID(id)) && board->device == PCI_DEVICE_ID(id))
 						{
-                            dbg("match. trying to init board\r\n");
+							dbg("match. trying to init board\r\n");
 							if (usb_init(handle, board) >= 0)
 							{
 								usb_found++;
@@ -739,15 +739,15 @@ void init_usb(void)
 					}
 				}
 
-                dbg("compare %d against %d\r\n", PCI_SUBCLASS(pci_class), PCI_CLASS_SERIAL_USB_OHCI);
+				dbg("compare subclass code 0x%x against 0x%x\r\n", PCI_SUBCLASS(pci_class), PCI_CLASS_SERIAL_USB_OHCI);
 				if (PCI_SUBCLASS(pci_class) == PCI_CLASS_SERIAL_USB_OHCI)
 				{
 					board = ohci_usb_pci_table;
 
 					while (board->vendor)
 					{
-                        dbg("matched. compare vendor id %d against %d\r\n", board->vendor, PCI_VENDOR_ID(id));
-                        dbg("compare device id %d against %d\r\n", board->device, PCI_DEVICE_ID(id));
+						dbg("matched. compare vendor id 0x%x against 0x%x\r\n", board->vendor, PCI_VENDOR_ID(id));
+						dbg("compare device id 0x%x against 0x%x\r\n", board->device, PCI_DEVICE_ID(id));
 						if ((board->vendor == PCI_VENDOR_ID(id)) && board->device == PCI_DEVICE_ID(id))
 						{
 							if (usb_init(handle, board) >= 0)
@@ -758,6 +758,7 @@ void init_usb(void)
 				}
 			}
 		}
+		dbg("PCI device handle = %x\r\n", handle);
 	} while (handle >= 0);
 
 	xprintf("finished (found %d USB controller(s))\r\n", usb_found);
@@ -1239,10 +1240,8 @@ void initialize_hardware(void)
 	init_pci();
 	video_init();
 
-	/* do not try to init USB for now on the Firebee, it hangs the machine */
-//#ifndef MACHINE_FIREBEE
+	/* initialize USB devices */
 	init_usb();
-//#endif
 
 #if MACHINE_FIREBEE
 	init_ac97();

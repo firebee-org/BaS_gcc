@@ -76,7 +76,7 @@ struct hci {
 
 extern void udelay(long usec);
 
-static struct usb_device *usb_dev; 
+static struct usb_device *usb_dev;
 static int bus_index;
 static int dev_index[USB_MAX_BUS];
 static struct hci *controller_priv[USB_MAX_BUS];
@@ -89,9 +89,9 @@ char usb_error_str[256];
 
 typedef struct
 {
-    int dest;
-    void (*func)(char);
-    char *loc;
+	int dest;
+	void (*func)(char);
+	char *loc;
 } PRINTK_INFO;
 
 #define DEST_CONSOLE    (1)
@@ -116,22 +116,26 @@ int usb_init(int32_t handle, const struct pci_device_id *ent)
 	void *priv;
 	int res = 0;
 	if (bus_index >= USB_MAX_BUS)
-		return(-1);
+		return -1;
+
 	dev_index[bus_index] = 0;
 	asynch_allowed = 1;
+
 	if (handle && (ent != NULL))
 	{
 		if (driver_mem_init())
 		{
 			usb_started = 0;
-			return -1; /* out of memoy */
+			return -1; /* out of memory */
 		}
+
 		if (usb_dev == NULL)
 			usb_dev = (struct usb_device *) driver_mem_alloc(sizeof(struct usb_device) * USB_MAX_BUS * USB_MAX_DEVICE);
+
 		if (usb_dev == NULL)
 		{
 			usb_started = 0;
-			return -1; /* out of memoy */
+			return -1; /* out of memory */
 		}
 	}
 	else /* restart */
@@ -149,10 +153,12 @@ int usb_init(int32_t handle, const struct pci_device_id *ent)
 		}
 		return res;
 	}
+
 	usb_hub_reset(bus_index);
 
 	/* init low_level USB */
 	debug_printf("USB: ");
+
 	switch(ent->class)
 	{
 		case PCI_CLASS_SERIAL_USB_UHCI:
@@ -169,20 +175,25 @@ int usb_init(int32_t handle, const struct pci_device_id *ent)
 			break;
 		default: res = -1; break;
 	}
+
 	if (!res)
 	{
 		/* if lowlevel init is OK, scan the bus for devices
 		 * i.e. search HUBs and configure them */
 		if (setup_packet == NULL)
-			setup_packet = (void *)driver_mem_alloc(sizeof(struct devrequest));
+			setup_packet = (void *) driver_mem_alloc(sizeof(struct devrequest));
+
 		if (setup_packet == NULL)
 		{
 			usb_started = 0;
 			return -1; /* out of memoy */
 		}
+
 		xprintf("Scanning bus for devices... ");
-		controller_priv[bus_index] = (struct hci *)priv;
+
+		controller_priv[bus_index] = (struct hci *) priv;
 		controller_priv[bus_index]->usbnum = bus_index;
+
 		usb_scan_devices(priv);
 		bus_index++;
 		usb_started = 1;
@@ -190,7 +201,7 @@ int usb_init(int32_t handle, const struct pci_device_id *ent)
 	}
 	else
 	{
-		debug_printf("\r\nError, couldn't init Lowlevel part\r\n");
+		xprintf("\r\nError, couldn't init Lowlevel part\r\n");
 		usb_started = 0;
 		return -1;
 	}
@@ -855,7 +866,7 @@ void usb_disconnect(struct usb_device **pdev)
 			dev->devnum = -1;
 		}
 		*pdev = NULL;
-	}	
+	}
 }
 
 /* returns a pointer to the device with the index [index].
@@ -880,8 +891,8 @@ struct usb_device *usb_alloc_new_device(int bus_index, void *priv)
 {
 	int i, index = dev_index[bus_index];
 	struct usb_device *dev;
-	
-	debug_printf("USB %d new device %d\r\n", bus_index, index); 
+
+	debug_printf("USB %d new device %d\r\n", bus_index, index);
 	if (index >= USB_MAX_DEVICE)
 	{
 		debug_printf("ERROR, too many USB Devices, max=%d\r\n", USB_MAX_DEVICE);
@@ -911,7 +922,7 @@ int usb_new_device(struct usb_device *dev)
 {
 	int addr, err, tmp;
 	unsigned char *tmpbuf;
-	
+
 #ifndef CONFIG_LEGACY_USB_INIT_SEQ
 	struct usb_device_descriptor *desc;
 	int port = -1;
@@ -925,7 +936,7 @@ int usb_new_device(struct usb_device *dev)
 	/* We still haven't set the Address yet */
 	addr = dev->devnum;
 	dev->devnum = 0;
-	
+
 	tmpbuf = (unsigned char *) driver_mem_alloc(USB_BUFSIZ);
 	if (tmpbuf == NULL)
 	{
@@ -1076,6 +1087,7 @@ void usb_scan_devices(void *priv)
 {
 	int i;
 	struct usb_device *dev;
+
 	/* first make all devices unknown */
 	for (i = 0; i < USB_MAX_DEVICE; i++)
 	{
@@ -1083,7 +1095,7 @@ void usb_scan_devices(void *priv)
 		usb_dev[(bus_index * USB_MAX_DEVICE) + i].devnum = -1;
 	}
 	dev_index[bus_index] = 0;
-	
+
 	/* device 0 is always present (root hub, so let it analyze) */
 	dev = usb_alloc_new_device(bus_index, priv);
 	if (usb_new_device(dev))
@@ -1097,17 +1109,17 @@ void usb_scan_devices(void *priv)
 		xprintf("%d USB Device(s) found\r\n", dev_index[bus_index]);
 	}
 	{
+#ifdef _NOT_USED_	/* not implemented yet */
 		/* insert "driver" if possible */
-#ifdef _NOT_USED_
 		if (drv_usb_kbd_init() < 0)
-			debug_printf("No USB keyboard found\r\n");	
+			xprintf("No USB keyboard found\r\n");
 		else
-			debug_printf("USB HID keyboard driver installed\r\n");
+			xprintf("USB HID keyboard driver installed\r\n");
 #endif /* _NOT_USED */
 		if (drv_usb_mouse_init() < 0)
-			debug_printf("No USB mouse found\r\n");	
+			xprintf("No USB mouse found\r\n");
 		else
-			debug_printf("USB HID mouse driver installed\r\n");
+			xprintf("USB HID mouse driver installed\r\n");
 	}
 	xprintf("Scan end\r\n");
 }
@@ -1168,7 +1180,7 @@ static void usb_hub_power_on(struct usb_hub_device *hub)
 {
 	int i;
 	struct usb_device *dev;
-	
+
 	dev = hub->pusb_dev;
 	/* Enable power to the ports */
 	dbg_hub("enabling power on all ports\r\n");
@@ -1210,9 +1222,9 @@ static int hub_port_reset(struct usb_device *dev, int port, unsigned short *port
 	int tries;
 	struct usb_port_status portsts;
 	unsigned short portstatus, portchange;
-	
+
 	dbg_hub("hub_port_reset: resetting port %d...\r\n", port + 1);
-	
+
 	for (tries = 0; tries < MAX_TRIES; tries++)
 	{
 		usb_set_port_feature(dev, port + 1, USB_PORT_FEAT_RESET);
@@ -1234,10 +1246,10 @@ static int hub_port_reset(struct usb_device *dev, int port, unsigned short *port
 				(portchange & USB_PORT_STAT_C_CONNECTION) ? 1 : 0,
 				(portstatus & USB_PORT_STAT_CONNECTION) ? 1 : 0,
 				(portstatus & USB_PORT_STAT_ENABLE) ? 1 : 0);
-		
+
 		if ((portchange & USB_PORT_STAT_C_CONNECTION) || !(portstatus & USB_PORT_STAT_CONNECTION))
 			return -1;
-		
+
 		if (portstatus & USB_PORT_STAT_ENABLE)
 			break;
 
@@ -1314,10 +1326,10 @@ void usb_hub_port_connect_change(struct usb_device *dev, int port)
 	else
 #endif
 		wait(2000);
-	
+
 	/* Allocate a new device struct for it */
 	usb = usb_alloc_new_device(dev->usbnum, dev->priv_hcd);
-	
+
 	if (portstatus & USB_PORT_STAT_HIGH_SPEED)
 		usb->speed = USB_SPEED_HIGH;
 	else if (portstatus & USB_PORT_STAT_LOW_SPEED)
@@ -1327,7 +1339,7 @@ void usb_hub_port_connect_change(struct usb_device *dev, int port)
 	dbg_hub("%s: usb=%p\r\n", __FUNCTION__, usb);
 	dev->children[port] = usb;
 	usb->parent = dev;
-	
+
 	/* Run it through the hoops (find a driver, etc) */
 	if (usb_new_device(usb))
 	{
@@ -1335,7 +1347,7 @@ void usb_hub_port_connect_change(struct usb_device *dev, int port)
 		dbg_hub("USB %d hub: disabling port %d\r\n", dev->usbnum, port + 1);
 		usb_clear_port_feature(dev, port + 1, USB_PORT_FEAT_ENABLE);
 	}
-	
+
 #ifdef USB_POLL_HUB
 	else if (pxCurrentTCB != NULL)
 	{
@@ -1357,12 +1369,12 @@ static void usb_hub_events(struct usb_device *dev)
 	int i;
 	struct usb_hub_device *hub = dev->hub;
 	if (hub == NULL)
-		return;	
+		return;
 	for (i = 0; i < dev->maxchild; i++)
 	{
 		struct usb_port_status portsts;
 		unsigned short portstatus, portchange;
-		
+
 		if (usb_get_port_status(dev, i + 1, &portsts) < 0)
 		{
 			dbg_hub("get_port_status failed\r\n");
@@ -1412,7 +1424,7 @@ static void usb_hub_events(struct usb_device *dev)
 void usb_poll_hub_task(void *pvParameters)
 {
 	int index_bus = 0;
-	portTickType timeout = configTICK_RATE_HZ/10;		
+	portTickType timeout = configTICK_RATE_HZ/10;
 	if (pvParameters);
 	while(1)
 	{
@@ -1439,7 +1451,7 @@ void usb_poll_hub_task(void *pvParameters)
 			for (i = 0; i < USB_MAX_BUS ; i++)
 			{
 				if (controller_priv[i] != NULL)
-					usb_hub_events(&usb_dev[i * USB_MAX_DEVICE]);		
+					usb_hub_events(&usb_dev[i * USB_MAX_DEVICE]);
 			}
 #ifdef CONFIG_USB_INTERRUPT_POLLING
 			*vblsem = 1;
@@ -1475,7 +1487,7 @@ int usb_hub_configure(struct usb_device *dev)
 		driver_mem_free(buffer);
 		return -1;
 	}
-	dbg_hub("bLength:%02X bDescriptorType:%02X bNbrPorts:%02X\r\n", buffer[0], buffer[1], buffer[2]); 
+	dbg_hub("bLength:%02X bDescriptorType:%02X bNbrPorts:%02X\r\n", buffer[0], buffer[1], buffer[2]);
 	descriptor = (struct usb_hub_descriptor *)buffer;
 	/* silence compiler warning if USB_BUFSIZ is > 256 [= sizeof(char)] */
 	i = descriptor->bLength;
@@ -1575,7 +1587,7 @@ int usb_hub_configure(struct usb_device *dev)
 			if (xTaskCreate(usb_poll_hub_task, (void *)"USBHub", configMINIMAL_STACK_SIZE, NULL, 16, NULL) != pdPASS)
 			{
 				vQueueDelete(queue_poll_hub);
-				queue_poll_hub = NULL;	
+				queue_poll_hub = NULL;
 			}
 		}
 		vTaskDelay(configTICK_RATE_HZ);
