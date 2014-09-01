@@ -210,27 +210,73 @@ static int usb_mouse_probe(struct usb_device *dev, unsigned int ifnum)
 {
 	struct usb_interface_descriptor *iface;
 	struct usb_endpoint_descriptor *ep;
-	int pipe, maxp;
+	int pipe;
+	int maxp;
+
 	if (dev->descriptor.bNumConfigurations != 1)
+	{
+		dbg("dev->descriptor.bNumConfigurations != 1\r\n");
+
 		return 0;
+	}
+
 	iface = &dev->config.if_desc[ifnum];
+
 	if (iface->bInterfaceClass != 3)
+	{
+		dbg("iface->bInterfaceClass != 3 (%d instead)\r\n", iface->bInterfaceClass);
+
 		return 0;
+	}
+
+
 	if (iface->bInterfaceSubClass != 1)
+	{
+		dbg("iface->bInterfaceSubClass != 1 (%d instead)\r\n", iface->bInterfaceSubClass);
+
 		return 0;
+	}
+
 	if (iface->bInterfaceProtocol != 2)
+	{
+		dbg("iface->bInterfaceProtocol != 2 (%d)\r\n", iface->bInterfaceProtocol);
+
 		return 0;
+	}
+
 	if (iface->bNumEndpoints != 1)
+	{
+		dbg("iface->bNumEndpoints != 1\r\n");
+
 		return 0;
+	}
+
 	ep = &iface->ep_desc[0];
+
 	if (!(ep->bEndpointAddress & 0x80))
+	{
+		dbg("! ep->bEndpointAddress & 0x80\r\n");
+
 		return 0;
+	}
+
 	if ((ep->bmAttributes & 3) != 3)
+	{
+		dbg("ep->bmAttributes & 3 != 3\r\n");
+
 		return 0;
-	new = (unsigned char *)driver_mem_alloc(8);
+	}
+
+	new = (unsigned char *) driver_mem_alloc(8);
 	if (new == NULL)
+	{
+		dbg("new == NULL\r\n");
+
 		return 0;
+	}
+
 	dbg("USB MOUSE found set protocol...\r\n");
+
 	/* ok, we found a USB Mouse, install it */
 	pipe = usb_rcvintpipe(dev, ep->bEndpointAddress);
 	maxp = usb_maxpacket(dev, pipe);
