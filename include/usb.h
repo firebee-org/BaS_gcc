@@ -75,14 +75,16 @@ extern int sprintD(char *s, const char *fmt, ...);
 #define USB_CNTL_TIMEOUT 100 /* 100ms timeout */
 
 /* String descriptor */
-struct usb_string_descriptor {
+struct usb_string_descriptor
+{
 	uint8_t	bLength;
 	uint8_t	bDescriptorType;
 	uint16_t	wData[1];
 } __attribute__ ((packed));
 
 /* device request (setup) */
-struct devrequest {
+struct devrequest
+{
 	uint8_t	requesttype;
 	uint8_t	request;
 	uint16_t	value;
@@ -91,13 +93,15 @@ struct devrequest {
 } __attribute__ ((packed));
 
 /* All standard descriptors have these 2 fields in common */
-struct usb_descriptor_header {
+struct usb_descriptor_header
+{
 	uint8_t	bLength;
 	uint8_t	bDescriptorType;
 } __attribute__ ((packed));
 
 /* Device descriptor */
-struct usb_device_descriptor {
+struct usb_device_descriptor
+{
 	uint8_t	bLength;
 	uint8_t	bDescriptorType;
 	uint16_t	bcdUSB;
@@ -115,7 +119,8 @@ struct usb_device_descriptor {
 } __attribute__ ((packed));
 
 /* Endpoint descriptor */
-struct usb_endpoint_descriptor {
+struct usb_endpoint_descriptor
+{
 	uint8_t	bLength;
 	uint8_t	bDescriptorType;
 	uint8_t	bEndpointAddress;
@@ -127,7 +132,8 @@ struct usb_endpoint_descriptor {
 } __attribute__ ((packed)) __attribute__ ((aligned(2)));
 
 /* Interface descriptor */
-struct usb_interface_descriptor {
+struct usb_interface_descriptor
+{
 	uint8_t	bLength;
 	uint8_t	bDescriptorType;
 	uint8_t	bInterfaceNumber;
@@ -147,7 +153,8 @@ struct usb_interface_descriptor {
 
 
 /* Configuration descriptor information.. */
-struct usb_config_descriptor {
+struct usb_config_descriptor
+{
 	uint8_t	bLength;
 	uint8_t	bDescriptorType;
 	uint16_t	wTotalLength;
@@ -161,7 +168,8 @@ struct usb_config_descriptor {
 	struct usb_interface_descriptor if_desc[USB_MAXINTERFACES];
 } __attribute__ ((packed));
 
-enum {
+enum
+{
 	/* Maximum packet size; encoded as 0,1,2,3 = 8,16,32,64 */
 	PACKET_SIZE_8   = 0,
 	PACKET_SIZE_16  = 1,
@@ -169,7 +177,8 @@ enum {
 	PACKET_SIZE_64  = 3,
 };
 
-struct usb_device {
+struct usb_device
+{
 	int	devnum;			/* Device number on USB bus */
 	int	speed;			/* full/low/high */
 	char mf[32];			/* manufacturer */
@@ -259,8 +268,6 @@ int usb_kbd_deregister(struct usb_device *dev);
 int drv_usb_mouse_init(void);
 int usb_mouse_register(struct usb_device *dev);
 int usb_mouse_deregister(struct usb_device *dev);
-
-extern char usb_error_str[256];
 
 /* memory */
 void *usb_malloc(long amount);
@@ -391,19 +398,22 @@ int usb_set_interface(struct usb_device *dev, int interface, int alternate);
 /*************************************************************************
  * Hub Stuff
  */
-struct usb_port_status {
+struct usb_port_status
+{
 	uint16_t wPortStatus;
 	uint16_t wPortChange;
 } __attribute__ ((packed));
 
-struct usb_hub_status {
+struct usb_hub_status
+{
 	uint16_t wHubStatus;
 	uint16_t wHubChange;
 } __attribute__ ((packed));
 
 
 /* Hub descriptor */
-struct usb_hub_descriptor {
+struct usb_hub_descriptor
+{
 	uint8_t  bLength;
 	uint8_t  bDescriptorType;
 	uint8_t  bNbrPorts;
@@ -417,7 +427,8 @@ struct usb_hub_descriptor {
 } __attribute__ ((packed));
 
 
-struct usb_hub_device {
+struct usb_hub_device
+{
 	struct usb_device *pusb_dev;
 	struct usb_hub_descriptor desc;
 };
