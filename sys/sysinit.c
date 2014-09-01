@@ -55,6 +55,13 @@
 #include "usb.h"
 #include "video.h"
 
+#define DEBUG_SYSINIT
+#ifdef DEBUG_SYSINIT
+#define dbg(format, arg...) do { xprintf("DEBUG: %s(): " format, __FUNCTION__, ##arg); } while (0)
+#else
+#define dbg(format, arg...) do { ; } while (0)
+#endif /* DEBUG_SYSINIT */
+
 #define UNUSED(x) (void)(x)				/* Unused variable         */
 
 bool fpga_configured = false;			/* for FPGA JTAG configuration */
@@ -704,7 +711,7 @@ void init_usb(void)
 
 			id = pci_read_config_longword(handle, PCIIDR);
 			pci_class = pci_read_config_longword(handle, PCIREV);
-
+            dbg("compare class code %d to %d\r\n", PCI_CLASS_CODE(pci_class), PCI_CLASS_SERIAL_USB);
 			if (PCI_CLASS_CODE(pci_class) == PCI_CLASS_SERIAL_USB)
 			{
 				xprintf("serial USB found at bus=0x%x, dev=0x%x, fnc=0x%x (0x%x)\r\n",
@@ -712,13 +719,17 @@ void init_usb(void)
 						PCI_DEVICE_FROM_HANDLE(handle),
 						PCI_FUNCTION_FROM_HANDLE(handle),
 						handle);
+                dbg("compare %d against %d\r\n", PCI_SUBCLASS(pci_class), PCI_CLASS_SERIAL_USB_EHCI);
 				if (PCI_SUBCLASS(pci_class) == PCI_CLASS_SERIAL_USB_EHCI)
 				{
 					board = ehci_usb_pci_table;
 					while (board->vendor)
 					{
+                        dbg("compare vendor id %d against %d\r\n", board->vendor, PCI_VENDOR_ID(id));
+                        dbg("compare device id %d against %d\r\n", board->device, PCI_DEVICE_ID(id));
 						if ((board->vendor == PCI_VENDOR_ID(id)) && board->device == PCI_DEVICE_ID(id))
 						{
+                            dbg("match. trying to init board\r\n");
 							if (usb_init(handle, board) >= 0)
 							{
 								usb_found++;
@@ -727,11 +738,16 @@ void init_usb(void)
 						board++;
 					}
 				}
+
+                dbg("compare %d against %d\r\n", PCI_SUBCLASS(pci_class), PCI_CLASS_SERIAL_USB_OHCI);
 				if (PCI_SUBCLASS(pci_class) == PCI_CLASS_SERIAL_USB_OHCI)
 				{
 					board = ohci_usb_pci_table;
+
 					while (board->vendor)
 					{
+                        dbg("matched. compare vendor id %d against %d\r\n", board->vendor, PCI_VENDOR_ID(id));
+                        dbg("compare device id %d against %d\r\n", board->device, PCI_DEVICE_ID(id));
 						if ((board->vendor == PCI_VENDOR_ID(id)) && board->device == PCI_DEVICE_ID(id))
 						{
 							if (usb_init(handle, board) >= 0)
