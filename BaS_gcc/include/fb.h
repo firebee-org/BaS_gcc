@@ -528,7 +528,6 @@ struct fb_videomode {
 extern const struct fb_videomode vesa_modes[];
 
 /* timer */
-extern void udelay(long usec);
 #ifdef COLDFIRE
 #ifdef MCF5445X
 #define US_TO_TIMER(a) (a)
@@ -541,6 +540,7 @@ extern void udelay(long usec);
 #define US_TO_TIMER(a) (((a)*256)/5000)
 #define TIMER_TO_US(a) (((a)*5000)/256)
 #endif
+
 extern void start_timeout(void);
 extern int end_timeout(long msec);
 extern void mdelay(long msec);

@@ -147,6 +147,13 @@ __attribute__((interrupt)) void pci_interrupt(void)
 	dbg("PCI interrupt\r\n");
 }
 
+/*
+ * Although this pragma stuff should work according to the GCC docs, it doesn't seem to
+ * with m68k-atari-mint-gcc. At least not currently.
+ * I nevertheless keep it here for future reference
+ */
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-function"
 static int32_t pci_get_interrupt_cause(int32_t *handles)
 {
 	int32_t handle;
@@ -170,6 +177,7 @@ static int32_t pci_call_interrupt_chain(int32_t handle, int32_t data)
 {
 	return data;	/* unmodified - means: not handled */
 }
+#pragma GCC diagnostic pop
 
 #ifdef MACHINE_M5484LITE
 /*
@@ -179,7 +187,7 @@ static int32_t pci_call_interrupt_chain(int32_t handle, int32_t data)
 void irq5_handler(void)
 {
 	int32_t handle;
-	int32_t value;
+    int32_t value = 0;
 	int32_t newvalue;
 
 	MCF_EPORT_EPFR |= (1 << 5);		/* clear interrupt from edge port */
@@ -201,7 +209,7 @@ void irq5_handler(void)
 void irq7_handler(void)
 {
 	int32_t handle;
-	int32_t value;
+    int32_t value = 0;
 	int32_t newvalue;
 
 	MCF_EPORT_EPFR |= (1 << 7);
@@ -767,6 +775,12 @@ static void pci_device_config(uint16_t bus, uint16_t device, uint16_t function)
 	static uint32_t mem_address = PCI_MEMORY_OFFSET;
 	static uint32_t io_address = PCI_IO_OFFSET;
 	uint16_t cr;
+
+    /*
+     * should make compiler happy (these are used only in debug builds)
+     */
+    (void) value;
+    (void) il;
 
 	/* determine pci handle from bus, device + function number */
 	handle = PCI_HANDLE(bus, device, function);
