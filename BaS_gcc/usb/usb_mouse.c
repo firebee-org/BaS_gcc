@@ -26,12 +26,12 @@
 #include "exceptions.h"
 #include "driver_mem.h"
 
-#undef USB_MOUSE_DEBUG
-#ifdef	USB_MOUSE_DEBUG
-#define	mse_printf(fmt,args...)	bas_printf(fmt ,##args)
+#define DEBUG_USBMOUSE
+#ifdef DEBUG_USBMOUSE
+#define dbg(format, arg...) do { xprintf("DEBUG: %s(): " format, __FUNCTION__, ##arg); } while (0)
 #else
-#define mse_printf(fmt,args...)
-#endif
+#define dbg(format, arg...) do { ; } while (0)
+#endif /* DEBUG_USBMOUSE */
 
 extern void ltoa(char *buf, long n, unsigned long base);
 extern void call_mousevec(unsigned char *data, void (**mousevec)(void *));
@@ -54,7 +54,7 @@ int usb_mouse_deregister(struct usb_device *dev)
 		new = NULL;
 	}
 	mouse_installed = 0;
-	mse_printf("USB MOUSE deregister\r\n");
+	dbg("USB MOUSE deregister\r\n");
 	return 1;
 }
 
@@ -64,7 +64,7 @@ int usb_mouse_register(struct usb_device *dev)
 	if (!mouse_installed && (dev->devnum != -1) && (usb_mouse_probe(dev, 0) == 1))
 	{
 		/* Ok, we found a mouse */
-		mse_printf("USB MOUSE found (USB: %d, devnum: %d)\r\n", dev->usbnum, dev->devnum);
+		dbg("USB MOUSE found (USB: %d, devnum: %d)\r\n", dev->usbnum, dev->devnum);
 		mouse_installed = 1;
 		dev->deregister = usb_mouse_deregister;
 		return 1;
@@ -76,17 +76,30 @@ int usb_mouse_register(struct usb_device *dev)
 /* search for mouse and register it if found */
 int drv_usb_mouse_init(void)
 {
-	int i, j;
+	int i;
+	int j;
+
+	/*
+	 * check if mouse is already initialized
+	 */
 	if (mouse_installed)
+	{
+		xprintf("USB mouse already initialized\r\n");
+
 		return -1;
+	}
+
 	/* scan all USB Devices */
 	for (j = 0; j < USB_MAX_BUS; j++)
 	{
 		for (i = 0; i < USB_MAX_DEVICE; i++)
 		{
 			struct usb_device *dev = usb_get_dev_index(i, j); /* get device */
+
 			if (dev == NULL)
 				break;
+
+			xprintf("USB mouse detected. Trying to register it\r\n");
 			if (usb_mouse_register(dev) > 0)
 				return 1;
 		}
@@ -100,7 +113,7 @@ int drv_usb_mouse_init(void)
  */
 static void usb_kbd_send_code(unsigned char code)
 {
-	mse_printf("FIXME: usb_kbd_send_code 0x%x not implemented\r\n", code);
+	dbg("FIXME: usb_kbd_send_code 0x%x not implemented\r\n", code);
 }
 
 /* Interrupt service routine */
@@ -112,7 +125,7 @@ static int usb_mouse_irq(struct usb_device *dev)
 	int i, change = 0;
 	if ((dev->irq_status != 0) || (dev->irq_act_len < 3) || (dev->irq_act_len > 8))
 	{
-		mse_printf("USB MOUSE error %lX, len %d\r\n", dev->irq_status, dev->irq_act_len);
+		dbg("USB MOUSE error %lX, len %d\r\n", dev->irq_status, dev->irq_act_len);
 		return 1;
 	}
 	for (i = 0; i < dev->irq_act_len; i++)
@@ -126,7 +139,7 @@ static int usb_mouse_irq(struct usb_device *dev)
 	if (change)
 	{
 		char wheel = 0, buttons, old_buttons;
-		mse_printf("USB MOUSE len:%d %02X %02X %02X %02X %02X %02X\r\n", dev->irq_act_len, new[0], new[1], new[2], new[3], new[4], new[5]);
+		dbg("USB MOUSE len:%d %02X %02X %02X %02X %02X %02X\r\n", dev->irq_act_len, new[0], new[1], new[2], new[3], new[4], new[5]);
 #ifdef CONFIG_USB_INTERRUPT_POLLING
 		level = set_ipl(7); /* mask interrupts */
 #endif
@@ -217,7 +230,7 @@ static int usb_mouse_probe(struct usb_device *dev, unsigned int ifnum)
 	new = (unsigned char *)driver_mem_alloc(8);
 	if (new == NULL)
 		return 0;
-	mse_printf("USB MOUSE found set protocol...\r\n");
+	dbg("USB MOUSE found set protocol...\r\n");
 	/* ok, we found a USB Mouse, install it */
 	pipe = usb_rcvintpipe(dev, ep->bEndpointAddress);
 	maxp = usb_maxpacket(dev, pipe);
@@ -225,12 +238,12 @@ static int usb_mouse_probe(struct usb_device *dev, unsigned int ifnum)
 //		usb_set_protocol(dev, iface->bInterfaceNumber, 0); /* boot */
 //	else
 	usb_set_protocol(dev, iface->bInterfaceNumber, 1); /* report */
-	mse_printf("USB MOUSE found set idle...\r\n");
+	dbg("USB MOUSE found set idle...\r\n");
 	usb_set_idle(dev, iface->bInterfaceNumber, 0, 0); /* report infinite */
 	memset(&new[0], 0, 8);
 	memset(&old[0], 0, 8);
 	dev->irq_handle = usb_mouse_irq;
-	mse_printf("USB MOUSE enable interrupt pipe (maxp: %d)...\r\n", maxp);
+	dbg("USB MOUSE enable interrupt pipe (maxp: %d)...\r\n", maxp);
 	usb_submit_int_msg(dev, pipe, &new[0], maxp > 8 ? 8 : maxp, ep->bInterval);
 	return 1;
 }
