@@ -26,7 +26,6 @@
 #ifndef _USB_H_
 #define _USB_H_
 
-//#include <stdlib.h>
 #include <bas_string.h>
 #include "driver_mem.h"
 #include "pci.h"
@@ -36,14 +35,6 @@
 
 
 extern long *tab_funcs_pci;
-
-#define in8(addr)		Fast_read_mem_byte(usb_handle,addr)
-#define in16r(addr)		Fast_read_mem_word(usb_handle,addr)
-#define in32r(addr)		Fast_read_mem_longword(usb_handle,addr)
-#define out8(addr,val)	Write_mem_byte(usb_handle,addr,val)
-#define out16r(addr,val)	Write_mem_word(usb_handle,addr,val)
-#define out32r(addr,val)	Write_mem_longword(usb_handle,addr,val)
-
 
 #define __u8 uint8_t
 #define __u16 uint16_t
@@ -73,6 +64,8 @@ extern int sprintD(char *s, const char *fmt, ...);
 #define USB_MAX_HUB          16
 
 #define USB_CNTL_TIMEOUT 100 /* 100ms timeout */
+
+#define USB_BUFSIZ	512
 
 /* String descriptor */
 struct usb_string_descriptor
@@ -238,65 +231,62 @@ typedef struct
  * this is how the lowlevel part communicate with the outer world
  */
 
-int ohci_usb_lowlevel_init(int32_t handle, const struct pci_device_id *ent, void **priv);
-int ohci_usb_lowlevel_stop(void *priv);
-int ohci_submit_bulk_msg(struct usb_device *dev, uint32_t pipe, void *buffer, int transfer_len);
-int ohci_submit_control_msg(struct usb_device *dev, uint32_t pipe, void *buffer, int transfer_len, struct devrequest *setup);
-int ohci_submit_int_msg(struct usb_device *dev, uint32_t pipe, void *buffer, int transfer_len, int interval);
-void ohci_usb_enable_interrupt(int enable);
+extern int ohci_usb_lowlevel_init(int32_t handle, const struct pci_device_id *ent, void **priv);
+extern int ohci_usb_lowlevel_stop(void *priv);
+extern int ohci_submit_bulk_msg(struct usb_device *dev, uint32_t pipe, void *buffer, int transfer_len);
+extern int ohci_submit_control_msg(struct usb_device *dev, uint32_t pipe, void *buffer, int transfer_len, struct devrequest *setup);
+extern int ohci_submit_int_msg(struct usb_device *dev, uint32_t pipe, void *buffer, int transfer_len, int interval);
+extern void ohci_usb_enable_interrupt(int enable);
 
-int ehci_usb_lowlevel_init(long handle, const struct pci_device_id *ent, void **priv);
-int ehci_usb_lowlevel_stop(void *priv);
-int ehci_submit_bulk_msg(struct usb_device *dev, uint32_t pipe, void *buffer, int transfer_len);
-int ehci_submit_control_msg(struct usb_device *dev, uint32_t pipe, void *buffer, int transfer_len, struct devrequest *setup);
-int ehci_submit_int_msg(struct usb_device *dev, uint32_t pipe, void *buffer, int transfer_len, int interval);
-void ehci_usb_enable_interrupt(int enable);
+extern int ehci_usb_lowlevel_init(long handle, const struct pci_device_id *ent, void **priv);
+extern int ehci_usb_lowlevel_stop(void *priv);
+extern int ehci_submit_bulk_msg(struct usb_device *dev, uint32_t pipe, void *buffer, int transfer_len);
+extern int ehci_submit_control_msg(struct usb_device *dev, uint32_t pipe, void *buffer, int transfer_len, struct devrequest *setup);
+extern int ehci_submit_int_msg(struct usb_device *dev, uint32_t pipe, void *buffer, int transfer_len, int interval);
+extern void ehci_usb_enable_interrupt(int enable);
 
-void usb_enable_interrupt(int enable);
+extern void usb_enable_interrupt(int enable);
+
+extern int usb_new_device(struct usb_device *dev);
+extern struct usb_device *usb_alloc_new_device(int bus_index, void *priv);
+extern void usb_disconnect(struct usb_device **pdev);
 
 #define USB_MAX_STOR_DEV 5
-block_dev_desc_t *usb_stor_get_dev(int index);
-int usb_stor_scan(void);
-int usb_stor_info(void);
-int usb_stor_register(struct usb_device *dev);
-int usb_stor_deregister(struct usb_device *dev);
 
-int drv_usb_kbd_init(void);
-int usb_kbd_register(struct usb_device *dev);
-int usb_kbd_deregister(struct usb_device *dev);
+extern block_dev_desc_t *usb_stor_get_dev(int index);
+extern int usb_stor_scan(void);
+extern int usb_stor_info(void);
+extern int usb_stor_register(struct usb_device *dev);
+extern int usb_stor_deregister(struct usb_device *dev);
 
-int drv_usb_mouse_init(void);
-int usb_mouse_register(struct usb_device *dev);
-int usb_mouse_deregister(struct usb_device *dev);
+extern int drv_usb_kbd_init(void);
+extern int usb_kbd_register(struct usb_device *dev);
+extern int usb_kbd_deregister(struct usb_device *dev);
 
-/* memory */
-void *usb_malloc(long amount);
-int usb_free(void *addr);
-int usb_mem_init(void);
-void usb_mem_stop(void);
+extern int drv_usb_mouse_init(void);
+extern int usb_mouse_register(struct usb_device *dev);
+extern int usb_mouse_deregister(struct usb_device *dev);
 
 /* routines */
-USB_COOKIE *usb_get_cookie(long id);
-void usb_error_msg(const char *const fmt, ... );
-int usb_init(int32_t handle, const struct pci_device_id *ent); /* initialize the USB Controller */
-int usb_stop(void); /* stop the USB Controller */
+extern int usb_init(int32_t handle, const struct pci_device_id *ent); /* initialize the USB Controller */
+extern int usb_stop(void); /* stop the USB Controller */
 
-int usb_set_protocol(struct usb_device *dev, int ifnum, int protocol);
-int usb_set_idle(struct usb_device *dev, int ifnum, int duration, int report_id);
-struct usb_device *usb_get_dev_index(int index, int bus);
-int usb_control_msg(struct usb_device *dev, unsigned int pipe, uint8_t request, uint8_t requesttype, uint16_t value, 
- uint16_t index, void *data, uint16_t size, int timeout);
-int usb_bulk_msg(struct usb_device *dev, unsigned int pipe, void *data, int len, int *actual_length, int timeout);
-int usb_submit_int_msg(struct usb_device *dev, uint32_t pipe, void *buffer, int transfer_len, int interval);
-void usb_disable_asynch(int disable);
-int usb_maxpacket(struct usb_device *dev, uint32_t pipe);
-void wait_ms(uint32_t ms);
-int usb_get_configuration_no(struct usb_device *dev, uint8_t *buffer, int cfgno);
-int usb_get_report(struct usb_device *dev, int ifnum, uint8_t type, uint8_t id, void *buf, int size);
-int usb_get_class_descriptor(struct usb_device *dev, int ifnum, uint8_t type, uint8_t id, void *buf, int size);
-int usb_clear_halt(struct usb_device *dev, int pipe);
-int usb_string(struct usb_device *dev, int index, char *buf, size_t size);
-int usb_set_interface(struct usb_device *dev, int interface, int alternate);
+extern int usb_set_protocol(struct usb_device *dev, int ifnum, int protocol);
+extern int usb_set_idle(struct usb_device *dev, int ifnum, int duration, int report_id);
+extern struct usb_device *usb_get_dev_index(int index, int bus);
+extern int usb_control_msg(struct usb_device *dev, unsigned int pipe, uint8_t request, uint8_t requesttype,
+						   uint16_t value, uint16_t index, void *data, uint16_t size, int timeout);
+extern int usb_bulk_msg(struct usb_device *dev, unsigned int pipe, void *data, int len, int *actual_length, int timeout);
+extern int usb_submit_int_msg(struct usb_device *dev, uint32_t pipe, void *buffer, int transfer_len, int interval);
+extern void usb_disable_asynch(int disable);
+extern int usb_maxpacket(struct usb_device *dev, uint32_t pipe);
+
+extern int usb_get_configuration_no(struct usb_device *dev, uint8_t *buffer, int cfgno);
+extern int usb_get_report(struct usb_device *dev, int ifnum, uint8_t type, uint8_t id, void *buf, int size);
+extern int usb_get_class_descriptor(struct usb_device *dev, int ifnum, uint8_t type, uint8_t id, void *buf, int size);
+extern int usb_clear_halt(struct usb_device *dev, int pipe);
+extern int usb_string(struct usb_device *dev, int index, char *buf, size_t size);
+extern int usb_set_interface(struct usb_device *dev, int interface, int alternate);
 
 /*
  * Calling this entity a "pipe" is glorifying it. A USB pipe

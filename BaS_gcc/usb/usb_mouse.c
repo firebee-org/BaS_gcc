@@ -99,7 +99,7 @@ int drv_usb_mouse_init(void)
 			if (dev == NULL)
 				break;
 
-			xprintf("USB mouse detected. Trying to register it\r\n");
+			xprintf("Try to register usb device %d,%d as mouse\r\n", i, j);
 			if (usb_mouse_register(dev) > 0)
 				return 1;
 		}
@@ -222,24 +222,24 @@ static int usb_mouse_probe(struct usb_device *dev, unsigned int ifnum)
 
 	iface = &dev->config.if_desc[ifnum];
 
-    if (iface->bInterfaceClass != USB_CLASS_HID)
+	if (iface->bInterfaceClass != USB_CLASS_HID)
 	{
-        dbg("iface->bInterfaceClass != USB_CLASS_HID (%d instead)\r\n", iface->bInterfaceClass);
+		dbg("iface->bInterfaceClass != USB_CLASS_HID (%d instead)\r\n", iface->bInterfaceClass);
 
 		return 0;
 	}
 
 
-    if (iface->bInterfaceSubClass != USB_SUB_HID_BOOT)
+	if (iface->bInterfaceSubClass != USB_SUB_HID_BOOT)
 	{
-        dbg("iface->bInterfaceSubClass != USB_SUB_HID_BOOT (%d instead)\r\n", iface->bInterfaceSubClass);
+		dbg("iface->bInterfaceSubClass != USB_SUB_HID_BOOT (%d instead)\r\n", iface->bInterfaceSubClass);
 
 		return 0;
 	}
 
-    if (iface->bInterfaceProtocol != USB_PROT_HID_MOUSE)
+	if (iface->bInterfaceProtocol != USB_PROT_HID_MOUSE)
 	{
-        dbg("iface->bInterfaceProtocol != USB_PROT_HID_MOUSE (%d)\r\n", iface->bInterfaceProtocol);
+		dbg("iface->bInterfaceProtocol != USB_PROT_HID_MOUSE (%d)\r\n", iface->bInterfaceProtocol);
 
 		return 0;
 	}
