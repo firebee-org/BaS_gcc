@@ -267,3 +267,5 @@ tos/jtagwait/sources/printf_helper.S
 tos/bascook/Makefile
 tos/bascook/sources/bascook.c
 tos/Makefile
+usb/usb_hub.c
+include/usb_hub.h

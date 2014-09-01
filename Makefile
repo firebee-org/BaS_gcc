@@ -95,6 +95,7 @@ CSRCS= \
 	usb.c \
 	ohci-hcd.c \
 	ehci-hcd.c \
+	usb_hub.c \
 	usb_mouse.c \
 	ikbd.c \
 	\
