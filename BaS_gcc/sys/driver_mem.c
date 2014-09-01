@@ -2,7 +2,7 @@
  *	driver_mem.c
  *
  * based from Emutos / BDOS
- * 
+ *
  * Copyright (c) 2001 Lineo, Inc.
  *
  * Authors: Karl T. Braun, Martin Doering, Laurent Vogel
@@ -71,7 +71,7 @@ static MPB pmd;
 static void *xmgetblk(void)
 {
 	int i;
-	
+
 	for (i = 0; i < MAXMD; i++)
 	{
 		if (tab_md[i].m_own == NULL)
@@ -79,7 +79,7 @@ static void *xmgetblk(void)
 			tab_md[i].m_own = (void*)1L;
 			return(&tab_md[i]);
 		}
-	}			   
+	}
 	return NULL;
 }
 
@@ -97,18 +97,18 @@ static MD *ffit(long amount, MPB *mp)
 	MD *p, *q, *p1;                    /* free list is composed of MD's */
 	int maxflg;
 	long maxval;
-	
+
 	if (amount != -1)
 	{
 		amount += 15;                  /* 16 bytes alignment */
 		amount &= 0xFFFFFFF0;
 	}
-	
+
 	if ((q = mp->mp_rover) == 0)      /* get rotating pointer */
 	{
 		return 0;
 	}
-	
+
 	maxval = 0;
 	maxflg = ((amount == -1) ? true : false) ;
 	p = q->m_link;                   /* start with next MD */
@@ -138,7 +138,7 @@ static MD *ffit(long amount, MPB *mp)
 				{
 					return(NULL);
 				}
-				
+
 				/* init new MD */
 				p1->m_length = p->m_length - amount;
 				p1->m_start = p->m_start + amount;
@@ -147,7 +147,7 @@ static MD *ffit(long amount, MPB *mp)
 				q->m_link = p1;
 			}
 			/* link allocate block into allocated list,
-			    mark owner of block, & adjust rover  */
+				mark owner of block, & adjust rover  */
 			p->m_link = mp->mp_mal;
 			mp->mp_mal = p;
 			mp->mp_rover = (q == (MD *) &mp->mp_mfl ? q->m_link : q);
@@ -157,7 +157,7 @@ static MD *ffit(long amount, MPB *mp)
 			maxval = p->m_length;
 		p = ( q=p )->m_link;
 	} while(q != mp->mp_rover);
-	
+
 	/*
 	 * return either the max, or 0 (error)
 	 */
@@ -179,7 +179,7 @@ static MD *ffit(long amount, MPB *mp)
 static void freeit(MD *m, MPB *mp)
 {
 	MD *p, *q;
-	
+
 	q = 0;
 	for (p = mp->mp_mfl; p ; p = (q = p) -> m_link)
 	{
@@ -189,7 +189,7 @@ static void freeit(MD *m, MPB *mp)
 		}
 	}
 	m->m_link = p;
-	
+
 	if (q)
 	{
 		q->m_link = m;
@@ -198,12 +198,12 @@ static void freeit(MD *m, MPB *mp)
 	{
 		mp->mp_mfl = m;
 	}
-	
+
 	if (!mp->mp_rover)
 	{
 		mp->mp_rover = m;
 	}
-	
+
 	if (p)
 	{
 		if (m->m_start + m->m_length == p->m_start)
@@ -241,7 +241,7 @@ int32_t driver_mem_free(void *addr)
 	MPB *mpb;
 	mpb = &pmd;
 	level = set_ipl(7);
-	
+
 	for(p = *(q = &mpb->mp_mal); p; p = *(q = &p->m_link))
 	{
 		if ((long) addr == p->m_start)
@@ -249,19 +249,19 @@ int32_t driver_mem_free(void *addr)
 			break;
 		}
 	}
-	
+
 	if (!p)
 	{
 		set_ipl(level);
 		return(-1);
 	}
-	
+
 	*q = p->m_link;
 	freeit(p, mpb);
 	set_ipl(level);
-	
+
 	dbg("%s: driver_mem_free(0x%08X)\r\n", __FUNCTION__, addr);
-	
+
 	return(0);
 }
 
@@ -270,33 +270,33 @@ void *driver_mem_alloc(uint32_t amount)
 	void *ret = NULL;
 	int level;
 	MD *m;
-	
+
 	if (amount == -1L)
 	{
-		return((void *)ffit(-1L, &pmd));
+		return (void *) ffit(-1L, &pmd);
 	}
-	
+
 	if (amount <= 0 )
 	{
 		return(0);
 	}
-	
+
 	if ((amount & 1))
 	{
 		amount++;
 	}
-	
+
 	level = set_ipl(7);
 	m = ffit(amount, &pmd);
-	
+
 	if (m != NULL)
 	{
 		ret = (void *)m->m_start;
 	}
 	set_ipl(level);
 	dbg("%s: driver_mem_alloc(%d) = 0x%08X\r\n", __FUNCTION__, amount, ret);
-	
-	return(ret);
+
+	return ret;
 }
 
 static int use_count = 0;
@@ -307,11 +307,11 @@ int driver_mem_init(void)
 	{
 		dbg("%s: initialise driver_mem_buffer[] at %p, size 0x%x\r\n", __FUNCTION__, driver_mem_buffer, DRIVER_MEM_BUFFER_SIZE);
 		memset(driver_mem_buffer, 0, DRIVER_MEM_BUFFER_SIZE);
-	
+
 		pmd.mp_mfl = pmd.mp_rover = &tab_md[0];
 		tab_md[0].m_link = (MD *) NULL;
 		tab_md[0].m_start = ((long) driver_mem_buffer + 15) & ~15;
-		tab_md[0].m_length = DRIVER_MEM_BUFFER_SIZE;	
+		tab_md[0].m_length = DRIVER_MEM_BUFFER_SIZE;
 		tab_md[0].m_own = (void *) 1L;
 		pmd.mp_mal = (MD *) NULL;
 		memset(driver_mem_buffer, 0, tab_md[0].m_length);
@@ -320,7 +320,8 @@ int driver_mem_init(void)
 	}
 	use_count++;
 	dbg("%s: driver_mem now has a use count of %d\r\n", __FUNCTION__, use_count);
-	return(0);
+
+	return 0;
 }
 
 void driver_mem_release(void)
