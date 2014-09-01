@@ -222,24 +222,24 @@ static int usb_mouse_probe(struct usb_device *dev, unsigned int ifnum)
 
 	iface = &dev->config.if_desc[ifnum];
 
-	if (iface->bInterfaceClass != 3)
+    if (iface->bInterfaceClass != USB_CLASS_HID)
 	{
-		dbg("iface->bInterfaceClass != 3 (%d instead)\r\n", iface->bInterfaceClass);
+        dbg("iface->bInterfaceClass != USB_CLASS_HID (%d instead)\r\n", iface->bInterfaceClass);
 
 		return 0;
 	}
 
 
-	if (iface->bInterfaceSubClass != 1)
+    if (iface->bInterfaceSubClass != USB_SUB_HID_BOOT)
 	{
-		dbg("iface->bInterfaceSubClass != 1 (%d instead)\r\n", iface->bInterfaceSubClass);
+        dbg("iface->bInterfaceSubClass != USB_SUB_HID_BOOT (%d instead)\r\n", iface->bInterfaceSubClass);
 
 		return 0;
 	}
 
-	if (iface->bInterfaceProtocol != 2)
+    if (iface->bInterfaceProtocol != USB_PROT_HID_MOUSE)
 	{
-		dbg("iface->bInterfaceProtocol != 2 (%d)\r\n", iface->bInterfaceProtocol);
+        dbg("iface->bInterfaceProtocol != USB_PROT_HID_MOUSE (%d)\r\n", iface->bInterfaceProtocol);
 
 		return 0;
 	}
