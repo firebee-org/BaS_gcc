@@ -9,7 +9,8 @@
  
 #define USB_OHCI_MAX_ROOT_PORTS	4
 
-static int cc_to_error[16] = {
+static int cc_to_error[16] =
+{
 
 /* mapping of the OHCI CC status to error codes */
 	/* No  Error  */	       0,
@@ -30,8 +31,9 @@ static int cc_to_error[16] = {
 	/* Not Access */	       -1
 };
 
-#ifdef DEBUG
-static const char *cc_to_string[16] = {
+#ifdef DEBUG_OHCI
+static const char *cc_to_string[16] =
+{
 	"No Error",
 	"CRC: Last data packet from endpoint contained a CRC error.",
 	"BITSTUFFING:\r\nLast data packet from endpoint contained a bit stuffing violation",
@@ -62,7 +64,7 @@ static const char *cc_to_string[16] = {
 	"NOT ACCESSED:\r\nThis code is set by software before the TD is placed\r\n" \
 		     "on a list to be processed by the HC.(2)",
 };
-#endif /* DEBUG */
+#endif /* DEBUG_OHCI */
 
 /* ED States */
 
@@ -73,7 +75,8 @@ static const char *cc_to_string[16] = {
 #define ED_URB_DEL	0x08
 
 /* usb_ohci_ed */
-struct ed {
+struct ed
+{
 	uint32_t hwINFO;
 	uint32_t hwTailP;
 	uint32_t hwHeadP;
@@ -134,7 +137,8 @@ typedef struct ed ed_t;
 
 #define MAXPSW 1
 
-struct td {
+struct td
+{
 	uint32_t hwINFO;
 	uint32_t hwCBP;		/* Current Buffer Pointer */
 	uint32_t hwNextTD;		/* Next TD Pointer */
@@ -162,7 +166,8 @@ typedef struct td td_t;
  */
 
 #define NUM_INTS 32	/* part of the OHCI standard */
-struct ohci_hcca {
+struct ohci_hcca
+{
 	uint32_t	int_table[NUM_INTS];	/* Interrupt ED table */
 #if defined(CONFIG_MPC5200)
 	uint16_t	pad1;			/* set to 0 on each frame_no change */
@@ -180,7 +185,8 @@ struct ohci_hcca {
  * region.  This is Memory Mapped I/O.	You must use the readl() and
  * writel() macros defined in asm/io.h to access these!!
  */
-struct ohci_regs {
+struct ohci_regs
+{
 	/* control and status registers */
 	uint32_t	revision;
 	uint32_t	control;
@@ -203,7 +209,8 @@ struct ohci_regs {
 	uint32_t	periodicstart;
 	uint32_t	lsthresh;
 	/* Root hub ports */
-	struct	ohci_roothub_regs {
+    struct	ohci_roothub_regs
+    {
 		uint32_t	a;
 		uint32_t	b;
 		uint32_t	status;
@@ -263,7 +270,8 @@ struct ohci_regs {
 
 
 /* Virtual Root HUB */
-struct virt_root_hub {
+struct virt_root_hub
+{
 	int devnum; /* Address of Root Hub endpoint */
 	void *dev;  /* was urb */
 	void *int_addr;
@@ -383,7 +391,8 @@ typedef struct
 
 #define NUM_EDS 8		/* num of preallocated endpoint descriptors */
 
-struct ohci_device {
+struct ohci_device
+{
 	ed_t	ed[NUM_EDS];
 	int ed_cnt;
 };
@@ -395,7 +404,8 @@ struct ohci_device {
  * a subset of what the full implementation needs. (Linus)
  */
 
-typedef struct ohci {
+typedef struct ohci
+{
 	/* ------- common part -------- */
 	long handle;              /* PCI BIOS */
 	const struct pci_device_id *ent;
@@ -443,7 +453,6 @@ static int ep_link(ohci_t * ohci, ed_t * ed);
 static int ep_unlink(ohci_t * ohci, ed_t * ed);
 static ed_t * ep_add_ed(ohci_t * ohci, struct usb_device * usb_dev, uint32_t pipe, int interval, int load);
 
-/*-------------------------------------------------------------------------*/
 
 /* we need more TDs than EDs */
 #define NUM_TD 64

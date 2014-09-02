@@ -72,7 +72,7 @@ void flush_and_invalidate_caches(void)
             "	bne.s		cfa_setloop			| no->\n\t"
             /* input */	:
             /* output */	:
-            /* clobber */	: "d0", "d1", "a0"
+            /* clobber */	: "cc", "d0", "d1", "a0"
 	);
 }
 
@@ -101,8 +101,8 @@ void flush_icache_range(void *address, size_t size)
                         "       addq.l  #1,%[set]           \n\t"
                         "       cpushl  ic,(%[set])         \n\t"
                  : /* output parameters  */
-                 : [set] "a" (set)    /* input parameters */
-                 :
+                 : [set] "a" (set)  /* input parameters */
+                 : "cc"             /* clobbered registers */
             );
 		}
 		/* next loop will finish the cache ie pass the hole */
@@ -119,7 +119,7 @@ void flush_icache_range(void *address, size_t size)
                     "       cpushl  ic,(%[set])"
                     : /* output parameters */
                     : [set] "a" (set)
-                    :
+                    : "cc"
          );
 	}
 }
@@ -154,7 +154,7 @@ void flush_dcache_range(void *address, size_t size)
                         "       cpushl  dc,(%[set])         \n\t"
                         : /* output parameters */
                         : [set] "a" (set)
-                        : /* clobbered registers */
+                        : "cc" /* clobbered registers */
             );
 		}
 		/* next loop will finish the cache ie pass the hole */
@@ -172,7 +172,7 @@ void flush_dcache_range(void *address, size_t size)
                     "       cpushl      dc,(%[set])     \n\t"
                     : /* output parameters */
                     : [set] "a" (set)
-                    : /* clobbered registers */
+                    : "cc" /* clobbered registers */
         );
 	}
 }

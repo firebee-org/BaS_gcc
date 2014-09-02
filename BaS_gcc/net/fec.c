@@ -1047,7 +1047,6 @@ void fec1_tx_frame(void)
 	fec_tx_frame(1);
 }
 
-/********************************************************************/
 /*
  * Send a packet out the selected FEC
  *
@@ -1121,7 +1120,6 @@ int fec1_send(NIF *nif, uint8_t *dst, uint8_t *src, uint16_t type, NBUF *nbuf)
 	return fec_send(1, nif, dst, src, type, nbuf);
 }
 
-/********************************************************************/
 /*
  * Enable interrupts on the selected FEC
  *
@@ -1158,7 +1156,7 @@ void fec_irq_enable(uint8_t ch, uint8_t lvl, uint8_t pri)
 		MCF_INTC_IMRH &= ~MCF_INTC_IMRH_INT_MASK38;
 }
 
-/********************************************************************/
+
 /*
  * Disable interrupts on the selected FEC
  *
@@ -1182,7 +1180,6 @@ void fec_irq_disable(uint8_t ch)
 		MCF_INTC_IMRH |= MCF_INTC_IMRH_INT_MASK38;
 }
 
-/********************************************************************/
 /*
  * FEC interrupt handler
  * All interrupts are multiplexed into a single vector for each
@@ -1315,7 +1312,6 @@ int fec1_interrupt_handler(void* arg1, void* arg2)
 	return 1;
 }
 
-/********************************************************************/
 /*
  * Configure the selected Ethernet port and enable all operations
  *
@@ -1384,7 +1380,6 @@ void fec_eth_setup(uint8_t ch, uint8_t trcvr, uint8_t speed, uint8_t duplex, con
 	MCF_FEC_ECR(ch) |= MCF_FEC_ECR_ETHER_EN;
 }
 
-/********************************************************************/
 /*
  * Reset the selected Ethernet port
  *
@@ -1396,7 +1391,7 @@ void fec_eth_reset(uint8_t ch)
 	// To do
 }
 
-/********************************************************************/
+
 /*
  * Stop the selected Ethernet port
  *

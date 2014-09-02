@@ -1042,7 +1042,7 @@ static void check_status(ohci_t *ohci, td_t *td_list)
 
 	if (cc)
 	{
-		//err("OHCI usb-%s-%c error: %s (%x)", ohci->slot_name, (char)ohci->controller + '0', cc_to_string[cc], cc);
+        err("OHCI usb-%s-%c error: %s (%x)\r\n", ohci->slot_name, (char)ohci->controller + '0', cc_to_string[cc], cc);
 		if (*phwHeadP & swpl(0x1))
 		{
 			if (lurb_priv && ((td_list->index + 1) < urb_len))

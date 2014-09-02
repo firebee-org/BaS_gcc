@@ -10,7 +10,9 @@
 #include "i2c-algo-bit.h"
 #include "util.h"			/* for swpX() */
 #include "wait.h"
+
 //#include "radeon_theatre.h"
+
 #include "radeon_reg.h"
 
 /* Buffer are aligned on 4096 byte boundaries */

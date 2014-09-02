@@ -13,7 +13,7 @@
 
 //#define DBG_ARP
 #ifdef DBG_ARP
-#define dbg(format, arg...) do { xprintf("DEBUG: " format, ##arg); } while (0)
+#define dbg(format, arg...) do { xprintf("DEBUG: %s(): " format, __FUNCTION__, ##arg); } while (0)
 #else
 #define dbg(format, arg...) do { ; } while (0)
 #endif /* DBG_ARP */
@@ -227,13 +227,10 @@ void arp_request(NIF *nif, uint8_t *pa)
 	arp_frame_hdr *arpframe;
 	int i, result;
 
-
-	dbg("%s\r\n", __FUNCTION__);
-
 	pNbuf = nbuf_alloc();
 	if (pNbuf == NULL)
 	{
-		dbg("%s: arp_request couldn't allocate Tx buffer\n", __FUNCTION__);
+        dbg("could not allocate Tx buffer\n");
 		return;
 	}
 
@@ -263,7 +260,7 @@ void arp_request(NIF *nif, uint8_t *pa)
 	pNbuf->length = ARP_HDR_LEN;
 
 	/* Send the ARP request */
-	dbg("%s: sending ARP request\r\n", __FUNCTION__);
+    dbg("sending ARP request\r\n");
 	result = nif->send(nif, nif->broadcast, nif->hwa, ETH_FRM_ARP, pNbuf);
 
 	if (result == 0)
@@ -315,11 +312,11 @@ uint8_t *arp_resolve(NIF *nif, uint16_t protocol, uint8_t *pa)
 		timer_set_secs(TIMER_NETWORK, ARP_TIMEOUT);
 		while (timer_get_reference(TIMER_NETWORK))
 		{
-			dbg("%s: try to resolve %d.%d.%d.%d\r\n", __FUNCTION__,
+            dbg("try to resolve %d.%d.%d.%d\r\n",
 				pa[0], pa[1], pa[2], pa[3], pa[4]);
 			if (arp_resolve_pa(nif, protocol, pa, &hwa))
 			{
-				dbg("%s: resolved to %02x:%02x:%02x:%02x:%02x:%02x.\r\n", __FUNCTION__,
+                dbg("resolved to %02x:%02x:%02x:%02x:%02x:%02x.\r\n",
 					hwa[0], hwa[1], hwa[2], hwa[3], hwa[4], hwa[5], hwa[6]);
 					
 				return hwa;
@@ -369,6 +366,7 @@ void arp_handler(NIF *nif, NBUF *pNbuf)
 			(rx_arpframe->ar_pro != ETH_FRM_IP) ||
 			(rx_arpframe->ar_pln != 4))
 	{
+        dbg("received packet is not an ARP packet, discard it\r\n");
 		nbuf_free(pNbuf);
 		return;
 	}
@@ -384,10 +382,14 @@ void arp_handler(NIF *nif, NBUF *pNbuf)
 			(rx_arpframe->ar_tpa[2] == addr[2]) &&
 			(rx_arpframe->ar_tpa[3] == addr[3]) )
 	{
+        dbg("received ARP packet is a permanent one, store it\r\n")
 		longevity = ARP_ENTRY_PERM;
 	}
-	else 
+    else
+    {
+        dbg("received ARP packet was not addressed to us, keep only temporarily\r\n");
 		longevity = ARP_ENTRY_TEMP;
+    }
 
 	/* 
 	 * Add ARP info into the table
@@ -412,6 +414,7 @@ void arp_handler(NIF *nif, NBUF *pNbuf)
 					(rx_arpframe->ar_tpa[2] == addr[2]) &&
 					(rx_arpframe->ar_tpa[3] == addr[3]) )
 			{
+                dbg("received arp request directed to us, replying\r\n");
 				/*
 				 * Reuse the current network buffer to assemble an ARP reply
 				 */
@@ -464,13 +467,20 @@ void arp_handler(NIF *nif, NBUF *pNbuf)
 						ETH_FRM_ARP, 
 						pNbuf);
 			}
-			else 
+            else
+            {
+                dbg("ARP request not addressed to us, discarding\r\n");
 				nbuf_free(pNbuf);
+            }
 			break;
+
 		case ARP_REPLY:
 			/*
 			 * The ARP Reply case is already taken care of
 			 */
+
+            /* missing break is intentional */
+
 		default:
 			nbuf_free(pNbuf);
 			break;

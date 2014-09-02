@@ -36,7 +36,7 @@ struct baudrate
 	int	divider;
 };
 
-static const int system_clock = 133000000;	/* System clock in Hz */
+static const int system_clock = 132000000;	/* System clock in Hz */
 
 struct baudrate baudrates[] =
 {

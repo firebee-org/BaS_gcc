@@ -26,7 +26,8 @@
 typedef unsigned long long uint64_t;
 typedef unsigned long lbaint_t;
 
-typedef struct block_dev_desc {
+typedef struct block_dev_desc
+{
 	int		if_type;	/* type of the interface */
 	int		dev;		/* device number */
 	unsigned char	part_type;	/* partition type */

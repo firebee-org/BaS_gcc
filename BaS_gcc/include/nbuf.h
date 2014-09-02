@@ -10,7 +10,6 @@
 
 #include "bas_types.h"
 
-/********************************************************************/
 /*
  * Include the Queue structure definitions
  */

@@ -8,8 +8,6 @@
 #ifndef _QUEUE_H_
 #define _QUEUE_H_
 
-/********************************************************************/
-
 /* 
  * Individual queue node
  */

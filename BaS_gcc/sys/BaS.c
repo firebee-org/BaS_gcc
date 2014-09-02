@@ -52,7 +52,7 @@
 
 //#define BAS_DEBUG
 #if defined(BAS_DEBUG)
-#define dbg(format, arg...) do { xprintf("DEBUG: " format "\r\n", ##arg); } while (0)
+#define dbg(format, arg...) do { xprintf("DEBUG: %s(): " format, __FUNCTION__, ##arg); } while (0)
 #else
 #define dbg(format, arg...) do { ; } while (0)
 #endif
@@ -109,7 +109,7 @@ uint8_t read_pic_byte(void)
 	waitfor(1000, pic_rxready);
 
 	/* Return the received byte */
-	return *(volatile uint8_t*)(&MCF_PSC3_PSCTB_8BIT); // Really 8-bit
+    return * (volatile uint8_t *) (&MCF_PSC3_PSCTB_8BIT); // Really 8-bit
 }
 
 void pic_init(void)
@@ -132,7 +132,7 @@ void pic_init(void)
 
 	if (answer[0] != 'O' || answer[1] != 'K' || answer[2] != '!')
 	{
-		dbg("%s: PIC initialization failed. Already initialized?\r\n", __FUNCTION__);
+        dbg("PIC initialization failed. Already initialized?\r\n");
 	}
 	else
 	{
@@ -203,12 +203,12 @@ void acia_init()
 void enable_coldfire_interrupts()
 {
 	xprintf("enable interrupts: ");
-#if MACHINE_FIREBEE
+#if defined(MACHINE_FIREBEE)
 	*FPGA_INTR_CONTRL = 0L;				/* disable all interrupts */
 #endif /* MACHINE_FIREBEE */
 	MCF_EPORT_EPPAR = 0xaaa8;			/* all interrupts on falling edge */
 
-#if MACHINE_FIREBEE
+#if defined(MACHINE_FIREBEE)
 	/*
 	 * TIN0 on the Coldfire is connected to the FPGA. TIN0 triggers every write
 	 * access to 0xff8201 (vbasehi), i.e. everytime the video base address is written
@@ -231,9 +231,10 @@ void enable_coldfire_interrupts()
 
 void disable_coldfire_interrupts()
 {
-#ifdef MACHINE_FIREBEE
+#if defined(MACHINE_FIREBEE)
 	*FPGA_INTR_ENABLE = 0;		/* disable all interrupts */
 #endif /* MACHINE_FIREBEE */
+
 	MCF_EPORT_EPIER = 0x0;
 	MCF_EPORT_EPFR = 0x0;
 	MCF_INTC_IMRL = 0xfffffffe;
@@ -243,7 +244,7 @@ void disable_coldfire_interrupts()
 
 
 NIF nif1;
-#ifdef MACHINE_M5484LITE
+#if defined(MACHINE_M5484LITE)
 NIF nif2;
 #endif
 static IP_INFO ip_info;
@@ -267,7 +268,7 @@ void network_init(void)
 
 	if (!isr_register_handler(vector, handler, NULL, (void *) &nif1))
 	{
-		dbg("%s: unable to register handler for vector %d\r\n", __FUNCTION__, vector);
+        dbg("unable to register handler for vector %d\r\n", vector);
 		return;
 	}
 
@@ -279,7 +280,7 @@ void network_init(void)
 
 	if (!isr_register_handler(vector, handler, NULL,NULL))
 	{
-		dbg("%s: Error: Unable to register handler for vector %s\r\n", __FUNCTION__, vector);
+        dbg("Error: Unable to register handler for vector %s\r\n", vector);
 		return;
 	}
 
@@ -291,7 +292,7 @@ void network_init(void)
 	memcpy(nif1.hwa, mac, 6);
 	memcpy(nif1.broadcast, bc, 6);
 
-	dbg("%s: ethernet address is %02X:%02X:%02X:%02X:%02X:%02X\r\n", __FUNCTION__,
+    dbg("ethernet address is %02X:%02X:%02X:%02X:%02X:%02X\r\n",
 				nif1.hwa[0], nif1.hwa[1], nif1.hwa[2],
 				nif1.hwa[3], nif1.hwa[4], nif1.hwa[5]);
 
@@ -319,7 +320,7 @@ void BaS(void)
 	uint8_t *src;
 	uint8_t *dst = (uint8_t *) TOS;
 
-#if MACHINE_FIREBEE	/* LITE board has no pic and (currently) no nvram */
+#if defined(MACHINE_FIREBEE)        /* LITE board has no pic and (currently) no nvram */
 	pic_init();
 	nvram_init();
 #endif /* MACHINE_FIREBEE */
@@ -415,7 +416,7 @@ void BaS(void)
 	 */
 	memset((void *) 0x400, 0, 0x400);
 
-#ifdef MACHINE_FIREBEE
+#if defined(MACHINE_FIREBEE)
 	/* set Falcon bus control register */
 	/* sets bit 3 and 6. Both are undefined on an original Falcon? */
 
@@ -434,7 +435,7 @@ void BaS(void)
 	* (uint32_t *) 0x5a4 = FASTRAM_END;	/* ramtop TOS system variable */
 	* (uint32_t *) 0x5a8 = 0x1357bd13;	/* ramvalid TOS system variable */
 
-#ifdef MACHINE_FIREBEE /* m5484lite has no ACIA and no dip switch... */
+#if defined(MACHINE_FIREBEE) /* m5484lite has no ACIA and no dip switch... */
 	acia_init();
 #endif /* MACHINE_FIREBEE */
 

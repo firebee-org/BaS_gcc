@@ -1186,12 +1186,6 @@ void initialize_hardware(void)
 	 */
 	setup_vectors();
 
-#ifdef _NOT_USED_
-	/* make sure the handlers are called */
-	__asm__ __volatile__("dc.w 0xafff");  /* should trigger a line-A exception */
-#endif /* _NOT_USED_ */
-
-
 	/*
 	 * save the planet (and reduce case heat): disable clocks of unused SOC modules
 	 */
