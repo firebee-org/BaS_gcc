@@ -26,7 +26,7 @@
 #define dbg(format, arg...) do { ; } while (0)
 #endif /* DBG_AM79 */
 
-/********************************************************************/
+
 /* Initialize the AM79C874 PHY
  *
  * This function sets up the Auto-Negotiate Advertisement register

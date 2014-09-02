@@ -192,7 +192,11 @@ void setup_vectors(void)
 	__asm__ __volatile__("clr.l		d0\n\t"\
 						 "movec.l	d0,VBR\n\t"\
 						 "nop\n\t"\
-						 "move.l	d0,_rt_vbr" ::: "d0", "memory");
+                         "move.l	d0,_rt_vbr"
+                         :                      /* outputs */
+                         :                      /* inputs */
+                         : "d0", "memory", "cc" /* clobbered registers */
+                        );
 
 	xprintf("finished.\r\n");
 }

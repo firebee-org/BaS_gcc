@@ -99,7 +99,9 @@ void bootp_handler(NIF *nif, NBUF *nbuf)
 	rx_p = (struct bootp_packet *) &nbuf->data[nbuf->offset];
 	udpframe = (udp_frame_hdr *) &nbuf->data[nbuf->offset - UDP_HDR_SIZE];
 
-	/* check packet if it is valid and if it is really intended for us */
+    /*
+     * check packet if it is valid and if it is really intended for us
+     */
 
 	if (rx_p->type == BOOTP_TYPE_BOOTREPLY && rx_p->xid == XID)
 	{
@@ -109,6 +111,7 @@ void bootp_handler(NIF *nif, NBUF *nbuf)
 	}
 	else
 	{
+        dbg("received invalid bootp reply\r\n");
 		/* not valid */
 		return;
 	}

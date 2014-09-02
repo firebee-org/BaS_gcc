@@ -19,7 +19,7 @@ static inline uint32_t set_ipl(uint32_t ipl)
 		"		lsr.l	#8,%[ret]\r\n"			/* shift them to position */
 		: [ret] "=&d" (ret)		/* output */
 		: [ipl] "d" (ipl)		/* input */
-		: "d0"	/* clobber */
+        : "cc", d0"	/* clobber */
 	);
 
 	return ret;

@@ -14,7 +14,7 @@
 
 //#define DBG_UDP
 #if defined(DBG_UDP)
-#define dbg(format, arg...) do { xprintf("DEBUG: " format "\r\n", ##arg); } while (0)
+#define dbg(format, arg...) do { xprintf("DEBUG: %s(): " format, __FUNCTION__, ##arg); } while (0)
 #else
 #define dbg(format, arg...) do { ; } while (0)
 #endif /* DBG_UDP */
@@ -112,7 +112,7 @@ int udp_send(NIF *nif, uint8_t *dest, int sport, int dport, NBUF *pNbuf)
 
 	if (nif == NULL)
 	{
-		dbg("%s: nif is NULL\r\n", __FUNCTION__);
+        dbg("nif is NULL\r\n");
 		return 0;
 	}
 
@@ -141,7 +141,7 @@ int udp_send(NIF *nif, uint8_t *dest, int sport, int dport, NBUF *pNbuf)
 
 	myip = ip_get_myip(nif_get_protocol_info(nif, ETH_FRM_IP));
 
-	dbg("%s: sent UDP request to %d.%d.%d.%d from %d.%d.%d.%d\r\n", __FUNCTION__,
+    dbg("sent UDP request to %d.%d.%d.%d from %d.%d.%d.%d\r\n",
 			dest[0], dest[1], dest[2], dest[3],
 			myip[0], myip[1], myip[2], myip[3]);
 
@@ -159,7 +159,7 @@ void udp_handler(NIF *nif, NBUF *pNbuf)
 
 	udpframe = (udp_frame_hdr *) &pNbuf->data[pNbuf->offset];
 
-	dbg("%s: packet received\r\n", __FUNCTION__);
+    dbg("packet received\r\n",);
 
 	/*
 	 * Adjust the length and valid data offset of the packet we are
@@ -176,7 +176,7 @@ void udp_handler(NIF *nif, NBUF *pNbuf)
 		handler(nif, pNbuf);
 	else
 	{
-		dbg("%s: received UDP packet for non-supported port\n", __FUNCTION__);
+        dbg("received UDP packet for non-supported port\n");
 		nbuf_free(pNbuf);
 	}
 

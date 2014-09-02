@@ -14,7 +14,7 @@
 
 //#define DBG_TMR
 #ifdef DBG_TMR
-#define dbg(format, arg...) do { xprintf("DEBUG: " format, ##arg); } while (0)
+#define dbg(format, arg...) do { xprintf("DEBUG: %s(): " format, __FUNCTION__, ##arg); } while (0)
 #else
 #define dbg(format, arg...) do { ; } while (0)
 #endif /* DBG_TMR */
@@ -48,7 +48,7 @@ int timer_default_isr(void *not_used, NET_TIMER *t)
 	 */
 	MCF_GPT_GMS(t->ch) = 0;
 
-	dbg("%s: timer isr called for timer channel %d\r\n", __FUNCTION__);
+    dbg("timer isr called for timer channel %d\r\n");
 
 	/*
 	 * Clear the reference - the desired seconds have expired
@@ -133,8 +133,7 @@ bool timer_init(uint8_t ch, uint8_t lvl, uint8_t pri)
 	 */
 	if (!((ch <= 3) && (lvl <= 7) && (lvl >= 1) && (pri <= 7)))
 	{
-		dbg("%s: illegal parameters (ch=%d, lvl=%d, pri=%d)\r\n", __FUNCTION__,
-				ch, lvl, pri);
+        dbg("illegal parameters (ch=%d, lvl=%d, pri=%d)\r\n", ch, lvl, pri);
 
 		return false;
 	}
@@ -160,10 +159,10 @@ bool timer_init(uint8_t ch, uint8_t lvl, uint8_t pri)
 				(void *) &net_timer[ch])
 	   )
 	{
-		dbg("%s: could not register timer interrupt handler\r\n", __FUNCTION__);
+        dbg("could not register timer interrupt handler\r\n");
 		return false;
 	}
-	dbg("%s: timer handler registered\r\n", __FUNCTION__);
+    dbg("timer handler registered\r\n", __FUNCTION__);
 
 	/*
 	 * Calculate the require CNT value to get a 1 second timeout
