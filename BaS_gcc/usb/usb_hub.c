@@ -12,7 +12,7 @@
 #include "usb.h"
 #include "usb_hub.h"
 
-#define DEBUG_HUB
+//#define DEBUG_HUB
 #ifdef DEBUG_HUB
 #define dbg(format, arg...) do { xprintf("DEBUG: %s(): " format, __FUNCTION__, ##arg); } while (0)
 #else
