@@ -26,7 +26,7 @@
 #include "MCD_dma.h"
 #include "bas_string.h"
 
-#define DMA_INTC_LVL        6
+#define DMA_INTC_LVL        1
 #define DMA_INTC_PRI        0
 
 
