@@ -208,7 +208,7 @@
 /**********************************************************/
 		.altmacro
 		.macro	irq	vector,int_mask,clr_int
-		move.w	#0x2700,sr		// disable interrupt
+		//move.w	#0x2700,sr		// disable interrupt
 		subq.l	#8,a7
 		movem.l	d0/a5,(a7)		// save registers
 
@@ -237,18 +237,18 @@
  * If anybody knows of any better way on how to do this - please do!
  *
  */
-    	.macro mchar  st,a,b,c,d,tgt
-    		\st #\a << 24|\b<<16|\c<<8|\d,\tgt
-    	.endm
+	.macro mchar  st,a,b,c,d,tgt
+		\st #\a << 24|\b<<16|\c<<8|\d,\tgt
+	.endm
 
 .text
 _vec_init:
 		move.l	a2,-(sp)		// Backup registers
 
 		mov3q.l	#-1,_rt_mod		// rt_mod auf super
- 		clr.l	_rt_ssp
- 		clr.l	_rt_usp
- 		clr.l	_rt_vbr
+		clr.l	_rt_ssp
+		clr.l	_rt_usp
+		clr.l	_rt_vbr
 		move.l	#__RAMBAR0,d0		// exception vectors reside in rambar0
 		movec	d0,VBR
 		move.l	d0,a0
@@ -268,7 +268,7 @@ init_vec_loop:
 
 		lea	access(pc),a1		// set illegal access exception handler
 		move.l	a1,0x08(a0)
-		
+
 		.extern	_get_bas_drivers
 // trap #0 (without any parameters for now) is used to provide BaS' driver addresses to the OS
 		lea	_get_bas_drivers(pc),a1
@@ -326,7 +326,7 @@ init_vec_loop:
  */
 vector_table_start:
 std_exc_vec:
-		move.w	#0x2700,sr		// disable interrupt
+		//move.w	#0x2700,sr		// disable interrupt
 		subq.l	#8,a7
 		movem.l	d0/a5,(sp)		// save registers
 		move.w	8(sp),d0		// fetch vector
@@ -353,21 +353,21 @@ std_exc_vec:
 		jsr	_xprintf		// call xprintf()
 		add.l	#3*4,sp			// adjust stack
 noprint:
-		
+
 		movem.l	(sp),d0-d1/a0-a1	// restore registers
 		lea	4 * 4(sp),sp
 #endif /* DBG_EXC */
 
 		add.l	_rt_vbr,d0		// + VBR
-		move.l	d0,a5				
+		move.l	d0,a5
 		move.l	(a5),d0			// fetch exception routine address
 
 		move.l	4(sp),a5		// restore a5
 		move.l	d0,4(a7)		// store exception routine address
 
-		move.w	10(a7),d0		// restore original SR
-		bset	#13,d0			// set supervisor bit
-		move.w	d0,sr			//
+		//move.w	10(a7),d0		// restore original SR
+		//bset	#13,d0			// set supervisor bit
+		//move.w	d0,sr			//
 		move.l	(a7)+,d0		// restore d0
 		rts				// jump to exception routine
 
@@ -409,15 +409,15 @@ access_mmu:
 		cmp.l	#__FASTRAM_END,d0	// above max User RAM area?
 		bge	bus_error		// -> bus error
 
-		lea	-5*4(sp),sp		// save gcc scratch registers
-		movem.l	d0-d1/a0-a2,(sp)
+		lea	-3 * 4(sp),sp		// save gcc scratch registers
+		movem.l	d1/a0-a1,(sp)
 
 		move.l	d0,-(sp)		// fault address
 		jsr	_mmutr_miss		// else we have an MMU TLB miss
 		addq.l	#4,sp
 
-		movem.l	(sp),d0-d1/a0-a2	// restore gcc scratch registers
-		lea	5*4(sp),sp
+		movem.l	(sp),d1/a0-a1		// restore gcc scratch registers
+		lea	3 * 4(sp),sp
 
 		move.l	(sp)+,d0		// restore register
 
@@ -426,7 +426,7 @@ access_mmu:
 bus_error:
 		move.l	(sp)+,d0		// restore register
 		bra	std_exc_vec
-		
+
 zero_divide:
 		move.w	#0x2700,sr		// disable interrupt
 		move.l	a0,-(a7)
@@ -455,16 +455,16 @@ zd_nal:	cmp.w	#0x3c,d0			// immediate?
 zd_end:
 		move.l	a0,12(a7)
 		move.l	(a7)+,d0
-		move.l	(a7)+,a0		
+		move.l	(a7)+,a0
 		rte
-		
-#ifdef _NOT_USED_	
-linea:	
+
+#ifdef _NOT_USED_
+linea:
 		move.w	#0x2700,sr		// disable interrupt
 		halt
 		nop
 		nop
-linef:	
+linef:
 		move.w	#0x2700,sr		// disable interrupt
 		halt
 		nop
@@ -475,7 +475,7 @@ format:
 		nop
 		nop
 
-//floating point		
+//floating point
 flpoow:
 		move.w	#0x2700,sr		// disable interrupt
 		halt
@@ -516,7 +516,7 @@ irq5text:
 		.ascii	"IRQ5!"
 		.dc.b	13,10,0
 
-irq6:							
+irq6:
 		irq	0x74,5,0x20
 
 irq7:						// irq7 is tied to PCI INTA# and PCI INTB# on the M5484LITE
@@ -555,33 +555,33 @@ irq6:	// MFP interrupt from FPGA
 // screen adr change timed out?
 		move.l	_video_sbt,d0
 		beq	irq6_non_sca		// nothing to do if 0
-  		sub.l	#0x70000000,d0		// substract 14 seconds
+		sub.l	#0x70000000,d0		// substract 14 seconds
 		lea	MCF_SLT0_SCNT,a5
 		cmp.l	(a5),d0			// time reached?
 		ble	irq6_non_sca		// not yet
 
 		lea	-28(a7),a7		// save more registers
-  		movem.l	d0-d4/a0-a1,(a7)	//
+		movem.l	d0-d4/a0-a1,(a7)	//
 		clr.l	d3			// beginn mit 0
 		jsr	_flush_and_invalidate_caches
 
  // eintrag suchen
  irq6_next_sca:
- 		move.l	d3,d0
+		move.l	d3,d0
 		move.l	d0,MCF_MMU_MMUAR	// addresse
- 		move.l	#0x106,d4
- 		move.l	d4,MCF_MMU_MMUOR	// suchen -> 
- 		nop
- 		move.l	MCF_MMU_MMUOR,d4
- 		clr.w	d4
- 		swap	d4
- 		move.l	d4,MCF_MMU_MMUAR
+		move.l	#0x106,d4
+		move.l	d4,MCF_MMU_MMUOR	// suchen ->
+		nop
+		move.l	MCF_MMU_MMUOR,d4
+		clr.w	d4
+		swap	d4
+		move.l	d4,MCF_MMU_MMUAR
 		mvz.w	#0x10e,d4
- 		move.l	d4,MCF_MMU_MMUOR	// einträge holen aus mmu
- 		nop
- 		move.l	MCF_MMU_MMUTR,d4	// ID holen
+		move.l	d4,MCF_MMU_MMUOR	// einträge holen aus mmu
+		nop
+		move.l	MCF_MMU_MMUTR,d4	// ID holen
 		lsr.l	#2,d4			// bit 9 bis 2
- 		cmp.w	#sca_page_ID,d4		// ist screen change ID?
+		cmp.w	#sca_page_ID,d4		// ist screen change ID?
 		bne	irq6_sca_pn		// nein -> page keine screen area next
 // eintrag �ndern
 		add.l	#std_mmutr,d0
@@ -593,9 +593,9 @@ irq6_sca_pn0:
 		add.l	#writethrough_mmudr|MCF_MMU_MMUDR_LK,d1	// page wt and locked
 irq6_sca_pn1c:
 		mvz.w	#0x10b,d2		// MMU update
-		move.l	d0,MCF_MMU_MMUTR	
+		move.l	d0,MCF_MMU_MMUTR
 		move.l	d1,MCF_MMU_MMUDR
-		move.l	d2,MCF_MMU_MMUOR	// setze tlb data only  
+		move.l	d2,MCF_MMU_MMUOR	// setze tlb data only
 		nop
 // page copy
 		move.l	d3,a0
@@ -634,7 +634,7 @@ wait_dma_finished:
 		cmp.l	#6,d0
 		bne	wait_dma_finished
 #else
-irq6_vcd0_loop:						
+irq6_vcd0_loop:
 		move.l	(a0)+,(a1)+		// page copy
 		move.l	(a0)+,(a1)+
 		move.l	(a0)+,(a1)+
@@ -652,7 +652,7 @@ irq6_sca_pn:
 		move.l	d0,_video_tlb		// anfangszustand wieder herstellen
 		clr.l	_video_sbt		// zeit löschen
 
-  		movem.l	(sp),d0-d4/a0-a1	// restore registers
+		movem.l	(sp),d0-d4/a0-a1	// restore registers
 		lea	7 * 4(sp),sp
 
 irq6_non_sca:
@@ -670,7 +670,7 @@ non_acsi_dma:
 		bne	irq6_1
 		movem.l	(a7),d0/a5
 		addq.l	#8,a7
-		rte	
+		rte
 irq6_1:
 		lea	MCF_GPIO_PODR_FEC1L,a5
 		bclr.b	#4,(a5)			// led on
@@ -684,9 +684,9 @@ irq6_1:
 irq6_2:
 // test auf protect mode ---------------------
 		move.b	DIP_SWITCHa,d0
-		btst	#7,d0 
+		btst	#7,d0
 		bne	irq6_3			// ja->
-// -------------------------------------------		
+// -------------------------------------------
 		move.l	0xF0020000,a5		// vector holen
 		add.l	_rt_vbr,a5		// basis
 		move.l	(a5),d0			// vector holen
@@ -702,7 +702,7 @@ irq6_3:
 		mov3q.l	#-1,_rt_mod		// auf supervisor setzen
 		move.l	a5,_rt_usp		// rt_usp speichern
 		move.l	_rt_ssp,a5		// rt_ssp holen
-		move.l	12(a7),-(a5)		// pc transferieren 
+		move.l	12(a7),-(a5)		// pc transferieren
 		move.l	8(a7),-(a5)		// sr transferieren
 		move.l	a5,usp			// usp setzen
 		move.l  0xF0020000,a5		// vector holen: intack routine
@@ -713,7 +713,7 @@ irq6_3:
 		move.b	#6,2(a7)		// intmaske setzen
 		rte 				// und weg
 sev_sup6:
-		move.l	12(a7),-(a5)		// pc transferieren 
+		move.l	12(a7),-(a5)		// pc transferieren
 		move.l	8(a7),-(a5)		// sr,vec
 		bset	#5,2(a5)		// auf super setzen
 		move.l	a5,usp			// usp setzen
@@ -735,7 +735,7 @@ blinker:.long	0
 acsi_dma:					// atari dma
 		move.l  a1,-(a7)
 		move.l  d1,-(a7)
-		
+
 		lea	MCF_PSC0_PSCTB_8BIT,a1	// ++ vr
 		mchar move.l, 'D,'M','A,'\ ,(a1)
 		//move.l	#"DMA ",(a1)
@@ -756,9 +756,9 @@ acsi_dma_rl:
 		move.l	(a5),(a1)+		// read 4 bytes
 		move.l	(a5),(a1)+		// read 4 bytes
 		move.l	(a5),(a1)+		// read 4 bytes
-		
- 		moveq	#'.',d1
- 		move.b	d1,MCF_PSC0_PSCTB_8BIT
+
+		moveq	#'.',d1
+		move.b	d1,MCF_PSC0_PSCTB_8BIT
 
 		sub.l	#16,d0			// byt counter -16
 		bpl	acsi_dma_rl
@@ -770,9 +770,9 @@ acsi_dma_wl:
 		move.l	(a1)+,(a5)		// write 4 byts
 		move.l	(a1)+,(a5)		// write 4 byts
 		move.l	(a1)+,(a5)		// write 4 byts
-		
- 		moveq	#'.',d1
- 		move.b	d1,MCF_PSC0_PSCTB_8BIT
+
+		moveq	#'.',d1
+		move.b	d1,MCF_PSC0_PSCTB_8BIT
 
 		sub.l	#16,d0			// byt counter -16
 		bpl	acsi_dma_wl
@@ -785,10 +785,10 @@ acsi_dma_end:
 		lea	0xfffffa0b,a5
 		bclr.b	#7,4(a5)		// clear int in service mfp
 		bclr.b	#7,(a5)			// clear int pending mfp 0xfffffa0b
-	
+
 		move.w	#0x0d0a,d1
 		move.w	d1,MCF_PSC0_PSCTB_8BIT
-		
+
 		move.l	(a7)+,d1
 		move.l	(a7)+,a1
 		rts
@@ -823,7 +823,7 @@ irq7:
 handler_psc3:
 		move.w	#0x2700,sr		// disable interrupt
 		lea	-20(a7),a7
-		movem.l	d0-d2/a0/a3,(a7)	
+		movem.l	d0-d2/a0/a3,(a7)
 		lea	MCF_PSC3_PSCRB_8BIT,a3
 		move.b	(a3),d1
 		cmp.b	#2,d1			// anforderung rtc daten?
@@ -837,7 +837,7 @@ handler_psc3:
 
 		lea	0xffff8961,a0
 		lea	MCF_PSC3_PSCTB_8BIT,a3
-		clr.l	d1	
+		clr.l	d1
 		moveq	#64,d2
 		move.b	#0x82,(a3)		// header: rtcd mcf->pic
 loop_sr2:
@@ -871,7 +871,7 @@ handler_gpt0:
 		blt	sca_other		//
 
 		lea	MCF_SLT0_SCNT,a0
-  		move.l	(a0),_video_sbt		// save time
+		move.l	(a0),_video_sbt		// save time
 
 		// FIXME: don't we need to get out here?
 
@@ -944,18 +944,18 @@ video_copy_data_loop:
 
 // eintrag suchen
 		move.l	d0,MCF_MMU_MMUAR	// adress
- 		move.l	#0x106,d4
- 		move.l	d4,MCF_MMU_MMUOR	// search -> new one will be offered if not found
- 		nop
- 		move.l	MCF_MMU_MMUOR,d4
- 		clr.w	d4
- 		swap	d4
- 		move.l	d4,MCF_MMU_MMUAR
+		move.l	#0x106,d4
+		move.l	d4,MCF_MMU_MMUOR	// search -> new one will be offered if not found
+		nop
+		move.l	MCF_MMU_MMUOR,d4
+		clr.w	d4
+		swap	d4
+		move.l	d4,MCF_MMU_MMUAR
 		move.l	d0,d1
 		add.l	#MCF_MMU_MMUTR_ID(sca_page_ID)|std_mmutr,d0
 		add.l	#0x60000000|writethrough_mmudr|MCF_MMU_MMUDR_LK,d1
 		mvz.w	#0x10b,d2		// MMU update
-		move.l	d0,MCF_MMU_MMUTR		
+		move.l	d0,MCF_MMU_MMUTR
 		move.l	d1,MCF_MMU_MMUDR
 		move.l	d2,MCF_MMU_MMUOR	// setzen vidoe maped to 60xxx only data
 		nop
@@ -991,20 +991,22 @@ video_chg_end:
  * low-level interrupt service routine for routines registered with
  * isr_register_handler()
  */
- 		.global	_lowlevel_isr_handler
+		.global	_lowlevel_isr_handler
 		.extern	_isr_execute_handler
 
 _lowlevel_isr_handler:
-		move.w	#0x2700,sr		// disable interrupts
-		link	a6,#-4*4		// make room for
-		movem.l	d0-d1/a0-a1,(sp)	// gcc scratch registers and save them
+		move.w	#0x2700,sr
+		lea	-5 * 4(sp),sp		// make room for
+		movem.l	d0-d1/a0-a2,(sp)	// gcc scratch registers and save them,
+						// other registers will be handled by gcc itself
 
-		move.w	4(a6),d0		// fetch vector number from stack
+		move.w	5 * 4(sp),d0		// fetch vector number from stack
 		lsr.l	#2,d0			// move it in place
 		andi.l	#0x000000ff,d0		// mask it out
 		move.l	d0,-(sp)		// push it
 		jsr	_isr_execute_handler	// call the C handler
-		lea	4(sp),sp		// adjust stack
-		movem.l	(sp),d0-d1/a0-a1	// restore registers
-		unlk	a6			// cleanup stack
+		addq.l	#4,sp			// adjust stack
+
+		movem.l	(sp),d0-d1/a0-a2	// restore registers
+		lea	5 * 4(sp),sp
 		rte

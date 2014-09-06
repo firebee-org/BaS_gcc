@@ -1,7 +1,8 @@
 #set disassemble-next-line on
 define tr
-	!killall m68k-bdm-gdbserver
+	#!killall m68k-bdm-gdbserver
 	target remote | m68k-bdm-gdbserver pipe /dev/bdmcf3
+	#target remote localhost:1234
 	#target remote | m68k-bdm-gdbserver pipe /dev/tblcf3
 	#target dbug /dev/ttyS0
 	#monitor bdm-reset
