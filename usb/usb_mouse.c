@@ -26,7 +26,7 @@
 #include "exceptions.h"
 #include "driver_mem.h"
 
-#define DEBUG_USBMOUSE
+//#define DEBUG_USBMOUSE
 #ifdef DEBUG_USBMOUSE
 #define dbg(format, arg...) do { xprintf("DEBUG: %s(): " format, __FUNCTION__, ##arg); } while (0)
 #else
