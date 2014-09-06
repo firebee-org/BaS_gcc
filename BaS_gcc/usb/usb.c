@@ -57,7 +57,7 @@
 extern int usb_stor_curr_dev;
 extern uint32_t usb_1st_disk_drive;
 
-#define DEBUG_USB
+//#define DEBUG_USB
 #ifdef DEBUG_USB
 #define dbg(format, arg...) do { xprintf("DEBUG: %s(): " format, __FUNCTION__, ##arg); } while (0)
 #else
