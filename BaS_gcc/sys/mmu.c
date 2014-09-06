@@ -62,7 +62,7 @@
 #error "unknown machine!"
 #endif /* MACHINE_FIREBEE */
 
-//#define DEBUG_MMU
+#define DEBUG_MMU
 #ifdef DEBUG_MMU
 #define dbg(format, arg...) do { xprintf("DEBUG (%s()): " format, __FUNCTION__, ##arg);} while(0)
 #else
@@ -412,7 +412,7 @@ void mmu_init(void)
 void mmutr_miss(uint32_t address)
 {
 	dbg("MMU TLB MISS at 0x%08x\r\n", address);
-	flush_and_invalidate_caches();
+	// flush_and_invalidate_caches();
 
 	switch (address)
 	{
