@@ -39,7 +39,7 @@
 #error "unknown machine!"
 #endif /* MACHINE_FIREBEE */
 
-// #define DBG_DMA
+#define DBG_DMA
 #ifdef DBG_DMA
 #define dbg(format, arg...) do { xprintf("DEBUG: %s(): " format, __FUNCTION__, ##arg); } while (0)
 #else
@@ -89,7 +89,7 @@ void dma_irq_enable(uint8_t lvl, uint8_t pri)
 	MCF_INTC_ICR48 = 0
 		| MCF_INTC_ICR_IP(pri)
 		| MCF_INTC_ICR_IL(lvl);
-    dbg("DMA irq assigned level %d, priority %d\r\n", lvl, pri);
+	dbg("DMA irq assigned level %d, priority %d\r\n", lvl, pri);
 
 	/* Unmask all task interrupts */
 	MCF_DMA_DIMR = 0;
@@ -100,7 +100,7 @@ void dma_irq_enable(uint8_t lvl, uint8_t pri)
 	/* Unmask the DMA interrupt in the interrupt controller */
 	MCF_INTC_IMRH &= ~MCF_INTC_IMRH_INT_MASK48;
 
-    dbg("DMA task interrupts unmasked, pending interrupts cleared, interrupt controller active\r\n");
+	dbg("DMA task interrupts unmasked, pending interrupts cleared, interrupt controller active\r\n");
 }
 
 /********************************************************************/
@@ -118,7 +118,7 @@ void dma_irq_disable(void)
 	/* Mask the DMA interrupt in the interrupt controller */
 	MCF_INTC_IMRH |= MCF_INTC_IMRH_INT_MASK48;
 
-    dbg("DMA interrupts masked and disabled\r\n");
+	dbg("DMA interrupts masked and disabled\r\n");
 }
 
 int dma_set_initiator(int initiator)
@@ -176,7 +176,7 @@ int dma_set_initiator(int initiator)
 			}
 			else /* No empty slots */
 			{
-                dbg("no free slot found\r\n");
+				dbg("no free slot found\r\n");
 
 				return 1;
 			}
@@ -195,7 +195,7 @@ int dma_set_initiator(int initiator)
 			}
 			else /* No empty slots */
 			{
-                dbg("no free slot\r\n");
+				dbg("no free slot\r\n");
 
 				return 1;
 			}
@@ -209,7 +209,7 @@ int dma_set_initiator(int initiator)
 			}
 			else /* No empty slots */
 			{
-                dbg("no free slot\r\n");
+				dbg("no free slot\r\n");
 
 				return 1;
 			}
@@ -223,7 +223,7 @@ int dma_set_initiator(int initiator)
 			}
 			else /* No empty slots */
 			{
-                dbg("no free slot\r\n");
+				dbg("no free slot\r\n");
 
 				return 1;
 			}
@@ -237,7 +237,7 @@ int dma_set_initiator(int initiator)
 			}
 			else /* No empty slots */
 			{
-                dbg("no free slot\r\n");
+				dbg("no free slot\r\n");
 
 				return 1;
 			}
@@ -251,7 +251,7 @@ int dma_set_initiator(int initiator)
 			}
 			else /* No empty slots */
 			{
-                dbg("no free slot\r\n");
+				dbg("no free slot\r\n");
 
 				return 1;
 			}
@@ -265,7 +265,7 @@ int dma_set_initiator(int initiator)
 			}
 			else /* No empty slots */
 			{
-                dbg("no free slot\r\n");
+				dbg("no free slot\r\n");
 
 				return 1;
 			}
@@ -279,7 +279,7 @@ int dma_set_initiator(int initiator)
 			}
 			else /* No empty slots */
 			{
-                dbg("no free slot\r\n");
+				dbg("no free slot\r\n");
 
 				return 1;
 			}
@@ -293,7 +293,7 @@ int dma_set_initiator(int initiator)
 			}
 			else /* No empty slots */
 			{
-                dbg("no free slot\r\n");
+				dbg("no free slot\r\n");
 
 				return 1;
 			}
@@ -307,7 +307,7 @@ int dma_set_initiator(int initiator)
 			}
 			else /* No empty slots */
 			{
-                dbg("no free slot\r\n");
+				dbg("no free slot\r\n");
 
 				return 1;
 			}
@@ -321,7 +321,7 @@ int dma_set_initiator(int initiator)
 			}
 			else /* No empty slots */
 			{
-                dbg("no free slot\r\n");
+				dbg("no free slot\r\n");
 
 				return 1;
 			}
@@ -335,7 +335,7 @@ int dma_set_initiator(int initiator)
 			}
 			else /* No empty slots */
 			{
-                dbg("no free slot\r\n");
+				dbg("no free slot\r\n");
 
 				return 1;
 			}
@@ -358,7 +358,7 @@ int dma_set_initiator(int initiator)
 				used_reqs[28] = DMA_PSC2_RX;            }
 			else /* No empty slots */
 			{
-                dbg("no free slot\r\n");
+				dbg("no free slot\r\n");
 
 				return 1;
 			}
@@ -372,7 +372,7 @@ int dma_set_initiator(int initiator)
 			}
 			else /* No empty slots */
 			{
-                dbg("no free slot\r\n");
+				dbg("no free slot\r\n");
 
 				return 1;
 			}
@@ -386,7 +386,7 @@ int dma_set_initiator(int initiator)
 			}
 			else /* No empty slots */
 			{
-                dbg("no free slot\r\n");
+				dbg("no free slot\r\n");
 
 				return 1;
 			}
@@ -400,7 +400,7 @@ int dma_set_initiator(int initiator)
 			}
 			else /* No empty slots */
 			{
-                dbg("no free slot\r\n");
+				dbg("no free slot\r\n");
 
 				return 1;
 			}
@@ -408,7 +408,7 @@ int dma_set_initiator(int initiator)
 
 		default:
 			{
-                dbg("don't know what to do\r\n");
+				dbg("don't know what to do\r\n");
 
 				return 1;
 			}
@@ -435,7 +435,7 @@ uint32_t dma_get_initiator(int requestor)
 		if (used_reqs[i] == requestor)
 			return i;
 	}
-    dbg("no initiator found for requestor %d\r\n", requestor);
+	dbg("no initiator found for requestor %d\r\n", requestor);
 
 	return 0;
 }
@@ -458,7 +458,7 @@ void dma_free_initiator(int requestor)
 			break;
 		}
 	}
-    dbg("DMA requestor %d freed\r\n", requestor);
+	dbg("DMA requestor %d freed\r\n", requestor);
 }
 
 /*
@@ -475,7 +475,7 @@ int dma_set_channel(int requestor, void (*handler)(void))
 	int i;
 
 	/* Check to see if this requestor is already assigned to a channel */
-    dbg("check if requestor %d is already assigned to a channel\r\n", requestor);
+	dbg("check if requestor %d is already assigned to a channel\r\n", requestor);
 	if ((i = dma_get_channel(requestor)) != -1)
 		return i;
 
@@ -485,11 +485,11 @@ int dma_set_channel(int requestor, void (*handler)(void))
 		{
 			dma_channel[i].req = requestor;
 			dma_channel[i].handler = handler;
-            dbg("assigned channel %d to requestor %d\r\n", i, requestor);
+			dbg("assigned channel %d to requestor %d\r\n", i, requestor);
 			return i;
 		}
 	}
-    dbg("no free DMA channel found for requestor %d\r\n", requestor);
+	dbg("no free DMA channel found for requestor %d\r\n", requestor);
 
 	/* All channels taken */
 	return -1;
@@ -501,7 +501,7 @@ void dma_clear_channel(int channel)
 	{
 		dma_channel[channel].req = -1;
 		dma_channel[channel].handler = NULL;
-        dbg("cleared DMA channel %d\r\n", channel);
+		dbg("cleared DMA channel %d\r\n", channel);
 	}
 }
 
@@ -524,7 +524,7 @@ int dma_get_channel(int requestor)
 		if (dma_channel[i].req == requestor)
 			return i;
 	}
-    dbg("no channel occupied by requestor %d\r\n", requestor);
+	dbg("no channel occupied by requestor %d\r\n", requestor);
 	return -1;
 }
 
@@ -556,7 +556,9 @@ void dma_free_channel(int requestor)
 int dma_interrupt_handler(void *arg1, void *arg2)
 {
 	int i, interrupts;
+	uint32_t ipl;
 
+	ipl = set_ipl(7);		/* do not disturb */
 	/*
 	 * Determine which interrupt(s) triggered by AND'ing the
 	 * pending interrupts with those that aren't masked.
@@ -566,7 +568,7 @@ int dma_interrupt_handler(void *arg1, void *arg2)
 	/* Make sure we are here for a reason */
 	if (interrupts == 0)
 	{
-        dbg("not DMA interrupt! Spurious?\r\n", );
+		dbg("not DMA interrupt! Spurious?\r\n");
 		return 0;
 	}
 
@@ -580,11 +582,13 @@ int dma_interrupt_handler(void *arg1, void *arg2)
 			/* If there is a handler, call it */
 			if (dma_channel[i].handler != NULL)
 			{
-                dbg("call handler for DMA channel %d (%p)\r\n", i, dma_channel[i].handler);
+				dbg("call handler for DMA channel %d (%p)\r\n", i, dma_channel[i].handler);
 				dma_channel[i].handler();
 			}
 		}
 	}
+
+	set_ipl(ipl);
 
 	return 1;	/* handled */
 }
@@ -605,7 +609,7 @@ void *dma_memcpy(void *dst, void *src, size_t n)
 	ret = MCD_startDma(1, src, 4, dst, 4, n, 4, DMA_ALWAYS, 0, MCD_SINGLE_DMA, 0);
 	if (ret == MCD_OK)
 	{
-        dbg("DMA on channel 1 successfully started\r\n");
+		dbg("DMA on channel 1 successfully started\r\n");
 	}
 
 	do
@@ -649,7 +653,7 @@ void *dma_memcpy(void *dst, void *src, size_t n)
 	end = MCF_SLT0_SCNT;
 	time = (start - end) / (SYSCLK / 1000) / 1000;
 #endif /* DBG_DMA */
-    dbg("took %d ms (%f Mbytes/second)\r\n", time, n / (float) time / 1000.0);
+	dbg("took %d ms (%f Mbytes/second)\r\n", time, n / (float) time / 1000.0);
 
 	return dst;
 }
@@ -658,11 +662,11 @@ int dma_init(void)
 {
 	int res;
 
-    dbg("MCD DMA API initialization: ");
+	dbg("MCD DMA API initialization: ");
 	res = MCD_initDma((dmaRegs *) &_MBAR[0x8000], SYS_SRAM, MCD_RELOC_TASKS | MCD_COMM_PREFETCH_EN);
 	if (res != MCD_OK)
 	{
-        dbg("DMA API initialization failed (0x%x)\r\n", res);
+		dbg("DMA API initialization failed (0x%x)\r\n", res);
 		return 0;
 	}
 
