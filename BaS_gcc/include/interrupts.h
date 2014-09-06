@@ -79,20 +79,20 @@
 #define	INT_SOURCE_GPT0				62	// GPT0 timer interrupt
 
 
-#define FEC0_INTC_LVL	1			/* interrupt level for FEC0 */
-#define FEC0_INTC_PRI	2			/* interrupt priority for FEC0 */
+#define FEC0_INTC_LVL	5			/* interrupt level for FEC0 */
+#define FEC0_INTC_PRI	1			/* interrupt priority for FEC0 */
 
-#define FEC1_INTC_LVL	1			/* interrupt level for FEC1 */
-#define FEC1_INTC_PRI	2			/* interrupt priority for FEC1 */
+#define FEC1_INTC_LVL	5			/* interrupt level for FEC1 */
+#define FEC1_INTC_PRI	0			/* interrupt priority for FEC1 */
 
 #define FEC_INTC_LVL(x)		((x == 0) ? FEC0_INTC_LVL : FEC1_INTC_LVL)
 #define FEC_INTC_PRI(x)		((x == 0) ? FEC0_INTC_PRI : FEC1_INTC_PRI)
 
 #define FEC0RX_DMA_PRI      5
-#define FEC1RX_DMA_PRI      5
+#define FEC1RX_DMA_PRI      3
 #define FECRX_DMA_PRI(x)    ((x == 0) ? FEC0RX_DMA_PRI : FEC1RX_DMA_PRI)
 #define FEC0TX_DMA_PRI      6
-#define FEC1TX_DMA_PRI      6
+#define FEC1TX_DMA_PRI      4
 #define FECTX_DMA_PRI(x)    ((x == 0) ? FEC0TX_DMA_PRI : FEC1TX_DMA_PRI)
 
 extern int register_interrupt_handler(uint8_t source, uint8_t level, uint8_t priority, uint8_t intr, void (*handler)(void));
