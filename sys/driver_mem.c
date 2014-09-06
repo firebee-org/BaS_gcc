@@ -28,8 +28,7 @@
 #error "unknown machine!"
 #endif
 
-#define DBG_DM
-
+// #define DBG_DM
 #ifdef	DBG_DM
 #define	dbg(fmt, args...)	xprintf(fmt, ##args)
 #else
