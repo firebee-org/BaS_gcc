@@ -750,7 +750,7 @@ void init_usb(void)
 						dbg("compare device id 0x%x against 0x%x\r\n", board->device, PCI_DEVICE_ID(id));
 						if ((board->vendor == PCI_VENDOR_ID(id)) && board->device == PCI_DEVICE_ID(id))
 						{
-							if (usb_init(handle, board) >= 0)
+							// if (usb_init(handle, board) >= 0)
 								usb_found++;
 						}
 						board++;
@@ -1179,7 +1179,7 @@ void initialize_hardware(void)
 
 	init_slt();
 	init_fbcs();
-    init_ddram();
+	init_ddram();
 
 	/*
 	 * install (preliminary) exception vectors
