@@ -185,27 +185,27 @@
 		.equ	MCD_TT_FLAGS_RL, 0x1
 		.equ	MCD_TT_FLAGS_SP, 0x4
 		.equ	DMA_ALWAYS, 0
-//---------------------------------------------------
-/*********************************************************************
-*
-* General Purpose Timers (GPT)
-*
-*********************************************************************/
+
+/*
+ *
+ * General Purpose Timers (GPT)
+ *
+ */
 
 /* Register read/write macros */
 #define MCF_GPT0_GMS                         __MBAR+0x800
 
-/*********************************************************************
-*
-* Slice Timers (SLT)
-*
-*********************************************************************/
+/*
+ *
+ * Slice Timers (SLT)
+ *
+ */
 
 #define MCF_SLT0_SCNT                        __MBAR+0x908
 
-/**********************************************************/
-// macros
-/**********************************************************/
+/*
+ * macros
+ */
 		.altmacro
 		.macro	irq	vector,int_mask,clr_int
 		//move.w	#0x2700,sr		// disable interrupt
@@ -292,7 +292,7 @@ init_vec_loop:
 		move.l	a1,0x11c(a0)
 
 // install PSC vectors (used for PIC communication on the FireBee)
-		lea	handler_psc3(pc),a1
+		lea	_lowlevel_isr_handler(pc),a1
 		// PSC3 interrupt source = 32
 		move.l	a1,(INT_SOURCE_PSC3 + 64) * 4(a0)
 
@@ -541,7 +541,7 @@ irq7text:
 irq5:						// irq5 is tied to PCI INTC# and PCI INTD# on the M5484LITE
 		irq	0x74,5,0x20
 
-irq6:	// MFP interrupt from FPGA
+irq6:		// MFP interrupt from FPGA
 		move.w	#0x2700,sr		// disable interrupt
 		subq.l	#8,a7
 		movem.l	d0/a5,(a7)		// save registers
@@ -818,41 +818,6 @@ irq7:
 		rts				// Forward to the Access Error handler
 
 /*
- * psc3 com PIC MCF
- */
-handler_psc3:
-		move.w	#0x2700,sr		// disable interrupt
-		lea	-20(a7),a7
-		movem.l	d0-d2/a0/a3,(a7)
-		lea	MCF_PSC3_PSCRB_8BIT,a3
-		move.b	(a3),d1
-		cmp.b	#2,d1			// anforderung rtc daten?
-		bne	psc3_fertig
-
-		lea	MCF_PSC0_PSCTB_8BIT,a0		// ++ vr
-		mchar	move.l,'\P,'\I,'C,' ,(a0)
-		mchar	move.l,'I,'N,'T,'\ ,(a0)
-		mchar	move.l,'R,'T,'C,'!,(a0)
-		mchar 	move.l,0x0d,0x0a,0,0,(a0)
-
-		lea	0xffff8961,a0
-		lea	MCF_PSC3_PSCTB_8BIT,a3
-		clr.l	d1
-		moveq	#64,d2
-		move.b	#0x82,(a3)		// header: rtcd mcf->pic
-loop_sr2:
-		move.b  d1,(a0)
-		move.b	2(a0),d0
-		move.b	d0,(a3)
-		addq.l	#1,d1
-		cmp.b	d1,d2
-		bne		loop_sr2
-psc3_fertig:
-		movem.l	(a7),d0-d2/a0/a3	// restore saved registers
-		lea	20(a7),a7
-		RTE
-
-/*
  * general purpose timer 0 (GPT0): video change, later also others. GPT0 is used as
  * input trigger. It is connected to the TIN0 signal of the FPGA and triggers everytime
  * vbasehi is written to, i.e. when the video base address gets changed
@@ -996,17 +961,17 @@ video_chg_end:
 
 _lowlevel_isr_handler:
 		move.w	#0x2700,sr
-		lea	-5 * 4(sp),sp		// make room for
-		movem.l	d0-d1/a0-a2,(sp)	// gcc scratch registers and save them,
+		link	a6,#-4 * 4		// make room for
+		movem.l	d0-d1/a0-a1,(sp)	// gcc scratch registers and save them,
 						// other registers will be handled by gcc itself
 
-		move.w	5 * 4(sp),d0		// fetch vector number from stack
+		move.w	4(a6),d0		// fetch vector number from stack
 		lsr.l	#2,d0			// move it in place
-		andi.l	#0x000000ff,d0		// mask it out
+		andi.l	#0xff,d0		// mask it out
 		move.l	d0,-(sp)		// push it
 		jsr	_isr_execute_handler	// call the C handler
 		addq.l	#4,sp			// adjust stack
 
-		movem.l	(sp),d0-d1/a0-a2	// restore registers
-		lea	5 * 4(sp),sp
+		movem.l	(sp),d0-d1/a0-a1	// restore registers
+		unlk	a6
 		rte
