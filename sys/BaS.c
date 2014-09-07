@@ -109,7 +109,7 @@ uint8_t read_pic_byte(void)
 	waitfor(1000, pic_rxready);
 
 	/* Return the received byte */
-    return * (volatile uint8_t *) (&MCF_PSC3_PSCTB_8BIT); // Really 8-bit
+	return * (volatile uint8_t *) (&MCF_PSC3_PSCTB_8BIT); // Really 8-bit
 }
 
 void pic_init(void)
@@ -132,7 +132,7 @@ void pic_init(void)
 
 	if (answer[0] != 'O' || answer[1] != 'K' || answer[2] != '!')
 	{
-        dbg("PIC initialization failed. Already initialized?\r\n");
+		dbg("PIC initialization failed. Already initialized?\r\n");
 	}
 	else
 	{
@@ -247,72 +247,43 @@ NIF nif1;
 #if defined(MACHINE_M5484LITE)
 NIF nif2;
 #endif
-static IP_INFO ip_info;
-static ARP_INFO	arp_info;
 
-
-void network_init(void)
+/*
+ * initialize the interrupt handler tables to dispatch interrupt requests from Coldfire devices
+ */
+void init_isr(void)
 {
-	uint8_t mac[6] = {0x00, 0xcf, 0x54, 0x85, 0xcf, 0x01};	/* this is the original MAC address dbug assigns */
-	uint8_t bc[6] = {0xff, 0xff, 0xff, 0xff, 0xff, 0xff}; /* this is our broadcast MAC address */
-	IP_ADDR myip = {192, 168, 1, 100};
-	IP_ADDR gateway = {192, 168, 1, 1};
-	IP_ADDR netmask = {255, 255, 255, 0};
-	int vector;
-	int (*handler)(void *, void *);
-
-	handler = fec0_interrupt_handler;
-	vector = 103;
-
 	isr_init();		/* need to call that explicitely, otherwise isr table might be full */
 
-	if (!isr_register_handler(vector, handler, NULL, (void *) &nif1))
+	/*
+	 * register the FEC interrupt handler
+	 */
+	if (!isr_register_handler(64 + INT_SOURCE_FEC0, fec0_interrupt_handler, NULL, (void *) &nif1))
 	{
-        dbg("unable to register handler for vector %d\r\n", vector);
+		dbg("unable to register isr for FEC0\r\n");
 		return;
 	}
 
 	/*
 	 * Register the DMA interrupt handler
 	 */
-	handler = dma_interrupt_handler;
-	vector = 112;
 
-	if (!isr_register_handler(vector, handler, NULL,NULL))
+	if (!isr_register_handler(64 + INT_SOURCE_DMA, dma_interrupt_handler, NULL,NULL))
 	{
-        dbg("Error: Unable to register handler for vector %s\r\n", vector);
+		dbg("Error: Unable to register isr for DMA\r\n");
 		return;
 	}
 
-	nif_init(&nif1);
-	nif1.mtu = ETH_MTU;
-	nif1.send = fec0_send;
-	fec_eth_setup(0, FEC_MODE_MII, FEC_MII_100BASE_TX, FEC_MII_FULL_DUPLEX, mac);
-	// fec_eth_setup(1, FEC_MODE_MII, FEC_MII_100BASE_TX, FEC_MII_FULL_DUPLEX, mac);
-	memcpy(nif1.hwa, mac, 6);
-	memcpy(nif1.broadcast, bc, 6);
+	dma_irq_enable(5, 3);	/* TODO: need to match the FEC driver's specs in MiNT? */
 
-    dbg("ethernet address is %02X:%02X:%02X:%02X:%02X:%02X\r\n",
-				nif1.hwa[0], nif1.hwa[1], nif1.hwa[2],
-				nif1.hwa[3], nif1.hwa[4], nif1.hwa[5]);
-
-	timer_init(TIMER_NETWORK, TMR_INTC_LVL, TMR_INTC_PRI);
-
-	arp_init(&arp_info);
-	nif_bind_protocol(&nif1, ETH_FRM_ARP, arp_handler, (void *) &arp_info);
-
-	ip_init(&ip_info, myip, gateway, netmask);
-	nif_bind_protocol(&nif1, ETH_FRM_IP, ip_handler, (void *) &ip_info);
-
-	udp_init();
-
-	dma_irq_enable(6, 6);
-
-	set_ipl(0);
-
-	bootp_request(&nif1, 0);
-
-	fec_eth_stop(0);
+	/*
+	 * register the PIC interrupt handler
+	 */
+	if (isr_register_handler(64 + INT_SOURCE_PSC3, pic_interrupt_handler, NULL, NULL))
+	{
+		dbg("Error: unable to register ISR for PSC3\r\n");
+		return;
+	}
 }
 
 void BaS(void)
@@ -451,9 +422,7 @@ void BaS(void)
 
 	xprintf("BaS initialization finished, enable interrupts\r\n");
 	enable_coldfire_interrupts();
-
-	//set_ipl(0);
-	network_init();
+	init_isr();
 
 	xprintf("call EmuTOS\r\n");
 	struct rom_header *os_header = (struct rom_header *) TOS;
