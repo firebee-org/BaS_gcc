@@ -729,11 +729,13 @@ void init_usb(void)
 						dbg("compare device id 0x%x against 0x%x\r\n", board->device, PCI_DEVICE_ID(id));
 						if ((board->vendor == PCI_VENDOR_ID(id)) && board->device == PCI_DEVICE_ID(id))
 						{
+#ifdef _NOT_YET_	/* FIXME: usb_init() is broken */
 							dbg("match. trying to init board\r\n");
 							if (usb_init(handle, board) >= 0)
 							{
 								usb_found++;
 							}
+#endif /* _NOT_YET_ */
 						}
 						board++;
 					}
