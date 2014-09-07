@@ -189,8 +189,76 @@ inline uint32_t set_mmubar(uint32_t value)
 	return ret;
 }
 
+/*
+ * map a page of memory using virt and phys as addresses with the Coldfire MMU.
+ *
+ * Theory of operation: the Coldfire MMU in the Firebee has 64 TLB entries, 32 for data (DTLB), 32 for
+ * instructions (ITLB). Mappings can either be done locked (normal MMU TLB misses will not consider them
+ * for replacement) or unlocked (mappings will reallocate using a LRU scheme when the MMU runs out of
+ * TLB entries). For proper operation, the MMU needs at least two ITLBs and/or four free/allocatable DTLBs
+ * per instruction as a minimum, more for performance. Thus locked pages (that can't be touched by the
+ * LRU algorithm) should be used sparsingly.
+ *
+ *
+ */
+int mmu_map_page(uint32_t virt, uint32_t phys, enum mmu_page_size sz, const struct mmu_map_flags *flags)
+{
+	int size_mask;
+
+	switch (sz)
+	{
+		case MMU_PAGE_SIZE_1M:
+			size_mask = 0xfff00000;
+			break;
+
+		case MMU_PAGE_SIZE_8K:
+			size_mask = 0xffffe000;
+			break;
+
+		case MMU_PAGE_SIZE_4K:
+			size_mask = 0xfffff000;
+			break;
+
+		case MMU_PAGE_SIZE_1K:
+			size_mask = 0xfffff800;
+			break;
+
+		default:
+			dbg("illegal map size %d\r\n", sz);
+			return 0;
+	}
+
+	/*
+	 * add page to TLB
+	 */
+	MCF_MMU_MMUTR = ((int) virt & size_mask) |						/* virtual address */
+		MCF_MMU_MMUTR_ID(flags->page_id) |							/* address space id (ASID) */
+		MCF_MMU_MMUTR_SG |											/* shared global */
+		MCF_MMU_MMUTR_V;											/* valid */
+
+	MCF_MMU_MMUDR = ((int) phys & size_mask) |						/* physical address */
+		MCF_MMU_MMUDR_SZ(sz) |										/* page size */
+		MCF_MMU_MMUDR_CM(flags->cache_mode) |
+		(flags->access & ACCESS_READ ? MCF_MMU_MMUDR_R : 0) |		/* read access enable */
+		(flags->access & ACCESS_WRITE ? MCF_MMU_MMUDR_W : 0) |		/* write access enable */
+		(flags->access & ACCESS_EXECUTE ? MCF_MMU_MMUDR_X : 0) |		/* execute access enable */
+		(flags->locked ? MCF_MMU_MMUDR_LK : 0);
+
+	MCF_MMU_MMUOR = MCF_MMU_MMUOR_ACC |		/* access TLB, data */
+		MCF_MMU_MMUOR_UAA;					/* update allocation address field */
+
+	MCF_MMU_MMUOR = MCF_MMU_MMUOR_ITLB | 	/* instruction */
+		MCF_MMU_MMUOR_ACC |     			/* access TLB */
+		MCF_MMU_MMUOR_UAA;      			/* update allocation address field */
+	dbg("mapped virt=0x%08x to phys=0x%08x\r\n", virt, phys);
+
+	return 1;
+}
+
 void mmu_init(void)
 {
+	struct mmu_map_flags flags;
+
 	extern uint8_t _MMUBAR[];
 	uint32_t MMUBAR = (uint32_t) &_MMUBAR[0];
 	extern uint8_t _TOS[];
@@ -260,62 +328,25 @@ void mmu_init(void)
 
 	/* create locked TLB entries */
 
-	/*
-	 * 0x0000'0000 - 0x000F'FFFF (first MB of physical memory) locked virtual = physical
-	 */
-	MCF_MMU_MMUTR = 0x0 | 					/* virtual address */
-					MCF_MMU_MMUTR_SG |		/* shared global */
-					MCF_MMU_MMUTR_V;		/* valid */
-	MCF_MMU_MMUDR = 0x0 |					/* physical address */
-					MCF_MMU_MMUDR_SZ(0) |	/* 1 MB page size */
-					MCF_MMU_MMUDR_CM(0x1) |	/* cacheable, copyback */
-					MCF_MMU_MMUDR_R |		/* read access enable */
-					MCF_MMU_MMUDR_W |		/* write access enable */
-					MCF_MMU_MMUDR_X | 		/* execute access enable */
-					MCF_MMU_MMUDR_LK;		/* lock entry */
-	MCF_MMU_MMUOR = MCF_MMU_MMUOR_ACC |		/* access TLB, data */
-					MCF_MMU_MMUOR_UAA;		/* update allocation address field */
-	MCF_MMU_MMUOR = MCF_MMU_MMUOR_ITLB | 	/* instruction */
-					MCF_MMU_MMUOR_ACC |     /* access TLB */
-					MCF_MMU_MMUOR_UAA;      /* update allocation address field */
+	flags.cache_mode = CACHE_COPYBACK;
+	flags.protection = SV_USER;
+	flags.page_id = 0;
+	flags.access = ACCESS_READ | ACCESS_WRITE | ACCESS_EXECUTE;
+	flags.locked = true;
 
+	/* 0x0000_0000 - 0x000F_FFFF (first MB of physical memory) locked virt = phys */
+	mmu_map_page(0x0, 0x0, MMU_PAGE_SIZE_1M, &flags);
+
+#if defined(MACHINE_FIREBEE)
 	/*
 	 * 0x00d0'0000 - 0x00df'ffff (last megabyte of ST RAM = Falcon video memory) locked ID = 6
 	 * mapped to physical address 0x60d0'0000 (FPGA video memory)
 	 * video RAM: read write execute normal write true
 	 */
+	flags.cache_mode = CACHE_WRITETHROUGH;
+	flags.page_id = SCA_PAGE_ID;
+	mmu_map_page(0x00d00000, 0x60d00000, MMU_PAGE_SIZE_1M, &flags);
 
-	MCF_MMU_MMUTR = 0x00d00000 |			/* virtual address */
-#if defined(MACHINE_FIREBEE)
-					MCF_MMU_MMUTR_ID(SCA_PAGE_ID) |
-#endif /* MACHINE_FIREBEE */
-					MCF_MMU_MMUTR_SG |		/* shared global */
-					MCF_MMU_MMUTR_V;		/* valid */
-#if defined(MACHINE_FIREBEE)
-					/* map FPGA video memory for FireBee only */
-	MCF_MMU_MMUDR = 0x60d00000 |			/* physical address */
-#elif defined(MACHINE_M5484LITE)
-	MCF_MMU_MMUDR = 0x00d00000 |			/* physical address */
-#elif defined(MACHINE_M54455)
-	MCF_MMU_MMUDR = 0x60d00000 |			/* FIXME: not determined yet */
-#else
-#error unknown machine!
-#endif /* MACHINE_FIREBEE */
-					MCF_MMU_MMUDR_SZ(0) |	/* 1 MB page size */
-					MCF_MMU_MMUDR_CM(0x0) |	/* cachable writethrough */
-					/* caveat: can't be supervisor protected since TOS puts the application stack there! */
-					//MCF_MMU_MMUDR_SP |		/* supervisor protect */
-					MCF_MMU_MMUDR_R |		/* read access enable */
-					MCF_MMU_MMUDR_W |		/* write access enable */
-					MCF_MMU_MMUDR_X |		/* execute access enable */
-					MCF_MMU_MMUDR_LK;		/* lock entry */
-	MCF_MMU_MMUOR = MCF_MMU_MMUOR_ACC |		/* access TLB, data */
-					MCF_MMU_MMUOR_UAA;		/* update allocation address field */
-	MCF_MMU_MMUOR = MCF_MMU_MMUOR_ITLB | 	/* instruction */
-					MCF_MMU_MMUOR_ACC |     /* access TLB */
-					MCF_MMU_MMUOR_UAA;      /* update allocation address field */
-
-#if defined(MACHINE_FIREBEE)
 	video_tlb = 0x2000;						/* set page as video page */
 	video_sbt = 0x0;						/* clear time */
 #endif /* MACHINE_FIREBEE */
@@ -324,90 +355,47 @@ void mmu_init(void)
 	 * Make the TOS (in SDRAM) read-only
 	 * This maps virtual 0x00e0'0000 - 0x00ef'ffff to the same virtual address
 	 */
-	MCF_MMU_MMUTR = TOS |					/* virtual address */
-					MCF_MMU_MMUTR_SG |		/* shared global */
-					MCF_MMU_MMUTR_V;		/* valid */
-	MCF_MMU_MMUDR = TOS |					/* physical address */
-					MCF_MMU_MMUDR_SZ(0) |	/* 1 MB page size */
-					MCF_MMU_MMUDR_CM(0x1) |	/* cachable copyback */
-					MCF_MMU_MMUDR_R |		/* read access enable */
-					//MCF_MMU_MMUDR_W |		/* write access enable (FIXME: for now) */
-					MCF_MMU_MMUDR_X |		/* execute access enable */
-					MCF_MMU_MMUDR_LK;		/* lock entry */
-	MCF_MMU_MMUOR = MCF_MMU_MMUOR_ACC |		/* access TLB, data */
-					MCF_MMU_MMUOR_UAA;		/* update allocation address field */
-	MCF_MMU_MMUOR = MCF_MMU_MMUOR_ITLB | 	/* instruction */
-					MCF_MMU_MMUOR_ACC |     /* access TLB */
-					MCF_MMU_MMUOR_UAA;      /* update allocation address field */
+	flags.cache_mode = CACHE_COPYBACK;
+	flags.page_id = 0;
+	flags.access = ACCESS_READ | ACCESS_EXECUTE;
+	mmu_map_page(TOS, TOS, MMU_PAGE_SIZE_1M, &flags);
 
-#if MACHINE_FIREBEE
+#if defined(MACHINE_FIREBEE)
 	/*
 	 * Map FireBee I/O area (0xfff0'0000 - 0xffff'ffff physical) to the Falcon-compatible I/O
 	 * area (0x00f0'0000 - 0x00ff'ffff virtual) for the FireBee
 	 */
-
-	MCF_MMU_MMUTR = 0x00f00000 |			/* virtual address */
-					MCF_MMU_MMUTR_SG |		/* shared global */
-					MCF_MMU_MMUTR_V;		/* valid */
-	MCF_MMU_MMUDR = 0xfff00000 |			/* physical address */
-					MCF_MMU_MMUDR_SZ(0) |	/* 1 MB page size */
-					MCF_MMU_MMUDR_CM(0x2) |	/* nocache precise */
-					MCF_MMU_MMUDR_SP |		/* supervisor protect */
-					MCF_MMU_MMUDR_R |		/* read access enable */
-					MCF_MMU_MMUDR_W |		/* write access enable */
-					MCF_MMU_MMUDR_X |		/* execute access enable */
-					MCF_MMU_MMUDR_LK;		/* lock entry */
-	MCF_MMU_MMUOR = MCF_MMU_MMUOR_ACC |		/* access TLB, data */
-					MCF_MMU_MMUOR_UAA;		/* update allocation address field */
-	MCF_MMU_MMUOR = MCF_MMU_MMUOR_ITLB | 	/* instruction */
-					MCF_MMU_MMUOR_ACC |     /* access TLB */
-					MCF_MMU_MMUOR_UAA;      /* update allocation address field */
+	flags.cache_mode = CACHE_NOCACHE_PRECISE;
+	flags.access = ACCESS_WRITE | ACCESS_READ;
+	mmu_map_page(0x00f00000, 0xfff00000, MMU_PAGE_SIZE_1M, &flags);
 #endif /* MACHINE_FIREBEE */
 
 	/*
 	 * Map (locked) the second last MB of physical SDRAM (this is where BaS .data and .bss reside) to the same
-	 * virtual address. This is also used when BaS is in RAM
+	 * virtual address. This is also used (completely) when BaS is in RAM
 	 */
-
-	MCF_MMU_MMUTR = (SDRAM_START + SDRAM_SIZE - 0x00200000) |	/* virtual address */
-					MCF_MMU_MMUTR_SG |		/* shared global */
-					MCF_MMU_MMUTR_V;		/* valid */
-	MCF_MMU_MMUDR = (SDRAM_START + SDRAM_SIZE - 0x00200000) |	/* physical address */
-					MCF_MMU_MMUDR_SZ(0) |	/* 1 MB page size */
-					MCF_MMU_MMUDR_CM(0x0) |	/* cacheable writethrough */
-					MCF_MMU_MMUDR_SP |		/* supervisor protect */
-					MCF_MMU_MMUDR_R |		/* read access enable */
-					MCF_MMU_MMUDR_W |		/* write access enable */
-					MCF_MMU_MMUDR_X |		/* execute access enable */
-					MCF_MMU_MMUDR_LK;		/* lock entry */
-	MCF_MMU_MMUOR = MCF_MMU_MMUOR_ACC |		/* access TLB, data */
-					MCF_MMU_MMUOR_UAA;		/* update allocation address field */
-	MCF_MMU_MMUOR = MCF_MMU_MMUOR_ITLB | 	/* instruction */
-					MCF_MMU_MMUOR_ACC |     /* access TLB */
-					MCF_MMU_MMUOR_UAA;      /* update allocation address field */
+	flags.cache_mode = CACHE_WRITETHROUGH;
+	flags.access = ACCESS_READ | ACCESS_WRITE | ACCESS_EXECUTE;
+	mmu_map_page(SDRAM_START + SDRAM_SIZE - 0X00200000, SDRAM_START + SDRAM_SIZE - 0X00200000, MMU_PAGE_SIZE_1M, &flags);
 
 	/*
 	 * Map (locked) the very last MB of physical SDRAM (this is where the driver buffers reside) to the same
 	 * virtual address. Used uncached for drivers.
 	 */
-
-	MCF_MMU_MMUTR = (SDRAM_START + SDRAM_SIZE - 0x00100000) |	/* virtual address */
-					MCF_MMU_MMUTR_SG |		/* shared global */
-					MCF_MMU_MMUTR_V;		/* valid */
-	MCF_MMU_MMUDR = (SDRAM_START + SDRAM_SIZE - 0x00100000) |	/* physical address */
-					MCF_MMU_MMUDR_SZ(0) |	/* 1 MB page size */
-					MCF_MMU_MMUDR_CM(0x2) |	/* nocache precise */
-					MCF_MMU_MMUDR_SP |		/* supervisor protect */
-					MCF_MMU_MMUDR_R |		/* read access enable */
-					MCF_MMU_MMUDR_W |		/* write access enable */
-					//MCF_MMU_MMUDR_X |		/* execute access enable */
-					MCF_MMU_MMUDR_LK;		/* lock entry */
-	MCF_MMU_MMUOR = MCF_MMU_MMUOR_ACC |		/* access TLB, data */
-					MCF_MMU_MMUOR_UAA;		/* update allocation address field */
-	MCF_MMU_MMUOR = MCF_MMU_MMUOR_ITLB | 	/* instruction */
-					MCF_MMU_MMUOR_ACC |     /* access TLB */
-					MCF_MMU_MMUOR_UAA;      /* update allocation address field */
+	flags.cache_mode = CACHE_NOCACHE_PRECISE;
+	flags.access = ACCESS_READ | ACCESS_WRITE;
+	flags.protection = SV_PROTECT;
+	mmu_map_page(SDRAM_START + SDRAM_SIZE - 0x00100000, SDRAM_START + SDRAM_SIZE - 0x00100000, MMU_PAGE_SIZE_1M, &flags);
 }
+
+static struct mmu_map_flags flags =
+{
+	.cache_mode = CACHE_COPYBACK,
+	.protection = SV_USER,
+	.page_id = 0,
+	.access = ACCESS_READ | ACCESS_WRITE | ACCESS_EXECUTE,
+	.locked = false
+};
 
 void mmutr_miss(uint32_t address, uint32_t pc, uint32_t format_status)
 {
@@ -430,23 +418,9 @@ void mmutr_miss(uint32_t address, uint32_t pc, uint32_t format_status)
 
 		default:
 			/* add missed page to TLB */
-			MCF_MMU_MMUTR = (address & 0xfff00000) | /* virtual aligned to 1M */
-							MCF_MMU_MMUTR_SG |		/* shared global */
-							MCF_MMU_MMUTR_V;		/* valid */
-
-			MCF_MMU_MMUDR = (address & 0xfff00000) |	/* physical aligned to 1M */
-							MCF_MMU_MMUDR_SZ(0) |	/* 1 MB page size */
-							MCF_MMU_MMUDR_CM(0x1) |	/* cacheable copyback */
-							MCF_MMU_MMUDR_R |		/* read access enable */
-							MCF_MMU_MMUDR_W |		/* write access enable */
-							MCF_MMU_MMUDR_X;		/* execute access enable */
-
-			MCF_MMU_MMUOR = MCF_MMU_MMUOR_ACC |		/* access TLB, data */
-							MCF_MMU_MMUOR_UAA;		/* update allocation address field */
-
-			MCF_MMU_MMUOR = MCF_MMU_MMUOR_ITLB | 	/* instruction */
-							MCF_MMU_MMUOR_ACC |     /* access TLB */
-							MCF_MMU_MMUOR_UAA;      /* update allocation address field */
+			mmu_map_page(address, address, MMU_PAGE_SIZE_1M, &flags);
+			dbg("DTLB: MCF_MMU_MMUOR = %08x\r\n", MCF_MMU_MMUOR);
+			dbg("ITLB: MCF_MMU_MMUOR = %08x\r\n\r\n", MCF_MMU_MMUOR);
 	}
 }
 

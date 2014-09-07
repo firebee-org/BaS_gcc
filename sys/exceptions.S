@@ -547,12 +547,10 @@ irq6:		// MFP interrupt from FPGA
 		lea	MCF_EPORT_EPFR,a5	// clear int6 from edge port
 		bset	#6,(a5)
 
-		// there was a potential bug here before: would also clear all other edge port interrupts that might have happened...
-		// move.b	#0x40,(a5)	// clear int6 from edge port
-
-// screen adr change timed out?
+		// screen adr change timed out?
 		move.l	_video_sbt,d0
 		beq	irq6_non_sca		// nothing to do if 0
+
 		sub.l	#0x70000000,d0		// substract 14 seconds
 		lea	MCF_SLT0_SCNT,a5
 		cmp.l	(a5),d0			// time reached?
@@ -588,7 +586,7 @@ irq6:		// MFP interrupt from FPGA
 		add.l	#copyback_mmudr,d1	// sonst page cb
 		bra	irq6_sca_pn1c
 irq6_sca_pn0:
-		add.l	#writethrough_mmudr|MCF_MMU_MMUDR_LK,d1	// page wt and locked
+		add.l	#writethrough_mmudr/*|MCF_MMU_MMUDR_LK*/,d1	// page wt and locked
 irq6_sca_pn1c:
 		mvz.w	#0x10b,d2		// MMU update
 		move.l	d0,MCF_MMU_MMUTR
@@ -649,11 +647,6 @@ irq6_1:
 		lea	MCF_GPIO_PODR_FEC1L,a5
 		bset.b	#4,(a5)			// led off
 irq6_2:
-// test auf protect mode ---------------------
-		move.b	DIP_SWITCHa,d0
-		btst	#7,d0
-		bne	irq6_3			// ja->
-// -------------------------------------------
 		move.l	0xF0020000,a5		// vector holen
 		add.l	_rt_vbr,a5		// basis
 		move.l	(a5),d0			// vector holen
@@ -661,33 +654,6 @@ irq6_2:
 		move.l	d0,4(a7)		// vector eintragen
 		move.l	(a7)+,d0		// d0 zurück
 		move	#0x2600,sr
-		rts
-irq6_3:
-		move.l	usp,a5			// usp holen
-		tst.b	_rt_mod			// supervisor?
-		bne	sev_sup6		// ja ->
-		mov3q.l	#-1,_rt_mod		// auf supervisor setzen
-		move.l	a5,_rt_usp		// rt_usp speichern
-		move.l	_rt_ssp,a5		// rt_ssp holen
-		move.l	12(a7),-(a5)		// pc transferieren
-		move.l	8(a7),-(a5)		// sr transferieren
-		move.l	a5,usp			// usp setzen
-		move.l  0xF0020000,a5		// vector holen: intack routine
-		add.l	_rt_vbr,a5		// virtuelle VBR des Systems
-		move.l	(a5),12(a7)		// hier gehts weiter
-		movem.l	(a7),d0/a5		// register zurück
-		addq.l	#8,a7
-		move.b	#6,2(a7)		// intmaske setzen
-		rte 				// und weg
-sev_sup6:
-		move.l	12(a7),-(a5)		// pc transferieren
-		move.l	8(a7),-(a5)		// sr,vec
-		bset	#5,2(a5)		// auf super setzen
-		move.l	a5,usp			// usp setzen
-		move.l  0xF0020000,a5		// vector holen: intack routine
-		add.l	_rt_vbr,a5		// virtuelle VBR des Systems
-		move.l	(a5),12(a7)		// hier gehts weiter
-		movem.l	(a7),d0/a5		// register zurück
 		rts
 
 		.data
@@ -844,7 +810,7 @@ video_copy_data_loop:
 		bne	video_copy_data_loop
 
 // eintrag suchen
-		move.l	d0,MCF_MMU_MMUAR	// adress
+		move.l	d0,MCF_MMU_MMUAR	// address
 		move.l	#0x106,d4
 		move.l	d4,MCF_MMU_MMUOR	// search -> new one will be offered if not found
 		nop
@@ -854,7 +820,7 @@ video_copy_data_loop:
 		move.l	d4,MCF_MMU_MMUAR
 		move.l	d0,d1
 		add.l	#MCF_MMU_MMUTR_ID(sca_page_ID)|std_mmutr,d0
-		add.l	#0x60000000|writethrough_mmudr|MCF_MMU_MMUDR_LK,d1
+		add.l	#0x60000000|writethrough_mmudr /* |MCF_MMU_MMUDR_LK */,d1
 		mvz.w	#0x10b,d2		// MMU update
 		move.l	d0,MCF_MMU_MMUTR
 		move.l	d1,MCF_MMU_MMUDR

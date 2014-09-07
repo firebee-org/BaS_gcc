@@ -62,7 +62,7 @@
 /* Bit definitions and macros for MCF_MMU_MMUTR */
 #define MCF_MMU_MMUTR_V                      (0x1)
 #define MCF_MMU_MMUTR_SG                     (0x2)
-#define MCF_MMU_MMUTR_ID(x)                  (((x)&0xFF)<<0x2)
+#define MCF_MMU_MMUTR_ID(x)                  (((x) & 0xFF) << 0x2)
 #define MCF_MMU_MMUTR_VA(x)                  (((x)&0x3FFFFF)<<0xA)
 
 /* Bit definitions and macros for MCF_MMU_MMUDR */
@@ -71,9 +71,9 @@
 #define MCF_MMU_MMUDR_W                      (0x8)
 #define MCF_MMU_MMUDR_R                      (0x10)
 #define MCF_MMU_MMUDR_SP                     (0x20)
-#define MCF_MMU_MMUDR_CM(x)                  (((x)&0x3)<<0x6)
-#define MCF_MMU_MMUDR_SZ(x)                  (((x)&0x3)<<0x8)
-#define MCF_MMU_MMUDR_PA(x)                  (((x)&0x3FFFFF)<<0xA)
+#define MCF_MMU_MMUDR_CM(x)                  (((x) & 0x3) << 0x6)
+#define MCF_MMU_MMUDR_SZ(x)                  (((x) & 0x3) << 0x8)
+#define MCF_MMU_MMUDR_PA(x)                  (((x) & 0x3FFFFF) << 0xA)
 
 
 #endif /* __MCF5475_MMU_H__ */
