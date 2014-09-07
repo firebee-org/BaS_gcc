@@ -2,7 +2,7 @@
  * File:    nbuf.c
  * Purpose: Implementation of network buffer scheme.
  *
- * Notes:   
+ * Notes:
  */
 #include "queue.h"
 #include "net.h"
@@ -12,7 +12,7 @@
 #include "bas_printf.h"
 
 
-//#define DBG_NBUF
+#define DBG_NBUF
 #if defined(DBG_NBUF)
 #define dbg(format, arg...) do { xprintf("DEBUG: %s(): " format, __FUNCTION__, ##arg); } while (0)
 #else
@@ -42,13 +42,13 @@ int nbuf_init(void)
 	int i;
 	NBUF *nbuf;
 
-    for (i = 0; i < NBUF_MAXQ; ++i)
+	for (i = 0; i < NBUF_MAXQ; ++i)
 	{
 		/* Initialize all the queues */
 		queue_init(&nbuf_queue[i]);
 	}
 
-    dbg("Creating %d net buffers of %d bytes\r\n", NBUF_MAX, NBUF_SZ);
+	dbg("Creating %d net buffers of %d bytes\r\n", NBUF_MAX, NBUF_SZ);
 
 	for (i = 0; i < NBUF_MAX; ++i)
 	{
@@ -76,19 +76,19 @@ int nbuf_init(void)
 		queue_add(&nbuf_queue[NBUF_FREE], (QNODE *)nbuf);
 	}
 
-    dbg("NBUF allocation complete\r\n");
+	dbg("NBUF allocation complete\r\n");
 
 	return 0;
 }
 
-/* 
+/*
  * Return all the allocated memory to the heap
  */
 void nbuf_flush(void)
 {
 	NBUF *nbuf;
-    int i;
-    int level = set_ipl(7);
+	int i;
+	int level = set_ipl(7);
 	int n = 0;
 
 	for (i = 0; i < NBUF_MAX; ++i)
@@ -105,7 +105,7 @@ void nbuf_flush(void)
 	set_ipl(level);
 }
 
-/* 
+/*
  * Allocate a network buffer from the free list
  *
  * Return Value:
@@ -172,13 +172,13 @@ void nbuf_add(int q, NBUF *nbuf)
 }
 
 /*
- * Put all the network buffers back into the free list 
+ * Put all the network buffers back into the free list
  */
 void nbuf_reset(void)
 {
 	NBUF *nbuf;
-    int i;
-    int level = set_ipl(7);
+	int i;
+	int level = set_ipl(7);
 
 	for (i = 1; i < NBUF_MAXQ; ++i)
 	{
@@ -195,9 +195,9 @@ void nbuf_debug_dump(void)
 {
 #ifdef DBG_NBUF
 	NBUF *nbuf;
-    int i;
-    int j;
-    int level;
+	int i;
+	int j;
+	int level;
 
 	level = set_ipl(7);
 

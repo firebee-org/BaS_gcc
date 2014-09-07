@@ -409,9 +409,9 @@ void mmu_init(void)
 					MCF_MMU_MMUOR_UAA;      /* update allocation address field */
 }
 
-void mmutr_miss(uint32_t address)
+void mmutr_miss(uint32_t address, uint32_t pc, uint32_t format_status)
 {
-	dbg("MMU TLB MISS at 0x%08x\r\n", address);
+	dbg("MMU TLB MISS accessing 0x%08x\r\nFS = 0x%08x\r\nPC = 0x%08x\r\n", address, format_status, pc);
 	// flush_and_invalidate_caches();
 
 	switch (address)

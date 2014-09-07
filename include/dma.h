@@ -26,8 +26,8 @@
 #include "MCD_dma.h"
 #include "bas_string.h"
 
-#define DMA_INTC_LVL        1
-#define DMA_INTC_PRI        0
+#define DMA_INTC_LVL        5
+#define DMA_INTC_PRI        3
 
 
 void *dma_memcpy(void *dst, void *src, size_t n);
