@@ -24,6 +24,7 @@
 #ifndef _MMU_H_
 #define _MMU_H_
 
+#include <stddef.h>
 #include "bas_types.h"
 
 /*
@@ -54,10 +55,14 @@
 /*
  * MMU page sizes
  */
-#define MMU_PAGE_SIZE_1M	0
-#define MMU_PAGE_SIZE_4K	1
-#define MMU_PAGE_SIZE_8K	2
-#define MMU_PAGE_SIZE_1K	3
+
+enum mmu_page_size
+{
+	MMU_PAGE_SIZE_1M	= 0,
+	MMU_PAGE_SIZE_4K	= 1,
+	MMU_PAGE_SIZE_8K	= 2,
+	MMU_PAGE_SIZE_1K	= 3
+};
 
 /*
  * cache modes
@@ -78,13 +83,14 @@
 #define	ACCESS_WRITE	(1 << 1)
 #define ACCESS_EXECUTE	(1 << 2)
 
-struct map_flags
+struct mmu_map_flags
 {
 	unsigned cache_mode:2;
 	unsigned protection:1;
 	unsigned page_id:8;
 	unsigned access:3;
-	unsigned unused:18;
+	unsigned locked:1;
+	unsigned unused:17;
 };
 
 /*
@@ -94,6 +100,6 @@ extern long video_tlb;
 extern long video_sbt;
 
 extern void mmu_init(void);
-extern void mmu_map_page(uint32_t virt, uint32_t phys, uint32_t map_size, struct map_flags flags);
+extern int mmu_map_page(uint32_t virt, uint32_t phys, enum mmu_page_size sz, const struct mmu_map_flags *flags);
 
 #endif /* _MMU_H_ */

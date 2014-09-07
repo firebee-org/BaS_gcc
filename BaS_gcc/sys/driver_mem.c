@@ -28,7 +28,7 @@
 #error "unknown machine!"
 #endif
 
-// #define DBG_DM
+#define DBG_DM
 #ifdef	DBG_DM
 #define	dbg(fmt, args...)	xprintf(fmt, ##args)
 #else
@@ -290,7 +290,7 @@ void *driver_mem_alloc(uint32_t amount)
 
 	if (m != NULL)
 	{
-		ret = (void *)m->m_start;
+		ret = (void *) m->m_start;
 	}
 	set_ipl(level);
 	dbg("%s: driver_mem_alloc(%d) = 0x%08X\r\n", __FUNCTION__, amount, ret);
