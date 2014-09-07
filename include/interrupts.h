@@ -104,4 +104,5 @@ extern void isr_init(void);
 extern int isr_register_handler(int vector, int (*handler)(void *, void *), void *hdev, void *harg);
 extern void isr_remove_handler(int (*handler)(void *, void *));
 extern bool isr_execute_handler(int vector);
+extern int pic_interrupt_handler(void *arg1, void *arg2);
 #endif /* _INTERRUPTS_H_ */
