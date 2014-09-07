@@ -235,6 +235,7 @@ int mmu_map_page(uint32_t virt, uint32_t phys, enum mmu_page_size sz, const stru
 		MCF_MMU_MMUTR_ID(flags->page_id) |							/* address space id (ASID) */
 		MCF_MMU_MMUTR_SG |											/* shared global */
 		MCF_MMU_MMUTR_V;											/* valid */
+	NOP();
 
 	MCF_MMU_MMUDR = ((int) phys & size_mask) |						/* physical address */
 		MCF_MMU_MMUDR_SZ(sz) |										/* page size */
@@ -243,9 +244,11 @@ int mmu_map_page(uint32_t virt, uint32_t phys, enum mmu_page_size sz, const stru
 		(flags->access & ACCESS_WRITE ? MCF_MMU_MMUDR_W : 0) |		/* write access enable */
 		(flags->access & ACCESS_EXECUTE ? MCF_MMU_MMUDR_X : 0) |		/* execute access enable */
 		(flags->locked ? MCF_MMU_MMUDR_LK : 0);
+	NOP();
 
 	MCF_MMU_MMUOR = MCF_MMU_MMUOR_ACC |		/* access TLB, data */
 		MCF_MMU_MMUOR_UAA;					/* update allocation address field */
+	NOP();
 
 	MCF_MMU_MMUOR = MCF_MMU_MMUOR_ITLB | 	/* instruction */
 		MCF_MMU_MMUOR_ACC |     			/* access TLB */
