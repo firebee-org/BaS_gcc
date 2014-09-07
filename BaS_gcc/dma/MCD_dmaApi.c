@@ -66,12 +66,12 @@ MCD_bufDesc *MCD_relocBuffDesc;
  */
 #define DBG_CTL_COMP1_TASK  (0x00002000) /* have comparator 1 look for a task # */
 #define DBG_CTL_ENABLE      (DBG_CTL_AUTO_ARM    | \
-                             DBG_CTL_BREAK       | \
-                             DBG_CTL_INT_BREAK   | \
-                             DBG_CTL_COMP1_TASK)
+							 DBG_CTL_BREAK       | \
+							 DBG_CTL_INT_BREAK   | \
+							 DBG_CTL_COMP1_TASK)
 #define DBG_CTL_DISABLE     (DBG_CTL_AUTO_ARM    | \
-                             DBG_CTL_INT_BREAK   | \
-                             DBG_CTL_COMP1_TASK)
+							 DBG_CTL_INT_BREAK   | \
+							 DBG_CTL_COMP1_TASK)
 #define DBG_KILL_ALL_STAT   (0xFFFFFFFF)
 
 /*
@@ -247,10 +247,10 @@ int MCD_initDma(dmaRegs *dmaBarAddr, void *taskTableDest, uint32_t flags)
 			entryPtr[i].TDTend = (uint32_t) taskDescTabsOffset - 4;
 		}
 #ifdef MCD_INCLUDE_EU /* Tack single DMA BDs onto end of code so API controls
-                         where they are since DMA might write to them */
+						 where they are since DMA might write to them */
 		MCD_relocBuffDesc = (MCD_bufDesc*)(entryPtr[NUMOFVARIANTS - 1].TDTend + 4);
-#else /* DMA does not touch them so they can be wherever and we don't need to 
-         waste SRAM on them */
+#else /* DMA does not touch them so they can be wherever and we don't need to
+		 waste SRAM on them */
 		MCD_relocBuffDesc = MCD_singleBufDescs;
 #endif
 	}
@@ -352,7 +352,7 @@ int MCD_dmaStatus(int channel)
  * Returns:     MCD_CHANNEL_INVALID if channel is invalid, else MCD_OK
  */
 
-int __attribute__((flatten)) MCD_startDma(int channel, /* the channel on which to run the DMA */
+int MCD_startDma(int channel, /* the channel on which to run the DMA */
 		int8_t *srcAddr, /* the address to move data from, or physical buffer-descriptor address */
 		int16_t srcIncr, /* the amount to increment the source address per transfer */
 		int8_t *destAddr, /* the address to move data to */
@@ -582,7 +582,7 @@ int __attribute__((flatten)) MCD_startDma(int channel, /* the channel on which t
  * Notes:
  *  MCD_XferProgrQuery() upon completing or after aborting a DMA, or
  *  while the DMA is in progress, this function returns the first
- *  DMA-destination address not (or not yet) used in the DMA. When 
+ *  DMA-destination address not (or not yet) used in the DMA. When
  *  encountering a non-ready buffer descriptor, the information for
  *  the last completed descriptor is returned.
  *
@@ -850,7 +850,7 @@ int MCD_continDma(int channel)
  * this means that bits 14 and 0 must enable debug functions before
  * bits 1 and 2, respectively, have any effect.
  *
- * NOTE: It's extremely important to not pause more than one DMA channel 
+ * NOTE: It's extremely important to not pause more than one DMA channel
  *  at a time.
  ********************************************************************/
 

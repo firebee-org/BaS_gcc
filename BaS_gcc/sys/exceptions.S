@@ -64,9 +64,6 @@
 
 #define MCF_PSC0_PSCTB_8BIT                 __MBAR+0x860C
 
-#define MCF_PSC3_PSCRB_8BIT                 __MBAR+0x890C
-#define MCF_PSC3_PSCTB_8BIT                 __MBAR+0x890C
-
 		.global	_vec_init
 
 		// interrupt sources
@@ -203,9 +200,9 @@
 
 #define MCF_SLT0_SCNT                        __MBAR+0x908
 
-/*
- * macros
- */
+/**********************************************************/
+// macros
+/**********************************************************/
 		.altmacro
 		.macro	irq	vector,int_mask,clr_int
 		//move.w	#0x2700,sr		// disable interrupt
@@ -291,10 +288,6 @@ init_vec_loop:
 		lea	irq7(pc),a1
 		move.l	a1,0x11c(a0)
 
-// install PSC vectors (used for PIC communication on the FireBee)
-		lea	_lowlevel_isr_handler(pc),a1
-		// PSC3 interrupt source = 32
-		move.l	a1,(INT_SOURCE_PSC3 + 64) * 4(a0)
 
 // timer vectors (triggers when vbashi gets changed, used for video page copy)
 		lea	handler_gpt0(pc),a1
@@ -310,6 +303,9 @@ init_vec_loop:
 
 // install lowlevel_isr_handler for the FEC0  interrupt
 		move.l	a1,(INT_SOURCE_FEC0 + 64) * 4(a0)
+
+// install lowlevel_isr_handler for the PSC3 interrupt
+		move.l	a1,(INT_SOURCE_PSC3 + 64) * 4(a0)
 
 #ifndef MACHINE_FIREBEE
 // FEC1 not wired on the FireBee
@@ -412,9 +408,11 @@ access_mmu:
 		lea	-3 * 4(sp),sp		// save gcc scratch registers
 		movem.l	d1/a0-a1,(sp)
 
+		move.l	3 * 4 + 4 (sp),-(sp)	// push exception stack frame
+		move.l	5 * 4 + 4 (sp),-(sp)	// push program counter at exception
 		move.l	d0,-(sp)		// fault address
 		jsr	_mmutr_miss		// else we have an MMU TLB miss
-		addq.l	#4,sp
+		add.l	#3 * 4,sp		// adjust stack
 
 		movem.l	(sp),d1/a0-a1		// restore gcc scratch registers
 		lea	3 * 4(sp),sp
@@ -563,7 +561,7 @@ irq6:		// MFP interrupt from FPGA
 		lea	-28(a7),a7		// save more registers
 		movem.l	d0-d4/a0-a1,(a7)	//
 		clr.l	d3			// beginn mit 0
-		jsr	_flush_and_invalidate_caches
+		// jsr	_flush_and_invalidate_caches FIXME: why should we need that?
 
  // eintrag suchen
  irq6_next_sca:
@@ -603,37 +601,7 @@ irq6_sca_pn1c:
 		move.l	d3,a1
 		move.l	#0x10000,d4		// one whole page (1 MB)
 
-#define _DO_CPU_COPY
-#ifndef _DO_CPU_COPY
 
-		// experiment: do video page copy using Coldfire DMA
-
-		lea 	-15 * 4(sp),sp
-		movem.l	d0-d1/a0-a1,(sp)	// save gcc scratch registers
-		clr.l	-(sp)			// no special functions
-		move.l	#MCD_SINGLE_DMA|MCD_TT_FLAGS_CW|MCD_TT_FLAGS_RL|MCD_TT_FLAGS_SP,-(sp)
-		mov3q	#7,-(sp)		// highest DMA priority
-		move.l	#DMA_ALWAYS,-(sp)	// do memory to memory DMA
-		move.l	#1,-(sp)		// copy 4 bytes at a time
-		move.l	#0x100000,-(sp)		// copy 1 Megabyte
-		move.l	#4,-(sp)		// destination increment
-		move.l	a1,-(sp)		// destination adress
-		move.l	#4,-(sp)		// source increment
-		move.l	a0,-(sp)		// source adress
-		move.l	#1,-(sp)		// channel 1
-		jsr	_MCD_startDma
-
-		movem.l	(sp),d0-d1/a0-a1	// restore gcc scratch registers
-		lea	15 * 4(sp),sp		// adjust stack
-
-wait_dma_finished:
-		clr.l	-(sp)
-		jsr	_MCD_dmaStatus
-		addq.l	#4,sp
-		tst.l	d0
-		cmp.l	#6,d0
-		bne	wait_dma_finished
-#else
 irq6_vcd0_loop:
 		move.l	(a0)+,(a1)+		// page copy
 		move.l	(a0)+,(a1)+
@@ -641,7 +609,6 @@ irq6_vcd0_loop:
 		move.l	(a0)+,(a1)+
 		subq.l	#1,d4
 		bne	irq6_vcd0_loop
-#endif /* _DO_CPU_COPY */
 
 irq6_sca_pn:
 		add.l	#0x00100000,d3		// next
@@ -817,6 +784,7 @@ irq7:
 		move.l	(sp)+,a0
 		rts				// Forward to the Access Error handler
 
+
 /*
  * general purpose timer 0 (GPT0): video change, later also others. GPT0 is used as
  * input trigger. It is connected to the TIN0 signal of the FPGA and triggers everytime
@@ -839,6 +807,7 @@ handler_gpt0:
 		move.l	(a0),_video_sbt		// save time
 
 		// FIXME: don't we need to get out here?
+		bra	video_chg_end
 
 sca_other:
 		lsl.l	#8,d0			// build new screen start address from Atari register contents
@@ -856,7 +825,7 @@ video_chg_1page:
 		bset.l	d2,d4			// set as changed
 		bne	video_chg_2page		// was it set already?
 		move.l	d4,_video_tlb
-		jsr	_flush_and_invalidate_caches
+		// jsr	_flush_and_invalidate_caches FIXME: why should we need that?
 
 video_copy_data:
 		move.l	d4,_video_tlb
@@ -866,38 +835,6 @@ video_copy_data:
 		add.l	#0x60000000,a1
 		move.l	#0x10000,d4		// whole page
 
-#ifndef _DO_CPU_COPY
-
-		// experiment: do video page copy using Coldfire DMA
-
-		lea 	-15 * 4(sp),sp
-		movem.l	d0-d1/a0-a1,(sp)	// save gcc scratch registers
-
-		clr.l	-(sp)			// no special functions
-		move.l	#MCD_SINGLE_DMA|MCD_TT_FLAGS_CW|MCD_TT_FLAGS_RL|MCD_TT_FLAGS_SP,-(sp)
-		mov3q	#7,-(sp)		// highest DMA priority
-		move.l	#DMA_ALWAYS,-(sp)	// do memory to memory DMA
-		move.l	#1,-(sp)		// copy 4 bytes at a time
-		move.l	#0x100000,-(sp)		// copy 1 Megabyte
-		move.l	#4,-(sp)		// destination increment
-		move.l	a1,-(sp)		// destination adress
-		move.l	#4,-(sp)		// source increment
-		move.l	a0,-(sp)		// source adress
-		move.l	#1,-(sp)		// channel 1
-		jsr	_MCD_startDma
-
-.wait_dma_finished:
-		clr.l	-(sp)
-		jsr	_MCD_dmaStatus
-		addq.l	#4,sp
-		tst.l	d0
-		cmp.l	#6,d0
-		bne	.wait_dma_finished
-
-		movem.l	(sp),d0-d1/a0-a1	// restore gcc scratch registers
-		lea	15 * 4(sp),sp		// adjust stack
-
-#else
 video_copy_data_loop:
 		move.l	(a0)+,(a1)+		// copy video page contents to real screen
 		move.l	(a0)+,(a1)+
@@ -905,7 +842,6 @@ video_copy_data_loop:
 		move.l	(a0)+,(a1)+
 		subq.l	#1,d4
 		bne	video_copy_data_loop
-#endif
 
 // eintrag suchen
 		move.l	d0,MCF_MMU_MMUAR	// adress
@@ -927,20 +863,23 @@ video_copy_data_loop:
 video_chg_2page:
 // test of adjacent page is needed also
 		move.l	d3,d0
-		mvz.w	0xffff8210,d4		// byts pro zeile
-		mvz.w	0xffff82aa,d2		// zeilen ende
-		mvz.w	0xffff82a8,d1		// zeilenstart
-		sub.l	d1,d2			// differenz = anzahl zeilen
-		mulu	d2,d4			// maximal 480 zeilen
+		mvz.w	0xffff8210,d4		// VWRAP: words per scanline
+		mvz.w	0xffff82aa,d2		// VDE: vertical display end
+		mvz.w	0xffff82a8,d1		// VDB: vertical display begin
+		sub.l	d1,d2			// number of lines
+		mulu	d2,d4			// times number of words per line
 		add.l	d4,d0			// video gr�sse
-		cmp.l	#__STRAM_END,d0		// maximale addresse
-		bge	video_chg_end		// wenn gleich oder gr�sser -> fertig
+		cmp.l	#__STRAM_END,d0		// start address > end of STRAM?
+		bge	video_chg_end		// yes - we're finished
+
 		moveq	#20,d4
 		move.l	d0,d2
 		lsr.l	d4,d2			// neue page
 		move.l	_video_tlb,d4
 		bset.l	d2,d4			// setzen als ge�ndert
 		beq	video_copy_data		// nein nochmal
+		jsr	_flush_and_invalidate_caches
+
 video_chg_end:
 		lea	MCF_GPT0_GMS,a0		// clear interrupt
 		bclr.b	#0,3(a0)
@@ -960,7 +899,7 @@ video_chg_end:
 		.extern	_isr_execute_handler
 
 _lowlevel_isr_handler:
-		move.w	#0x2700,sr
+		move.w	#0x2700,sr		// do not disturb
 		link	a6,#-4 * 4		// make room for
 		movem.l	d0-d1/a0-a1,(sp)	// gcc scratch registers and save them,
 						// other registers will be handled by gcc itself
