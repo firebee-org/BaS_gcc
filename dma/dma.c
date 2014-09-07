@@ -75,7 +75,6 @@ static struct dma_channel dma_channel[NCHANNELS] =
 	{-1, NULL}, {-1, NULL}, {-1, NULL}, {-1, NULL},
 };
 
-/********************************************************************/
 /*
  * Enable all DMA interrupts
  *
@@ -103,7 +102,6 @@ void dma_irq_enable(uint8_t lvl, uint8_t pri)
 	dbg("DMA task interrupts unmasked, pending interrupts cleared, interrupt controller active\r\n");
 }
 
-/********************************************************************/
 /*
  * Disable all DMA interrupts
  */
@@ -559,6 +557,7 @@ int dma_interrupt_handler(void *arg1, void *arg2)
 	uint32_t ipl;
 
 	ipl = set_ipl(7);		/* do not disturb */
+
 	/*
 	 * Determine which interrupt(s) triggered by AND'ing the
 	 * pending interrupts with those that aren't masked.

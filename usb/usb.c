@@ -130,7 +130,7 @@ int usb_init(int32_t handle, const struct pci_device_id *ent)
 			{
 				long handle = controller_priv[i]->handle;
 				if (handle)
-					res |= usb_init(handle, NULL);
+					res |= usb_init(handle, NULL);	/* FIXME: recursive call to self */
 			}
 		}
 		return res;
