@@ -209,7 +209,7 @@ bool isr_execute_handler(int vector)
 /*
  * PIC interrupt handler for Firebee
  */
-void pic_interrupt_handler(void)
+int pic_interrupt_handler(void *arg1, void *arg2)
 {
     uint8_t rcv_byte;
 
@@ -229,6 +229,7 @@ void pic_interrupt_handler(void)
             MCF_PSC3_PSCTB_8BIT = *rtc_data;
         } while (index++ < 64);
     }
+	return 1;
 }
 
 extern int32_t video_sbt;
