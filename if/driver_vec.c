@@ -56,19 +56,21 @@ static struct dma_driver_interface dma_interface =
 	.dma_get_channel = dma_get_channel,
 	.dma_free_channel = dma_free_channel,
 	.dma_clear_channel = dma_clear_channel,
-	.MCD_startDma = MCD_startDma,
-	.MCD_dmaStatus = MCD_dmaStatus,
-	.MCD_XferProgrQuery = MCD_XferProgrQuery,
-	.MCD_killDma = MCD_killDma,
-	.MCD_continDma = MCD_continDma,
-	.MCD_pauseDma = MCD_pauseDma,
-	.MCD_resumeDma = MCD_resumeDma,
-	.MCD_csumQuery = MCD_csumQuery,
+	.MCD_startDma = (int (*)(long, int8_t *, unsigned int, int8_t *, unsigned int,
+					unsigned int, unsigned int, unsigned int, int,
+					unsigned int, unsigned int)) MCD_startDma,
+	.MCD_dmaStatus = (int32_t (*)(int32_t)) MCD_dmaStatus,
+	.MCD_XferProgrQuery = (int32_t (*)(int32_t, MCD_XferProg *)) MCD_XferProgrQuery,
+	.MCD_killDma = (int32_t (*)(int32_t)) MCD_killDma,
+	.MCD_continDma = (int32_t (*)(int32_t)) MCD_continDma,
+	.MCD_pauseDma = (int32_t (*)(int32_t)) MCD_pauseDma,
+	.MCD_resumeDma = (int32_t (*)(int32_t)) MCD_resumeDma,
+	.MCD_csumQuery = (int32_t (*)(int32_t, uint32_t *)) MCD_csumQuery,
 	.dma_malloc = driver_mem_alloc,
 	.dma_free = driver_mem_free
 };
 
-extern const struct fb_info *info_fb;
+extern struct fb_info *info_fb;
 
 /*
  * driver interface struct for the PCI_BIOS BaS driver
