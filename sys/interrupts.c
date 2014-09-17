@@ -38,7 +38,7 @@
 extern void (*rt_vbr[])(void);
 #define VBR	rt_vbr
 
-#define IRQ_DEBUG
+//#define IRQ_DEBUG
 #if defined(IRQ_DEBUG)
 #define dbg(format, arg...) do { xprintf("DEBUG %s(): " format, __FUNCTION__, ##arg); } while (0)
 #else
@@ -51,45 +51,45 @@ extern void (*rt_vbr[])(void);
  */
 int register_interrupt_handler(uint8_t source, uint8_t level, uint8_t priority, uint8_t intr, void (*handler)(void))
 {
-    int ipl;
-    int i;
-    volatile uint8_t *ICR = &MCF_INTC_ICR01 - 1;
-    uint8_t lp;
+	int ipl;
+	int i;
+	volatile uint8_t *ICR = &MCF_INTC_ICR01 - 1;
+	uint8_t lp;
 
-    source &= 63;
-    priority &= 7;
+	source &= 63;
+	priority &= 7;
 
-    if (source < 1 || source > 63)
-    {
-        dbg("interrupt source %d not defined\r\n", source);
-        return -1;
-    }
+	if (source < 1 || source > 63)
+	{
+		dbg("interrupt source %d not defined\r\n", source);
+		return -1;
+	}
 
-    lp = MCF_INTC_ICR_IL(level) | MCF_INTC_ICR_IP(priority);
+	lp = MCF_INTC_ICR_IL(level) | MCF_INTC_ICR_IP(priority);
 
-    /* check if this combination is already set somewhere */
-    for (i = 1; i < 64; i++)
-    {
-        if (ICR[i] == lp)
-        {
-            dbg("level %d and priority %d already used for interrupt source %d!\r\n",
-                    level, priority, i);
-            return -1;
-        }
-    }
+	/* check if this combination is already set somewhere */
+	for (i = 1; i < 64; i++)
+	{
+		if (ICR[i] == lp)
+		{
+			dbg("level %d and priority %d already used for interrupt source %d!\r\n",
+					level, priority, i);
+			return -1;
+		}
+	}
 
-    /* disable interrupts */
-    ipl = set_ipl(7);
+	/* disable interrupts */
+	ipl = set_ipl(7);
 
-    VBR[64 + source] = handler;	/* first 64 vectors are system exceptions */
+	VBR[64 + source] = handler;	/* first 64 vectors are system exceptions */
 
-    /* set level and priority in interrupt controller */
-    ICR[source] = lp;
+	/* set level and priority in interrupt controller */
+	ICR[source] = lp;
 
-    /* set interrupt mask to where it was before */
-    set_ipl(ipl);
+	/* set interrupt mask to where it was before */
+	set_ipl(ipl);
 
-    return 0;
+	return 0;
 }
 
 #ifndef MAX_ISR_ENTRY
@@ -99,10 +99,10 @@ int register_interrupt_handler(uint8_t source, uint8_t level, uint8_t priority, 
 
 struct isrentry
 {
-    int     vector;
-    int     (*handler)(void *, void *);
-    void    *hdev;
-    void    *harg;
+	int     vector;
+	int     (*handler)(void *, void *);
+	void    *hdev;
+	void    *harg;
 };
 
 static struct isrentry isrtab[MAX_ISR_ENTRY];      /* list of interrupt service routines */
@@ -112,7 +112,7 @@ static struct isrentry isrtab[MAX_ISR_ENTRY];      /* list of interrupt service 
  */
 void isr_init(void)
 {
-    memset(isrtab, 0, sizeof(isrtab));
+	memset(isrtab, 0, sizeof(isrtab));
 }
 
 /*
@@ -125,56 +125,56 @@ void isr_init(void)
  */
 int isr_register_handler(int vector, int (*handler)(void *, void *), void *hdev, void *harg)
 {
-    int index;
+	int index;
 
-    if ((vector == 0) || (handler == NULL))
-    {
-        dbg("illegal vector or handler!\r\n");
-        return false;
-    }
+	if ((vector == 0) || (handler == NULL))
+	{
+		dbg("illegal vector or handler!\r\n");
+		return false;
+	}
 
-    for (index = 0; index < MAX_ISR_ENTRY; index++)
-    {
-        if (isrtab[index].vector == vector)
-        {
-            /* one cross each, only! */
-            dbg("already set handler with this vector (%d, %d)\r\n", vector);
-            return false;
-        }
+	for (index = 0; index < MAX_ISR_ENTRY; index++)
+	{
+		if (isrtab[index].vector == vector)
+		{
+			/* one cross each, only! */
+			dbg("already set handler with this vector (%d, %d)\r\n", vector);
+			return false;
+		}
 
-        if (isrtab[index].vector == 0)
-        {
-            isrtab[index].vector = vector;
-            isrtab[index].handler = handler;
-            isrtab[index].hdev = hdev;
-            isrtab[index].harg = harg;
+		if (isrtab[index].vector == 0)
+		{
+			isrtab[index].vector = vector;
+			isrtab[index].handler = handler;
+			isrtab[index].hdev = hdev;
+			isrtab[index].harg = harg;
 
-            return true;
-        }
-    }
-    dbg("no available slots to register handler for vector %d\n\r", vector);
+			return true;
+		}
+	}
+	dbg("no available slots to register handler for vector %d\n\r", vector);
 
-    return false;   /* no available slots */
+	return false;   /* no available slots */
 }
 
 void isr_remove_handler(int (*handler)(void *, void *))
 {
-    /*
-     * This routine removes from the ISR table all
-     * entries that matches 'handler'.
-     */
-    int index;
+	/*
+	 * This routine removes from the ISR table all
+	 * entries that matches 'handler'.
+	 */
+	int index;
 
-    for (index = 0; index < MAX_ISR_ENTRY; index++)
-    {
-        if (isrtab[index].handler == handler)
-        {
-            memset(&isrtab[index], 0, sizeof(struct isrentry));
+	for (index = 0; index < MAX_ISR_ENTRY; index++)
+	{
+		if (isrtab[index].handler == handler)
+		{
+			memset(&isrtab[index], 0, sizeof(struct isrentry));
 
-            return;
-        }
-    }
-    dbg("no such handler registered (handler=%p\r\n", handler);
+			return;
+		}
+	}
+	dbg("no such handler registered (handler=%p\r\n", handler);
 }
 
 /*
@@ -183,27 +183,27 @@ void isr_remove_handler(int (*handler)(void *, void *))
  */
 bool isr_execute_handler(int vector)
 {
-    int index;
-    bool retval = false;
+	int index;
+	bool retval = false;
 
-    /*
-     * locate a BaS Interrupt Service Routine handler.
-     */
-    for (index = 0; index < MAX_ISR_ENTRY; index++)
-    {
-        if (isrtab[index].vector == vector)
-        {
-            retval = true;
+	/*
+	 * locate a BaS Interrupt Service Routine handler.
+	 */
+	for (index = 0; index < MAX_ISR_ENTRY; index++)
+	{
+		if (isrtab[index].vector == vector)
+		{
+			retval = true;
 
-            if (isrtab[index].handler(isrtab[index].hdev, isrtab[index].harg))
-            {
-                return retval;
-            }
-        }
-    }
-    dbg("no BaS isr handler for vector %d found\r\n", vector);
+			if (isrtab[index].handler(isrtab[index].hdev, isrtab[index].harg))
+			{
+				return retval;
+			}
+		}
+	}
+	dbg("no BaS isr handler for vector %d found\r\n", vector);
 
-    return retval;
+	return retval;
 }
 
 /*
@@ -211,24 +211,24 @@ bool isr_execute_handler(int vector)
  */
 int pic_interrupt_handler(void *arg1, void *arg2)
 {
-    uint8_t rcv_byte;
+	uint8_t rcv_byte;
 
-    rcv_byte = MCF_PSC3_PSCRB_8BIT;
-    if (rcv_byte == 2)	// PIC requests RTC data
-    {
-        uint8_t *rtc_reg = (uint8_t *) 0xffff8961;
-        uint8_t *rtc_data = (uint8_t *) 0xffff8963;
-        int index = 0;
+	rcv_byte = MCF_PSC3_PSCRB_8BIT;
+	if (rcv_byte == 2)	// PIC requests RTC data
+	{
+		uint8_t *rtc_reg = (uint8_t *) 0xffff8961;
+		uint8_t *rtc_data = (uint8_t *) 0xffff8963;
+		int index = 0;
 
-        xprintf("PIC interrupt requesting RTC data\r\n");
+		xprintf("PIC interrupt requesting RTC data\r\n");
 
-        MCF_PSC3_PSCTB_8BIT = 0x82;		// header byte to PIC
-        do
-        {
-            *rtc_reg = 0;
-            MCF_PSC3_PSCTB_8BIT = *rtc_data;
-        } while (index++ < 64);
-    }
+		MCF_PSC3_PSCTB_8BIT = 0x82;		// header byte to PIC
+		do
+		{
+			*rtc_reg = 0;
+			MCF_PSC3_PSCTB_8BIT = *rtc_data;
+		} while (index++ < 64);
+	}
 	return 1;
 }
 
@@ -237,93 +237,93 @@ extern int32_t video_tlb;
 
 void video_addr_timeout(void)
 {
-    uint32_t addr = 0x0L;
-    uint32_t *src;
-    uint32_t *dst;
-    uint32_t asid;
+	uint32_t addr = 0x0L;
+	uint32_t *src;
+	uint32_t *dst;
+	uint32_t asid;
 
-    dbg("video address timeout\r\n");
-    flush_and_invalidate_caches();
+	dbg("video address timeout\r\n");
+	flush_and_invalidate_caches();
 
-    do
-    {
-        uint32_t tlb;
-        uint32_t page_attr;
+	do
+	{
+		uint32_t tlb;
+		uint32_t page_attr;
 
-        /*
-         * search tlb entry id for addr (if not available, the MMU
-         * will provide a new one based on its LRU algorithm)
-         */
-        MCF_MMU_MMUAR = addr;
-        MCF_MMU_MMUOR =
-                MCF_MMU_MMUOR_STLB |
-                MCF_MMU_MMUOR_RW |
-                MCF_MMU_MMUOR_ACC;
-        NOP();
-        tlb = (MCF_MMU_MMUOR >> 16) & 0xffff;
+		/*
+		 * search tlb entry id for addr (if not available, the MMU
+		 * will provide a new one based on its LRU algorithm)
+		 */
+		MCF_MMU_MMUAR = addr;
+		MCF_MMU_MMUOR =
+				MCF_MMU_MMUOR_STLB |
+				MCF_MMU_MMUOR_RW |
+				MCF_MMU_MMUOR_ACC;
+		NOP();
+		tlb = (MCF_MMU_MMUOR >> 16) & 0xffff;
 
-        /*
-         * retrieve tlb entry with the found TLB entry id
-         */
-        MCF_MMU_MMUAR = tlb;
-        MCF_MMU_MMUOR =
-                MCF_MMU_MMUOR_STLB |
-                MCF_MMU_MMUOR_ADR |
-                MCF_MMU_MMUOR_RW |
-                MCF_MMU_MMUOR_ACC;
-        NOP();
+		/*
+		 * retrieve tlb entry with the found TLB entry id
+		 */
+		MCF_MMU_MMUAR = tlb;
+		MCF_MMU_MMUOR =
+				MCF_MMU_MMUOR_STLB |
+				MCF_MMU_MMUOR_ADR |
+				MCF_MMU_MMUOR_RW |
+				MCF_MMU_MMUOR_ACC;
+		NOP();
 
-        asid = (MCF_MMU_MMUTR >> 2) & 0x1fff;	/* fetch ASID of page */;
-        if (asid != sca_page_ID)                /* check if screen area */
-        {
-            addr += 0x100000;
-            continue;                           /* next page */
-        }
+		asid = (MCF_MMU_MMUTR >> 2) & 0x1fff;	/* fetch ASID of page */;
+		if (asid != sca_page_ID)                /* check if screen area */
+		{
+			addr += 0x100000;
+			continue;                           /* next page */
+		}
 
-        /* modify found TLB entry */
-        if (addr == 0x0)
-        {
-            page_attr =
-                MCF_MMU_MMUDR_LK |
-                MCF_MMU_MMUDR_SZ(0) |
-                MCF_MMU_MMUDR_CM(0) |
-                MCF_MMU_MMUDR_R |
-                MCF_MMU_MMUDR_W |
-                MCF_MMU_MMUDR_X;
-        }
-        else
-        {
-            page_attr =
-                MCF_MMU_MMUTR_SG |
-                MCF_MMU_MMUTR_V;
-        }
-
-
-        MCF_MMU_MMUTR = addr;
-        MCF_MMU_MMUDR = page_attr;
-        MCF_MMU_MMUOR =
-                MCF_MMU_MMUOR_STLB |
-                MCF_MMU_MMUOR_ADR |
-                MCF_MMU_MMUOR_ACC |
-                MCF_MMU_MMUOR_UAA;
-        NOP();
-
-        dst = (uint32_t *) 0x60000000 + addr;
-        src = (uint32_t *) addr;
-        while (dst < (uint32_t *) 0x60000000 + addr + 0x10000)
-        {
-            *dst++ = *src++;
-            *dst++ = *src++;
-            *dst++ = *src++;
-            *dst++ = *src++;
-        }
+		/* modify found TLB entry */
+		if (addr == 0x0)
+		{
+			page_attr =
+				MCF_MMU_MMUDR_LK |
+				MCF_MMU_MMUDR_SZ(0) |
+				MCF_MMU_MMUDR_CM(0) |
+				MCF_MMU_MMUDR_R |
+				MCF_MMU_MMUDR_W |
+				MCF_MMU_MMUDR_X;
+		}
+		else
+		{
+			page_attr =
+				MCF_MMU_MMUTR_SG |
+				MCF_MMU_MMUTR_V;
+		}
 
 
+		MCF_MMU_MMUTR = addr;
+		MCF_MMU_MMUDR = page_attr;
+		MCF_MMU_MMUOR =
+				MCF_MMU_MMUOR_STLB |
+				MCF_MMU_MMUOR_ADR |
+				MCF_MMU_MMUOR_ACC |
+				MCF_MMU_MMUOR_UAA;
+		NOP();
 
-        addr += 0x100000;
-    } while (addr < 0xd00000);
-    video_tlb = 0x2000;
-    video_sbt = 0;
+		dst = (uint32_t *) 0x60000000 + addr;
+		src = (uint32_t *) addr;
+		while (dst < (uint32_t *) 0x60000000 + addr + 0x10000)
+		{
+			*dst++ = *src++;
+			*dst++ = *src++;
+			*dst++ = *src++;
+			*dst++ = *src++;
+		}
+
+
+
+		addr += 0x100000;
+	} while (addr < 0xd00000);
+	video_tlb = 0x2000;
+	video_sbt = 0;
 }
 
 
@@ -332,16 +332,16 @@ void video_addr_timeout(void)
  */
 void blink_led(void)
 {
-    static uint16_t blinker = 0;
+	static uint16_t blinker = 0;
 
-    if ((blinker++ & 0x80) > 0)
-    {
-        MCF_GPIO_PODR_FEC1L |= (1 << 4);    /* LED off */
-    }
-    else
-    {
-        MCF_GPIO_PODR_FEC1L &= ~(1 << 4);   /* LED on */
-    }
+	if ((blinker++ & 0x80) > 0)
+	{
+		MCF_GPIO_PODR_FEC1L |= (1 << 4);    /* LED off */
+	}
+	else
+	{
+		MCF_GPIO_PODR_FEC1L &= ~(1 << 4);   /* LED on */
+	}
 }
 
 /*
@@ -359,45 +359,45 @@ void blink_led(void)
 
 bool irq6_acsi_dma_interrupt(void)
 {
-    dbg("ACSI DMA interrupt\r\n");
+	dbg("ACSI DMA interrupt\r\n");
 
-    /*
-     * TODO: implement handler
-     */
+	/*
+	 * TODO: implement handler
+	 */
 
-    return false;
+	return false;
 }
 
 bool irq6_interrupt_handler(uint32_t sf1, uint32_t sf2)
 {
-    bool handled = false;
+	bool handled = false;
 
-    MCF_EPORT_EPFR |= (1 << 6);	/* clear int6 from edge port */
+	MCF_EPORT_EPFR |= (1 << 6);	/* clear int6 from edge port */
 
-    if (video_sbt != 0 && (video_sbt - 0x70000000) > MCF_SLT0_SCNT)
-    {
-        video_addr_timeout();
-        handled = true;
-    }
+	if (video_sbt != 0 && (video_sbt - 0x70000000) > MCF_SLT0_SCNT)
+	{
+		video_addr_timeout();
+		handled = true;
+	}
 
-    /*
-     * check if ACSI DMA interrupt
-     */
+	/*
+	 * check if ACSI DMA interrupt
+	 */
 
-    if (FALCON_MFP_IERA & (1 << 7))
-    {
-        /* ACSI interrupt is enabled */
-        if (FALCON_MFP_IPRA & (1 << 7))
-        {
-            irq6_acsi_dma_interrupt();
-            handled = true;
-        }
-    }
+	if (FALCON_MFP_IERA & (1 << 7))
+	{
+		/* ACSI interrupt is enabled */
+		if (FALCON_MFP_IPRA & (1 << 7))
+		{
+			irq6_acsi_dma_interrupt();
+			handled = true;
+		}
+	}
 
-    if (FALCON_MFP_IPRA || FALCON_MFP_IPRB)
-    {
-        blink_led();
-    }
+	if (FALCON_MFP_IPRA || FALCON_MFP_IPRB)
+	{
+		blink_led();
+	}
 
-    return handled;
+	return handled;
 }

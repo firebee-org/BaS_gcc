@@ -62,7 +62,7 @@
 #error "unknown machine!"
 #endif /* MACHINE_FIREBEE */
 
-#define DEBUG_MMU
+// #define DEBUG_MMU
 #ifdef DEBUG_MMU
 #define dbg(format, arg...) do { xprintf("DEBUG (%s()): " format, __FUNCTION__, ##arg);} while(0)
 #else
@@ -377,7 +377,7 @@ void mmu_init(void)
 	 * Map (locked) the second last MB of physical SDRAM (this is where BaS .data and .bss reside) to the same
 	 * virtual address. This is also used (completely) when BaS is in RAM
 	 */
-	flags.cache_mode = CACHE_WRITETHROUGH;
+	flags.cache_mode = CACHE_COPYBACK;
 	flags.access = ACCESS_READ | ACCESS_WRITE | ACCESS_EXECUTE;
 	mmu_map_page(SDRAM_START + SDRAM_SIZE - 0X00200000, SDRAM_START + SDRAM_SIZE - 0X00200000, MMU_PAGE_SIZE_1M, &flags);
 

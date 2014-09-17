@@ -27,7 +27,7 @@
 #include "bas_printf.h"
 #include "wait.h"
 
-#define FPGA_DEBUG
+// #define FPGA_DEBUG
 #if defined(FPGA_DEBUG)
 #define dbg(format, arg...) do { xprintf("DEBUG: %s(): " format, __FUNCTION__, ##arg); } while (0)
 #else
