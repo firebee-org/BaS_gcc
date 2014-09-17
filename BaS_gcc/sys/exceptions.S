@@ -758,15 +758,17 @@ irq7:
 
 
 /*
- * general purpose timer 0 (GPT0): video change, later also others. GPT0 is used as
- * input trigger. It is connected to the TIN0 signal of the FPGA and triggers everytime
- * vbasehi is written to, i.e. when the video base address gets changed
+ * general purpose timer 0 (GPT0): video change, later also others.
+ *
+ * GPT0 is used as input trigger. It is connected to the TIN0 signal of
+ * the FPGA and triggers everytime vbasehi is written to, i.e.
+ * when the video base address gets changed
  */
 handler_gpt0:
 		move	#0x2700,sr		// disable interrupts
 
-		lea	-28(a7),a7		// save registers
-		movem.l	d0-d4/a0-a1,(a7)
+		lea	-7 * 4(sp),sp		// save registers
+		movem.l	d0-d4/a0-a1,(sp)
 
 		mvz.b	vbasehi,d0		// screen base address high
 		cmp.w	#2,d0			// screen base lower than 0x20000?
@@ -779,7 +781,7 @@ handler_gpt0:
 		move.l	(a0),_video_sbt		// save time
 
 		// FIXME: don't we need to get out here?
-		bra	video_chg_end
+		// bra	video_chg_end
 
 sca_other:
 		lsl.l	#8,d0			// build new screen start address from Atari register contents
@@ -840,7 +842,7 @@ video_chg_2page:
 		mvz.w	0xffff82a8,d1		// VDB: vertical display begin
 		sub.l	d1,d2			// number of lines
 		mulu	d2,d4			// times number of words per line
-		add.l	d4,d0			// video gr�sse
+		add.l	d4,d0			// video memory end address
 		cmp.l	#__STRAM_END,d0		// start address > end of STRAM?
 		bge	video_chg_end		// yes - we're finished
 
@@ -853,8 +855,8 @@ video_chg_2page:
 		jsr	_flush_and_invalidate_caches
 
 video_chg_end:
-		lea	MCF_GPT0_GMS,a0		// clear interrupt
-		bclr.b	#0,3(a0)
+		lea	MCF_GPT0_GMS,a0		// disable and reenable timer
+		bclr.b	#0,3(a0)		// input capture
 		nop
 		bset.b	#0,3(a0)
 
