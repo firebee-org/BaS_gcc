@@ -34,11 +34,12 @@
 #include "startcf.h"
 #include "cache.h"
 #include "util.h"
+#include "dma.h"
 
 extern void (*rt_vbr[])(void);
 #define VBR	rt_vbr
 
-//#define IRQ_DEBUG
+#define IRQ_DEBUG
 #if defined(IRQ_DEBUG)
 #define dbg(format, arg...) do { xprintf("DEBUG %s(): " format, __FUNCTION__, ##arg); } while (0)
 #else
@@ -208,6 +209,9 @@ bool isr_execute_handler(int vector)
 
 /*
  * PIC interrupt handler for Firebee
+ *
+ * Handles PIC requests that come in from PSC3 serial interface. Currently, that
+ * is RTC/NVRAM requests only
  */
 int pic_interrupt_handler(void *arg1, void *arg2)
 {
@@ -401,3 +405,137 @@ bool irq6_interrupt_handler(uint32_t sf1, uint32_t sf2)
 
 	return handled;
 }
+
+#if defined(MACHINE_FIREBEE)
+#define vbasehi		(* (volatile uint8_t *) 0xffff8201)
+#define vbasemid	(* (volatile uint8_t *) 0xffff8203)
+#define vbaselow	(* (volatile uint8_t *) 0xffff820d)
+
+#define vwrap		(* (volatile uint16_t *) 0xffff8210)
+#define vde			(* (volatile uint16_t *) 0xffff82aa)
+#define vdb			(* (volatile uint16_t *) 0xffff82a8)
+/*
+ * this is the higlevel interrupt service routine for gpt0 timer interrupts.
+ *
+ * It is called from handler_gpt0 in exceptions.S
+ *
+ * The gpt0 timer is not used as a timer, but as interrupt trigger by the FPGA which fires
+ * everytime the video base address high byte (0xffff8201) gets written by user code (i.e.
+ * everytime the video base address is set).
+ * The interrupt service routine checks if that page was already set as a video page (in that
+ * case it does nothing), if not (if we have a newly set page), it sets up an MMU mapping for
+ * that page (effectively rerouting any further access to Falcon video RAM to Firebee FPGA
+ * video RAM starting at 0x60000000) and copies SDRAM contents of that page to the video
+ * RAM page.
+ */
+void gpt0_interrupt_handler(void)
+{
+	uint32_t video_address;
+	uint32_t video_end_address;
+	int page_number;
+	bool already_set;
+	extern uint32_t _STRAM_END;
+
+	dbg("screen base = 0x%x\r\n", vbasehi);
+
+	if (vbasehi < 2)			/* screen base lower than 0x20000? */
+	{
+		goto rearm_trigger;		/* do nothing */
+	}
+	else if (vbasehi >= 0xd0)	/* higher than 0xd00000 (normal Falcon address)? */
+	{
+		video_sbt = MCF_SLT0_SCNT;	/* FIXME: no idea why we need to save the time here */
+	}
+	video_address = (vbasehi << 16) | (vbasemid << 8) | vbaselow;
+
+	page_number = video_address >> 20;				/* calculate a page number */
+	already_set = (video_tlb & (1 << page_number));	/* already in bitset? */
+	video_tlb |= page_number;						/* set it */
+
+	if (! already_set)	/* newly set page, need to copy contents */
+	{
+		flush_and_invalidate_caches();
+		dma_memcpy((uint8_t *) video_address + 0x60000000, (uint8_t *) video_address, 0x100000);
+
+		/*
+		 * create an MMU TLB entry for the new video page
+		 */
+
+		/*
+		 * first search for an existing entry with our address. If none is found,
+		 * the MMU will propose a new one
+		 */
+		MCF_MMU_MMUAR = video_address;
+		MCF_MMU_MMUOR = 0x106;
+		NOP();
+
+		/*
+		 * take this MMU TLB entry and set it to our video address and page mapping
+		 */
+		MCF_MMU_MMUAR = (MCF_MMU_MMUOR >> 16) & 0xffff;	/* set TLB id */
+
+		MCF_MMU_MMUTR = video_address |
+						MCF_MMU_MMUTR_ID(sca_page_ID) |	/* set video page ID */
+						MCF_MMU_MMUTR_SG |				/* shared global */
+						MCF_MMU_MMUTR_V;				/* valid */
+		MCF_MMU_MMUDR = (video_address + 0x60000000) |	/* physical address */
+						MCF_MMU_MMUDR_SZ(0) |			/* 1 MB page size */
+						MCF_MMU_MMUDR_CM(0) |			/* writethrough */
+						MCF_MMU_MMUDR_R |				/* readable */
+						MCF_MMU_MMUDR_W |				/* writeable */
+						MCF_MMU_MMUDR_X;				/* executable */
+		MCF_MMU_MMUOR = 0x10b;							/* update TLB entry */
+	}
+
+	/*
+	 * Calculate the effective screen memory size to see if we need to map another page
+	 * in case the new screen spans more than one single page
+	 */
+	video_end_address = video_address + (vde - vdb) * vwrap;
+	if (video_end_address < _STRAM_END)
+	{
+		page_number = video_end_address >> 20;			/* calculate a page number */
+		already_set = (video_tlb & (1 << page_number));	/* already in bitset? */
+		video_tlb |= page_number;						/* set it */
+
+		if (! already_set)	/* newly set page, need to copy contents */
+		{
+			flush_and_invalidate_caches();
+			dma_memcpy((uint8_t *) video_end_address + 0x60000000, (uint8_t *) video_end_address, 0x100000);
+
+			/*
+			 * create an MMU TLB entry for the new video page
+			 */
+
+			/*
+			 * first search for an existing entry with our address. If none is found,
+			 * the MMU will propose a new one
+			 */
+			MCF_MMU_MMUAR = video_end_address;
+			MCF_MMU_MMUOR = 0x106;
+			NOP();
+
+			/*
+			 * take this MMU TLB entry and set it to our video address and page mapping
+			 */
+			MCF_MMU_MMUAR = (MCF_MMU_MMUOR >> 16) & 0xffff;	/* set TLB id */
+
+			MCF_MMU_MMUTR = video_end_address |
+							MCF_MMU_MMUTR_ID(sca_page_ID) |	/* set video page ID */
+							MCF_MMU_MMUTR_SG |				/* shared global */
+							MCF_MMU_MMUTR_V;				/* valid */
+			MCF_MMU_MMUDR = (video_end_address + 0x60000000) |	/* physical address */
+							MCF_MMU_MMUDR_SZ(0) |			/* 1 MB page size */
+							MCF_MMU_MMUDR_CM(0) |			/* writethrough */
+							MCF_MMU_MMUDR_R |				/* readable */
+							MCF_MMU_MMUDR_W |				/* writeable */
+							MCF_MMU_MMUDR_X;				/* executable */
+			MCF_MMU_MMUOR = 0x10b;							/* update TLB entry */
+		}
+	}
+rearm_trigger:
+	MCF_GPT0_GMS &= ~1;		/* rearm trigger */
+	NOP();
+	MCF_GPT0_GMS |= 1;
+}
+#endif /* MACHINE_FIREBEE */
