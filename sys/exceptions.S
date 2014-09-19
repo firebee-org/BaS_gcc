@@ -308,7 +308,7 @@ init_vec_loop:
                 move.l	a1,(INT_SOURCE_PSC3 + 64) * 4(a0)
 
 #ifndef MACHINE_FIREBEE
-// FEC1 not wired on the FireBee
+// FEC1 not wired on the FireBee, but used on other machines
                 move.l	a1,(INT_SOURCE_FEC1 + 64) * 4(a0)
 #endif
 
