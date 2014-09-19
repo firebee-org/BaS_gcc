@@ -206,15 +206,15 @@
                 .altmacro
                 .macro	irq	vector,int_mask,clr_int
                 //move.w	#0x2700,sr		// disable interrupt
-                subq.l	#8,a7
-                movem.l	d0/a5,(a7)		// save registers
+                subq.l	#8,sp
+                movem.l	d0/a5,(sp)		// save registers
 
                 lea	MCF_EPORT_EPFR,a5
                 move.b	#\clr_int,(a5)		// clear int pending
 
-                movem.l	(a7),d0/a5		// restore registers
-                addq.l	#8,a7
-                move.l	\vector,-(a7)
+                movem.l	(sp),d0/a5		// restore registers
+                addq.l	#8,sp
+                move.l	\vector,-(sp)
                 move	#0x2\int_mask\()00,sr
                 rts
                 .endm
@@ -323,7 +323,7 @@ init_vec_loop:
 vector_table_start:
 std_exc_vec:
                 //move.w	#0x2700,sr		// disable interrupt
-                subq.l	#8,a7
+                subq.l	#8,sp
                 movem.l	d0/a5,(sp)		// save registers
                 move.w	8(sp),d0		// fetch vector
                 and.l	#0x3fc,d0		// mask out vector number
@@ -359,12 +359,12 @@ noprint:
                 move.l	(a5),d0			// fetch exception routine address
 
                 move.l	4(sp),a5		// restore a5
-                move.l	d0,4(a7)		// store exception routine address
+                move.l	d0,4(sp)		// store exception routine address
 
-                //move.w	10(a7),d0		// restore original SR
+                //move.w	10(sp),d0	// restore original SR
                 //bset	#13,d0			// set supervisor bit
-                //move.w	d0,sr			//
-                move.l	(a7)+,d0		// restore d0
+                //move.w	d0,sr		//
+                move.l	(sp)+,d0		// restore d0
                 rts				// jump to exception routine
 
 exception_text:
@@ -433,9 +433,9 @@ bus_error:
 
 zero_divide:
                 move.w	#0x2700,sr		// disable interrupt
-                move.l	a0,-(a7)
-                move.l	d0,-(a7)
-                move.l	12(a7),a0		// pc
+                move.l	a0,-(sp)
+                move.l	d0,-(sp)
+                move.l	12(sp),a0		// pc
                 move.w	(a0)+,d0		// command word
                 btst	#7,d0			// long?
                 beq	zd_word			// nein->
@@ -457,9 +457,9 @@ zd_nal:	cmp.w	#0x3c,d0			// immediate?
                 beq	zd_end			// no
                 addq.l	#2,a0
 zd_end:
-                move.l	a0,12(a7)
-                move.l	(a7)+,d0
-                move.l	(a7)+,a0
+                move.l	a0,12(sp)
+                move.l	(sp)+,d0
+                move.l	(sp)+,a0
                 rte
 
 #ifdef _NOT_USED_
@@ -491,7 +491,7 @@ irq1:
                 irq	0x64,1,0x02
 
 irq2:				// hbl
-                                                //		move.b	#3,2(a7)
+                                                //		move.b	#3,2(sp)
                                                 //		rte
                 irq	0x68,2,0x04
 
@@ -549,8 +549,8 @@ irq5:						// irq5 is tied to PCI INTC# and PCI INTD# on the M5484LITE
 
 irq6:		// MFP interrupt from FPGA
                 move.w	#0x2700,sr		// disable interrupt
-                subq.l	#8,a7
-                movem.l	d0/a5,(a7)		// save registers
+                subq.l	#8,sp
+                movem.l	d0/a5,(sp)		// save registers
 
                 lea	MCF_EPORT_EPFR,a5	// clear int6 from edge port
                 bset	#6,(a5)
@@ -564,8 +564,8 @@ irq6:		// MFP interrupt from FPGA
                 cmp.l	(a5),d0			// time reached?
                 ble	irq6_non_sca		// not yet
 
-                lea	-28(a7),a7		// save more registers
-                movem.l	d0-d4/a0-a1,(a7)	//
+                lea	-7 * 4(sp),sp		// save more registers
+                movem.l	d0-d4/a0-a1,(sp)	//
                 clr.l	d3			// beginn mit 0
                 // jsr	_flush_and_invalidate_caches FIXME: why should we need that?
 
@@ -641,8 +641,8 @@ non_acsi_dma:
                 bne	irq6_1
                 tst.b	2(a5)
                 bne	irq6_1
-                movem.l	(a7),d0/a5
-                addq.l	#8,a7
+                movem.l	(sp),d0/a5
+                addq.l	#8,sp
                 rte
 irq6_1:
                 lea	MCF_GPIO_PODR_FEC1L,a5
@@ -658,9 +658,9 @@ irq6_2:
                 move.l	0xF0020000,a5		// vector holen
                 add.l	_rt_vbr,a5		// basis
                 move.l	(a5),d0			// vector holen
-                move.l	4(a7),a5		// a5 zurück
-                move.l	d0,4(a7)		// vector eintragen
-                move.l	(a7)+,d0		// d0 zurück
+                move.l	4(sp),a5		// a5 zurück
+                move.l	d0,4(sp)		// vector eintragen
+                move.l	(sp)+,d0		// d0 zurück
                 move	#0x2600,sr
                 rts
 
@@ -674,8 +674,8 @@ blinker:.long	0
  * pseudo dma
  */
 acsi_dma:					// atari dma
-                move.l  a1,-(a7)
-                move.l  d1,-(a7)
+                move.l  a1,-(sp)
+                move.l  d1,-(sp)
 
                 lea	MCF_PSC0_PSCTB_8BIT,a1	// ++ vr
                 mchar move.l, 'D,'M','A,'\ ,(a1)
@@ -730,8 +730,8 @@ acsi_dma_end:
                 move.w	#0x0d0a,d1
                 move.w	d1,MCF_PSC0_PSCTB_8BIT
 
-                move.l	(a7)+,d1
-                move.l	(a7)+,a1
+                move.l	(sp)+,d1
+                move.l	(sp)+,a1
                 rts
 /*
  * irq 7 = pseudo bus error
@@ -861,7 +861,7 @@ video_chg_end:
                 nop
                 bset.b	#0,3(a0)
                 movem.l	(sp),d0-d4/a0-a1	// restore saved registers
-                lea	7 * 4(sp),a7
+                lea	7 * 4(sp),sp
                 rte
 #endif /* MACHINE_FIREBEE */
 
