@@ -97,7 +97,8 @@ void flush_icache_range(void *address, size_t size)
 
 	if (start_set > end_set) {
 		/* from the begining to the lowest address */
-		for (set = 0; set <= end_set; set += (0x10 - 3)) {
+        for (set = 0; set <= end_set; set += (0x10 - 3))
+        {
 			__asm__ __volatile__(
 						"       cpushl  ic,(%[set])         \n\t"
 						"       addq.l  #1,%[set]           \n\t"
@@ -181,4 +182,58 @@ void flush_dcache_range(void *address, size_t size)
 					: "cc" /* clobbered registers */
 		);
 	}
+}
+
+/*
+ * flush and invalidate a specific region from the both caches. We do not know if the area is cached
+ * at all, we do not know in which of the four ways it is cached, but we know the index where they
+ * would be cached if they are, so we only need to flush and invalidate only a subset of the 512 index
+ * entries, but all four ways.
+ */
+void flush_cache_range(void *address, size_t size)
+{
+    unsigned long set;
+    unsigned long start_set;
+    unsigned long end_set;
+    void *endaddr;
+
+    endaddr = address + size;
+    start_set = (uint32_t) address & _DCACHE_SET_MASK;
+    end_set = (uint32_t) endaddr & _DCACHE_SET_MASK;
+
+    if (start_set > end_set) {
+        /* from the begining to the lowest address */
+        for (set = 0; set <= end_set; set += (0x10 - 3))
+        {
+            __asm__ __volatile__(
+                        "       cpushl  bc,(%[set])         \n\t"
+                        "       addq.l  #1,%[set]           \n\t"
+                        "       cpushl  bc,(%[set])         \n\t"
+                        "       addq.l  #1,%[set]           \n\t"
+                        "       cpushl  bc,(%[set])         \n\t"
+                        "       addq.l  #1,%[set]           \n\t"
+                        "       cpushl  bc,(%[set])         \n\t"
+                        : /* output parameters */
+                        : [set] "a" (set)
+                        : "cc" /* clobbered registers */
+            );
+        }
+        /* next loop will finish the cache ie pass the hole */
+        end_set = LAST_DCACHE_ADDR;
+    }
+    for (set = start_set; set <= end_set; set += (0x10 - 3))
+    {
+        __asm__ __volatile__(
+                    "       cpushl      bc,(%[set])     \n\t"
+                    "       addq.l      #1,%[set]       \n\t"
+                    "       cpushl      bc,(%[set])     \n\t"
+                    "       addq%.l     #1,%[set]       \n\t"
+                    "       cpushl      bc,(%[set])     \n\t"
+                    "       addq.l      #1,%[set]       \n\t"
+                    "       cpushl      bc,(%[set])     \n\t"
+                    : /* output parameters */
+                    : [set] "a" (set)
+                    : "cc" /* clobbered registers */
+        );
+    }
 }
