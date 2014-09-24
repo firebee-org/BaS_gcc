@@ -54,6 +54,7 @@
 #define CF_CACR_ICINVA      (0x00000100) /* Instr Cache Invalidate All       */
 #define CF_CACR_IDSP        (0x00000080) /* Ins default supervisor-protect   */
 #define CF_CACR_EUSP        (0x00000020) /* Switch stacks in user mode       */
+#define CF_CACR_DF          (0x00000010) /* Disable FPU                      */
 
 #define _DCACHE_SET_MASK ((DCACHE_SIZE/64-1)<<CACHE_WAYS)
 #define _ICACHE_SET_MASK ((ICACHE_SIZE/64-1)<<CACHE_WAYS)
@@ -83,7 +84,7 @@ extern uint32_t cacr_get(void);
 extern void cacr_set(uint32_t);
 extern void flush_icache_range(void *address, size_t size);
 extern void flush_dcache_range(void *address, size_t size);
-
+extern void flush_cache_range(void *address, size_t size);
 
 
 #endif /* _CACHE_H_ */

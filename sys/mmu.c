@@ -347,7 +347,10 @@ void mmu_init(void)
 	 * video RAM: read write execute normal write true
 	 */
 	flags.cache_mode = CACHE_WRITETHROUGH;
+    flags.protection = SV_USER;
 	flags.page_id = SCA_PAGE_ID;
+    flags.access = ACCESS_READ | ACCESS_WRITE | ACCESS_EXECUTE;
+    flags.locked = true;
 	mmu_map_page(0x00d00000, 0x60d00000, MMU_PAGE_SIZE_1M, &flags);
 
 	video_tlb = 0x2000;						/* set page as video page */
