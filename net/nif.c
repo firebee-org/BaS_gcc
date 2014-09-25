@@ -11,9 +11,6 @@
 #include "bas_types.h"
 #include "bas_printf.h"
 
-#include <stdint.h>
-#include <stdbool.h>
-
 #define DBG_NIF
 #ifdef DBG_NIF
 #define dbg(format, arg...) do { xprintf("DEBUG: %s(): " format, __FUNCTION__, ##arg); } while (0)
@@ -56,13 +53,13 @@ void nif_protocol_handler(NIF *nif, uint16_t protocol, NBUF *pNbuf)
 	{
 		if (nif->protocol[index].protocol == protocol)
 		{
-            dbg("call protocol handler for protocol %d at %p\r\n", protocol,
+			dbg("call protocol handler for protocol %d at %p\r\n", protocol,
 						nif->protocol[index].handler);
 			nif->protocol[index].handler(nif,pNbuf);
 			return;
 		}
 	}
-    dbg("no protocol handler found for protocol %d\r\n", protocol);
+	dbg("no protocol handler found for protocol %d\r\n", protocol);
 }
 
 void *nif_get_protocol_info(NIF *nif, uint16_t protocol)
@@ -87,12 +84,12 @@ int nif_bind_protocol(NIF *nif, uint16_t protocol, void (*handler)(NIF *,NBUF *)
 {
 	/*
 	 * This function registers 'protocol' as a supported
-	 * protocol in 'nif'.  
+	 * protocol in 'nif'.
 	 */
 	if (nif->num_protocol < (MAX_SUP_PROTO - 1))
 	{
 		nif->protocol[nif->num_protocol].protocol = protocol;
-        nif->protocol[nif->num_protocol].handler = (void(*)(NIF *, NBUF *)) handler;
+		nif->protocol[nif->num_protocol].handler = (void(*)(NIF *, NBUF *)) handler;
 		nif->protocol[nif->num_protocol].info = info;
 		++nif->num_protocol;
 

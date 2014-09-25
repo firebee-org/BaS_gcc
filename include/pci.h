@@ -21,7 +21,7 @@
  *      Author: Markus Fröschle
  */
 
-#include <stdint.h>
+#include <bas_types.h>
 #include "util.h" 	/* for swpX() */
 
 #define	 PCI_MEMORY_OFFSET	(0x80000000)

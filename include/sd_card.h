@@ -31,7 +31,7 @@
 #define _SD_CARD_H_
 
 #include <MCF5475.h>
-#include <stdint.h>
+#include <bas_types.h>
 
 extern void sd_card_init(void);
 

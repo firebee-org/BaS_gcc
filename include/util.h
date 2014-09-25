@@ -25,7 +25,7 @@
 #ifndef UTIL_H_
 #define UTIL_H_
 
-#include <stdint.h>
+#include <bas_types.h>
 
 #define NOP() __asm__ __volatile__("nop\n\t" : : : "memory")
 
@@ -59,7 +59,7 @@ static inline uint32_t swpl(uint32_t l)
 	register uint32_t result asm("d0");
 
 	__asm__ __volatile__
-	(						
+	(
 		"lea		%[input],a0\n\t"				\
 		"mvz.b	3(a0),%[output]\n\t"			\
 		"lsl.l	#8,%[output]\n\t"				\
@@ -74,7 +74,7 @@ static inline uint32_t swpl(uint32_t l)
 	);
 	return result;
 }
-	
+
 
 /*
  * WORD swpw2(ULONG val);
@@ -85,17 +85,17 @@ static inline uint32_t swpl(uint32_t l)
 #define swpw2(a)                          \
   __extension__                           \
   ({unsigned long _tmp;                   \
-    __asm__ __volatile__                  \
-    ("move.b  (%1),%0\n\t"                \
-     "move.b  1(%1),(%1)\n\t"             \
-     "move.b  %0,1(%1)\n\t"               \
-     "move.b  2(%1),%0\n\t"               \
-     "move.b  3(%1),2(%1)\n\t"            \
-     "move.b  %0,3(%1)"                   \
-    : "=d"(_tmp)     /* outputs */        \
-    : "a"(&a)        /* inputs  */        \
-    : "cc", "memory" /* clobbered */      \
-    );                                    \
+	__asm__ __volatile__                  \
+	("move.b  (%1),%0\n\t"                \
+	 "move.b  1(%1),(%1)\n\t"             \
+	 "move.b  %0,1(%1)\n\t"               \
+	 "move.b  2(%1),%0\n\t"               \
+	 "move.b  3(%1),2(%1)\n\t"            \
+	 "move.b  %0,3(%1)"                   \
+	: "=d"(_tmp)     /* outputs */        \
+	: "a"(&a)        /* inputs  */        \
+	: "cc", "memory" /* clobbered */      \
+	);                                    \
   })
 
 /*
@@ -144,10 +144,10 @@ __extension__                             \
 #define regsafe_call(addr)                         \
 __extension__                                      \
 ({__asm__ volatile ("lea     -60(sp),sp\n\t"       \
-                    "movem.l d0-d7/a0-a6,(sp)");   \
+					"movem.l d0-d7/a0-a6,(sp)");   \
   ((void (*) (void)) addr)();                      \
   __asm__ volatile ("movem.l (sp),d0-d7/a0-a6\n\t" \
-                    "lea     60(sp),sp");          \
+					"lea     60(sp),sp");          \
 })
 
 

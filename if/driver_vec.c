@@ -23,8 +23,7 @@
  *      Author: Markus Fröschle
  */
 
-#include <stdint.h>
-#include <stddef.h>
+#include <bas_types.h>
 #include "version.h"
 #include "xhdi_sd.h"
 #include "dma.h"

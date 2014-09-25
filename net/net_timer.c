@@ -5,9 +5,8 @@
  *
  * Notes:
  */
+
 #include "net_timer.h"
-#include <stdint.h>
-#include <stdbool.h>
 #include "bas_printf.h"
 #include "MCF5475.h"
 #include "interrupts.h"
@@ -43,12 +42,12 @@ int timer_default_isr(void *not_used, NET_TIMER *t)
 {
 	(void) not_used;
 
-	/* 
-	 * Clear the pending event 
+	/*
+	 * Clear the pending event
 	 */
 	MCF_GPT_GMS(t->ch) = 0;
 
-    dbg("timer isr called for timer channel %d\r\n");
+	dbg("timer isr called for timer channel %d\r\n");
 
 	/*
 	 * Clear the reference - the desired seconds have expired
@@ -90,8 +89,8 @@ bool timer_set_secs(uint8_t ch, uint32_t secs)
 	 */
 	MCF_GPT_GMS(ch) = 0;
 
-	/* 
-	 * Get the timeout in seconds 
+	/*
+	 * Get the timeout in seconds
 	 */
 	timeout = (uint16_t)(secs * net_timer[ch].cnt);
 
@@ -119,21 +118,21 @@ bool timer_set_secs(uint8_t ch, uint32_t secs)
 }
 
 uint32_t timer_get_reference(uint8_t ch)
-{   
+{
 	return (uint32_t) net_timer[ch].reference;
 }
 
 bool timer_init(uint8_t ch, uint8_t lvl, uint8_t pri)
 {
-	/* 
+	/*
 	 * Initialize the timer to expire after one second
-	 * 
+	 *
 	 * This routine should only be called by the project (board) specific
 	 * initialization code.
 	 */
 	if (!((ch <= 3) && (lvl <= 7) && (lvl >= 1) && (pri <= 7)))
 	{
-        dbg("illegal parameters (ch=%d, lvl=%d, pri=%d)\r\n", ch, lvl, pri);
+		dbg("illegal parameters (ch=%d, lvl=%d, pri=%d)\r\n", ch, lvl, pri);
 
 		return false;
 	}
@@ -143,7 +142,7 @@ bool timer_init(uint8_t ch, uint8_t lvl, uint8_t pri)
 	 */
 	MCF_GPT_GMS(ch) = 0;
 
-	/* 
+	/*
 	 * Save off the channel, and interrupt lvl/pri information
 	 */
 	net_timer[ch].ch = ch;
@@ -153,16 +152,16 @@ bool timer_init(uint8_t ch, uint8_t lvl, uint8_t pri)
 	/*
 	 * Register the timer interrupt handler
 	 */
-	if (!isr_register_handler(TIMER_VECTOR(ch), 
+	if (!isr_register_handler(TIMER_VECTOR(ch),
 				(int (*)(void *,void *)) timer_default_isr,
-				NULL, 
+				NULL,
 				(void *) &net_timer[ch])
 	   )
 	{
-        dbg("could not register timer interrupt handler\r\n");
+		dbg("could not register timer interrupt handler\r\n");
 		return false;
 	}
-    dbg("timer handler registered\r\n", __FUNCTION__);
+	dbg("timer handler registered\r\n", __FUNCTION__);
 
 	/*
 	 * Calculate the require CNT value to get a 1 second timeout
@@ -172,9 +171,9 @@ bool timer_init(uint8_t ch, uint8_t lvl, uint8_t pri)
 	 * CNT = Clk Freq / PRE
 	 *
 	 * The system clock frequency is defined as SYSTEM_CLOCK and
-	 * is given in MHz. We need to multiple it by 1000000 to get the 
-	 * true value.  If we assume PRE to be the maximum of 0xFFFF, 
-	 * then the CNT value needed to achieve a 1 second timeout is 
+	 * is given in MHz. We need to multiple it by 1000000 to get the
+	 * true value.  If we assume PRE to be the maximum of 0xFFFF,
+	 * then the CNT value needed to achieve a 1 second timeout is
 	 * given by:
 	 *
 	 * CNT = SYSTEM_CLOCK * (1000000/0xFFFF)
@@ -182,10 +181,10 @@ bool timer_init(uint8_t ch, uint8_t lvl, uint8_t pri)
 	net_timer[ch].pre = 0xFFFF;
 	net_timer[ch].cnt = (uint16_t) ((SYSCLK / 1000) * (1000000 / 0xFFFF));
 
-	/* 
-	 * Save off the appropriate mode select register value 
+	/*
+	 * Save off the appropriate mode select register value
 	 */
-	net_timer[ch].gms = (0 
+	net_timer[ch].gms = (0
 			| MCF_GPT_GMS_TMS_GPIO
 			| MCF_GPT_GMS_IEN
 			| MCF_GPT_GMS_SC

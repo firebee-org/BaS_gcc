@@ -30,5 +30,6 @@
 
 #include <stdint.h>
 #include <stdbool.h>
+#include <stddef.h>		/* for sizeof() etc. */
 
 #endif /* BAS_TYPES_H_ */
