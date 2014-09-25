@@ -3,6 +3,7 @@
  *
  * Handle interrupts, the levels.
  *
+ *
  * This file is part of BaS_gcc.
  *
  * BaS_gcc is free software: you can redistribute it and/or modify
@@ -224,7 +225,7 @@ int pic_interrupt_handler(void *arg1, void *arg2)
 		uint8_t *rtc_data = (uint8_t *) 0xffff8963;
 		int index = 0;
 
-		xprintf("PIC interrupt requesting RTC data\r\n");
+		xprintf("PIC interrupt: requesting RTC data\r\n");
 
 		MCF_PSC3_PSCTB_8BIT = 0x82;		// header byte to PIC
 		do

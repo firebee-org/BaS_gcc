@@ -46,12 +46,6 @@
 		.extern _irq7_handler
 
 /* Register read/write macros */
-#define MCF_MMU_MMUCR            			__MMUBAR
-#define MCF_MMU_MMUOR                       __MMUBAR+0x04
-#define MCF_MMU_MMUSR                       __MMUBAR+0x08
-#define MCF_MMU_MMUAR                       __MMUBAR+0x10
-#define MCF_MMU_MMUTR                       __MMUBAR+0x14
-#define MCF_MMU_MMUDR                       __MMUBAR+0x18
 
 #define MCF_EPORT_EPPAR                     __MBAR+0xF00
 #define MCF_EPORT_EPDDR                     __MBAR+0xF04
@@ -122,13 +116,14 @@
 		.equ	vbasehi, 0xffff8201
 
 //mmu ---------------------------------------------------
+
 /* Register read/write macros */
 #define MCF_MMU_MMUCR	    __MMUBAR
-#define MCF_MMU_MMUOR	    __MMUBAR+0x04
-#define MCF_MMU_MMUSR	    __MMUBAR+0x08
-#define MCF_MMU_MMUAR	    __MMUBAR+0x10
-#define MCF_MMU_MMUTR	    __MMUBAR+0x14
-#define MCF_MMU_MMUDR	    __MMUBAR+0x18
+#define MCF_MMU_MMUOR	    __MMUBAR + 0x04
+#define MCF_MMU_MMUSR	    __MMUBAR + 0x08
+#define MCF_MMU_MMUAR	    __MMUBAR + 0x10
+#define MCF_MMU_MMUTR	    __MMUBAR + 0x14
+#define MCF_MMU_MMUDR	    __MMUBAR + 0x18
 
 
 /* Bit definitions and macros for MCF_MMU_MMUCR */
@@ -136,52 +131,45 @@
 #define MCF_MMU_MMUCR_ASM   (0x2)
 
 /* Bit definitions and macros for MCF_MMU_MMUOR */
-#define MCF_MMU_MMUOR_UAA   (0x1)
-#define MCF_MMU_MMUOR_ACC   (0x2)
-#define MCF_MMU_MMUOR_RW    (0x4)
-#define MCF_MMU_MMUOR_ADR   (0x8)
-#define MCF_MMU_MMUOR_ITLB  (0x10)
-#define MCF_MMU_MMUOR_CAS   (0x20)
-#define MCF_MMU_MMUOR_CNL   (0x40)
-#define MCF_MMU_MMUOR_CA    (0x80)
-#define MCF_MMU_MMUOR_STLB  (0x100)
-#define MCF_MMU_MMUOR_AA(x) (((x)&0xFFFF)<<0x10)
+#define MCF_MMU_MMUOR_UAA   (0x1)                       /* update allocation address, i.e. write to TLB */
+#define MCF_MMU_MMUOR_ACC   (0x2)                       /* activate access to TLB */
+#define MCF_MMU_MMUOR_RW    (0x4)                       /* read/write TLB */
+#define MCF_MMU_MMUOR_ADR   (0x8)                       /* search by address/TLB address */
+#define MCF_MMU_MMUOR_ITLB  (0x10)                      /* act on instruction/data TLBs */
+#define MCF_MMU_MMUOR_CAS   (0x20)                      /* clear all unlocked TLBs with matching ASID */
+#define MCF_MMU_MMUOR_CNL   (0x40)                      /* clear all unlocked TLBs regardless of ASID */
+#define MCF_MMU_MMUOR_CA    (0x80)                      /* clear all TLBs */
+#define MCF_MMU_MMUOR_STLB  (0x100)                     /* search TLBs */
+#define MCF_MMU_MMUOR_AA(x) (((x) & 0xFFFF) << 0x10)    /* TLB allocation address */
 
 /* Bit definitions and macros for MCF_MMU_MMUSR */
-#define MCF_MMU_MMUSR_HIT   (0x2)
-#define MCF_MMU_MMUSR_WF    (0x8)
-#define MCF_MMU_MMUSR_RF    (0x10)
-#define MCF_MMU_MMUSR_SPF   (0x20)
+#define MCF_MMU_MMUSR_HIT   (0x2)                       /* last lookup had a hit in TLB */
+#define MCF_MMU_MMUSR_WF    (0x8)                       /* indicate write fault */
+#define MCF_MMU_MMUSR_RF    (0x10)                      /* indicate read fault */
+#define MCF_MMU_MMUSR_SPF   (0x20)                      /* indicate supervisor protect fault */
 
 /* Bit definitions and macros for MCF_MMU_MMUAR */
-#define MCF_MMU_MMUAR_FA(x) (((x)&0xFFFFFFFF)<<0)
+#define MCF_MMU_MMUAR_FA(x) (((x) & 0xFFFFFFFF) << 0)
 
 /* Bit definitions and macros for MCF_MMU_MMUTR */
-#define MCF_MMU_MMUTR_V	    (0x1)
-#define MCF_MMU_MMUTR_SG    (0x2)
-#define MCF_MMU_MMUTR_ID(x) (((x)&0xFF)<<0x2)
-#define MCF_MMU_MMUTR_VA(x) (((x)&0x3FFFFF)<<0xA)
+#define MCF_MMU_MMUTR_V	    (0x1)                       /* valid bit for TLB */
+#define MCF_MMU_MMUTR_SG    (0x2)                       /* set page as shared global */
+#define MCF_MMU_MMUTR_ID(x) (((x) & 0xFF) << 0x2)       /* ASID (address space id) of page */
+#define MCF_MMU_MMUTR_VA(x) (((x) & 0x3FFFFF) << 0xA)   /* virtual address of page */
 
 /* Bit definitions and macros for MCF_MMU_MMUDR */
-#define MCF_MMU_MMUDR_LK    (0x2)
-#define MCF_MMU_MMUDR_X	    (0x4)
-#define MCF_MMU_MMUDR_W	    (0x8)
-#define MCF_MMU_MMUDR_R	    (0x10)
-#define MCF_MMU_MMUDR_SP    (0x20)
-#define MCF_MMU_MMUDR_CM(x) (((x)&0x3)<<0x6)
-#define MCF_MMU_MMUDR_SZ(x) (((x)&0x3)<<0x8)
-#define MCF_MMU_MMUDR_PA(x) (((x)&0x3FFFFF)<<0xA)
+#define MCF_MMU_MMUDR_LK    (0x2)                       /* lock page */
+#define MCF_MMU_MMUDR_X	    (0x4)                       /* allow code execution in memory page */
+#define MCF_MMU_MMUDR_W	    (0x8)                       /* allow write to memory page */
+#define MCF_MMU_MMUDR_R	    (0x10)                      /* allow read from memory page */
+#define MCF_MMU_MMUDR_SP    (0x20)                      /* supervisor protect memory page */
+#define MCF_MMU_MMUDR_CM(x) (((x) & 0x3) << 0x6)        /* cache mode */
+#define MCF_MMU_MMUDR_SZ(x) (((x) & 0x3) << 0x8)        /* page size */
+#define MCF_MMU_MMUDR_PA(x) (((x) & 0x3FFFFF) << 0xA)   /* page physical address */
 
-#define	 std_mmutr	    (MCF_MMU_MMUTR_SG|MCF_MMU_MMUTR_V)
-#define	 writethrough_mmudr (MCF_MMU_MMUDR_SZ(00)|MCF_MMU_MMUDR_CM(00)|MCF_MMU_MMUDR_R|MCF_MMU_MMUDR_W|MCF_MMU_MMUDR_X)
-#define	 copyback_mmudr	    (MCF_MMU_MMUDR_SZ(00)|MCF_MMU_MMUDR_CM(01)|MCF_MMU_MMUDR_R|MCF_MMU_MMUDR_W|MCF_MMU_MMUDR_X)
-
-		// equates for (experimental) video page copying via Coldfire DMA
-		.equ	MCD_SINGLE_DMA, 0x100
-		.equ	MCD_TT_FLAGS_CW, 0x2
-		.equ	MCD_TT_FLAGS_RL, 0x1
-		.equ	MCD_TT_FLAGS_SP, 0x4
-		.equ	DMA_ALWAYS, 0
+#define	 std_mmutr	    (MCF_MMU_MMUTR_SG | MCF_MMU_MMUTR_V)
+#define	 writethrough_mmudr (MCF_MMU_MMUDR_SZ(00) | MCF_MMU_MMUDR_CM(00) | MCF_MMU_MMUDR_R | MCF_MMU_MMUDR_W | MCF_MMU_MMUDR_X)
+#define	 copyback_mmudr	    (MCF_MMU_MMUDR_SZ(00) | MCF_MMU_MMUDR_CM(01) | MCF_MMU_MMUDR_R | MCF_MMU_MMUDR_W | MCF_MMU_MMUDR_X)
 
 /*
  *
@@ -790,6 +778,7 @@ handler_gpt0:
  */
 		.global	_lowlevel_isr_handler
 		.extern	_isr_execute_handler
+
 
 _lowlevel_isr_handler:
 		move.w	#0x2700,sr		// do not disturb
