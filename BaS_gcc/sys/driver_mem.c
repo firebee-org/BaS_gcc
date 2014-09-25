@@ -11,8 +11,7 @@
  * option any later version.
  */
 
-#include <stdint.h>
-#include <stdbool.h>
+#include <bas_types.h>
 #include "bas_string.h"
 #include "bas_printf.h"
 #include "usb.h"

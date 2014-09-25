@@ -23,8 +23,7 @@
  *      Author: Markus Fröschle
  */
 
-#include <stdint.h>
-#include <stdbool.h>
+#include <bas_types.h>
 #include "MCF5475.h"
 #include "bas_utils.h"
 #include "bas_printf.h"

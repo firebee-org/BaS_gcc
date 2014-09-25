@@ -25,7 +25,6 @@
  *      Author: mfro
  */
 
-#include <stdint.h>
 #include <bas_types.h>
 #include <MCF5475.h>
 

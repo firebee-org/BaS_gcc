@@ -37,7 +37,7 @@
 ****************************************************************************/
 /* $XFree86: xc/extras/x86emu/src/x86emu/x86emu/debug.h,v 1.4 2000/11/21 23:10:27 tsi Exp $ */
 
-#include <stdint.h>
+#include <bas_types.h>
 #include "bas_printf.h"
 
 /*
@@ -135,7 +135,7 @@
 
 #define SAVE_IP_CS(x,y)                               			\
 	if (DEBUG_DECODE() | DEBUG_TRACECALL() | DEBUG_BREAK() \
-              | DEBUG_IO_TRACE() | DEBUG_SAVE_IP_CS()) { \
+			  | DEBUG_IO_TRACE() | DEBUG_SAVE_IP_CS()) { \
 		M.x86.saved_cs = x;                          			\
 		M.x86.saved_ip = y;                          			\
 	}

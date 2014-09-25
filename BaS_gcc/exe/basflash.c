@@ -21,10 +21,9 @@
  *      Author: Markus Fröschle
  */
 
-#include <stdint.h>
-#include <stdbool.h>
-#include "bas_string.h"
+#include <bas_types.h>
 #include "bas_printf.h"
+#include "bas_string.h"
 #include "diskio.h"
 #include "ff.h"
 #include "s19reader.h"
@@ -220,190 +219,190 @@ static const int num_flash_areas = sizeof(flash_areas) / sizeof(struct romram);
  */
 void amd_flash_sector_erase(int n)
 {
-    volatile AMD_FLASH_CELL status;
+	volatile AMD_FLASH_CELL status;
 
-    pFlash[0x555] = AMD_FLASH_CMD_DATA(0xAA);
-    pFlash[0x2AA] = AMD_FLASH_CMD_DATA(0x55);
-    pFlash[0x555] = AMD_FLASH_CMD_DATA(0x80);
-    pFlash[0x555] = AMD_FLASH_CMD_DATA(0xAA);
-    pFlash[0x2AA] = AMD_FLASH_CMD_DATA(0x55);
-    pFlash[SADDR(n)] = AMD_FLASH_CMD_DATA(0x30);
+	pFlash[0x555] = AMD_FLASH_CMD_DATA(0xAA);
+	pFlash[0x2AA] = AMD_FLASH_CMD_DATA(0x55);
+	pFlash[0x555] = AMD_FLASH_CMD_DATA(0x80);
+	pFlash[0x555] = AMD_FLASH_CMD_DATA(0xAA);
+	pFlash[0x2AA] = AMD_FLASH_CMD_DATA(0x55);
+	pFlash[SADDR(n)] = AMD_FLASH_CMD_DATA(0x30);
 
-    do
-        status = pFlash[SADDR(n)];
-    while ((status & AMD_FLASH_CMD_DATA(0x80)) != AMD_FLASH_CMD_DATA(0x80));
+	do
+		status = pFlash[SADDR(n)];
+	while ((status & AMD_FLASH_CMD_DATA(0x80)) != AMD_FLASH_CMD_DATA(0x80));
 
-    /*
-     * Place device in read mode
-     */
-    pFlash[0] = AMD_FLASH_CMD_DATA(0xAA);
-    pFlash[0] = AMD_FLASH_CMD_DATA(0x55);
-    pFlash[0] = AMD_FLASH_CMD_DATA(0xF0);
+	/*
+	 * Place device in read mode
+	 */
+	pFlash[0] = AMD_FLASH_CMD_DATA(0xAA);
+	pFlash[0] = AMD_FLASH_CMD_DATA(0x55);
+	pFlash[0] = AMD_FLASH_CMD_DATA(0xF0);
 }
 
 int amd_flash_erase(void *start, int bytes, void (*putchar)(int))
 {
-    int i, ebytes = 0;
+	int i, ebytes = 0;
 
-    if (bytes == 0)
-        return 0;
+	if (bytes == 0)
+		return 0;
 
-    for (i = 0; i < AMD_FLASH_SECTORS; i++)
-    {
-        if (start >= (void *)((void *) pFlash + SOFFSET(i)) &&
-            start <= (void *)((void *) pFlash + SOFFSET(i) + (SSIZE(i) - 1)))
-        {
-            break;
-        }
-    }
+	for (i = 0; i < AMD_FLASH_SECTORS; i++)
+	{
+		if (start >= (void *)((void *) pFlash + SOFFSET(i)) &&
+			start <= (void *)((void *) pFlash + SOFFSET(i) + (SSIZE(i) - 1)))
+		{
+			break;
+		}
+	}
 
-    while (ebytes < bytes)
-    {
-        if (putchar != NULL)
-        {
-            putchar('.');
-        }
-        amd_flash_sector_erase(i);
-        ebytes += SSIZE(i);
-        i++;
-    }
+	while (ebytes < bytes)
+	{
+		if (putchar != NULL)
+		{
+			putchar('.');
+		}
+		amd_flash_sector_erase(i);
+		ebytes += SSIZE(i);
+		i++;
+	}
 
-    if (putchar != NULL)
-    {
-        putchar(10);    /* LF */
-        putchar(13);    /* CR */
-    }
+	if (putchar != NULL)
+	{
+		putchar(10);    /* LF */
+		putchar(13);    /* CR */
+	}
 
-    return ebytes;
+	return ebytes;
 }
 
 void amd_flash_program_cell(AMD_FLASH_CELL *dst, AMD_FLASH_CELL data)
 {
-    volatile AMD_FLASH_CELL status;
-    int retry;
+	volatile AMD_FLASH_CELL status;
+	int retry;
 
-    pFlash[0x555] = AMD_FLASH_CMD_DATA(0xAA);
-    pFlash[0x2AA] = AMD_FLASH_CMD_DATA(0x55);
-    pFlash[0x555] = AMD_FLASH_CMD_DATA(0xA0);
-    *dst = data;
+	pFlash[0x555] = AMD_FLASH_CMD_DATA(0xAA);
+	pFlash[0x2AA] = AMD_FLASH_CMD_DATA(0x55);
+	pFlash[0x555] = AMD_FLASH_CMD_DATA(0xA0);
+	*dst = data;
 
-    /*
-     * Wait for program operation to finish
-     *  (Data# Polling Algorithm)
-     */
-    retry = 0;
-    while (1)
-    {
-        status = *dst;
-        if ((status & AMD_FLASH_CMD_DATA(0x80)) ==
-            (data & AMD_FLASH_CMD_DATA(0x80)))
-        {
-            break;
-        }
-        if (status & AMD_FLASH_CMD_DATA(0x20))
-        {
-            status = *dst;
-            if ((status & AMD_FLASH_CMD_DATA(0x80)) ==
-                (data & AMD_FLASH_CMD_DATA(0x80)))
-            {
-                break;
-            }
-            if (++retry > 1024)
-            {
-                break;
-            }
-        }
-    }
+	/*
+	 * Wait for program operation to finish
+	 *  (Data# Polling Algorithm)
+	 */
+	retry = 0;
+	while (1)
+	{
+		status = *dst;
+		if ((status & AMD_FLASH_CMD_DATA(0x80)) ==
+			(data & AMD_FLASH_CMD_DATA(0x80)))
+		{
+			break;
+		}
+		if (status & AMD_FLASH_CMD_DATA(0x20))
+		{
+			status = *dst;
+			if ((status & AMD_FLASH_CMD_DATA(0x80)) ==
+				(data & AMD_FLASH_CMD_DATA(0x80)))
+			{
+				break;
+			}
+			if (++retry > 1024)
+			{
+				break;
+			}
+		}
+	}
 }
 
 
 int amd_flash_program(void *dest, void *source, int bytes, int erase, void (*func)(void), void (*putchar)(int))
 {
-    AMD_FLASH_CELL *src, *dst;
-    int hashi=1,hashj=0;
-    char hash[5];
+	AMD_FLASH_CELL *src, *dst;
+	int hashi=1,hashj=0;
+	char hash[5];
 
-    hash[0]=8;  /* Backspace */
-    hash[1]=124;/* "|" */
-    hash[2]=47; /* "/" */
-    hash[3]=45; /* "-" */
-    hash[4]=92; /* "\" */
+	hash[0]=8;  /* Backspace */
+	hash[1]=124;/* "|" */
+	hash[2]=47; /* "/" */
+	hash[3]=45; /* "-" */
+	hash[4]=92; /* "\" */
 
-    src = (AMD_FLASH_CELL *)source;
-    dst = (AMD_FLASH_CELL *)dest;
+	src = (AMD_FLASH_CELL *)source;
+	dst = (AMD_FLASH_CELL *)dest;
 
-    /*
-     * Place device in read mode
-     */
-    pFlash[0] = AMD_FLASH_CMD_DATA(0xAA);
-    pFlash[0] = AMD_FLASH_CMD_DATA(0x55);
-    pFlash[0] = AMD_FLASH_CMD_DATA(0xF0);
+	/*
+	 * Place device in read mode
+	 */
+	pFlash[0] = AMD_FLASH_CMD_DATA(0xAA);
+	pFlash[0] = AMD_FLASH_CMD_DATA(0x55);
+	pFlash[0] = AMD_FLASH_CMD_DATA(0xF0);
 
-    /*
-     * Erase device if necessary
-     */
-    if (erase)
-    {
-        amd_flash_erase(dest, bytes, putchar);
-    }
+	/*
+	 * Erase device if necessary
+	 */
+	if (erase)
+	{
+		amd_flash_erase(dest, bytes, putchar);
+	}
 
-    /*
-     * Program device
-     */
-    while (bytes > 0)
-    {
-        amd_flash_program_cell(dst,*src);
+	/*
+	 * Program device
+	 */
+	while (bytes > 0)
+	{
+		amd_flash_program_cell(dst,*src);
 
-        /* Verify Write */
-        if (*dst == *src)
-        {
-            bytes -= AMD_FLASH_CELL_BYTES;
-            *dst++, *src++;
+		/* Verify Write */
+		if (*dst == *src)
+		{
+			bytes -= AMD_FLASH_CELL_BYTES;
+			*dst++, *src++;
 
-            if ((putchar != NULL))
-            {
-                /* Hash marks to indicate progress */
-                if (hashj == 0x1000)
-                {
-                    hashj = -1;
-                    putchar(hash[0]);
-                    putchar(hash[hashi]);
+			if ((putchar != NULL))
+			{
+				/* Hash marks to indicate progress */
+				if (hashj == 0x1000)
+				{
+					hashj = -1;
+					putchar(hash[0]);
+					putchar(hash[hashi]);
 
-                    hashi++;
-                    if (hashi == 5)
-                    {
-                        hashi=1;
-                    }
+					hashi++;
+					if (hashi == 5)
+					{
+						hashi=1;
+					}
 
-                }
-                hashj++;
-            }
-        }
-        else
-            break;
-    }
+				}
+				hashj++;
+			}
+		}
+		else
+			break;
+	}
 
-    /*
-     * Place device in read mode
-     */
-    pFlash[0] = AMD_FLASH_CMD_DATA(0xAA);
-    pFlash[0] = AMD_FLASH_CMD_DATA(0x55);
-    pFlash[0] = AMD_FLASH_CMD_DATA(0xF0);
+	/*
+	 * Place device in read mode
+	 */
+	pFlash[0] = AMD_FLASH_CMD_DATA(0xAA);
+	pFlash[0] = AMD_FLASH_CMD_DATA(0x55);
+	pFlash[0] = AMD_FLASH_CMD_DATA(0xF0);
 
-    if (putchar != NULL)
-    {
-        putchar(hash[0]);
-    }
+	if (putchar != NULL)
+	{
+		putchar(hash[0]);
+	}
 
-    /*
-     * If a function was passed in, call it now
-     */
-    if ((func != NULL))
-    {
-        func();
-    }
+	/*
+	 * If a function was passed in, call it now
+	 */
+	if ((func != NULL))
+	{
+		func();
+	}
 
-    return ((int)src - (int)source);
+	return ((int)src - (int)source);
 }
 
 /*
@@ -635,7 +634,7 @@ void basflash(void)
 						if (strlen(fileinfo.fname) >= 4
 								&& strncmp(
 										&fileinfo.fname[strlen(fileinfo.fname)
-										                - 4], srec_ext, 4) == 0) /* we have a .S19 file */
+														- 4], srec_ext, 4) == 0) /* we have a .S19 file */
 						{
 							/*
 							 * build path + filename

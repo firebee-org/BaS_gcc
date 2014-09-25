@@ -95,7 +95,7 @@
 /                   Changed option name _FS_SHARE to _FS_LOCK.
 /---------------------------------------------------------------------------*/
 
-#include <stdint.h>
+#include <bas_types.h>
 #include <ff.h>			/* FatFs configurations and declarations */
 #include <diskio.h>		/* Declarations of low level disk I/O functions */
 
@@ -356,11 +356,11 @@ typedef struct {
 uint32_t get_fattime (void)
 {
    return     ((uint32_t)(2012 - 1980) << 25)   /* Year = 2012 */
-         | ((uint32_t)1 << 21)            /* Month = 1 */
-         | ((uint32_t)1 << 16)            /* Day_m = 1*/
-         | ((uint32_t)0 << 11)            /* Hour = 0 */
-         | ((uint32_t)0 << 5)          /* Min = 0 */
-         | ((uint32_t)0 >> 1);            /* Sec = 0 */
+		 | ((uint32_t)1 << 21)            /* Month = 1 */
+		 | ((uint32_t)1 << 16)            /* Day_m = 1*/
+		 | ((uint32_t)0 << 11)            /* Hour = 0 */
+		 | ((uint32_t)0 << 5)          /* Min = 0 */
+		 | ((uint32_t)0 >> 1);            /* Sec = 0 */
 }
 
 /* Character code support macros */
@@ -970,7 +970,7 @@ FRESULT remove_chain (
 #if _USE_ERASE
 			if (ecl + 1 == nxt) {	/* Is next cluster contiguous? */
 				ecl = nxt;
-			} else {				/* End of contiguous clusters */ 
+			} else {				/* End of contiguous clusters */
 				rt[0] = clust2sect(fs, scl);					/* Start sector */
 				rt[1] = clust2sect(fs, ecl) + fs->csize - 1;	/* End sector */
 				disk_ioctl(fs->drv, CTRL_ERASE_SECTOR, rt);		/* Erase the block */
@@ -2190,7 +2190,7 @@ FRESULT chk_mounted (	/* FR_OK(0): successful, !=0: any error occurred */
 
 	/* Get fsinfo if available */
 	if (fmt == FS_FAT32) {
-	 	fs->fsi_flag = 0;
+		fs->fsi_flag = 0;
 		fs->fsi_sector = bsect + LD_WORD(fs->win+BPB_FSInfo);
 		if (disk_read(fs->drv, fs->win, fs->fsi_sector, 1) == RES_OK &&
 			LD_WORD(fs->win+BS_55AA) == 0xAA55 &&
@@ -2721,7 +2721,7 @@ FRESULT f_close (
 		FATFS *fs = fp->fs;;
 		res = validate(fp);
 		if (res == FR_OK) {
-			res = dec_lock(fp->lockid);	
+			res = dec_lock(fp->lockid);
 			unlock_fs(fs, FR_OK);
 		}
 #else
@@ -2820,7 +2820,7 @@ FRESULT f_getcwd (
 				res = dir_read(&dj);
 				if (res != FR_OK) break;
 				if (ccl == ld_clust(dj.fs, dj.dir)) break;	/* Found the entry */
-				res = dir_next(&dj, 0);	
+				res = dir_next(&dj, 0);
 			} while (res == FR_OK);
 			if (res == FR_NO_FILE) res = FR_INT_ERR;/* It cannot be 'not found'. */
 			if (res != FR_OK) break;

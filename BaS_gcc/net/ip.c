@@ -6,11 +6,10 @@
  *
  * Modifications:
  */
+#include <bas_types.h>
 #include "net.h"
 #include "bas_printf.h"
 #include "bas_string.h"
-#include <stdint.h>
-#include <stddef.h>
 
 
 #define IP_DEBUG
@@ -44,7 +43,7 @@ uint8_t *ip_get_myip(IP_INFO *info)
 	{
 		return (uint8_t *) &info->myip[0];
 	}
-    dbg("info is NULL!\n\t");
+	dbg("info is NULL!\n\t");
 	return 0;
 }
 
@@ -74,9 +73,9 @@ uint8_t *ip_resolve_route(NIF *nif, IP_ADDR_P destip)
 
 	info = nif_get_protocol_info(nif, ETH_FRM_IP);
 
-    if (memcmp(destip, bc, 4) == 0)
+	if (memcmp(destip, bc, 4) == 0)
 	{
-        dbg("destip is broadcast address, no gateway needed\r\n");
+		dbg("destip is broadcast address, no gateway needed\r\n");
 		return destip;
 	}
 
@@ -170,7 +169,7 @@ int ip_send(NIF *nif, uint8_t *dest, uint8_t *src, uint8_t protocol, NBUF *pNbuf
 		route = ip_resolve_route(nif, dest);
 		if (route == NULL)
 		{
-            dbg("Unable to locate %d.%d.%d.%d\r\n",
+			dbg("Unable to locate %d.%d.%d.%d\r\n",
 					dest[0], dest[1], dest[2], dest[3]);
 			return 0;
 		}
@@ -178,9 +177,9 @@ int ip_send(NIF *nif, uint8_t *dest, uint8_t *src, uint8_t protocol, NBUF *pNbuf
 	else
 	{
 		route = bc;
-        dbg("route = broadcast\r\n");
-        dbg("nif = %p\r\n", nif);
-        dbg("nif->send = %p\r\n", nif->send);
+		dbg("route = broadcast\r\n");
+		dbg("nif = %p\r\n", nif);
+		dbg("nif->send = %p\r\n", nif->send);
 	}
 
 	return nif->send(nif, route, &nif->hwa[0], ETH_FRM_IP, pNbuf);
@@ -282,7 +281,7 @@ void ip_handler(NIF *nif, NBUF *pNbuf)
 	 */
 	ip_frame_hdr *ipframe;
 
-    dbg("packet received\r\n");
+	dbg("packet received\r\n");
 
 	ipframe = (ip_frame_hdr *) &pNbuf->data[pNbuf->offset];
 
@@ -291,8 +290,8 @@ void ip_handler(NIF *nif, NBUF *pNbuf)
 	 */
 	if (!validate_ip_hdr(nif, ipframe))
 	{
-        dbg("not a valid IP packet!\r\n");
-		
+		dbg("not a valid IP packet!\r\n");
+
 		nbuf_free(pNbuf);
 		return;
 	}
@@ -312,7 +311,7 @@ void ip_handler(NIF *nif, NBUF *pNbuf)
 			udp_handler(nif,pNbuf);
 			break;
 		default:
-            dbg("no protocol handler registered for protocol %d\r\n",
+			dbg("no protocol handler registered for protocol %d\r\n",
 					__FUNCTION__, IP_PROTOCOL(ipframe));
 			nbuf_free(pNbuf);
 			break;

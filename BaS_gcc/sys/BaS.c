@@ -21,8 +21,7 @@
  * Copyright 2012        M. Froeschle
  */
 
-#include <stdint.h>
-#include <stdbool.h>
+#include <bas_types.h>
 
 #include "MCF5475.h"
 #include "startcf.h"

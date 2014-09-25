@@ -23,8 +23,7 @@
  * Copyright 2012        M. Froeschle
  */
 
-#include <stdint.h>
-#include <stdbool.h>
+#include <bas_types.h>
 
 #include "bas_printf.h"
 #include "bas_string.h"
@@ -345,10 +344,10 @@ static err_t verify(uint8_t *dst, uint8_t *src, uint32_t length)
  */
 static inline err_t srec_memcpy(uint8_t *dst, uint8_t *src, size_t n)
 {
-    err_t e = OK;
+	err_t e = OK;
 
-    memcpy((void *) dst, (void *) src, n);
-    return e;
+	memcpy((void *) dst, (void *) src, n);
+	return e;
 }
 
 void srec_execute(char *flasher_filename)
@@ -383,7 +382,7 @@ void srec_execute(char *flasher_filename)
 				{
 					/* next pass: copy data to destination */
 					xprintf("OK.\r\ncopy/flash data: ");
-                    err = read_srecords(flasher_filename, &start_address, &length, srec_memcpy);
+					err = read_srecords(flasher_filename, &start_address, &length, srec_memcpy);
 					if (err == OK)
 					{
 						/* next pass: verify data */

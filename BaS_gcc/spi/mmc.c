@@ -1,4 +1,3 @@
-#include <stdint.h>
 #include <bas_types.h>
 #include <sd_card.h>
 #include <bas_printf.h>
@@ -466,7 +465,7 @@ DSTATUS disk_initialize(uint8_t drv)
 	{
 		uint8_t buff[16];
 		res = disk_ioctl(0, MMC_GET_CSD, buff);
-		
+
 		if (res == RES_OK)
 		{
 			debug_printf("CSD of card:\r\n");

@@ -16,7 +16,7 @@
 #ifndef __MCF5475_H__
 #define __MCF5475_H__
 
-#include <stdint.h>
+#include <bas_types.h>
 /***
  * MCF5475 Derivative Memory map definitions from linker command files:
  * __MBAR, __MMUBAR, __RAMBAR0, __RAMBAR0_SIZE, __RAMBAR1, __RAMBAR1_SIZE

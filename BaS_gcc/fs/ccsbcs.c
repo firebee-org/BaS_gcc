@@ -26,7 +26,7 @@
 */
 
 #include <ff.h>
-#include <stdint.h>
+#include <bas_types.h>
 
 #if _CODE_PAGE == 437
 #define _TBLDEF 1

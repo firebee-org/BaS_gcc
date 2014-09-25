@@ -21,7 +21,7 @@
  *      Author: Markus Fröschle
  */
 
-#include <stdint.h>
+#include <bas_types.h>
 
 static uint32_t ownstack[4096];
 static uint32_t *stackptr = &ownstack[4095];

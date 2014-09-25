@@ -21,7 +21,7 @@
 extern "C" {
 #endif
 
-#include <stdint.h>
+#include <bas_types.h>
 #include <ffconf.h>		/* FatFs configuration options */
 
 #if _FATFS != _FFCONF

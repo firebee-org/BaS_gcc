@@ -9,10 +9,7 @@
  *
  */
 
-#include <stdint.h>
-#include <stdbool.h>
-#include <stddef.h>
-
+#include "bas_types.h"
 #include "bas_printf.h"
 #include "bas_string.h"
 #include "net.h"
@@ -103,7 +100,7 @@ static int tftp_ack(uint16_t blocknum)
 		nbuf_free(pNbuf);
 
 	return result;
-} 
+}
 
 static int tftp_error(uint16_t error_code, uint16_t server_port)
 {
@@ -172,7 +169,7 @@ void tftp_handler(NIF *nif, NBUF *pNbuf)
 					cnt = 0;
 				}
 				else
-				{   
+				{
 					/* Check the server's transfer ID */
 					if (tcxn.server_port != UDP_SOURCE(udpframe))
 					{
@@ -274,10 +271,10 @@ void tftp_handler(NIF *nif, NBUF *pNbuf)
 
 void tftp_end(int success)
 {
-	/* 
-	 * Following a successful transfer the caller should pass in 
-	 * true, there should have been no ERROR packets received, and 
-	 * the connection should have been marked as closed by the 
+	/*
+	 * Following a successful transfer the caller should pass in
+	 * true, there should have been no ERROR packets received, and
+	 * the connection should have been marked as closed by the
 	 * tftp_in_char() routine.
 	 */
 	if (success && !tcxn.error && (tcxn.open == false))
@@ -411,10 +408,10 @@ int tftp_write(NIF *nif, char *fn, IP_ADDR_P server, uint32_t begin, uint32_t en
 		/* Attempt to send the packet */
 		for (i = 0; i < 3; ++i)
 		{
-			result = udp_send(tcxn.nif, 
-					tcxn.server_ip, 
-					tcxn.my_port, 
-					tcxn.server_port, 
+			result = udp_send(tcxn.nif,
+					tcxn.server_ip,
+					tcxn.my_port,
+					tcxn.server_port,
 					pNbuf);
 
 			if (result == 1)
@@ -552,8 +549,8 @@ int tftp_in_char(void)
 
 	if (tcxn.next_char != NULL)
 	{
-		/* 
-		 * A buffer is already being worked on - grab next 
+		/*
+		 * A buffer is already being worked on - grab next
 		 * byte from it
 		 */
 		retval = *tcxn.next_char++;
@@ -561,7 +558,7 @@ int tftp_in_char(void)
 		{
 			/* The buffer is depleted; add it back to the free queue */
 			pNbuf = (NBUF *)queue_remove(&tcxn.queue);
-			
+
 			nbuf_free(pNbuf);
 			tcxn.next_char = NULL;
 		}

@@ -25,8 +25,7 @@
  *
  */
 
-#include <stdint.h>
-#include <stddef.h>
+#include <bas_types.h>
 
 /*
  * CACR Cache Control Register
