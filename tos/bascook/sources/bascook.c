@@ -105,36 +105,47 @@ int main(int argc, char *argv[])
 	struct driver_table *dt;
 	void *ssp;
 	void *old_vector;
+	char **sysbase = (char **) 0x4f2;
 
 	(void) Cconws("retrieve BaS driver interface\r\n");
 
-	ssp = (void *) Super(0L);
+	ssp = (void *) Super(0L);								/* go to supervisor mode, we are doing dirty tricks */
 
-	old_vector = Setexc(0x20, my_own_trap0_handler);		/* set our own temporarily */
-	dt = get_bas_drivers();									/* trap #1 */
-	(void) Setexc(0x20, old_vector);						/* restore original vector */
-
-	if (dt)
+	/*
+	 * first check if we are on EmuTOS, FireTOS want's to do everything itself
+	 */
+	if (* (long *)(*sysbase + 0x2c) == 0x45544f53)
 	{
-		struct generic_interface *ifc = &dt->interfaces[0];
+		old_vector = Setexc(0x20, my_own_trap0_handler);		/* set our own temporarily */
+		dt = get_bas_drivers();									/* trap #1 */
+		(void) Setexc(0x20, old_vector);						/* restore original vector */
 
-		printf("BaS driver table found at %p, BaS version is %d.%d\r\n", dt,
-				dt->bas_version, dt->bas_revision);
-
-		while (ifc->type != END_OF_DRIVERS)
+		if (dt)
 		{
-			printf("driver \"%s (%s)\" found,\r\n"
-				   "interface type is %d (%s),\r\n"
-				   "version %d.%d\r\n\r\n",
-					ifc->name, ifc->description, ifc->type, dt_to_str(ifc->type),
-					ifc->version, ifc->revision);
-			if (ifc->type == MCD_DRIVER)
+			struct generic_interface *ifc = &dt->interfaces[0];
+
+			printf("BaS driver table found at %p, BaS version is %d.%d\r\n", dt,
+					dt->bas_version, dt->bas_revision);
+
+			while (ifc->type != END_OF_DRIVERS)
 			{
-				setcookie(COOKIE_DMAC, (uint32_t) ifc->interface.dma);
-				printf("\r\nDMAC cookie set to %p\r\n", ifc->interface.dma);
+				printf("driver \"%s (%s)\" found,\r\n"
+					   "interface type is %d (%s),\r\n"
+					   "version %d.%d\r\n\r\n",
+						ifc->name, ifc->description, ifc->type, dt_to_str(ifc->type),
+						ifc->version, ifc->revision);
+				if (ifc->type == MCD_DRIVER)
+				{
+					setcookie(COOKIE_DMAC, (uint32_t) ifc->interface.dma);
+					printf("\r\nDMAC cookie set to %p\r\n", ifc->interface.dma);
+				}
+				ifc++;
 			}
-			ifc++;
 		}
+	}
+	else
+	{
+		printf("not running on EmuTOS, exiting\r\n");
 	}
 	Super(ssp);
 
