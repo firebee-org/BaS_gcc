@@ -1,11 +1,11 @@
 .PHONY: tos
 .PHONY: jtagwait
-.PHONY: mcdcook
-tos: jtagwait mcdcook
+.PHONY: bascook
+tos: jtagwait bascook
 
 jtagwait:
 	(cd $@; make)
 
 bascook:
 	(cd $@; make)
-	
+

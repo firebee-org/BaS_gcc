@@ -137,9 +137,9 @@ static struct framebuffer_driver_interface framebuffer_interface =
  */
 static struct mmu_driver_interface mmu_interface =
 {
-    .map_page_locked = &mmu_map_data_page_locked,
-    .unlock_page = &mmu_unlock_data_page,
-    .report_locked_pages = &mmu_report_locked_pages
+	.map_page_locked = &mmu_map_data_page_locked,
+	.unlock_page = &mmu_unlock_data_page,
+	.report_locked_pages = &mmu_report_locked_pages
 };
 
 static struct generic_interface interfaces[] =
@@ -206,8 +206,28 @@ static struct driver_table bas_drivers =
 
 void __attribute__((interrupt)) get_bas_drivers(void)
 {
-	__asm__ __volatile__(
-		"move.l	#%[drivers],d0\n\t"
+	__asm__ __volatile(
+		/*
+		 * sp should now point to the next instruction after the trap
+		 * The trap itself is 2 bytes, the four bytes before that must
+		 * read '_BAS' or we are not meant by this call
+		 */
+		"		move.l	d0,-(sp)				\n\t"	// save register
+		"		move.l	10(sp),d0				\n\t"	// get "magic word"
+		"		cmp.l	#0x5f424153,d0			\n\t"	// is it '_BAS'?
+		"		beq		fetch_drivers			\n\t"	// yes
+		/*
+		 * This seems indeed a "normal" trap #0. Better pass control to "normal" trap #0 processing
+		 * If trap #0 isn't set to something sensible, we'll probably crash here, but this must be
+		 * prevented on the caller side.
+		 */
+		"		move.l	(sp)+,d0				\n\t"	// restore register
+		"		move.l	0x80,-(sp)				\n\t"	// fetch vector
+		"		rts								\n\t"	// and jump through it
+
+		"fetch_drivers:							\n\t"
+		"		move.l	#%[drivers],d0			\n\t"	// return driver struct in d0
+		"		addq.l	#4,sp					\n\t"	// adjust stack
 		:	                            /* no output */
 		:	[drivers] "o" (bas_drivers)		/* input */
 		:									/* clobber */
