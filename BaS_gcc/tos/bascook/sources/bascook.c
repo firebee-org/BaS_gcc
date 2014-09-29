@@ -10,14 +10,32 @@ struct driver_table *get_bas_drivers(void)
 	struct driver_table *ret = NULL;
 
 	__asm__ __volatile__(
-		"	trap	#0\n\t"
-		"	move.l	d0,%[ret]\n\t"
+		"			bra.s	 do_trap			\n\t"
+		"			.dc.l	0x5f424153			\n\t"	// '_BAS'
+		"do_trap:	trap	#0					\n\t"
+		"			move.l	d0,%[ret]			\n\t"
 		:	[ret] "=m" (ret)	/* output */
 		:						/* no inputs */
 		:						/* clobbered */
 	);
 
 	return ret;
+}
+
+/*
+ * temporarily replace the trap 0 handler with this so we can avoid
+ * getting caught by BaS versions that don't understand the driver interface
+ * exposure call.
+ * If we get here, we have a BaS version that doesn't support the trap 0 interface
+ */
+static void __attribute__((interrupt)) my_own_trap0_handler(void)
+{
+	__asm__ __volatile__(
+		"		clr.l		d0				\n\t"		// return 0 to indicate not supported
+		:
+		:
+		:
+	);
 }
 
 static uint32_t cookieptr(void)
@@ -86,11 +104,16 @@ int main(int argc, char *argv[])
 {
 	struct driver_table *dt;
 	void *ssp;
+	void *old_vector;
 
 	(void) Cconws("retrieve BaS driver interface\r\n");
 
 	ssp = (void *) Super(0L);
-	dt = get_bas_drivers();
+
+	old_vector = Setexc(0x20, my_own_trap0_handler);		/* set our own temporarily */
+	dt = get_bas_drivers();									/* trap #1 */
+	(void) Setexc(0x20, old_vector);						/* restore original vector */
+
 	if (dt)
 	{
 		struct generic_interface *ifc = &dt->interfaces[0];
