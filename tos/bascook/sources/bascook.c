@@ -9,7 +9,7 @@ struct driver_table *get_bas_drivers(void)
 {
 	struct driver_table *ret = NULL;
 
-	__asm__ __volatile(
+	__asm__ __volatile__(
 		"	trap	#0\n\t"
 		"	move.l	d0,%[ret]\n\t"
 		:	[ret] "=m" (ret)	/* output */
