@@ -30,6 +30,7 @@
 #include "driver_vec.h"
 #include "driver_mem.h"
 #include "pci.h"
+#include "mmu.h"
 
 /*
  * driver interface struct for the SD card BaS driver
@@ -131,6 +132,16 @@ static struct framebuffer_driver_interface framebuffer_interface =
 	.framebuffer_info = &info_fb
 };
 
+/*
+ * driver interface struct for the BaS MMU driver
+ */
+static struct mmu_driver_interface mmu_interface =
+{
+	.map_page_locked = &mmu_map_page_locked,
+	.unlock_page = &mmu_unlock_page,
+	.report_locked_pages = &mmu_report_locked_pages
+};
+
 static struct generic_interface interfaces[] =
 {
 	{
@@ -166,6 +177,14 @@ static struct generic_interface interfaces[] =
 		.version = 0,
 		.revision = 1,
 		.interface.pci = &pci_interface,
+	},
+	{
+		.type = MMU_DRIVER,
+		.name = "MMU",
+		.description = "BaS MMU driver",
+		.version = 0,
+		.revision = 1,
+		.interface.mmu = &mmu_interface,
 	},
 	/* insert new drivers here */
 

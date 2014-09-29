@@ -102,4 +102,11 @@ extern long video_sbt;
 extern void mmu_init(void);
 extern int mmu_map_page(uint32_t virt, uint32_t phys, enum mmu_page_size sz, const struct mmu_map_flags *flags);
 
+/*
+ * API functions for the BaS driver interface
+ */
+extern int32_t mmu_map_page_locked(uint32_t address, uint32_t length);
+extern int32_t mmu_unlock_page(uint32_t address, uint32_t length);
+extern int32_t mmu_report_locked_pages(void);
+
 #endif /* _MMU_H_ */
