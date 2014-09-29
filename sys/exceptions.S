@@ -45,20 +45,32 @@
 		.extern _irq5_handler
 		.extern _irq7_handler
 
-/* Register read/write macros */
-
-#define MCF_EPORT_EPPAR                     __MBAR+0xF00
-#define MCF_EPORT_EPDDR                     __MBAR+0xF04
-#define MCF_EPORT_EPIER                     __MBAR+0xF05
-#define MCF_EPORT_EPDR                      __MBAR+0xF08
-#define MCF_EPORT_EPPDR                     __MBAR+0xF09
-#define MCF_EPORT_EPFR                      __MBAR+0xF0C
-
-#define MCF_GPIO_PODR_FEC1L                 __MBAR+0xA07
-
-#define MCF_PSC0_PSCTB_8BIT                 __MBAR+0x860C
-
 		.global	_vec_init
+
+/* Register read/write equates */
+
+		/* MMU */
+		.equ	MCF_MMU_MMUCR, __MMUBAR
+		.equ	MCF_MMU_MMUOR, __MMUBAR+0x04
+		.equ	MCF_MMU_MMUSR, __MMUBAR+0x08
+		.equ	MCF_MMU_MMUAR, __MMUBAR+0x10
+		.equ	MCF_MMU_MMUTR, __MMUBAR+0x14
+		.equ	MCF_MMU_MMUDR, __MMUBAR+0x18
+
+		/* EPORT flag register */
+		.equ	MCF_EPORT_EPFR, __MBAR+0xf0c
+
+		/* FEC1 port output data direction register */
+		.equ	MCF_GPIO_PODR_FEC1L, __MBAR+0xa07
+
+		/* PSC0 transmit buffer register */
+		.equ	MCF_PSC0_PSCTB_8BIT, __MBAR+0x860c
+
+		/* GPT mode select register */
+		.equ	MCF_GPT0_GMS, __MBAR+0x800
+
+		/* Slice timer 0 count register */
+		.equ	MCF_SLT0_SCNT, __MBAR+0x908
 
 		// interrupt sources
 		.equ	INT_SOURCE_EPORT_EPF1,1		// edge port flag 1
@@ -115,82 +127,9 @@
 // Atari register equates (provided by FPGA)
 		.equ	vbasehi, 0xffff8201
 
-//mmu ---------------------------------------------------
-
-/* Register read/write macros */
-#define MCF_MMU_MMUCR	    __MMUBAR
-#define MCF_MMU_MMUOR	    __MMUBAR + 0x04
-#define MCF_MMU_MMUSR	    __MMUBAR + 0x08
-#define MCF_MMU_MMUAR	    __MMUBAR + 0x10
-#define MCF_MMU_MMUTR	    __MMUBAR + 0x14
-#define MCF_MMU_MMUDR	    __MMUBAR + 0x18
-
-
-/* Bit definitions and macros for MCF_MMU_MMUCR */
-#define MCF_MMU_MMUCR_EN    (0x1)
-#define MCF_MMU_MMUCR_ASM   (0x2)
-
-/* Bit definitions and macros for MCF_MMU_MMUOR */
-#define MCF_MMU_MMUOR_UAA   (0x1)                       /* update allocation address, i.e. write to TLB */
-#define MCF_MMU_MMUOR_ACC   (0x2)                       /* activate access to TLB */
-#define MCF_MMU_MMUOR_RW    (0x4)                       /* read/write TLB */
-#define MCF_MMU_MMUOR_ADR   (0x8)                       /* search by address/TLB address */
-#define MCF_MMU_MMUOR_ITLB  (0x10)                      /* act on instruction/data TLBs */
-#define MCF_MMU_MMUOR_CAS   (0x20)                      /* clear all unlocked TLBs with matching ASID */
-#define MCF_MMU_MMUOR_CNL   (0x40)                      /* clear all unlocked TLBs regardless of ASID */
-#define MCF_MMU_MMUOR_CA    (0x80)                      /* clear all TLBs */
-#define MCF_MMU_MMUOR_STLB  (0x100)                     /* search TLBs */
-#define MCF_MMU_MMUOR_AA(x) (((x) & 0xFFFF) << 0x10)    /* TLB allocation address */
-
-/* Bit definitions and macros for MCF_MMU_MMUSR */
-#define MCF_MMU_MMUSR_HIT   (0x2)                       /* last lookup had a hit in TLB */
-#define MCF_MMU_MMUSR_WF    (0x8)                       /* indicate write fault */
-#define MCF_MMU_MMUSR_RF    (0x10)                      /* indicate read fault */
-#define MCF_MMU_MMUSR_SPF   (0x20)                      /* indicate supervisor protect fault */
-
-/* Bit definitions and macros for MCF_MMU_MMUAR */
-#define MCF_MMU_MMUAR_FA(x) (((x) & 0xFFFFFFFF) << 0)
-
-/* Bit definitions and macros for MCF_MMU_MMUTR */
-#define MCF_MMU_MMUTR_V	    (0x1)                       /* valid bit for TLB */
-#define MCF_MMU_MMUTR_SG    (0x2)                       /* set page as shared global */
-#define MCF_MMU_MMUTR_ID(x) (((x) & 0xFF) << 0x2)       /* ASID (address space id) of page */
-#define MCF_MMU_MMUTR_VA(x) (((x) & 0x3FFFFF) << 0xA)   /* virtual address of page */
-
-/* Bit definitions and macros for MCF_MMU_MMUDR */
-#define MCF_MMU_MMUDR_LK    (0x2)                       /* lock page */
-#define MCF_MMU_MMUDR_X	    (0x4)                       /* allow code execution in memory page */
-#define MCF_MMU_MMUDR_W	    (0x8)                       /* allow write to memory page */
-#define MCF_MMU_MMUDR_R	    (0x10)                      /* allow read from memory page */
-#define MCF_MMU_MMUDR_SP    (0x20)                      /* supervisor protect memory page */
-#define MCF_MMU_MMUDR_CM(x) (((x) & 0x3) << 0x6)        /* cache mode */
-#define MCF_MMU_MMUDR_SZ(x) (((x) & 0x3) << 0x8)        /* page size */
-#define MCF_MMU_MMUDR_PA(x) (((x) & 0x3FFFFF) << 0xA)   /* page physical address */
-
-#define	 std_mmutr	    (MCF_MMU_MMUTR_SG | MCF_MMU_MMUTR_V)
-#define	 writethrough_mmudr (MCF_MMU_MMUDR_SZ(00) | MCF_MMU_MMUDR_CM(00) | MCF_MMU_MMUDR_R | MCF_MMU_MMUDR_W | MCF_MMU_MMUDR_X)
-#define	 copyback_mmudr	    (MCF_MMU_MMUDR_SZ(00) | MCF_MMU_MMUDR_CM(01) | MCF_MMU_MMUDR_R | MCF_MMU_MMUDR_W | MCF_MMU_MMUDR_X)
-
 /*
- *
- * General Purpose Timers (GPT)
- *
+ * macros
  */
-
-/* Register read/write macros */
-#define MCF_GPT0_GMS                         __MBAR+0x800
-
-/*
- *
- * Slice Timers (SLT)
- *
- */
-
-#define MCF_SLT0_SCNT                        __MBAR+0x908
-
-/**********************************************************/
-// macros
-/**********************************************************/
 		.altmacro
 		.macro	irq	vector,int_mask,clr_int
 		//move.w	#0x2700,sr		// disable interrupt
@@ -207,26 +146,7 @@
 		rts
 		.endm
 
-/*
- * FIXME: this is a GNU gas kludge. Ugly, but I just can't come up with any smarter solution
- *
- * GNU as does not support multi-character constants. At least I don't know of any way it would.
- * The following might look more than strange, but I considered the statement
- *
- * mchar	move.l, 'T,'E,'S,'T,-(SP)
- *
- * somewhat more readable than
- *
- * move.l #1413829460,-(SP)
- *
- * If anybody knows of any better way on how to do this - please do!
- *
- */
-	.macro mchar  st,a,b,c,d,tgt
-		\st #\a << 24|\b<<16|\c<<8|\d,\tgt
-	.endm
-
-.text
+		.text
 _vec_init:
 		move.l	a2,-(sp)		// Backup registers
 
@@ -349,11 +269,12 @@ noprint:
 		move.l	4(sp),a5		// restore a5
 		move.l	d0,4(sp)		// store exception routine address
 
+		// FIXME: not clear why we would need the following?
 		//move.w	10(sp),d0	// restore original SR
 		//bset	#13,d0			// set supervisor bit
 		//move.w	d0,sr		//
 		move.l	(sp)+,d0		// restore d0
-		rts				// jump to exception routine
+		rts				// jump to exception handler
 
 exception_text:
 		.ascii	"DEBUG: EXCEPTION %d caught at %p"
@@ -369,54 +290,28 @@ reset_vector:
 
 access:
 		move.w	#0x2700,sr		// disable interrupts
-		move.l	d0,-(sp)		// ++ vr
 
-		move.w	4(sp),d0		// get format_status word from stack
-		andi.l	#0x0c03,d0		// mask out fault status bits
-		cmpi.l	#0x0401,d0		// TLB miss on opword of instruction fetch?
-		beq	access_mmu		// yes
-		cmpi.l	#0x0402,d0		// TLB miss on extension word of instruction fetch?
-		beq	access_mmu		// yes
-		cmpi.l	#0x0802,d0		// TLB miss on data write?
-		beq	access_mmu		// yes
-		cmpi.l	#0x0c02,d0		// TLB miss on data read, or read-modify-write?
-		beq	access_mmu		// yes
+		link	a6,#-4 * 4		// make room for gcc scratch registers
+		movem.l	d0-d1/a0-a1,(sp)	// save them
 
-		bra	bus_error		// everything else is a classic bus error
+		move.l	4(a6),-(sp)		// push format_status
+		move.l	8(a6),-(sp)		// pc at exception
+		move.l	MCF_MMU_MMUAR,-(sp)	// MMU fault address
+		move.l	MCF_MMU_MMUSR,-(sp)	// MMU status regisrter
+		move.w	#0x2300,sr		// can lower interrupt mask now that MMU status is safe
+		jsr	_mmutr_miss		// call C routine
+		lea	4 * 4(sp),sp		// adjust stack
 
-access_mmu:
-		move.l	MCF_MMU_MMUSR,d0	// did the last fault hit in TLB?
-		btst	#1,d0			// yes, it did. So we already mapped that page
-		bne	bus_error		// and this must be a real bus error
-		btst	#5,d0			// supervisor protection fault?
-		bne	bus_error
-		btst	#4,d0			// read access fault?
-		bne	bus_error
-		btst	#3,d0			// write access fault?
+		tst.l	d0			// exception handler signals bus error
 		bne	bus_error
 
-		move.l	MCF_MMU_MMUAR,d0
-		cmp.l	#__FASTRAM_END,d0	// above max User RAM area?
-		bge	bus_error		// -> bus error
-
-		lea	-3 * 4(sp),sp		// save gcc scratch registers
-		movem.l	d1/a0-a1,(sp)
-
-		move.l	3 * 4 + 4 (sp),-(sp)	// push exception stack frame
-		move.l	5 * 4 + 4 (sp),-(sp)	// push program counter at exception
-		move.l	d0,-(sp)		// fault address
-		jsr	_mmutr_miss		// else we have an MMU TLB miss
-		add.l	#3 * 4,sp		// adjust stack
-
-		movem.l	(sp),d1/a0-a1		// restore gcc scratch registers
-		lea	3 * 4(sp),sp
-
-		move.l	(sp)+,d0		// restore register
-
+		movem.l	(sp),d0-d1/a0-a1	// restore registers
+		unlk	a6
 		rte
 
 bus_error:
-		move.l	(sp)+,d0		// restore register
+		movem.l	(sp),d0-d1/a0-a1	// restore registers
+		unlk	a6
 		bra	std_exc_vec
 
 zero_divide:
@@ -543,79 +438,6 @@ irq6:		// MFP interrupt from FPGA
 		lea	MCF_EPORT_EPFR,a5	// clear int6 from edge port
 		bset	#6,(a5)
 
-		// screen adr change timed out?
-		move.l	_video_sbt,d0
-		beq	irq6_non_sca		// nothing to do if 0
-
-		sub.l	#0x70000000,d0		// substract 14 seconds
-		lea	MCF_SLT0_SCNT,a5
-		cmp.l	(a5),d0			// time reached?
-		ble	irq6_non_sca		// not yet
-
-		lea	-7 * 4(sp),sp		// save more registers
-		movem.l	d0-d4/a0-a1,(sp)	//
-		clr.l	d3			// beginn mit 0
-		// jsr	_flush_and_invalidate_caches FIXME: why should we need that?
-
- // eintrag suchen
- irq6_next_sca:
-		move.l	d3,d0
-		move.l	d0,MCF_MMU_MMUAR	// addresse
-		move.l	#0x106,d4
-		move.l	d4,MCF_MMU_MMUOR	// suchen ->
-		nop
-		move.l	MCF_MMU_MMUOR,d4
-		clr.w	d4
-		swap	d4
-		move.l	d4,MCF_MMU_MMUAR
-		mvz.w	#0x10e,d4
-		move.l	d4,MCF_MMU_MMUOR	// einträge holen aus mmu
-		nop
-		move.l	MCF_MMU_MMUTR,d4	// ID holen
-		lsr.l	#2,d4			// bit 9 bis 2
-		cmp.w	#sca_page_ID,d4		// ist screen change ID?
-		bne	irq6_sca_pn		// nein -> page keine screen area next
-// eintrag �ndern
-		add.l	#std_mmutr,d0
-		move.l	d3,d1			// page 0?
-		beq	irq6_sca_pn0		// ja ->
-		add.l	#copyback_mmudr,d1	// sonst page cb
-		bra	irq6_sca_pn1c
-irq6_sca_pn0:
-		add.l	#writethrough_mmudr/*|MCF_MMU_MMUDR_LK*/,d1	// page wt and locked
-irq6_sca_pn1c:
-		mvz.w	#0x10b,d2		// MMU update
-		move.l	d0,MCF_MMU_MMUTR
-		move.l	d1,MCF_MMU_MMUDR
-		move.l	d2,MCF_MMU_MMUOR	// setze tlb data only
-		nop
-// page copy
-		move.l	d3,a0
-		add.l	#0x60000000,a0
-		move.l	d3,a1
-		move.l	#0x10000,d4		// one whole page (1 MB)
-
-
-irq6_vcd0_loop:
-		move.l	(a0)+,(a1)+		// page copy
-		move.l	(a0)+,(a1)+
-		move.l	(a0)+,(a1)+
-		move.l	(a0)+,(a1)+
-		subq.l	#1,d4
-		bne	irq6_vcd0_loop
-
-irq6_sca_pn:
-		add.l	#0x00100000,d3		// next
-		cmp.l	#0x00d00000,d3		// ende?
-		blt	irq6_next_sca		// nein->
-
-		move.l	#0x2000,d0
-		move.l	d0,_video_tlb		// anfangszustand wieder herstellen
-		clr.l	_video_sbt		// zeit löschen
-
-		movem.l	(sp),d0-d4/a0-a1	// restore registers
-		lea	7 * 4(sp),sp
-
 irq6_non_sca:
 // test auf acsi dma -----------------------------------------------------------------
 		lea	0xfffffa0b,a5
@@ -664,12 +486,6 @@ blinker:.long	0
 acsi_dma:					// atari dma
 		move.l  a1,-(sp)
 		move.l  d1,-(sp)
-
-		lea	MCF_PSC0_PSCTB_8BIT,a1	// ++ vr
-		mchar move.l, 'D,'M','A,'\ ,(a1)
-		//move.l	#"DMA ",(a1)
-		mchar	move.l,'I,'N,'T,'!,(a1)
-		// move.l	#'INT!',(a1)
 
 		lea 	0xf0020110,a5		// fifo daten
 acsi_dma_start:
@@ -755,7 +571,6 @@ irq7:
  * when the video base address gets changed
  */
 
-
 handler_gpt0:
 		.extern _gpt0_interrupt_handler
 
@@ -768,6 +583,9 @@ handler_gpt0:
 		move.l	d0,-(sp)		// push it
 		jsr	_gpt0_interrupt_handler	// call C handler
 		addq.l	#4,sp			// adjust stack
+
+		movem.l	(sp),d0-d1/a0-a1	// restore registers
+
 		unlk	a6
 		rte
 #endif /* MACHINE_FIREBEE */
