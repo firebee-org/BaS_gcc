@@ -105,7 +105,7 @@ int main(int argc, char *argv[])
 	struct driver_table *dt;
 	void *ssp;
 	void *old_vector;
-	char **sysbase = (char **) 0x4f2;
+	char *sysbase = (char *) 0x4f2;
 
 	(void) Cconws("retrieve BaS driver interface\r\n");
 
