@@ -137,9 +137,9 @@ static struct framebuffer_driver_interface framebuffer_interface =
  */
 static struct mmu_driver_interface mmu_interface =
 {
-	.map_page_locked = &mmu_map_page_locked,
-	.unlock_page = &mmu_unlock_page,
-	.report_locked_pages = &mmu_report_locked_pages
+    .map_page_locked = &mmu_map_data_page_locked,
+    .unlock_page = &mmu_unlock_data_page,
+    .report_locked_pages = &mmu_report_locked_pages
 };
 
 static struct generic_interface interfaces[] =
