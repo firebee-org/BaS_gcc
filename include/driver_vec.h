@@ -37,6 +37,7 @@ enum driver_type
 	MCD_DRIVER,
 	VIDEO_DRIVER,
 	PCI_DRIVER,
+	MMU_DRIVER,
 	END_OF_DRIVERS,		/* marks end of driver list */
 };
 
@@ -259,6 +260,13 @@ struct pci_bios_interface {
 //	int32_t reserved[2];
 };
 
+struct mmu_driver_interface
+{
+	int32_t (*map_page_locked)(uint32_t address, uint32_t length);
+	int32_t (*unlock_page)(uint32_t address, uint32_t length);
+	int32_t (*report_locked_pages)(void);
+};
+
 union interface
 {
 	struct generic_driver_interface *gdi;
@@ -266,6 +274,7 @@ union interface
 	struct dma_driver_interface *dma;
 	struct framebuffer_driver_interface *fb;
 	struct pci_bios_interface *pci;
+	struct mmu_driver_interface *mmu;
 };
 
 struct generic_interface
