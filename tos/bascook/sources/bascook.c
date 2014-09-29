@@ -77,6 +77,7 @@ static char *dt_to_str(enum driver_type dt)
 		case XHDI_DRIVER:     return "XHDI compatible hard disk driver";
 		case MCD_DRIVER:	  return "multichannel DMA driver";
 		case PCI_DRIVER:	  return "PCI interface driver";
+		case MMU_DRIVER:	  return "MMU lock/unlock pages driver";
 		default:              return "unknown driver type";
 	}
 }
