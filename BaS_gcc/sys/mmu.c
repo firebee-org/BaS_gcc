@@ -70,16 +70,16 @@
 #elif defined(MACHINE_M54455)
 #include "m54455.h"
 #else
-#error "unknown machine!"
+#error "unknown machine!"x
 #endif /* MACHINE_FIREBEE */
 
-//#define DBG_MMU
+#define DBG_MMU
 #ifdef DBG_MMU
 #define dbg(format, arg...) do { xprintf("DEBUG (%s()): " format, __FUNCTION__, ##arg);} while(0)
 #else
 #define dbg(format, arg...) do {;} while (0)
 #endif /* DBG_MMU */
-#define err(format, arg...) do { xprintf("ERROR (%s()): " format, __FUNCTION__, ##arg); xprintf("system halted\r\n"); } while(0); while(1)
+#define err(format, arg...) do { xprintf("ERROR (%s()): " format, __FUNCTION__, ##arg); } while(0);
 
 /*
  * set ASID register
@@ -582,8 +582,6 @@ void mmu_init(void)
     flags.locked = true;
     mmu_map_page(0x00d00000, 0x60d00000, MMU_PAGE_SIZE_1M, SCA_PAGE_ID, &flags);
 
-    video_tlb = 0x2000;						/* set page as video page */
-    video_sbt = 0x0;						/* clear time */
 #endif /* MACHINE_FIREBEE */
 
     /*
@@ -658,7 +656,12 @@ uint32_t mmutr_miss(uint32_t mmu_sr, uint32_t fault_address, uint32_t pc,
                 "PC = 0x%08x\r\n",
                 fault_address, format_status, mmu_sr, pc);
             dbg("fault = 0x%08x\r\n", fault);
-            mmu_map_instruction_page(pc, 0);
+
+            if (!mmu_map_instruction_page(pc, 0))
+            {
+                dbg("bus error\r\n");
+                return 1;   /* bus error */
+            }
 
             /* due to prefetch, it makes sense to map the next adjacent page also for ITLBs */
             if (pc + DEFAULT_PAGE_SIZE < TARGET_ADDRESS)
@@ -666,7 +669,11 @@ uint32_t mmutr_miss(uint32_t mmu_sr, uint32_t fault_address, uint32_t pc,
                 /*
                  * only do this if the next page is still valid RAM
                  */
-                mmu_map_instruction_page(pc + DEFAULT_PAGE_SIZE, 0);
+                if (!mmu_map_instruction_page(pc + DEFAULT_PAGE_SIZE, 0))
+                {
+                    dbg("bus error\r\n");
+                    return 1;   /* bus error */
+                }
             }
             break;
 
@@ -678,7 +685,12 @@ uint32_t mmutr_miss(uint32_t mmu_sr, uint32_t fault_address, uint32_t pc,
                 "PC = 0x%08x\r\n",
                 fault_address, format_status, mmu_sr, pc);
             dbg("fault = 0x%08x\r\n", fault);
-            mmu_map_data_page(fault_address, 0);
+
+            if (!mmu_map_data_page(fault_address, 0))
+            {
+                dbg("bus error\r\n");
+                return 1;   /* bus error */
+            }
             break;
 
         /* else issue an bus error */
