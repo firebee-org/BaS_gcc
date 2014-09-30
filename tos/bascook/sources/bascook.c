@@ -68,7 +68,9 @@ void setcookie(uint32_t cookie, uint32_t value)
      * work from TSRs)
      */
     if (cookiejar[-1])
+    {
         max_slots = cookiejar[-1];
+    }
 
     if (max_slots > num_slots)
     {
@@ -83,7 +85,7 @@ void setcookie(uint32_t cookie, uint32_t value)
         printf("cannot set cookie, cookie jar is full!\r\n");
 }
 
-# define COOKIE_DMAC	0x444D4143L /* FireTOS DMA API */
+#define COOKIE_DMAC	0x444d4143L /* FireTOS DMA API */
 
 static char *dt_to_str(enum driver_type dt)
 {
@@ -118,7 +120,7 @@ int main(int argc, char *argv[])
     if (sig == 0x45544f53)
     {
         old_vector = Setexc(0x20, my_own_trap0_handler);		/* set our own temporarily */
-        dt = get_bas_drivers();									/* trap #1 */
+        dt = get_bas_drivers();									/* trap #0 */
         (void) Setexc(0x20, old_vector);						/* restore original vector */
 
         if (dt)
@@ -143,17 +145,20 @@ int main(int argc, char *argv[])
                 ifc++;
             }
         }
+        else
+        {
+            printf("driver table not found.\r\n");
+        }
     }
     else
     {
-        printf("not running on EmuTOS,\r\n(signature 0x%04x instead of 0x%04x),\r\n\r\nexiting\r\n",
+        printf("not running on EmuTOS,\r\n(signature 0x%04x instead of 0x%04x\r\n",
                (uint32_t) sig, 0x45544f53);
     }
     Super(ssp);
 
     while (Cconis()) Cconin();	/* eat keys */
-    // printf("press any key to continue\n\r");
-    // while (! Cconis());
+
     return 0;
 }
 
