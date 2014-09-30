@@ -46,6 +46,7 @@
 		.extern _irq7_handler
 
 		.global	_vec_init
+		.global _std_exc_vec	    /* needed by driver_vec.c */
 
 /* Register read/write equates */
 
@@ -230,6 +231,7 @@ init_vec_loop:
  */
 vector_table_start:
 std_exc_vec:
+_std_exc_vec:
 		//move.w	#0x2700,sr		// disable interrupt
 		subq.l	#8,sp
 		movem.l	d0/a5,(sp)		// save registers

@@ -108,5 +108,5 @@ extern int mmu_map_page(uint32_t virt, uint32_t phys, enum mmu_page_size sz, uin
 extern int32_t mmu_map_data_page_locked(uint32_t address, uint32_t length, int asid);
 extern int32_t mmu_unlock_data_page(uint32_t address, uint32_t length, int asid);
 extern int32_t mmu_report_locked_pages(uint32_t *num_itlb, uint32_t *num_dtlb);
-
+extern uint32_t mmu_report_pagesize(void);
 #endif /* _MMU_H_ */
