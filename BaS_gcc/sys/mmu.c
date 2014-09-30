@@ -2,6 +2,16 @@
 #include "acia.h"
 #include "exceptions.h"
 
+#if defined(MACHINE_FIREBEE)
+#include "firebee.h"
+#elif defined(MACHINE_M5484LITE)
+#include "m5484l.h"
+#elif defined(MACHINE_M54455)
+#include "m54455.h"
+#else
+#error "unknown machine!"
+#endif
+
 /*
  * mmu.c
  *
@@ -354,8 +364,6 @@ int mmu_map_data_page(uint32_t virt, uint8_t asid)
  * TLB entries). For proper operation, the MMU needs at least two ITLBs and/or four free/allocatable DTLBs
  * per instruction as a minimum, more for performance. Thus locked pages (that can't be touched by the
  * LRU algorithm) should be used sparsingly.
- *
- *
  */
 int mmu_map_page(uint32_t virt, uint32_t phys, enum mmu_page_size sz, uint8_t page_id, const struct page_descriptor *flags)
 {
@@ -653,7 +661,13 @@ uint32_t mmutr_miss(uint32_t mmu_sr, uint32_t fault_address, uint32_t pc,
             mmu_map_instruction_page(pc, 0);
 
             /* due to prefetch, it makes sense to map the next adjacent page also for ITLBs */
-            mmu_map_instruction_page(pc + DEFAULT_PAGE_SIZE, 0);
+            if (pc + DEFAULT_PAGE_SIZE < TARGET_ADDRESS)
+            {
+                /*
+                 * only do this if the next page is still valid RAM
+                 */
+                mmu_map_instruction_page(pc + DEFAULT_PAGE_SIZE, 0);
+            }
             break;
 
         case 0x08020000:    /* TLB miss on data write */
@@ -689,6 +703,17 @@ uint32_t mmutr_miss(uint32_t mmu_sr, uint32_t fault_address, uint32_t pc,
 
 /*
  * lock data page(s) with address space id asid from address virt to virt + size.
+ *
+ * ASID probably needs an explanation - this is the "address space id" managed by
+ * the MMU.
+ * If its value range would be large enough, this could directly map to a PID
+ * in MiNT. Unfortunately, the Coldfire MMU only allows an 8 bit value for ASID
+ * (with 0 already occupied for the super user/root process and the Firebee video
+ * subsystem occupying another one), so we are left with 253 distinct values.
+ * MMU software needs to implement some kind of mapping and LRU scheme which will
+ * lead to a throwaway of all mappings for processes not seen for a while (and thus
+ * to undeterministic response/task switching times when such processes are activated
+ * again).
  *
  * FIXME: There is no check for "too many locked pages", currently.
  *
@@ -811,4 +836,9 @@ int32_t mmu_report_locked_pages(uint32_t *num_itlb, uint32_t *num_dtlb)
     *num_dtlb = ld;
 
     return 1;   /* success */
+}
+
+uint32_t mmu_report_pagesize(void)
+{
+    return DEFAULT_PAGE_SIZE;
 }
