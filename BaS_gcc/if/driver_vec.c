@@ -139,7 +139,8 @@ static struct mmu_driver_interface mmu_interface =
 {
 	.map_page_locked = &mmu_map_data_page_locked,
 	.unlock_page = &mmu_unlock_data_page,
-	.report_locked_pages = &mmu_report_locked_pages
+    .report_locked_pages = &mmu_report_locked_pages,
+    .report_pagesize = &mmu_report_pagesize
 };
 
 static struct generic_interface interfaces[] =
@@ -193,6 +194,8 @@ static struct generic_interface interfaces[] =
 	}
 };
 
+extern void remove_handler(void);   /* forward declaration */
+
 /*
  * this is the driver table we expose to the OS
  */
@@ -200,9 +203,17 @@ static struct driver_table bas_drivers =
 {
 	.bas_version = MAJOR_VERSION,
 	.bas_revision = MINOR_VERSION,
-	.remove_handler = NULL,
+    .remove_handler = remove_handler,
 	.interfaces = interfaces
 };
+
+void remove_handler(void)
+{
+    extern void std_exc_vec(void);
+    uint32_t *trap_0_vector = (uint32_t *) 0x80;
+
+    *trap_0_vector = (uint32_t) std_exc_vec;
+}
 
 void __attribute__((interrupt)) get_bas_drivers(void)
 {

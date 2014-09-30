@@ -265,6 +265,7 @@ struct mmu_driver_interface
     int32_t (*map_page_locked)(uint32_t address, uint32_t length, int asid);
     int32_t (*unlock_page)(uint32_t address, uint32_t length, int asid);
     int32_t (*report_locked_pages)(uint32_t *num_itlb, uint32_t *num_dtlb);
+    uint32_t (*report_pagesize)(void);
 };
 
 union interface
@@ -291,7 +292,7 @@ struct driver_table
 {
 	uint32_t bas_version;
 	uint32_t bas_revision;
-	uint32_t (*remove_handler)();			/* calling this will disable the BaS' hook into trap #0 */
+    void (*remove_handler)(void);			/* calling this will disable the BaS' hook into trap #0 */
 	struct generic_interface *interfaces;
 };
 
