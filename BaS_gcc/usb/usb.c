@@ -54,9 +54,6 @@
 #include "usb.h"
 #include "usb_hub.h"
 
-extern int usb_stor_curr_dev;
-extern uint32_t usb_1st_disk_drive;
-
 //#define DEBUG_USB
 #ifdef DEBUG_USB
 #define dbg(format, arg...) do { xprintf("DEBUG: %s(): " format, __FUNCTION__, ##arg); } while (0)
@@ -97,7 +94,10 @@ int usb_init(int32_t handle, const struct pci_device_id *ent)
 	struct hci *priv;
 	int res = 0;
 	if (bus_index >= USB_MAX_BUS)
-		return -1;
+    {
+        dbg("bus_index >= USB_MAX_BUS");
+        return -1;
+    }
 
 	dev_index[bus_index] = 0;
 	asynch_allowed = 1;
@@ -107,21 +107,29 @@ int usb_init(int32_t handle, const struct pci_device_id *ent)
 		if (driver_mem_init())
 		{
 			usb_started = 0;
+            dbg("driver_mem_init failed\r\n");
+
 			return -1; /* out of memory */
 		}
 
 		if (usb_dev == NULL)
+        {
 			usb_dev = (struct usb_device *) driver_mem_alloc(sizeof(struct usb_device) * USB_MAX_BUS * USB_MAX_DEVICE);
+        }
 
 		if (usb_dev == NULL)
 		{
 			usb_started = 0;
+
+            dbg("could not allocate memory\r\n");
+
 			return -1; /* out of memory */
 		}
 	}
 	else /* restart */
 	{
 		int i;
+
 		res = 0;
 		for (i = 0; i < USB_MAX_BUS; i++)
 		{
@@ -131,7 +139,7 @@ int usb_init(int32_t handle, const struct pci_device_id *ent)
 
 				if (handle)
 				{
-					res |= usb_init(handle, NULL);	/* FIXME: recursive call! */
+                    res |= usb_init(handle, NULL);	/* FIXME: recursive call!? */
 				}
 			}
 		}
@@ -176,6 +184,9 @@ int usb_init(int32_t handle, const struct pci_device_id *ent)
 			if (setup_packet == NULL)
 			{
 				usb_started = 0;
+
+                dbg("could not allocate memory\r\n");
+
 				return -1;			/* no memory, no USB */
 			}
 		}
@@ -306,11 +317,13 @@ int usb_control_msg(struct usb_device *dev, unsigned int pipe,
 					unsigned short value, unsigned short index,
 					void *data, unsigned short size, int timeout)
 {
-	struct hci *priv = (struct hci *)dev->priv_hcd;
+    struct hci *priv = (struct hci *) dev->priv_hcd;
 
 	if ((timeout == 0) && (!asynch_allowed))
 	{
 		/* request for a asynch control pipe is not allowed */
+
+        dbg("request for an async control pipe is not allowed\r\n");
 		return -1;
 	}
 
@@ -1064,7 +1077,9 @@ struct usb_device *usb_alloc_new_device(int bus_index, void *priv)
  */
 int usb_new_device(struct usb_device *dev)
 {
-	int addr, err, tmp;
+    int addr;
+    int err;
+    int tmp;
 	unsigned char *tmpbuf;
 
 #ifndef CONFIG_LEGACY_USB_INIT_SEQ
@@ -1075,7 +1090,10 @@ int usb_new_device(struct usb_device *dev)
 #endif
 
 	if (dev == NULL)
+    {
+        dbg("called with NULL device\r\n");
 		return 1;
+    }
 
 	/* We still haven't set the Address yet */
 	addr = dev->devnum;
@@ -1084,7 +1102,7 @@ int usb_new_device(struct usb_device *dev)
 	tmpbuf = (unsigned char *) driver_mem_alloc(USB_BUFSIZ);
 	if (tmpbuf == NULL)
 	{
-		dbg("usb_new_device: malloc failure\r\n");
+        dbg("malloc failure\r\n");
 		return 1;
 	}
 
@@ -1125,6 +1143,7 @@ int usb_new_device(struct usb_device *dev)
 	 */
 	desc = (struct usb_device_descriptor *) tmpbuf;
 	dev->descriptor.bMaxPacketSize0 = 64;	    /* Start off at 64 bytes  */
+
 	/* Default to 64 byte max packet size */
 	dev->maxpacketsize = PACKET_SIZE_64;
 	dev->epmaxpacketin[0] = 64;
@@ -1260,7 +1279,9 @@ int usb_new_device(struct usb_device *dev)
 	return 0;
 }
 
-/* build device Tree  */
+/*
+ * build device Tree
+ */
 void usb_scan_devices(void *priv)
 {
 	int i;
@@ -1274,7 +1295,9 @@ void usb_scan_devices(void *priv)
 	}
 	dev_index[bus_index] = 0;
 
-	/* device 0 is always present (root hub, so let it analyze) */
+    /*
+     * device 0 is always present (root hub, so let it analyze)
+     */
 	dev = usb_alloc_new_device(bus_index, priv);
 	if (usb_new_device(dev))
 	{
@@ -1289,29 +1312,24 @@ void usb_scan_devices(void *priv)
 		xprintf("%d USB Device(s) found\r\n", dev_index[bus_index]);
 	}
 
-	{
+    /* insert "driver" if possible */
+    if (drv_usb_kbd_init() < 0)
+    {
+        xprintf("No USB keyboard found\r\n");
+    }
+    else
+    {
+        xprintf("USB HID keyboard driver installed\r\n");
+    }
 
-#ifdef _NOT_USED_	/* not implemented yet */
-		/* insert "driver" if possible */
-		if (drv_usb_kbd_init() < 0)
-		{
-			xprintf("No USB keyboard found\r\n");
-		}
-		else
-		{
-			xprintf("USB HID keyboard driver installed\r\n");
-		}
-#endif /* _NOT_USED */
-
-		if (drv_usb_mouse_init() < 0)
-		{
-			xprintf("No USB mouse found\r\n");
-		}
-		else
-		{
-			xprintf("USB HID mouse driver installed\r\n");
-		}
-	}
+    if (drv_usb_mouse_init() < 0)
+    {
+        xprintf("No USB mouse found\r\n");
+    }
+    else
+    {
+        xprintf("USB HID mouse driver installed\r\n");
+    }
 	xprintf("Scan end\r\n");
 }
 

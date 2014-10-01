@@ -55,15 +55,15 @@ extern int sprintD(char *s, const char *fmt, ...);
 #define USB_ALTSETTINGALLOC		4
 #define USB_MAXALTSETTING		128	/* Hard limit */
 
-#define USB_MAX_BUS           3
-#define USB_MAX_DEVICE       16
-#define USB_MAXCONFIG         8
-#define USB_MAXINTERFACES     8
-#define USB_MAXENDPOINTS     16
-#define USB_MAXCHILDREN       8	/* This is arbitrary */
-#define USB_MAX_HUB          16
+#define USB_MAX_BUS             3
+#define USB_MAX_DEVICE          16
+#define USB_MAXCONFIG           8
+#define USB_MAXINTERFACES       8
+#define USB_MAXENDPOINTS        16
+#define USB_MAXCHILDREN         8	/* This is arbitrary */
+#define USB_MAX_HUB             16
 
-#define USB_CNTL_TIMEOUT 100 /* 100ms timeout */
+#define USB_CNTL_TIMEOUT 100    /* 100 ms timeout */
 
 #define USB_BUFSIZ	512
 
@@ -97,14 +97,14 @@ struct usb_device_descriptor
 {
 	uint8_t	bLength;
 	uint8_t	bDescriptorType;
-	uint16_t	bcdUSB;
+    uint16_t bcdUSB;
 	uint8_t	bDeviceClass;
 	uint8_t	bDeviceSubClass;
 	uint8_t	bDeviceProtocol;
 	uint8_t	bMaxPacketSize0;
-	uint16_t	idVendor;
-	uint16_t	idProduct;
-	uint16_t	bcdDevice;
+    uint16_t idVendor;
+    uint16_t idProduct;
+    uint16_t bcdDevice;
 	uint8_t	iManufacturer;
 	uint8_t	iProduct;
 	uint8_t	iSerialNumber;
@@ -118,7 +118,7 @@ struct usb_endpoint_descriptor
 	uint8_t	bDescriptorType;
 	uint8_t	bEndpointAddress;
 	uint8_t	bmAttributes;
-	uint16_t	wMaxPacketSize;
+    uint16_t wMaxPacketSize;
 	uint8_t	bInterval;
 	uint8_t	bRefresh;
 	uint8_t	bSynchAddress;
@@ -172,16 +172,18 @@ enum
 
 struct usb_device
 {
-	int	devnum;			/* Device number on USB bus */
-	int	speed;			/* full/low/high */
+    int	devnum;             /* Device number on USB bus */
+    int	speed;              /* full/low/high */
 	char mf[32];			/* manufacturer */
-	char prod[32];		/* product */
+    char prod[32];          /* product */
 	char serial[32];		/* serial number */
 
 	/* Maximum packet size; one of: PACKET_SIZE_* */
 	int maxpacketsize;
+
 	/* one bit for each endpoint ([0] = IN, [1] = OUT) */
 	unsigned int toggle[2];
+
 	/* endpoint halts; one bit per endpoint # & direction;
 	 * [0] = IN, [1] = OUT
 	 */
@@ -189,16 +191,17 @@ struct usb_device
 	int epmaxpacketin[16];		/* INput endpoint specific maximums */
 	int epmaxpacketout[16];		/* OUTput endpoint specific maximums */
 
-	int configno;			/* selected config number */
-	struct usb_device_descriptor descriptor; /* Device Descriptor */
-	struct usb_config_descriptor config; /* config descriptor */
+    int configno;               /* selected config number */
+    struct usb_device_descriptor descriptor;    /* Device Descriptor */
+    struct usb_config_descriptor config;        /* config descriptor */
 
-	int have_langid;		/* whether string_langid is valid yet */
-	int string_langid;		/* language ID for strings */
+    int have_langid;            /* whether string_langid is valid yet */
+    int string_langid;          /* language ID for strings */
 	int (*irq_handle)(struct usb_device *dev);
 	uint32_t irq_status;
-	int irq_act_len;		/* transfered bytes */
+    int irq_act_len;            /* transfered bytes */
 	void *privptr;
+
 	/*
 	 * Child devices -  if this is a hub device
 	 * Each instance needs its own set of data structures.
@@ -227,7 +230,7 @@ typedef struct
 	} v;
 } USB_COOKIE;
 
-/**********************************************************************
+/*
  * this is how the lowlevel part communicate with the outer world
  */
 
@@ -322,8 +325,9 @@ extern int usb_set_interface(struct usb_device *dev, int interface, int alternat
  * specification, so that much of the uhci driver can just mask the bits
  * appropriately.
  */
+
 /* Create various pipes... */
-#define create_pipe(dev,endpoint) \
+#define create_pipe(dev, endpoint) \
 		(((dev)->devnum << 8) | (endpoint << 15) | \
 		((dev)->speed << 26) | (dev)->maxpacketsize)
 #define default_pipe(dev) ((dev)->speed << 26)

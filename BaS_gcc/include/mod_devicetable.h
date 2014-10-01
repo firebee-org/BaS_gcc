@@ -3,10 +3,14 @@
 
 #define PCI_ANY_ID (~0)
 
-struct pci_device_id {
-	unsigned long vendor, device;		/* Vendor and device ID or PCI_ANY_ID*/
-	unsigned long subvendor, subdevice;	/* Subsystem ID's or PCI_ANY_ID */
-	unsigned long class, class_mask;	/* (class,subclass,prog-if) triplet */
+struct pci_device_id
+{
+    unsigned long vendor;       /* Vendor and device ID or PCI_ANY_ID*/
+    unsigned long device;
+    unsigned long subvendor;    /* Subsystem ID's or PCI_ANY_ID */
+    unsigned long subdevice;
+    unsigned long class;        /* (class,subclass,prog-if) triplet */
+    unsigned long class_mask;
 	unsigned long driver_data;	/* Data private to the driver */
 };
 
@@ -15,7 +19,8 @@ struct pci_device_id {
 #define IEEE1394_MATCH_SPECIFIER_ID	0x0004
 #define IEEE1394_MATCH_VERSION		0x0008
 
-struct ieee1394_device_id {
+struct ieee1394_device_id
+{
 	unsigned long match_flags;
 	unsigned long vendor_id;
 	unsigned long model_id;
@@ -81,7 +86,8 @@ struct ieee1394_device_id {
  * matches towards the beginning of your table, so that driver_info can
  * record quirks of specific products.
  */
-struct usb_device_id {
+struct usb_device_id
+{
 	/* which fields to match against? */
 	unsigned short		match_flags;
 
@@ -106,10 +112,10 @@ struct usb_device_id {
 };
 
 /* Some useful macros to use to create struct usb_device_id */
-#define USB_DEVICE_ID_MATCH_VENDOR		0x0001
-#define USB_DEVICE_ID_MATCH_PRODUCT		0x0002
-#define USB_DEVICE_ID_MATCH_DEV_LO		0x0004
-#define USB_DEVICE_ID_MATCH_DEV_HI		0x0008
+#define USB_DEVICE_ID_MATCH_VENDOR          0x0001
+#define USB_DEVICE_ID_MATCH_PRODUCT         0x0002
+#define USB_DEVICE_ID_MATCH_DEV_LO          0x0004
+#define USB_DEVICE_ID_MATCH_DEV_HI          0x0008
 #define USB_DEVICE_ID_MATCH_DEV_CLASS		0x0010
 #define USB_DEVICE_ID_MATCH_DEV_SUBCLASS	0x0020
 #define USB_DEVICE_ID_MATCH_DEV_PROTOCOL	0x0040
@@ -118,18 +124,19 @@ struct usb_device_id {
 #define USB_DEVICE_ID_MATCH_INT_PROTOCOL	0x0200
 
 /* s390 CCW devices */
-struct ccw_device_id {
+struct ccw_device_id
+{
 	unsigned short	match_flags;	/* which fields to match against */
 
-	unsigned short	cu_type;	/* control unit type     */
-	unsigned short	dev_type;	/* device type           */
-	unsigned char	cu_model;	/* control unit model    */
-	unsigned char	dev_model;	/* device model          */
+    unsigned short	cu_type;        /* control unit type     */
+    unsigned short	dev_type;       /* device type           */
+    unsigned char	cu_model;       /* control unit model    */
+    unsigned char	dev_model;      /* device model          */
 
 	unsigned long driver_info;
 };
 
-#define CCW_DEVICE_ID_MATCH_CU_TYPE		0x01
+#define CCW_DEVICE_ID_MATCH_CU_TYPE         0x01
 #define CCW_DEVICE_ID_MATCH_CU_MODEL		0x02
 #define CCW_DEVICE_ID_MATCH_DEVICE_TYPE		0x04
 #define CCW_DEVICE_ID_MATCH_DEVICE_MODEL	0x08
@@ -138,15 +145,18 @@ struct ccw_device_id {
 #define PNP_ID_LEN	8
 #define PNP_MAX_DEVICES	8
 
-struct pnp_device_id {
+struct pnp_device_id
+{
 	unsigned char id[PNP_ID_LEN];
 	unsigned long driver_data;
 };
 
-struct pnp_card_device_id {
+struct pnp_card_device_id
+{
 	unsigned char id[PNP_ID_LEN];
 	unsigned long driver_data;
-	struct {
+    struct
+    {
 		unsigned char id[PNP_ID_LEN];
 	} devs[PNP_MAX_DEVICES];
 };
@@ -154,7 +164,8 @@ struct pnp_card_device_id {
 
 #define SERIO_ANY	0xff
 
-struct serio_device_id {
+struct serio_device_id
+{
 	unsigned char type;
 	unsigned char extra;
 	unsigned char id;

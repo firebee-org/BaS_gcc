@@ -375,7 +375,7 @@ flpoow:
 irq1:
 		irq	0x64,1,0x02
 
-irq2:				// hbl
+irq2:		// hbl
 						//		move.b	#3,2(sp)
 						//		rte
 		irq	0x68,2,0x04
@@ -429,7 +429,7 @@ irq7text:
 		.text
 
 #elif MACHINE_FIREBEE				/* these handlers are only meaningful for the Firebee */
-irq5:						// irq5 is tied to PCI INTC# and PCI INTD# on the M5484LITE
+irq5:
 		irq	0x74,5,0x20
 
 irq6:		// MFP interrupt from FPGA
@@ -466,6 +466,22 @@ irq6_1:
 		bne	irq6_2
 		lea	MCF_GPIO_PODR_FEC1L,a5
 		bset.b	#4,(a5)			// led off
+
+/*
+ * Firebee inthandler. 0xf0020000 delivers the interrupt vector
+ *
+ * 0:   PIC_INT
+ * 1:   E0_INT
+ * 2:   DVI_INT
+ * 3:   PCI_INT#A
+ * 4:   PCI_INT#B
+ * 5:   PCI_INT#C
+ * 6:   PCI_INT#D
+ * 7:   DSP_INT
+ * 8:   VSYNC
+ * 9:   HSYNC
+ */
+
 irq6_2:
 		move.l	0xF0020000,a5		// vector holen
 		add.l	_rt_vbr,a5		// basis
