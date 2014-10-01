@@ -18,6 +18,7 @@
 #else
 #define dbg(format, arg...) do { ; } while (0)
 #endif /* DEBUG_HUB */
+#define err(format, arg...) do { xprintf("DEBUG: %s(): " format, __FUNCTION__, ##arg); } while (0)
 
 static struct usb_hub_device hub_dev[USB_MAX_BUS][USB_MAX_HUB];
 static int usb_hub_index[USB_MAX_BUS];
@@ -82,8 +83,12 @@ void usb_hub_reset(int bus_index)
 struct usb_hub_device *usb_hub_allocate(void)
 {
 	if (usb_hub_index[bus_index] < USB_MAX_HUB)
+	{
 		return &hub_dev[bus_index][usb_hub_index[bus_index]++];
+	}
+
 	dbg("ERROR: USB_MAX_HUB (%d) reached\r\n", USB_MAX_HUB);
+
 	return NULL;
 }
 
@@ -92,11 +97,17 @@ struct usb_hub_device *usb_hub_allocate(void)
 static inline char *portspeed(int portstatus)
 {
 	if (portstatus & (1 << USB_PORT_FEAT_HIGHSPEED))
+	{
 		return "480 Mb/s";
+	}
 	else if (portstatus & (1 << USB_PORT_FEAT_LOWSPEED))
+	{
 		return "1.5 Mb/s";
+	}
 	else
+	{
 		return "12 Mb/s";
+	}
 }
 
 int hub_port_reset(struct usb_device *dev, int port, unsigned short *portstat)
@@ -110,9 +121,10 @@ int hub_port_reset(struct usb_device *dev, int port, unsigned short *portstat)
 	for (tries = 0; tries < MAX_TRIES; tries++)
 	{
 		usb_set_port_feature(dev, port + 1, USB_PORT_FEAT_RESET);
+
 #ifdef USB_POLL_HUB
 		if (pxCurrentTCB != NULL)
-			vTaskDelay((200*configTICK_RATE_HZ)/1000);
+			vTaskDelay((200 * configTICK_RATE_HZ) / 1000);
 		else
 #endif
 			wait(10000);
@@ -121,8 +133,10 @@ int hub_port_reset(struct usb_device *dev, int port, unsigned short *portstat)
 			dbg("get_port_status failed status %lX\r\n", dev->status);
 			return -1;
 		}
+
 		portstatus = swpw(portsts.wPortStatus);
 		portchange = swpw(portsts.wPortChange);
+
 		dbg("USB %d portstatus 0x%x, change 0x%x, %s\r\n", dev->usbnum, portstatus, portchange, portspeed(portstatus));
 		dbg("STAT_C_CONNECTION = %d STAT_CONNECTION = %d USB_PORT_STAT_ENABLE = %d\r\n",
 				(portchange & USB_PORT_STAT_C_CONNECTION) ? 1 : 0,
@@ -130,10 +144,14 @@ int hub_port_reset(struct usb_device *dev, int port, unsigned short *portstat)
 				(portstatus & USB_PORT_STAT_ENABLE) ? 1 : 0);
 
 		if ((portchange & USB_PORT_STAT_C_CONNECTION) || !(portstatus & USB_PORT_STAT_CONNECTION))
+		{
 			return -1;
+		}
 
 		if (portstatus & USB_PORT_STAT_ENABLE)
+		{
 			break;
+		}
 
 #ifdef USB_POLL_HUB
 		if (pxCurrentTCB != NULL)
@@ -142,14 +160,18 @@ int hub_port_reset(struct usb_device *dev, int port, unsigned short *portstat)
 #endif
 			wait(20000);
 	}
+
 	if (tries == MAX_TRIES)
 	{
 		dbg("USB %d, cannot enable port %d after %d retries, disabling port.\r\n", dev->usbnum, port + 1, MAX_TRIES);
 		dbg("Maybe the USB cable is bad?\r\n");
+
 		return -1;
 	}
 	usb_clear_port_feature(dev, port + 1, USB_PORT_FEAT_C_RESET);
+
 	*portstat = portstatus;
+
 	return 0;
 }
 
@@ -159,11 +181,11 @@ void usb_hub_port_connect_change(struct usb_device *dev, int port)
 	struct usb_port_status portsts;
 	unsigned short portstatus;
 
-
 	/* Check status */
 	if (usb_get_port_status(dev, port + 1, &portsts) < 0)
 	{
 		dbg("USB %d get_port_status failed\r\n", dev->usbnum);
+
 		return;
 	}
 
@@ -179,6 +201,7 @@ void usb_hub_port_connect_change(struct usb_device *dev, int port)
 
 	/* Clear the connection change status */
 	usb_clear_port_feature(dev, port + 1, USB_PORT_FEAT_C_CONNECTION);
+
 	/* Disconnect any existing devices under this port */
 
 	if (((!(portstatus & USB_PORT_STAT_CONNECTION))
@@ -188,7 +211,9 @@ void usb_hub_port_connect_change(struct usb_device *dev, int port)
 		usb_disconnect(&dev->children[port]);
 		/* Return now if nothing is connected */
 		if (!(portstatus & USB_PORT_STAT_CONNECTION))
+		{
 			return;
+		}
 	}
 #ifdef USB_POLL_HUB
 	if (pxCurrentTCB != NULL)
@@ -200,6 +225,7 @@ void usb_hub_port_connect_change(struct usb_device *dev, int port)
 	if (hub_port_reset(dev, port, &portstatus) < 0)
 	{
 		dbg("USB %d cannot reset port %i!?\r\n", dev->usbnum, port + 1);
+
 		return;
 	}
 #ifdef USB_POLL_HUB
@@ -251,8 +277,12 @@ static void usb_hub_events(struct usb_device *dev)
 {
 	int i;
 	struct usb_hub_device *hub = dev->hub;
+
 	if (hub == NULL)
+	{
 		return;
+	}
+
 	for (i = 0; i < dev->maxchild; i++)
 	{
 		struct usb_port_status portsts;
@@ -265,36 +295,45 @@ static void usb_hub_events(struct usb_device *dev)
 		}
 		portstatus = swpw(portsts.wPortStatus);
 		portchange = swpw(portsts.wPortChange);
+
 		dbg("USB %d Port %d Status %X Change %X\r\n", dev->usbnum, i + 1, portstatus, portchange);
+
 		if (portchange & USB_PORT_STAT_C_CONNECTION)
 		{
 			dbg("USB %d port %d connection change\r\n", dev->usbnum, i + 1);
 			usb_hub_port_connect_change(dev, i);
 		}
+
 		if (portchange & USB_PORT_STAT_C_ENABLE)
 		{
 			dbg("USB %d port %d enable change, status %x\r\n", dev->usbnum, i + 1, portstatus);
 			usb_clear_port_feature(dev, i + 1, USB_PORT_FEAT_C_ENABLE);
-			/* EM interference sometimes causes bad shielded USB
+
+			/*
+			 * EM interference sometimes causes bad shielded USB
 			 * devices to be shutdown by the hub, this hack enables
-			 * them again. Works at least with mouse driver */
+			 * them again. Works at least with mouse driver
+			 */
 			if (!(portstatus & USB_PORT_STAT_ENABLE) && (portstatus & USB_PORT_STAT_CONNECTION) && ((dev->children[i])))
 			{
 				dbg("USB %d already running port %i disabled by hub (EMI?), re-enabling...\r\n", dev->usbnum, i + 1);
 				usb_hub_port_connect_change(dev, i);
 			}
 		}
+
 		if (portstatus & USB_PORT_STAT_SUSPEND)
 		{
 			dbg("USB %d port %d suspend change\r\n", dev->usbnum, i + 1);
 			usb_clear_port_feature(dev, i + 1, USB_PORT_FEAT_SUSPEND);
 		}
+
 		if (portchange & USB_PORT_STAT_C_OVERCURRENT)
 		{
 			dbg("USB %d port %d over-current change\r\n", dev->usbnum, i + 1);
 			usb_clear_port_feature(dev, i + 1, USB_PORT_FEAT_C_OVER_CURRENT);
 			usb_hub_power_on(hub);
 		}
+
 		if (portchange & USB_PORT_STAT_C_RESET)
 		{
 			dbg("USB %d port %d reset change\r\n", dev->usbnum, i + 1);
@@ -347,7 +386,8 @@ void usb_poll_hub_task(void *pvParameters)
 
 int usb_hub_configure(struct usb_device *dev)
 {
-	unsigned char *buffer, *bitmap;
+	unsigned char *buffer;
+	unsigned char *bitmap;
 	struct usb_hub_descriptor *descriptor;
 	int i;
 	struct usb_hub_device *hub;
@@ -357,10 +397,15 @@ int usb_hub_configure(struct usb_device *dev)
 	dev->hub = hub;
 
 	if (hub == NULL)
+	{
+		dbg("could not allocate hub\r\n");
+
 		return -1;
+	}
 
 	hub->pusb_dev = dev;
 	buffer = (unsigned char *) driver_mem_alloc(USB_BUFSIZ);
+
 	if (buffer == NULL)
 	{
 		dbg("driver_mem_alloc() failure\r\n");
@@ -379,42 +424,54 @@ int usb_hub_configure(struct usb_device *dev)
 
 	/* silence compiler warning if USB_BUFSIZ is > 256 [= sizeof(char)] */
 	i = descriptor->bLength;
+
 	if (i > USB_BUFSIZ)
 	{
 		dbg("failed to get hub descriptor - too long: %d\r\n", descriptor->bLength);
 		driver_mem_free(buffer);
+
 		return -1;
 	}
+
 	if (usb_get_hub_descriptor(dev, buffer, descriptor->bLength) < 0)
 	{
 		dbg("failed to get hub descriptor 2nd giving up %lX\r\n", dev->status);
 		driver_mem_free(buffer);
+
 		return -1;
 	}
-	memcpy((unsigned char *)&hub->desc, buffer, descriptor->bLength);
+
+	memcpy((unsigned char *) &hub->desc, buffer, descriptor->bLength);
 
 	/* adjust 16bit values */
 	hub->desc.wHubCharacteristics = swpw(descriptor->wHubCharacteristics);
 
 	/* set the bitmap */
-	bitmap = (unsigned char *)&hub->desc.DeviceRemovable[0];
+	bitmap = (unsigned char *) &hub->desc.DeviceRemovable[0];
 
 	/* devices not removable by default */
 
 	memset(bitmap, 0xff, (USB_MAXCHILDREN + 1 + 7) / 8);
-	bitmap = (unsigned char *)&hub->desc.PortPowerCtrlMask[0];
+	bitmap = (unsigned char *) &hub->desc.PortPowerCtrlMask[0];
 	memset(bitmap, 0xff, (USB_MAXCHILDREN + 1 + 7) / 8); /* PowerMask = 1B */
 
 	for (i = 0; i < ((hub->desc.bNbrPorts + 1 + 7) / 8); i++)
+	{
 		hub->desc.DeviceRemovable[i] = descriptor->DeviceRemovable[i];
+	}
 
 	for (i = 0; i < ((hub->desc.bNbrPorts + 1 + 7)/8); i++)
+	{
 		hub->desc.DeviceRemovable[i] = descriptor->PortPowerCtrlMask[i];
+	}
 
 	dev->maxchild = descriptor->bNbrPorts;
 	dbg("USB %d, %d ports detected\r\n", dev->usbnum, dev->maxchild);
 	if (dev->maxchild >= 10)
+	{
 		 dev->maxchild = 10;
+	}
+
 	switch(hub->desc.wHubCharacteristics & HUB_CHAR_LPSM)
 	{
 		case 0x00: dbg("ganged power switching\r\n"); break;
@@ -422,6 +479,7 @@ int usb_hub_configure(struct usb_device *dev)
 		case 0x02:
 		case 0x03: dbg("unknown reserved power switching mode\r\n"); break;
 	}
+
 	if (hub->desc.wHubCharacteristics & HUB_CHAR_COMPOUND)
 	{
 		dbg("part of a compound device\r\n");
@@ -430,6 +488,7 @@ int usb_hub_configure(struct usb_device *dev)
 	{
 		dbg("standalone hub\r\n");
 	}
+
 	switch(hub->desc.wHubCharacteristics & HUB_CHAR_OCPM)
 	{
 		case 0x00: dbg("global over-current protection\r\n"); break;
@@ -437,6 +496,7 @@ int usb_hub_configure(struct usb_device *dev)
 		case 0x10:
 		case 0x18: dbg("no over-current protection\r\n"); break;
 	}
+
 	dbg("power on to power good time: %dms\r\n", descriptor->bPwrOn2PwrGood * 2);
 	dbg("hub controller current requirement: %dmA\r\n", descriptor->bHubContrCurrent);
 
@@ -449,6 +509,7 @@ int usb_hub_configure(struct usb_device *dev)
 	{
 		dbg("usb_hub_configure: failed to get Status - too long: %d\r\n", descriptor->bLength);
 		driver_mem_free(buffer);
+
 		return -1;
 	}
 
@@ -456,6 +517,7 @@ int usb_hub_configure(struct usb_device *dev)
 	{
 		dbg("usb_hub_configure: failed to get Status %lX\r\n", dev->status);
 		driver_mem_free(buffer);
+
 		return -1;
 	}
 
@@ -513,24 +575,34 @@ int usb_hub_probe(struct usb_device *dev, int ifnum)
 		return 0;
 	}
 
-	/* Some hubs have a subclass of 1, which AFAICT according to the */
-	/*  specs is not defined, but it works */
+	/*
+	 * Some hubs have a subclass of 1, which AFAICT according to the
+	 * specs is not defined, but it works
+	 */
 	if ((iface->bInterfaceSubClass != 0) && (iface->bInterfaceSubClass != 1))
+	{
 		return 0;
+	}
 
 	/* Multiple endpoints? What kind of mutant ninja-hub is this? */
 	if (iface->bNumEndpoints != 1)
+	{
 		return 0;
+	}
 
 	ep = &iface->ep_desc[0];
 
 	/* Output endpoint? Curiousier and curiousier.. */
 	if (!(ep->bEndpointAddress & USB_DIR_IN))
+	{
 		return 0;
+	}
 
 	/* If it's not an interrupt endpoint, we'd better punt! */
 	if ((ep->bmAttributes & 3) != 3)
+	{
 		return 0;
+	}
 
 	/* We found a hub */
 	dbg("USB %d hub found\r\n", dev->usbnum);

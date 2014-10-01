@@ -32,6 +32,7 @@
 #else
 #define dbg(format, arg...) do { ; } while (0)
 #endif /* DEBUG_USBMOUSE */
+#define err(format, arg...) do { xprintf("ERROR: %s(): " format, __FUNCTION__, ##arg); } while (0)
 
 extern void ltoa(char *buf, long n, unsigned long base);
 extern void call_mousevec(unsigned char *data, void (**mousevec)(void *));
