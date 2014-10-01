@@ -270,3 +270,4 @@ tos/Makefile
 usb/usb_hub.c
 include/usb_hub.h
 tos/Makefile
+usb/usb_kbd.c

@@ -48,12 +48,9 @@
 #include "bas_string.h"     /* for memset() */
 #include "pci.h"
 
-//extern xQueueHandle queue_poll_hub;
-
 #undef OHCI_USE_NPS         /* force NoPowerSwitching mode */
 
 #undef OHCI_VERBOSE_DEBUG	/* not always helpful */
-#undef SHOW_INFO
 #undef OHCI_FILL_TRACE
 
 //#define DEBUG_OHCI
@@ -62,6 +59,7 @@
 #else
 #define dbg(format, arg...) do { ; } while (0)
 #endif /* DEBUG_OHCI */
+#define err(format, arg...) do { xprintf("DEBUG: %s(): " format, __FUNCTION__, ##arg); } while (0)
 
 #include "usb.h"
 #include "ohci.h"
@@ -148,9 +146,6 @@ struct pci_device_id ohci_usb_pci_table[] =
 		0
 	}
 };
-
-#define err(format, arg...) do { dbg("ERROR: " format "\r\n", ## arg); } while (0)
-#define info(format, arg...)  dbg("INFO: " format "\r\n", ## arg)
 
 /* global ohci_t */
 static ohci_t gohci[2];
@@ -1080,8 +1075,10 @@ static void check_status(ohci_t *ohci, td_t *td_list)
 	}
 }
 
-/* replies to the request have to be on a FIFO basis so
- * we reverse the reversed done-list */
+/*
+ * replies to the request have to be on a FIFO basis so
+ * we reverse the reversed done-list
+ */
 static td_t *dl_reverse_done_list(ohci_t *ohci)
 {
 	uint32_t td_list_hc;
@@ -1089,18 +1086,24 @@ static td_t *dl_reverse_done_list(ohci_t *ohci)
 	td_t *td_list = NULL;
 
 	td_list_hc = swpl(ohci->hcca->done_head) & ~0xf;
+
 	if (td_list_hc)
+    {
 		td_list_hc += ohci->dma_offset;
+    }
+
 	ohci->hcca->done_head = 0;
 	while (td_list_hc)
 	{
-		td_list = (td_t *)td_list_hc;
+        td_list = (td_t *) td_list_hc;
 		check_status(ohci, td_list);
 		td_list->next_dl_td = td_rev;
 		td_rev = td_list;
 		td_list_hc = swpl(td_list->hwNextTD) & ~0xf;
 		if (td_list_hc)
+        {
 			td_list_hc += ohci->dma_offset;
+        }
 	}
 	return td_list;
 }
@@ -1110,9 +1113,13 @@ static td_t *dl_reverse_done_list(ohci_t *ohci)
 static void finish_urb(ohci_t *ohci, urb_priv_t *urb, int status)
 {
 	if ((status & (ED_OPER | ED_UNLINK)) && (urb->state != URB_DEL))
+    {
 		urb->finished = sohci_return_job(ohci, urb);
+    }
 	else
+    {
 		dbg("finish_urb: strange.., ED state %x, \r\n", status);
+    }
 }
 
 /*
@@ -1125,17 +1132,22 @@ static int takeback_td(ohci_t *ohci, td_t *td_list)
 {
 	ed_t *ed;
 	int cc;
-	int stat = 0;
-	/* urb_t *urb; */
+    int stat = 0;
 	urb_priv_t *lurb_priv;
-	uint32_t tdINFO, edHeadP, edTailP;
+    uint32_t tdINFO;
+    uint32_t edHeadP;
+    uint32_t edTailP;
+
 	tdINFO = swpl(td_list->hwINFO);
+
 	ed = td_list->ed;
 	if (ed == NULL)
 	{
-		err("OHCI usb-%s-%c cannot get error code ED is null", ohci->slot_name, (char)ohci->controller + '0');
+        err("OHCI usb-%s-%c cannot get error code ED is null\r\n", ohci->slot_name, (char) ohci->controller + '0');
+
 		return stat;
 	}
+
 	lurb_priv = ed->purb;
 	dl_transfer_length(ohci, td_list);
 	lurb_priv->td_cnt++;
@@ -1144,26 +1156,40 @@ static int takeback_td(ohci_t *ohci, td_t *td_list)
 	cc = TD_CC_GET(tdINFO);
 	if (cc)
 	{
-		//err("OHCI usb-%s-%c error: %s (%x)", ohci->slot_name, (char)ohci->controller + '0', cc_to_string[cc], cc);
+        err("OHCI usb-%s-%c error: %s (%x)\r\n", ohci->slot_name, (char) ohci->controller + '0', cc_to_string[cc], cc);
 		stat = cc_to_error[cc];
 	}
 
-	/* see if this done list makes for all TD's of current URB,
-	* and mark the URB finished if so */
+    /*
+     * see if this done list makes for all TD's of current URB,
+     * and mark the URB finished if so
+     */
 	if (lurb_priv->td_cnt == lurb_priv->length)
+    {
 		finish_urb(ohci, lurb_priv, ed->state);
+    }
+
 	if (ohci->irq)
-		dbg("dl_done_list: processing TD %x, len %x", lurb_priv->td_cnt, lurb_priv->length);
+    {
+        dbg("dl_done_list: processing TD %x, len %x\r\n", lurb_priv->td_cnt, lurb_priv->length);
+    }
+
 	if (ed->state != ED_NEW && (!usb_pipeint(lurb_priv->pipe)))
 	{
 		edHeadP = swpl(ed->hwHeadP) & ~0xf;
 		edTailP = swpl(ed->hwTailP);
+
 		/* unlink eds if they are not busy */
 		if ((edHeadP == edTailP) && (ed->state == ED_OPER))
+        {
 			ep_unlink(ohci, ed);
+        }
 	}
+
 	if (cc && (ed->type == PIPE_INTERRUPT)) /* added, but it's not the better method */
+    {
 		ep_unlink(ohci, ed);
+    }
 	return stat;
 }
 
@@ -1171,9 +1197,11 @@ static int dl_done_list(ohci_t *ohci)
 {
 	int stat = 0;
 	td_t *td_list = dl_reverse_done_list(ohci);
+
 	while (td_list)
 	{
 		td_t *td_next = td_list->next_dl_td;
+
 		stat = takeback_td(ohci, td_list);
 		td_list = td_next;
 	}
@@ -1289,12 +1317,12 @@ static unsigned char root_hub_str_index1[] =
 #define OK(x)			len = (x); break
 #ifdef DEBUG_OHCI
 #define WR_RH_STAT(x)		{ info("WR:status %#8x", (x)); writel((x), &ohci->regs->roothub.status); }
-#define WR_RH_PORTSTAT(x)	{ info("WR:portstatus[%d] %#8x", wIndex-1, (x)); writel((x), &ohci->regs->roothub.portstatus[wIndex-1]); }
+#define WR_RH_PORTSTAT(x)	{ info("WR:portstatus[%d] %#8x", wIndex - 1, (x)); writel((x), &ohci->regs->roothub.portstatus[wIndex - 1]); }
 #else
 #define WR_RH_STAT(x)		{ writel((x), &ohci->regs->roothub.status); }
-#define WR_RH_PORTSTAT(x)	{ writel((x), &ohci->regs->roothub.portstatus[wIndex-1]); }
+#define WR_RH_PORTSTAT(x)	{ writel((x), &ohci->regs->roothub.portstatus[wIndex - 1]); }
 #endif
-#define RD_RH_STAT		roothub_status(ohci)
+#define RD_RH_STAT          roothub_status(ohci)
 #define RD_RH_PORTSTAT		roothub_portstatus(ohci, wIndex-1)
 
 /* request to virtual root hub */
@@ -1309,12 +1337,14 @@ int rh_check_port_status(ohci_t *controller)
 	for (i = 0; i < ndp; i++)
 	{
 		temp = roothub_portstatus(controller, i);
+
 		/* check for a device disconnect */
 		if (((temp & (RH_PS_PESC | RH_PS_CSC)) == (RH_PS_PESC | RH_PS_CSC))  && ((temp & RH_PS_CCS) == 0))
 		{
 			res = i;
 			break;
 		}
+
 		/* check for a device connect */
 		if ((temp & RH_PS_CSC) && (temp & RH_PS_CCS))
 		{
@@ -1343,49 +1373,60 @@ static int ohci_submit_rh_msg(ohci_t *ohci, struct usb_device *dev, uint32_t pip
 	pkt_print(ohci, NULL, dev, pipe, buffer, transfer_len, cmd, "SUB(rh)", usb_pipein(pipe));
 #else
 	if (ohci->irq)
+    {
 		wait(1 * 1000);
+    }
 #endif
+
 	if (usb_pipeint(pipe))
 	{
-		info("Root-Hub submit IRQ: NOT implemented");
+        err("Root-Hub submit IRQ: NOT implemented");
 		return 0;
 	}
+
 	bmRType_bReq  = cmd->requesttype | (cmd->request << 8);
 	wValue	      = swpw(cmd->value);
 	wIndex	      = swpw(cmd->index);
 	wLength	      = swpw(cmd->length);
-	info("Root-Hub: adr: %2x cmd(%1x): %08x %04x %04x %04x", dev->devnum, 8, bmRType_bReq, wValue, wIndex, wLength);
+    dbg("Root-Hub: adr: %2x cmd(%1x): %08x %04x %04x %04x\r\n", dev->devnum, 8, bmRType_bReq, wValue, wIndex, wLength);
 
 	switch (bmRType_bReq)
 	{
-		/* Request Destination:
-		   without flags: Device,
-		   RH_INTERFACE: interface,
-		   RH_ENDPOINT: endpoint,
-		   RH_CLASS means HUB here,
-		   RH_OTHER | RH_CLASS	almost ever means HUB_PORT here
-		*/
+        /*
+         * Request Destination:
+         * without flags: Device,
+         * RH_INTERFACE: interface,
+         * RH_ENDPOINT: endpoint,
+         * RH_CLASS means HUB here,
+         * RH_OTHER | RH_CLASS	almost ever means HUB_PORT here
+         */
 		case RH_GET_STATUS:
-			*(uint16_t *)data_buf = swpw(1);
+            *(uint16_t *) data_buf = swpw(1);
 			OK(2);
+
 		case RH_GET_STATUS | RH_INTERFACE:
 			*(uint16_t *)data_buf = swpw(0);
 			OK(2);
+
 		case RH_GET_STATUS | RH_ENDPOINT:
 			*(uint16_t *)data_buf = swpw(0);
 			OK(2);
+
 		case RH_GET_STATUS | RH_CLASS:
 			*(uint32_t *)data_buf = swpl(RD_RH_STAT & ~(RH_HS_CRWE | RH_HS_DRWE));
 			OK(4);
+
 		case RH_GET_STATUS | RH_OTHER | RH_CLASS:
 			*(uint32_t *)data_buf = swpl(RD_RH_PORTSTAT);
 			OK(4);
+
 		case RH_CLEAR_FEATURE | RH_ENDPOINT:
 			switch (wValue)
 			{
 				case (RH_ENDPOINT_STALL): OK(0);
 			}
 			break;
+
 		case RH_CLEAR_FEATURE | RH_CLASS:
 			switch (wValue)
 			{
@@ -1393,6 +1434,7 @@ static int ohci_submit_rh_msg(ohci_t *ohci, struct usb_device *dev, uint32_t pip
 				case (RH_C_HUB_OVER_CURRENT): WR_RH_STAT(RH_HS_OCIC); OK(0);
 			}
 			break;
+
 		case RH_CLEAR_FEATURE | RH_OTHER | RH_CLASS:
 			switch (wValue)
 			{
@@ -1406,6 +1448,7 @@ static int ohci_submit_rh_msg(ohci_t *ohci, struct usb_device *dev, uint32_t pip
 				case (RH_C_PORT_RESET):       WR_RH_PORTSTAT(RH_PS_PRSC); OK(0);
 			}
 			break;
+
 		case RH_SET_FEATURE | RH_OTHER | RH_CLASS:
 			switch (wValue)
 			{
@@ -1426,9 +1469,11 @@ static int ohci_submit_rh_msg(ohci_t *ohci, struct usb_device *dev, uint32_t pip
 					OK(0);
 			}
 			break;
+
 		case RH_SET_ADDRESS:
 			ohci->rh.devnum = wValue;
 			OK(0);
+
 		case RH_GET_DESCRIPTOR:
 			switch ((wValue & 0xff00) >> 8)
 			{
@@ -1436,10 +1481,12 @@ static int ohci_submit_rh_msg(ohci_t *ohci, struct usb_device *dev, uint32_t pip
 					len = min_t(unsigned int, leni, min_t(unsigned int, sizeof(root_hub_dev_des), wLength));
 					data_buf = root_hub_dev_des;
 					OK(len);
+
 				case(0x02): /* configuration descriptor */
 					len = min_t(unsigned int, leni, min_t(unsigned int, sizeof(root_hub_config_des), wLength));
 					data_buf = root_hub_config_des;
 					OK(len);
+
 				case(0x03): /* string descriptors */
 					if (wValue == 0x0300)
 					{
@@ -1453,43 +1500,59 @@ static int ohci_submit_rh_msg(ohci_t *ohci, struct usb_device *dev, uint32_t pip
 						data_buf = root_hub_str_index1;
 						OK(len);
 					}
+
 				default:
 					stat = USB_ST_STALLED;
 			}
 			break;
+
 		case RH_GET_DESCRIPTOR | RH_CLASS:
-		{
-			uint32_t temp = roothub_a(ohci);
-			data_buf[0] = 9;		/* min length; */
-			data_buf[1] = 0x29;
-//			data_buf[2] = temp & RH_A_NDP;
-			data_buf[2] = (uint8_t)ohci->ndp;
-			data_buf[3] = 0;
-			if (temp & RH_A_PSM)	/* per-port power switching? */
-				data_buf[3] |= 0x1;
-			if (temp & RH_A_NOCP)	/* no overcurrent reporting? */
-				data_buf[3] |= 0x10;
-			else if (temp & RH_A_OCPM) /* per-port overcurrent reporting? */
-				data_buf[3] |= 0x8;
-			/* corresponds to data_buf[4-7] */
-			datab[1] = 0;
-			data_buf[5] = (temp & RH_A_POTPGT) >> 24;
-			temp = roothub_b(ohci);
-			data_buf[7] = temp & RH_B_DR;
-			if (data_buf[2] < 7)
-				data_buf[8] = 0xff;
-			else
-			{
-				data_buf[0] += 2;
-				data_buf[8] = (temp & RH_B_DR) >> 8;
-				data_buf[10] = data_buf[9] = 0xff;
-			}
-			len = min_t(unsigned int, leni, min_t(unsigned int, data_buf [0], wLength));
-			OK(len);
-		}
-		case RH_GET_CONFIGURATION: *(uint8_t *) data_buf = 0x01;	OK(1);
-		case RH_SET_CONFIGURATION: WR_RH_STAT(0x10000);	OK(0);
-		default:
+            {
+                uint32_t temp = roothub_a(ohci);
+                data_buf[0] = 9;		/* min length; */
+                data_buf[1] = 0x29;
+//      		data_buf[2] = temp & RH_A_NDP;
+                data_buf[2] = (uint8_t)ohci->ndp;
+                data_buf[3] = 0;
+
+                if (temp & RH_A_PSM)	/* per-port power switching? */
+                {
+                    data_buf[3] |= 0x1;
+                }
+
+                if (temp & RH_A_NOCP)	/* no overcurrent reporting? */
+                {
+                    data_buf[3] |= 0x10;
+                }
+                else if (temp & RH_A_OCPM) /* per-port overcurrent reporting? */
+                {
+                    data_buf[3] |= 0x8;
+                }
+
+                /* corresponds to data_buf[4-7] */
+                datab[1] = 0;
+                data_buf[5] = (temp & RH_A_POTPGT) >> 24;
+                temp = roothub_b(ohci);
+                data_buf[7] = temp & RH_B_DR;
+                if (data_buf[2] < 7)
+                {
+                    data_buf[8] = 0xff;
+                }
+                else
+                {
+                    data_buf[0] += 2;
+                    data_buf[8] = (temp & RH_B_DR) >> 8;
+                    data_buf[10] = data_buf[9] = 0xff;
+                }
+                len = min_t(unsigned int, leni, min_t(unsigned int, data_buf[0], wLength));
+                OK(len);
+            }
+
+        case RH_GET_CONFIGURATION: *(uint8_t *) data_buf = 0x01;	OK(1);
+
+        case RH_SET_CONFIGURATION: WR_RH_STAT(0x10000);	OK(0);
+
+        default:
 			dbg("unsupported root hub command");
 			stat = USB_ST_STALLED;
 	}
@@ -1497,25 +1560,38 @@ static int ohci_submit_rh_msg(ohci_t *ohci, struct usb_device *dev, uint32_t pip
 	ohci_dump_roothub(ohci, 1);
 #else
 	if (ohci->irq)
+    {
 		wait(1 * 1000);
+    }
 #endif
-	len = min_t(int, len, leni);
+
+    len = min_t(int, len, leni);
+
 	if (data != data_buf)
+    {
 		memcpy(data, data_buf, len);
-	dev->act_len = len;
+    }
+
+    dev->act_len = len;
 	dev->status = stat;
+
 #ifdef DEBUG_OHCI
 	pkt_print(ohci, NULL, dev, pipe, buffer, transfer_len, cmd, "RET(rh)", 0/*usb_pipein(pipe)*/);
 #else
-	if (ohci->irq)
+
+    if (ohci->irq)
+    {
 		wait(1 * 1000);
+    }
 #endif
-	return stat;
+
+    return stat;
 }
 
-/*-------------------------------------------------------------------------*/
 
-/* common code for handling submit messages - used for all but root hub accesses. */
+/*
+ * common code for handling submit messages - used for all but root hub accesses.
+ */
 
 static int submit_common_msg(ohci_t *ohci, struct usb_device *dev, uint32_t pipe, void *buffer,
 								int transfer_len, struct devrequest *setup, int interval)
@@ -1523,14 +1599,16 @@ static int submit_common_msg(ohci_t *ohci, struct usb_device *dev, uint32_t pipe
 	int stat = 0;
 	int maxsize = usb_maxpacket(dev, pipe);
 	int timeout;
-	urb_priv_t *urb = (urb_priv_t *) driver_mem_alloc(sizeof(urb_priv_t));
+    urb_priv_t *urb = driver_mem_alloc(sizeof(urb_priv_t));
 
 	if (urb == NULL)
 	{
-		err("submit_common_msg malloc failed");
+        err("submit_common_msg driver_mem_alloc() failed\r\n");
+
 		return -1;
 	}
 	memset(urb, 0, sizeof(urb_priv_t));
+
 	urb->dev = dev;
 	urb->pipe = pipe;
 	urb->transfer_buffer = buffer;
@@ -1541,6 +1619,7 @@ static int submit_common_msg(ohci_t *ohci, struct usb_device *dev, uint32_t pipe
 	if (ohci->devgone == dev)
 	{
 		dev->status = USB_ST_CRC_ERR;
+        dbg("device is gone...\r\n");
 		return 0;
 	}
 #ifdef DEBUG_OHCI
@@ -1548,18 +1627,20 @@ static int submit_common_msg(ohci_t *ohci, struct usb_device *dev, uint32_t pipe
 	pkt_print(ohci, urb, dev, pipe, buffer, transfer_len, setup, "SUB", usb_pipein(pipe));
 #else
 	if (ohci->irq)
+    {
 		wait(1 * 1000);
+    }
 #endif
 
 	if (!maxsize)
 	{
-		err("submit_common_message: pipesize for pipe %lx is zero", pipe);
+        err("submit_common_message: pipesize for pipe %lx is zero\r\n", pipe);
 		return -1;
 	}
 
 	if (sohci_submit_job(ohci, urb, setup) < 0)
 	{
-		err("sohci_submit_job failed");
+        err("sohci_submit_job failed\r\n");
 		return -1;
 	}
 
@@ -1567,22 +1648,31 @@ static int submit_common_msg(ohci_t *ohci, struct usb_device *dev, uint32_t pipe
 	wait(10 * 1000);
 	/* ohci_dump_status(ohci); */
 #endif
+
 	/* allow more time for a BULK device to react - some are slow */
+
 #define BULK_TO	5000	/* timeout in milliseconds */
 
 	if (usb_pipebulk(pipe))
+    {
 		timeout = BULK_TO;
+    }
 	else
+    {
 		timeout = 1000;
+    }
 
 	/* wait for it to complete */
 	while (ohci->irq)
 	{
 		/* check whether the controller is done */
 		flush_data_cache(ohci);
+
 #ifndef CONFIG_USB_INTERRUPT_POLLING
 		if (ohci->irq_enabled)
+        {
 			stat = ohci->stat_irq;
+        }
 		else
 #endif
 		stat = hc_interrupt(ohci);
@@ -1638,7 +1728,7 @@ static int submit_common_msg(ohci_t *ohci, struct usb_device *dev, uint32_t pipe
 /* submit routines called from usb.c */
 int ohci_submit_bulk_msg(struct usb_device *dev, uint32_t pipe, void *buffer, int transfer_len)
 {
-	info("submit_bulk_msg dev 0x%p ohci 0x%p buffer 0x%p len %d", dev, dev->priv_hcd, buffer, transfer_len);
+    err("submit_bulk_msg dev 0x%p ohci 0x%p buffer 0x%p len %d", dev, dev->priv_hcd, buffer, transfer_len);
 	return submit_common_msg((ohci_t *)dev->priv_hcd, dev, pipe, buffer, transfer_len, NULL, 0);
 }
 
@@ -1646,12 +1736,16 @@ int ohci_submit_control_msg(struct usb_device *dev, uint32_t pipe, void *buffer,
 {
 	ohci_t *ohci = (ohci_t *)dev->priv_hcd;
 	int maxsize = usb_maxpacket(dev, pipe);
-	info("submit_control_msg dev 0x%p ohci 0x%p", dev, ohci);
+
+    dbg("submit_control_msg dev 0x%p ohci 0x%p\r\n", dev, ohci);
+
 #ifdef DEBUG_OHCI
 	pkt_print(ohci, NULL, dev, pipe, buffer, transfer_len, setup, "SUB", usb_pipein(pipe));
 #else
 	if (ohci->irq)
+    {
 		wait(1 * 1000);
+    }
 #endif
 
 	if (!maxsize)
@@ -1663,6 +1757,7 @@ int ohci_submit_control_msg(struct usb_device *dev, uint32_t pipe, void *buffer,
 	if (((pipe >> 8) & 0x7f) == ohci->rh.devnum)
 	{
 		ohci->rh.dev = dev;
+
 		/* root hub - redirect */
 		return ohci_submit_rh_msg(ohci, dev, pipe, buffer, transfer_len, setup);
 	}
@@ -1671,7 +1766,7 @@ int ohci_submit_control_msg(struct usb_device *dev, uint32_t pipe, void *buffer,
 
 int ohci_submit_int_msg(struct usb_device *dev, uint32_t pipe, void *buffer, int transfer_len, int interval)
 {
-	info("submit_int_msg dev 0x%p ohci 0x%p buffer 0x%p len %d", dev, dev->priv_hcd, buffer, transfer_len);
+    err("submit_int_msg dev 0x%p ohci 0x%p buffer 0x%p len %d", dev, dev->priv_hcd, buffer, transfer_len);
 	return submit_common_msg((ohci_t *)dev->priv_hcd, dev, pipe, buffer, transfer_len, NULL, interval);
 }
 
@@ -1769,7 +1864,7 @@ static int hc_reset(ohci_t *ohci)
 	{
 		/* SMM owns the HC */
 		writel(OHCI_OCR, &ohci->regs->cmdstatus);/* request ownership */
-		info("USB HC TakeOver from SMM");
+        err("USB HC TakeOver from SMM");
 		while (readl(&ohci->regs->control) & OHCI_CTRL_IR)
 		{
 			wait(10);
@@ -1895,21 +1990,26 @@ void ohci_usb_event_poll(int interrupt)
 
 #endif /* CONFIG_USB_INTERRUPT_POLLING */
 
-/* an interrupt happens */
+/*
+ * an interrupt happens
+ */
 static int hc_interrupt(ohci_t *ohci)
 {
 	struct ohci_regs *regs = ohci->regs;
-	int ints, stat = -1;
+    int ints;
+    int stat = -1;
 
 	if ((ohci->hcca->done_head != 0) && !(swpl(ohci->hcca->done_head) & 0x01))
+    {
 		ints =  OHCI_INTR_WDH;
+    }
 	else
 	{
 		ints = readl(&regs->intrstatus);
-		if (ints == ~(uint32_t) 0)
+        if (ints == ~ 0UL)
 		{
 			ohci->disabled++;
-			err("OHCI usb-%s-%c device removed!", ohci->slot_name, (char)ohci->controller + '0');
+            err("OHCI usb-%s-%c device removed!\r\n", ohci->slot_name, (char) ohci->controller + '0');
 			return -1;
 		}
 		else
@@ -1917,14 +2017,17 @@ static int hc_interrupt(ohci_t *ohci)
 			ints &= readl(&regs->intrenable);
 			if (ints == 0)
 			{
-//				dbg("hc_interrupt: returning..\r\n");
-				return 0xff;
+                dbg("no interrupt...\r\n");
+
+                return 0xff;
 			}
 		}
 	}
 
 	if (ohci->irq)
-		dbg("Interrupt: 0x%x frame: 0x%x bus: %d", ints, swpw(ohci->hcca->frame_no), ohci->controller);
+    {
+        dbg("Interrupt: 0x%x frame: 0x%x bus: %d\r\n", ints, swpw(ohci->hcca->frame_no), ohci->controller);
+    }
 
 	if (ints & OHCI_INTR_RHSC) /* root hub status change */
 	{
@@ -1950,7 +2053,7 @@ static int hc_interrupt(ohci_t *ohci)
 		(void) status;
 
 		err("OHCI Unrecoverable Error, controller usb-%s-%c disabled\r\n(SR:0x%04X%s%s%s%s%s%s)",
-			ohci->slot_name, (char)ohci->controller + '0', status & 0xFFFF,
+            ohci->slot_name, (char) ohci->controller + '0', status & 0xFFFF,
 			status & 0x8000 ? ", Parity error" : "",
 			status & 0x4000 ? ", Signaled system error" : "",
 			status & 0x2000 ? ", Received master abort" : "",
@@ -1962,18 +2065,24 @@ static int hc_interrupt(ohci_t *ohci)
 		ohci_dump(ohci, 1);
 #else
 		if (ohci->irq)
+        {
 			wait(1);
+        }
 #endif
 		/* HC Reset */
 		ohci->hc_control = 0;
 		writel(ohci->hc_control, &ohci->regs->control);
-		return -1;
+
+        return -1;
 	}
 
 	if (ints & OHCI_INTR_WDH)
 	{
 		if (ohci->irq)
+        {
 			wait(1);
+        }
+
 		writel(OHCI_INTR_WDH, &regs->intrdisable);
 		(void) readl(&regs->intrdisable); /* flush */
 		stat = dl_done_list(ohci);
@@ -2086,13 +2195,13 @@ int ohci_usb_lowlevel_init(int32_t handle, const struct pci_device_id *ent, void
 	else if (!ohci->handle) /* for restart USB cmd */
 		return(-1);
 
-	info("ohci %p", ohci);
+    err("ohci %p", ohci);
 
 	ohci->controller = PCI_FUNCTION_FROM_HANDLE(ohci->handle);
 	// ohci->controller = (ohci->handle >> 16) & 3; /* PCI function */
 
 	/* this must be aligned to a 256 byte boundary */
-	ohci->hcca_unaligned = (struct ohci_hcca *) driver_mem_alloc(sizeof(struct ohci_hcca) + 256);
+    ohci->hcca_unaligned = driver_mem_alloc(sizeof(struct ohci_hcca) + 256);
 	if (ohci->hcca_unaligned == NULL)
 	{
 		err("HCCA malloc failed");
@@ -2102,8 +2211,8 @@ int ohci_usb_lowlevel_init(int32_t handle, const struct pci_device_id *ent, void
 	/* align the storage */
 	ohci->hcca = (struct ohci_hcca *) (((uint32_t) ohci->hcca_unaligned + 255) & ~255);
 	memset(ohci->hcca, 0, sizeof(struct ohci_hcca));
-	info("aligned ghcca %p", ohci->hcca);
-	ohci->ohci_dev_unaligned = (struct ohci_device *) driver_mem_alloc(sizeof(struct ohci_device) + 8);
+    err("aligned ghcca %p", ohci->hcca);
+    ohci->ohci_dev_unaligned = driver_mem_alloc(sizeof(struct ohci_device) + 8);
 	if (ohci->ohci_dev_unaligned == NULL)
 	{
 		err("EDs malloc failed");
@@ -2112,9 +2221,9 @@ int ohci_usb_lowlevel_init(int32_t handle, const struct pci_device_id *ent, void
 	}
 	ohci->ohci_dev = (struct ohci_device *) (((uint32_t) ohci->ohci_dev_unaligned + 7) & ~7);
 	memset(ohci->ohci_dev, 0, sizeof(struct ohci_device));
-	info("aligned EDs %p", ohci->ohci_dev);
+    err("aligned EDs %p", ohci->ohci_dev);
 
-	ohci->td_unaligned = (struct td *) driver_mem_alloc(sizeof(struct td) * (NUM_TD + 1));
+    ohci->td_unaligned = driver_mem_alloc(sizeof(struct td) * (NUM_TD + 1));
 	if (ohci->td_unaligned == NULL)
 	{
 		err("TDs malloc failed");
@@ -2126,7 +2235,7 @@ int ohci_usb_lowlevel_init(int32_t handle, const struct pci_device_id *ent, void
 
 	dbg("memset from %p to %p\r\n", ptd, ptd + sizeof(td_t) * NUM_TD);
 	memset(ptd, 0, sizeof(td_t) * NUM_TD);
-	info("aligned TDs %p", ptd);
+    err("aligned TDs %p", ptd);
 
 	ohci->disabled = 1;
 	ohci->sleeping = 0;

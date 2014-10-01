@@ -78,19 +78,26 @@ static int num_pci_classes = sizeof(pci_classes) / sizeof(struct pci_class);
 /* holds the handle of a card at position = array index */
 static int32_t handles[NUM_CARDS];
 
-/* holds the interrupt handler addresses (see pci_hook_interrupt() and pci_unhook_interrupt()) of the PCI cards */
-struct pci_interrupt
-{
-	void (*handler)(void);
-	int32_t parameter;
-	struct pci_interrupt *next;
-};
-#define MAX_INTERRUPTS	(NUM_CARDS * 3)
-static struct pci_interrupt interrupts[MAX_INTERRUPTS];
-
 /* holds the card's resource descriptors; filled in pci_device_config() */
 static struct pci_rd resource_descriptors[NUM_CARDS][NUM_RESOURCES];
 
+typedef int (*pci_interrupt_handler)(int param);
+
+/*
+ * holds the interrupt handler addresses (see pci_hook_interrupt()
+ * and pci_unhook_interrupt()) of the PCI cards
+ */
+struct pci_interrupt
+{
+    int32_t handle;
+    int irq;
+    pci_interrupt_handler handler;
+    int32_t parameter;
+    struct pci_interrupt *next;
+};
+
+#define MAX_INTERRUPTS	(NUM_CARDS * 3)
+static struct pci_interrupt interrupts[MAX_INTERRUPTS];
 
 __attribute__((aligned(16))) void chip_errata_135(void)
 {
@@ -154,15 +161,23 @@ __attribute__((interrupt)) void pci_interrupt(void)
  */
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-function"
+
 static int32_t pci_get_interrupt_cause(int32_t *handles)
 {
 	int32_t handle;
 
+    /*
+     * loop through all PCI devices...
+     */
 	while ((handle = *handles++) != -1)
 	{
-		uint32_t csr = swpl(pci_read_config_longword(handle, PCICSR));
+        uint16_t command_register = swpw(pci_read_config_word(handle, PCICR));
+        uint16_t status_register = swpw(pci_read_config_word(handle, PCISR));
 
-		if ((csr & (1 << 3)) && (csr & !(csr & (1 << 10))))
+        /*
+         * ...to see which device caused the interrupt
+         */
+        if ((status_register & PCICSR_INTERRUPT) && !(command_register & PCICSR_INT_DISABLE))
 		{
 			/* device has interrupts enabled and has an active interrupt, so its probably ours */
 
@@ -175,11 +190,21 @@ static int32_t pci_get_interrupt_cause(int32_t *handles)
 
 static int32_t pci_call_interrupt_chain(int32_t handle, int32_t data)
 {
+    int i;
+
+    for (i = 0; i < MAX_INTERRUPTS; i++)
+    {
+        if (interrupts[i].handle == handle)
+        {
+            interrupts[i].handler(data);
+
+            return 1;
+        }
+    }
 	return data;	/* unmodified - means: not handled */
 }
 #pragma GCC diagnostic pop
 
-#ifdef MACHINE_M5484LITE
 /*
  * This gets called from irq5 in exceptions.S
  * Once we arrive here, the SR has been set to disable interrupts and the gcc scratch registers have been saved
@@ -191,7 +216,9 @@ void irq5_handler(void)
 	int32_t newvalue;
 
 	MCF_EPORT_EPFR |= (1 << 5);		/* clear interrupt from edge port */
-	xprintf("IRQ5!\r\n");
+
+    xprintf("IRQ5!\r\n");
+
 	if ((handle = pci_get_interrupt_cause(handles)) > 0)
 	{
 		newvalue = pci_call_interrupt_chain(handle, value);
@@ -202,6 +229,7 @@ void irq5_handler(void)
 	}
 }
 
+#ifdef MACHINE_M5484LITE
 /*
  * This gets called from irq7 in exceptions.S
  * Once we arrive here, the SR has been set to disable interrupts and the gcc scratch registers have been saved
@@ -580,19 +608,41 @@ int32_t pci_find_classcode(uint32_t classcode, int index)
 	return PCI_DEVICE_NOT_FOUND;
 }
 
-int32_t pci_hook_interrupt(int32_t handle, void *handler, void *parameter)
+int32_t pci_hook_interrupt(int32_t handle, pci_interrupt_handler handler, void *parameter)
 {
-	/* FIXME: implement */
-	dbg("pci_hook_interrupt() still not implemented\r\n");
-	return PCI_SUCCESSFUL;
+    int i;
+
+    /*
+     * find empty slot
+     */
+    for (i = 0; i < MAX_INTERRUPTS; i++)
+    {
+        if (interrupts[i].handle == 0)
+        {
+            interrupts[i].handle = handle;
+            interrupts[i].handler = handler;
+            interrupts[i].parameter = (int32_t) parameter;
+
+            return PCI_SUCCESSFUL;
+        }
+    }
+    return PCI_BUFFER_TOO_SMALL;
 }
 
 int32_t pci_unhook_interrupt(int32_t handle)
 {
-	/* FIXME: implement */
+    int i;
 
-	dbg("pci_unhook_interrupt() still not implemented\r\n");
-	return PCI_SUCCESSFUL;
+    for (i = 0; i < MAX_INTERRUPTS; i++)
+    {
+        if (interrupts[i].handle == handle)
+        {
+            memset(&interrupts[i], 0, sizeof(struct pci_interrupt));
+
+            return PCI_SUCCESSFUL;
+        }
+    }
+    return PCI_DEVICE_NOT_FOUND;
 }
 
 /*
@@ -1078,7 +1128,7 @@ void init_pci(void)
 
 	xprintf("initializing PCI bridge:\r\n");
 
-	(void) res; /* for now */
+    (void) res; /* for now */
 	res = register_interrupt_handler(0, INT_SOURCE_PCIARB, 5, 5, pci_arb_interrupt);
 	dbg("registered interrupt handler for PCI arbiter: %s\r\n",
 			(res < 0 ? "failed" : "succeeded"));

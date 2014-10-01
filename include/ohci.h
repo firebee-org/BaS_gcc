@@ -31,7 +31,6 @@ static int cc_to_error[16] =
 	/* Not Access */	       -1
 };
 
-#ifdef DEBUG_OHCI
 static const char *cc_to_string[16] =
 {
 	"No Error",
@@ -64,7 +63,6 @@ static const char *cc_to_string[16] =
 	"NOT ACCESSED:\r\nThis code is set by software before the TD is placed\r\n" \
 		     "on a list to be processed by the HC.(2)",
 };
-#endif /* DEBUG_OHCI */
 
 /* ED States */
 

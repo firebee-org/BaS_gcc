@@ -91,9 +91,12 @@
 #define PCICSR_STEPPING		(1 << 7)	/* if set: stepping enabled */
 #define PCICSR_SERR			(1 << 8)	/* if set: SERR pin enabled */
 #define PCICSR_FAST_BTOB_E	(1 << 9)	/* if set: fast back-to-back enabled */
+#define PCICSR_INT_DISABLE  (1 << 10)   /* if set: disable interrupts from this device */
 /*
  * bit definitions for PCICSR upper half (Status Register)
  */
+#define PCICSR_INTERRUPT    (1 << 3)    /* device requested interrupt */
+#define PCICSR_CAPABILITIES (1 << 4)    /* if set, capabilities pointer is valid */
 #define PCICSR_66MHZ		(1 << 5)	/* 66 MHz capable */
 #define PCICSR_UDF			(1 << 6)	/* UDF supported */
 #define PCICSR_FAST_BTOB	(1 << 7)	/* Fast back-to-back enabled */
@@ -243,7 +246,9 @@ extern int32_t pci_write_config_longword(int32_t handle, int offset, uint32_t va
 extern int32_t pci_write_config_word(int32_t handle, int offset, uint16_t value);
 extern int32_t pci_write_config_byte(int32_t handle, int offset, uint8_t value);
 
-extern int32_t pci_hook_interrupt(int32_t handle, void *interrupt_handler, void *parameter);
+typedef int (*pci_interrupt_handler)(int param);
+
+extern int32_t pci_hook_interrupt(int32_t handle, pci_interrupt_handler handler, void *parameter);
 extern int32_t pci_unhook_interrupt(int32_t handle);
 
 extern struct pci_rd *pci_get_resource(int32_t handle);
