@@ -99,7 +99,7 @@ struct pci_interrupt
 #define MAX_INTERRUPTS	(NUM_CARDS * 3)
 static struct pci_interrupt interrupts[MAX_INTERRUPTS];
 
-__attribute__((aligned(16))) void chip_errata_135(void)
+static inline __attribute__((aligned(16))) void chip_errata_135(void)
 {
 	/*
 	 * Errata type: Silicon
@@ -376,17 +376,19 @@ int32_t pci_write_config_longword(int32_t handle, int offset, uint32_t value)
 		MCF_PCI_PCICAR_DEVNUM(PCI_DEVICE_FROM_HANDLE(handle)) |		/* device number, devices 0 - 9 are reserved */
 		MCF_PCI_PCICAR_FUNCNUM(PCI_FUNCTION_FROM_HANDLE(handle)) |	/* function number */
 		MCF_PCI_PCICAR_DWORD(offset / 4);
+    chip_errata_135();
 
 	__asm__ __volatile__("nop" ::: "memory");
 
 	* (volatile uint32_t *) PCI_IO_OFFSET = value;	/* access device */
+    chip_errata_135();
 
 	__asm__ __volatile__("tpf" ::: "memory");
 
 	/* finish configuration space access cycle */
 	MCF_PCI_PCICAR &= ~MCF_PCI_PCICAR_E;
+    chip_errata_135();
 
-	chip_errata_135();
 
 	return PCI_SUCCESSFUL;
 }
@@ -402,17 +404,18 @@ int32_t pci_write_config_word(int32_t handle, int offset, uint16_t value)
 			MCF_PCI_PCICAR_DEVNUM(PCI_DEVICE_FROM_HANDLE(handle)) |
 			MCF_PCI_PCICAR_FUNCNUM(PCI_FUNCTION_FROM_HANDLE(handle)) |
 			MCF_PCI_PCICAR_DWORD(offset / 4);
+    chip_errata_135();
 
 	__asm__ __volatile__("tpf" ::: "memory");
 
 	* (volatile uint16_t *) (PCI_IO_OFFSET + (offset & 2)) = value;
+    chip_errata_135();
 
 	__asm__ __volatile__("tpf" ::: "memory");
 
 	/* finish configuration space access cycle */
 	MCF_PCI_PCICAR &= ~MCF_PCI_PCICAR_E;
-
-	chip_errata_135();
+    chip_errata_135();
 
 	return PCI_SUCCESSFUL;
 }
@@ -427,10 +430,12 @@ int32_t pci_write_config_byte(int32_t handle, int offset, uint8_t value)
 			MCF_PCI_PCICAR_DEVNUM(PCI_DEVICE_FROM_HANDLE(handle)) |
 			MCF_PCI_PCICAR_FUNCNUM(PCI_FUNCTION_FROM_HANDLE(handle)) |
 			MCF_PCI_PCICAR_DWORD(offset / 4);
+    chip_errata_135();
 
 	__asm__ __volatile__("tpf" ::: "memory");
 
 	* (volatile uint8_t *) (PCI_IO_OFFSET + (offset & 3)) = value;
+    chip_errata_135();
 
 	__asm__ __volatile__("tpf" ::: "memory");
 
