@@ -12,7 +12,7 @@
 #include "usb.h"
 #include "usb_hub.h"
 
-//#define DEBUG_HUB
+#define DEBUG_HUB
 #ifdef DEBUG_HUB
 #define dbg(format, arg...) do { xprintf("DEBUG: %s(): " format, __FUNCTION__, ##arg); } while (0)
 #else
@@ -296,6 +296,7 @@ static void usb_hub_events(struct usb_device *dev)
         if (usb_get_port_status(dev, i + 1, &portsts) < 0)
         {
             dbg("get_port_status failed\r\n");
+
             continue;
         }
         portstatus = swpw(portsts.wPortStatus);
@@ -424,7 +425,8 @@ int usb_hub_configure(struct usb_device *dev)
         driver_mem_free(buffer);
         return -1;
     }
-    dbg("bLength:%02X bDescriptorType:%02X bNbrPorts:%02X\r\n", buffer[0], buffer[1], buffer[2]);
+
+    dbg("bLength:0x%02X bDescriptorType:0x%02X bNbrPorts:0x%02X\r\n", buffer[0], buffer[1], buffer[2]);
     descriptor = (struct usb_hub_descriptor *)buffer;
 
     /* silence compiler warning if USB_BUFSIZ is > 256 [= sizeof(char)] */
@@ -465,7 +467,7 @@ int usb_hub_configure(struct usb_device *dev)
         hub->desc.DeviceRemovable[i] = descriptor->DeviceRemovable[i];
     }
 
-    for (i = 0; i < ((hub->desc.bNbrPorts + 1 + 7)/8); i++)
+    for (i = 0; i < ((hub->desc.bNbrPorts + 1 + 7) / 8); i++)
     {
         hub->desc.DeviceRemovable[i] = descriptor->PortPowerCtrlMask[i];
     }
@@ -507,7 +509,9 @@ int usb_hub_configure(struct usb_device *dev)
 
     for (i = 0; i < dev->maxchild; i++)
     {
-        dbg("USB %d port %d is%s removable\r\n", dev->usbnum, i + 1, hub->desc.DeviceRemovable[(i + 1) / 8] & (1 << ((i + 1) % 8)) ? " not" : "");
+        dbg("USB %d port %d is%s removable\r\n",
+            dev->usbnum, i + 1,
+            hub->desc.DeviceRemovable[(i + 1) / 8] & (1 << ((i + 1) % 8)) ? " not" : "");
     }
 
     if (sizeof(struct usb_hub_status) > USB_BUFSIZ)
@@ -526,11 +530,11 @@ int usb_hub_configure(struct usb_device *dev)
         return -1;
     }
 
-#ifdef USB_DEBUG
+#ifdef DEBUG_HUB
     {
         struct usb_hub_status *hubsts;
 
-        hubsts = (struct usb_hub_status *)buffer;
+        hubsts = (struct usb_hub_status *) buffer;
         dbg("get_hub_status returned status %X, change %X\r\n",
                         swpw(hubsts->wHubStatus), swpw(hubsts->wHubChange));
         dbg("local power source is %s\r\n",
@@ -559,6 +563,7 @@ int usb_hub_configure(struct usb_device *dev)
     }
     if (queue_poll_hub == NULL)
 #endif
+
     usb_hub_events(dev);
     driver_mem_free(buffer);
 
@@ -586,12 +591,15 @@ int usb_hub_probe(struct usb_device *dev, int ifnum)
      */
     if ((iface->bInterfaceSubClass != 0) && (iface->bInterfaceSubClass != 1))
     {
+        dbg("iface->bInterfaceSubClass != {0, 1} (%d instead)\r\n", iface->bInterfaceSubClass);
+
         return 0;
     }
 
     /* Multiple endpoints? What kind of mutant ninja-hub is this? */
     if (iface->bNumEndpoints != 1)
     {
+        dbg("iface->bNumEndpoints != 1 (%d instead)\r\n", iface->bNumEndpoints);
         return 0;
     }
 
@@ -600,6 +608,8 @@ int usb_hub_probe(struct usb_device *dev, int ifnum)
     /* Output endpoint? Curiousier and curiousier.. */
     if (!(ep->bEndpointAddress & USB_DIR_IN))
     {
+        dbg("!(ep->bEndpointAddress != USB_DIR_IN (0x%x instead)\r\n", ep->bEndpointAddress);
+
         return 0;
     }
 
@@ -611,6 +621,7 @@ int usb_hub_probe(struct usb_device *dev, int ifnum)
 
     /* We found a hub */
     dbg("USB %d hub found\r\n", dev->usbnum);
+
     ret = usb_hub_configure(dev);
 
     return ret;

@@ -23,43 +23,42 @@
 #define USB_EHCI_H
 
 #define CONFIG_SYS_USB_EHCI_MAX_ROOT_PORTS	5
-#if !defined(CONFIG_SYS_USB_EHCI_MAX_ROOT_PORTS)
-#define CONFIG_SYS_USB_EHCI_MAX_ROOT_PORTS	2
-#endif
 
 /* (shifted) direction/type/recipient from the USB 2.0 spec, table 9.2 */
 #define DeviceRequest \
-	((USB_DIR_IN | USB_TYPE_STANDARD | USB_RECIP_DEVICE) << 8)
+    ((USB_DIR_IN | USB_TYPE_STANDARD | USB_RECIP_DEVICE) << 8)
 
 #define DeviceOutRequest \
-	((USB_DIR_OUT | USB_TYPE_STANDARD | USB_RECIP_DEVICE) << 8)
+    ((USB_DIR_OUT | USB_TYPE_STANDARD | USB_RECIP_DEVICE) << 8)
 
 #define InterfaceRequest \
-	((USB_DIR_IN | USB_TYPE_STANDARD | USB_RECIP_INTERFACE) << 8)
+    ((USB_DIR_IN | USB_TYPE_STANDARD | USB_RECIP_INTERFACE) << 8)
 
 #define EndpointRequest \
-	((USB_DIR_IN | USB_TYPE_STANDARD | USB_RECIP_INTERFACE) << 8)
+    ((USB_DIR_IN | USB_TYPE_STANDARD | USB_RECIP_INTERFACE) << 8)
 
 #define EndpointOutRequest \
-	((USB_DIR_OUT | USB_TYPE_STANDARD | USB_RECIP_INTERFACE) << 8)
+    ((USB_DIR_OUT | USB_TYPE_STANDARD | USB_RECIP_INTERFACE) << 8)
 
 /*
  * Register Space.
  */
-struct ehci_hccr {
-	uint32_t cr_capbase;
+struct ehci_hccr
+{
+    uint32_t cr_capbase;
 #define HC_LENGTH(p)		(((p) >> 0) & 0x00ff)
 #define HC_VERSION(p)		(((p) >> 16) & 0xffff)
-	uint32_t cr_hcsparams;
+    uint32_t cr_hcsparams;
 #define HCS_PPC(p)			((p) & (1 << 4))
 #define HCS_INDICATOR(p)	((p) & (1 << 16)) /* Port indicators */
 #define HCS_N_PORTS(p)		(((p) >> 0) & 0xf)
-	uint32_t cr_hccparams;
-	uint8_t cr_hcsp_portrt[8];
+    uint32_t cr_hccparams;
+    uint8_t cr_hcsp_portrt[8];
 } __attribute__ ((packed));
 
-struct ehci_hcor {
-	uint32_t or_usbcmd;
+struct ehci_hcor
+{
+    uint32_t or_usbcmd;
 #define CMD_PARK	(1 << 11)		/* enable "park" */
 #define CMD_PARK_CNT(c)	(((c) >> 8) & 3)	/* how many transfers to park */
 #define CMD_ASE		(1 << 5)		/* async schedule enable */
@@ -68,7 +67,7 @@ struct ehci_hcor {
 #define CMD_PSE		(1 << 4)		/* periodic schedule enable */
 #define CMD_RESET	(1 << 1)		/* reset HC not bus */
 #define CMD_RUN		(1 << 0)		/* start/stop HC */
-	uint32_t or_usbsts;
+    uint32_t or_usbsts;
 #define	STD_ASS		(1 << 15)
 #define STS_PSSTAT	(1 << 14)
 #define STS_RECL	(1 << 13)
@@ -79,55 +78,55 @@ struct ehci_hcor {
 #define STS_PCD		(1 << 2)
 #define STS_USBERRINT (1 << 1)
 #define STS_USBINT	(1 << 0)
-	uint32_t or_usbintr;
+    uint32_t or_usbintr;
 #define INTR_IAAE	(1 << 5)
 #define INTR_HSEE	(1 << 4)
 #define INTR_FLRE	(1 << 3)
 #define INTR_PCDE	(1 << 2)
 #define INTR_USBERRINTE (1 << 1)
 #define INTR_USBINTE (1 << 0)
-	uint32_t or_frindex;
-	uint32_t or_ctrldssegment;
-	uint32_t or_periodiclistbase;
-	uint32_t or_asynclistaddr;
-	uint32_t _reserved_[9];
-	uint32_t or_configflag;
+    uint32_t or_frindex;
+    uint32_t or_ctrldssegment;
+    uint32_t or_periodiclistbase;
+    uint32_t or_asynclistaddr;
+    uint32_t _reserved_[9];
+    uint32_t or_configflag;
 #define FLAG_CF		(1 << 0)	/* true:  we'll support "high speed" */
-	uint32_t or_portsc[CONFIG_SYS_USB_EHCI_MAX_ROOT_PORTS];
-	uint32_t or_systune;
+    uint32_t or_portsc[CONFIG_SYS_USB_EHCI_MAX_ROOT_PORTS];
+    uint32_t or_systune;
 } __attribute__ ((packed));
 
-#define USBMODE		0x68			/* USB Device mode */
+#define USBMODE         0x68		/* USB Device mode */
 #define USBMODE_SDIS	(1 << 3)	/* Stream disable */
-#define USBMODE_BE	(1 << 2)		/* BE/LE endiannes select */
+#define USBMODE_BE      (1 << 2)	/* BE/LE endiannes select */
 #define USBMODE_CM_HC	(3 << 0)	/* host controller mode */
 #define USBMODE_CM_IDLE	(0 << 0)	/* idle state */
 
 /* Interface descriptor */
 struct usb_linux_interface_descriptor
 {
-	unsigned char	bLength;
-	unsigned char	bDescriptorType;
-	unsigned char	bInterfaceNumber;
-	unsigned char	bAlternateSetting;
-	unsigned char	bNumEndpoints;
-	unsigned char	bInterfaceClass;
-	unsigned char	bInterfaceSubClass;
-	unsigned char	bInterfaceProtocol;
-	unsigned char	iInterface;
+    unsigned char	bLength;
+    unsigned char	bDescriptorType;
+    unsigned char	bInterfaceNumber;
+    unsigned char	bAlternateSetting;
+    unsigned char	bNumEndpoints;
+    unsigned char	bInterfaceClass;
+    unsigned char	bInterfaceSubClass;
+    unsigned char	bInterfaceProtocol;
+    unsigned char	iInterface;
 } __attribute__ ((packed));
 
 /* Configuration descriptor information.. */
 struct usb_linux_config_descriptor
 {
-	unsigned char	bLength;
-	unsigned char	bDescriptorType;
-	unsigned short	wTotalLength;
-	unsigned char	bNumInterfaces;
-	unsigned char	bConfigurationValue;
-	unsigned char	iConfiguration;
-	unsigned char	bmAttributes;
-	unsigned char	MaxPower;
+    unsigned char	bLength;
+    unsigned char	bDescriptorType;
+    unsigned short	wTotalLength;
+    unsigned char	bNumInterfaces;
+    unsigned char	bConfigurationValue;
+    unsigned char	iConfiguration;
+    unsigned char	bmAttributes;
+    unsigned char	MaxPower;
 } __attribute__ ((packed));
 
 #if defined CONFIG_EHCI_DESC_BIG_ENDIAN
@@ -178,31 +177,31 @@ struct usb_linux_config_descriptor
 /* Queue Element Transfer Descriptor (qTD). */
 struct qTD
 {
-	uint32_t qt_next;
+    uint32_t qt_next;
 #define	QT_NEXT_TERMINATE	1
-	uint32_t qt_altnext;
-	uint32_t qt_token;
-	uint32_t qt_buffer[5];
+    uint32_t qt_altnext;
+    uint32_t qt_token;
+    uint32_t qt_buffer[5];
 };
 
 /* Queue Head (QH). */
 struct QH
 {
-	uint32_t qh_link;
+    uint32_t qh_link;
 #define	QH_LINK_TERMINATE	1
 #define	QH_LINK_TYPE_ITD	0
 #define	QH_LINK_TYPE_QH		2
 #define	QH_LINK_TYPE_SITD	4
 #define	QH_LINK_TYPE_FSTN	6
-	uint32_t qh_endpt1;
-	uint32_t qh_endpt2;
-	uint32_t qh_curtd;
-	struct qTD qh_overlay;
-	/*
-	 * Add dummy fill value to make the size of this struct
-	 * aligned to 32 bytes
-	 */
-	uint8_t fill[16];
+    uint32_t qh_endpt1;
+    uint32_t qh_endpt2;
+    uint32_t qh_curtd;
+    struct qTD qh_overlay;
+    /*
+     * Add dummy fill value to make the size of this struct
+     * aligned to 32 bytes
+     */
+    uint8_t fill[16];
 };
 
 /* Low level init functions */
