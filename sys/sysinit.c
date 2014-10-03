@@ -54,7 +54,7 @@
 #include "usb.h"
 #include "video.h"
 
-//#define DEBUG_SYSINIT
+#define DEBUG_SYSINIT
 #ifdef DEBUG_SYSINIT
 #define dbg(format, arg...) do { xprintf("DEBUG: %s(): " format, __FUNCTION__, ##arg); } while (0)
 #else
@@ -702,7 +702,7 @@ void init_usb(void)
 
     do
     {
-        handle = pci_find_device(0x0000, 0xffff, index++);
+        handle = pci_find_classcode(PCI_CLASS_SERIAL_USB, index++);
         if (handle > 0)
         {
             uint32_t id = 0;

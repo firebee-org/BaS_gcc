@@ -53,7 +53,7 @@
 #undef OHCI_VERBOSE_DEBUG	/* not always helpful */
 #undef OHCI_FILL_TRACE
 
-#define DEBUG_OHCI
+//#define DEBUG_OHCI
 #ifdef DEBUG_OHCI
 #define dbg(format, arg...) do { xprintf("DEBUG: %s(): " format, __FUNCTION__, ##arg); } while (0)
 #else

@@ -39,7 +39,7 @@ extern long *tab_funcs_pci;
 #define __u8 uint8_t
 #define __u16 uint16_t
 #define __u32 uint32_t
-#define u8 uint8_t
+//#define u8 uint8_t
 #define u16 uint16_t
 #define u32 uint32_t
 #define uint8_t uint8_t
@@ -70,126 +70,126 @@ extern int sprintD(char *s, const char *fmt, ...);
 /* String descriptor */
 struct usb_string_descriptor
 {
-	uint8_t	bLength;
-	uint8_t	bDescriptorType;
-	uint16_t	wData[1];
+    uint8_t	bLength;
+    uint8_t	bDescriptorType;
+    uint16_t	wData[1];
 } __attribute__ ((packed));
 
 /* device request (setup) */
 struct devrequest
 {
-	uint8_t	requesttype;
-	uint8_t	request;
-	uint16_t	value;
-	uint16_t	index;
-	uint16_t	length;
+    uint8_t	requesttype;
+    uint8_t	request;
+    uint16_t	value;
+    uint16_t	index;
+    uint16_t	length;
 } __attribute__ ((packed));
 
 /* All standard descriptors have these 2 fields in common */
 struct usb_descriptor_header
 {
-	uint8_t	bLength;
-	uint8_t	bDescriptorType;
+    uint8_t	bLength;
+    uint8_t	bDescriptorType;
 } __attribute__ ((packed));
 
 /* Device descriptor */
 struct usb_device_descriptor
 {
-	uint8_t	bLength;
-	uint8_t	bDescriptorType;
+    uint8_t	bLength;
+    uint8_t	bDescriptorType;
     uint16_t bcdUSB;
-	uint8_t	bDeviceClass;
-	uint8_t	bDeviceSubClass;
-	uint8_t	bDeviceProtocol;
-	uint8_t	bMaxPacketSize0;
+    uint8_t	bDeviceClass;
+    uint8_t	bDeviceSubClass;
+    uint8_t	bDeviceProtocol;
+    uint8_t	bMaxPacketSize0;
     uint16_t idVendor;
     uint16_t idProduct;
     uint16_t bcdDevice;
-	uint8_t	iManufacturer;
-	uint8_t	iProduct;
-	uint8_t	iSerialNumber;
-	uint8_t	bNumConfigurations;
+    uint8_t	iManufacturer;
+    uint8_t	iProduct;
+    uint8_t	iSerialNumber;
+    uint8_t	bNumConfigurations;
 } __attribute__ ((packed));
 
 /* Endpoint descriptor */
 struct usb_endpoint_descriptor
 {
-	uint8_t	bLength;
-	uint8_t	bDescriptorType;
-	uint8_t	bEndpointAddress;
-	uint8_t	bmAttributes;
+    uint8_t	bLength;
+    uint8_t	bDescriptorType;
+    uint8_t	bEndpointAddress;
+    uint8_t	bmAttributes;
     uint16_t wMaxPacketSize;
-	uint8_t	bInterval;
-	uint8_t	bRefresh;
-	uint8_t	bSynchAddress;
+    uint8_t	bInterval;
+    uint8_t	bRefresh;
+    uint8_t	bSynchAddress;
 } __attribute__ ((packed)) __attribute__ ((aligned(2)));
 
 /* Interface descriptor */
 struct usb_interface_descriptor
 {
-	uint8_t	bLength;
-	uint8_t	bDescriptorType;
-	uint8_t	bInterfaceNumber;
-	uint8_t	bAlternateSetting;
-	uint8_t	bNumEndpoints;
-	uint8_t	bInterfaceClass;
-	uint8_t	bInterfaceSubClass;
-	uint8_t	bInterfaceProtocol;
-	uint8_t	iInterface;
+    uint8_t	bLength;
+    uint8_t	bDescriptorType;
+    uint8_t	bInterfaceNumber;
+    uint8_t	bAlternateSetting;
+    uint8_t	bNumEndpoints;
+    uint8_t	bInterfaceClass;
+    uint8_t	bInterfaceSubClass;
+    uint8_t	bInterfaceProtocol;
+    uint8_t	iInterface;
 
-	uint8_t	no_of_ep;
-	uint8_t	num_altsetting;
-	uint8_t	act_altsetting;
+    uint8_t	no_of_ep;
+    uint8_t	num_altsetting;
+    uint8_t	act_altsetting;
 
-	struct usb_endpoint_descriptor ep_desc[USB_MAXENDPOINTS];
+    struct usb_endpoint_descriptor ep_desc[USB_MAXENDPOINTS];
 } __attribute__ ((packed));
 
 
 /* Configuration descriptor information.. */
 struct usb_config_descriptor
 {
-	uint8_t	bLength;
-	uint8_t	bDescriptorType;
-	uint16_t	wTotalLength;
-	uint8_t	bNumInterfaces;
-	uint8_t	bConfigurationValue;
-	uint8_t	iConfiguration;
-	uint8_t	bmAttributes;
-	uint8_t	MaxPower;
+    uint8_t	bLength;
+    uint8_t	bDescriptorType;
+    uint16_t	wTotalLength;
+    uint8_t	bNumInterfaces;
+    uint8_t	bConfigurationValue;
+    uint8_t	iConfiguration;
+    uint8_t	bmAttributes;
+    uint8_t	MaxPower;
 
-	uint8_t	no_of_if;	/* number of interfaces */
-	struct usb_interface_descriptor if_desc[USB_MAXINTERFACES];
+    uint8_t	no_of_if;	/* number of interfaces */
+    struct usb_interface_descriptor if_desc[USB_MAXINTERFACES];
 } __attribute__ ((packed));
 
 enum
 {
-	/* Maximum packet size; encoded as 0,1,2,3 = 8,16,32,64 */
-	PACKET_SIZE_8   = 0,
-	PACKET_SIZE_16  = 1,
-	PACKET_SIZE_32  = 2,
-	PACKET_SIZE_64  = 3,
+    /* Maximum packet size; encoded as 0,1,2,3 = 8,16,32,64 */
+    PACKET_SIZE_8   = 0,
+    PACKET_SIZE_16  = 1,
+    PACKET_SIZE_32  = 2,
+    PACKET_SIZE_64  = 3,
 };
 
 struct usb_device
 {
     int	devnum;             /* Device number on USB bus */
     int	speed;              /* full/low/high */
-	char mf[32];			/* manufacturer */
+    char mf[32];			/* manufacturer */
     char prod[32];          /* product */
-	char serial[32];		/* serial number */
+    char serial[32];		/* serial number */
 
-	/* Maximum packet size; one of: PACKET_SIZE_* */
-	int maxpacketsize;
+    /* Maximum packet size; one of: PACKET_SIZE_* */
+    int maxpacketsize;
 
-	/* one bit for each endpoint ([0] = IN, [1] = OUT) */
-	unsigned int toggle[2];
+    /* one bit for each endpoint ([0] = IN, [1] = OUT) */
+    unsigned int toggle[2];
 
-	/* endpoint halts; one bit per endpoint # & direction;
-	 * [0] = IN, [1] = OUT
-	 */
-	unsigned int halted[2];
-	int epmaxpacketin[16];		/* INput endpoint specific maximums */
-	int epmaxpacketout[16];		/* OUTput endpoint specific maximums */
+    /* endpoint halts; one bit per endpoint # & direction;
+     * [0] = IN, [1] = OUT
+     */
+    unsigned int halted[2];
+    int epmaxpacketin[16];		/* INput endpoint specific maximums */
+    int epmaxpacketout[16];		/* OUTput endpoint specific maximums */
 
     int configno;               /* selected config number */
     struct usb_device_descriptor descriptor;    /* Device Descriptor */
@@ -197,37 +197,37 @@ struct usb_device
 
     int have_langid;            /* whether string_langid is valid yet */
     int string_langid;          /* language ID for strings */
-	int (*irq_handle)(struct usb_device *dev);
-	uint32_t irq_status;
+    int (*irq_handle)(struct usb_device *dev);
+    uint32_t irq_status;
     int irq_act_len;            /* transfered bytes */
-	void *privptr;
+    void *privptr;
 
-	/*
-	 * Child devices -  if this is a hub device
-	 * Each instance needs its own set of data structures.
-	 */
-	uint32_t status;
-	int act_len;			/* transfered bytes */
-	int maxchild;			/* Number of ports if hub */
-	int portnr;
-	struct usb_device *parent;
-	struct usb_device *children[USB_MAXCHILDREN];
-	void *priv_hcd;
-	int (*deregister)(struct usb_device *dev);
+    /*
+     * Child devices -  if this is a hub device
+     * Each instance needs its own set of data structures.
+     */
+    uint32_t status;
+    int act_len;			/* transfered bytes */
+    int maxchild;			/* Number of ports if hub */
+    int portnr;
+    struct usb_device *parent;
+    struct usb_device *children[USB_MAXCHILDREN];
+    void *priv_hcd;
+    int (*deregister)(struct usb_device *dev);
 
-	struct usb_hub_device *hub;
-	int usbnum;
+    struct usb_hub_device *hub;
+    int usbnum;
 };
 
 typedef struct
 {
-	long ident;
-	union
-	{
-		long l;
-		short i[2];
-		char c[4];
-	} v;
+    long ident;
+    union
+    {
+        long l;
+        short i[2];
+        char c[4];
+    } v;
 } USB_COOKIE;
 
 /*
@@ -278,7 +278,7 @@ extern int usb_set_protocol(struct usb_device *dev, int ifnum, int protocol);
 extern int usb_set_idle(struct usb_device *dev, int ifnum, int duration, int report_id);
 extern struct usb_device *usb_get_dev_index(int index, int bus);
 extern int usb_control_msg(struct usb_device *dev, unsigned int pipe, uint8_t request, uint8_t requesttype,
-						   uint16_t value, uint16_t index, void *data, uint16_t size, int timeout);
+                           uint16_t value, uint16_t index, void *data, uint16_t size, int timeout);
 extern int usb_bulk_msg(struct usb_device *dev, unsigned int pipe, void *data, int len, int *actual_length, int timeout);
 extern int usb_submit_int_msg(struct usb_device *dev, uint32_t pipe, void *buffer, int transfer_len, int interval);
 extern void usb_disable_asynch(int disable);
@@ -328,42 +328,42 @@ extern int usb_set_interface(struct usb_device *dev, int interface, int alternat
 
 /* Create various pipes... */
 #define create_pipe(dev, endpoint) \
-		(((dev)->devnum << 8) | (endpoint << 15) | \
-		((dev)->speed << 26) | (dev)->maxpacketsize)
+        (((dev)->devnum << 8) | (endpoint << 15) | \
+        ((dev)->speed << 26) | (dev)->maxpacketsize)
 #define default_pipe(dev) ((dev)->speed << 26)
 
 #define usb_sndctrlpipe(dev, endpoint)	((PIPE_CONTROL << 30) | \
-					 create_pipe(dev, endpoint))
+                     create_pipe(dev, endpoint))
 #define usb_rcvctrlpipe(dev, endpoint)	((PIPE_CONTROL << 30) | \
-					 create_pipe(dev, endpoint) | \
-					 USB_DIR_IN)
+                     create_pipe(dev, endpoint) | \
+                     USB_DIR_IN)
 #define usb_sndisocpipe(dev, endpoint)	((PIPE_ISOCHRONOUS << 30) | \
-					 create_pipe(dev, endpoint))
+                     create_pipe(dev, endpoint))
 #define usb_rcvisocpipe(dev, endpoint)	((PIPE_ISOCHRONOUS << 30) | \
-					 create_pipe(dev, endpoint) | \
-					 USB_DIR_IN)
+                     create_pipe(dev, endpoint) | \
+                     USB_DIR_IN)
 #define usb_sndbulkpipe(dev, endpoint)	((PIPE_BULK << 30) | \
-					 create_pipe(dev, endpoint))
+                     create_pipe(dev, endpoint))
 #define usb_rcvbulkpipe(dev, endpoint)	((PIPE_BULK << 30) | \
-					 create_pipe(dev, endpoint) | \
-					 USB_DIR_IN)
+                     create_pipe(dev, endpoint) | \
+                     USB_DIR_IN)
 #define usb_sndintpipe(dev, endpoint)	((PIPE_INTERRUPT << 30) | \
-					 create_pipe(dev, endpoint))
+                     create_pipe(dev, endpoint))
 #define usb_rcvintpipe(dev, endpoint)	((PIPE_INTERRUPT << 30) | \
-					 create_pipe(dev, endpoint) | \
-					 USB_DIR_IN)
+                     create_pipe(dev, endpoint) | \
+                     USB_DIR_IN)
 #define usb_snddefctrl(dev)		((PIPE_CONTROL << 30) | \
-					 default_pipe(dev))
+                     default_pipe(dev))
 #define usb_rcvdefctrl(dev)		((PIPE_CONTROL << 30) | \
-					 default_pipe(dev) | \
-					 USB_DIR_IN)
+                     default_pipe(dev) | \
+                     USB_DIR_IN)
 
 /* The D0/D1 toggle bits */
 #define usb_gettoggle(dev, ep, out) (((dev)->toggle[out] >> ep) & 1)
 #define usb_dotoggle(dev, ep, out)  ((dev)->toggle[out] ^= (1 << ep))
 #define usb_settoggle(dev, ep, out, bit) ((dev)->toggle[out] = \
-						((dev)->toggle[out] & \
-						 ~(1 << ep)) | ((bit) << ep))
+                        ((dev)->toggle[out] & \
+                         ~(1 << ep)) | ((bit) << ep))
 
 /* Endpoint halt control/status */
 #define usb_endpoint_out(ep_dir)	(((ep_dir >> 7) & 1) ^ 1)
@@ -372,7 +372,7 @@ extern int usb_set_interface(struct usb_device *dev, int interface, int alternat
 #define usb_endpoint_halted(dev, ep, out) ((dev)->halted[out] & (1 << (ep)))
 
 #define usb_packetid(pipe)	(((pipe) & USB_DIR_IN) ? USB_PID_IN : \
-				 USB_PID_OUT)
+                 USB_PID_OUT)
 
 #define usb_pipeout(pipe)	((((pipe) >> 7) & 1) ^ 1)
 #define usb_pipein(pipe)	(((pipe) >> 7) & 1)
@@ -394,37 +394,37 @@ extern int usb_set_interface(struct usb_device *dev, int interface, int alternat
  */
 struct usb_port_status
 {
-	uint16_t wPortStatus;
-	uint16_t wPortChange;
+    uint16_t wPortStatus;
+    uint16_t wPortChange;
 } __attribute__ ((packed));
 
 struct usb_hub_status
 {
-	uint16_t wHubStatus;
-	uint16_t wHubChange;
+    uint16_t wHubStatus;
+    uint16_t wHubChange;
 } __attribute__ ((packed));
 
 
 /* Hub descriptor */
 struct usb_hub_descriptor
 {
-	uint8_t  bLength;
-	uint8_t  bDescriptorType;
-	uint8_t  bNbrPorts;
-	uint16_t wHubCharacteristics;
-	uint8_t  bPwrOn2PwrGood;
-	uint8_t  bHubContrCurrent;
-	uint8_t  DeviceRemovable[(USB_MAXCHILDREN+1+7)/8];
-	uint8_t  PortPowerCtrlMask[(USB_MAXCHILDREN+1+7)/8];
-	/* DeviceRemovable and PortPwrCtrlMask want to be variable-length
-	   bitmaps that hold max 255 entries. (bit0 is ignored) */
+    uint8_t  bLength;
+    uint8_t  bDescriptorType;
+    uint8_t  bNbrPorts;
+    uint16_t wHubCharacteristics;
+    uint8_t  bPwrOn2PwrGood;
+    uint8_t  bHubContrCurrent;
+    uint8_t  DeviceRemovable[(USB_MAXCHILDREN+1+7)/8];
+    uint8_t  PortPowerCtrlMask[(USB_MAXCHILDREN+1+7)/8];
+    /* DeviceRemovable and PortPwrCtrlMask want to be variable-length
+       bitmaps that hold max 255 entries. (bit0 is ignored) */
 } __attribute__ ((packed));
 
 
 struct usb_hub_device
 {
-	struct usb_device *pusb_dev;
-	struct usb_hub_descriptor desc;
+    struct usb_device *pusb_dev;
+    struct usb_hub_descriptor desc;
 };
 
 #endif /*_USB_H_ */
