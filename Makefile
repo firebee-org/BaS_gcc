@@ -32,19 +32,19 @@ NATIVECC=gcc
 INCLUDE=-Iinclude
 CFLAGS=-mcpu=5474 \
 		-Wall \
-		-g3 \
+		-g \
 		-fomit-frame-pointer \
 		-ffreestanding \
 		-fleading-underscore \
 		-Wa,--register-prefix-optional
 CFLAGS_OPTIMIZED = -mcpu=5474 \
 		-Wall \
-		-g3 \
 		-O2 \
 		-fomit-frame-pointer \
 		-ffreestanding \
 		-fleading-underscore \
 		-Wa,--register-prefix-optional
+LDFLAGS=-g
 
 TRGTDIRS= ./firebee ./m5484lite ./m54455
 OBJDIRS=$(patsubst %, %/objs,$(TRGTDIRS))
@@ -271,7 +271,7 @@ endif
 $(1)_MAPFILE_RAM=$(1)/$$(basename $$(RAM_EXEC)).map
 $(1)/$$(RAM_EXEC): $(1)/$(LIBBAS) $(LDCSRC)
 	$(CPP) $(INCLUDE) -DCOMPILE_RAM -DOBJDIR=$(1)/objs -P -DFORMAT_ELF=$(FORMAT_ELF) -D$$(MACHINE) $(LDCSRC) -o $(1)/$$(LDRFILE)
-	$(LD) -g --oformat $$(FORMAT) -Map $$($(1)_MAPFILE_RAM) --cref -T $(1)/$$(LDRFILE) -o $$@
+	$(LD) $(LDFLAGS) --oformat $$(FORMAT) -Map $$($(1)_MAPFILE_RAM) --cref -T $(1)/$$(LDRFILE) -o $$@
 ifeq ($(COMPILE_ELF),Y)
 	$(OBJCOPY) -O srec $$@ $$(basename $$@).s19
 else
