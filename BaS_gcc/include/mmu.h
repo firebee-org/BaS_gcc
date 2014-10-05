@@ -58,10 +58,10 @@
 
 enum mmu_page_size
 {
-	MMU_PAGE_SIZE_1M	= 0,
-	MMU_PAGE_SIZE_4K	= 1,
-	MMU_PAGE_SIZE_8K	= 2,
-	MMU_PAGE_SIZE_1K	= 3
+    MMU_PAGE_SIZE_1M	= 0,
+    MMU_PAGE_SIZE_4K	= 1,
+    MMU_PAGE_SIZE_8K	= 2,
+    MMU_PAGE_SIZE_1K	= 3
 };
 
 #define SIZE_1M             0x100000        /* 1 Megabyte */
@@ -100,7 +100,7 @@ extern long video_sbt;
 struct page_descriptor;
 
 extern void mmu_init(void);
-extern int mmu_map_page(uint32_t virt, uint32_t phys, enum mmu_page_size sz, uint8_t page_id, const struct page_descriptor *flags);
+extern int mmu_map_page(int32_t virt, int32_t phys, enum mmu_page_size sz, uint8_t page_id, const struct page_descriptor *flags);
 
 /*
  * API functions for the BaS driver interface

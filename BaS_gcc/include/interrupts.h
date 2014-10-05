@@ -95,14 +95,41 @@
 #define FEC1TX_DMA_PRI      4
 #define FECTX_DMA_PRI(x)    ((x == 0) ? FEC0TX_DMA_PRI : FEC1TX_DMA_PRI)
 
-extern int register_interrupt_handler(uint8_t source, uint8_t level, uint8_t priority, uint8_t intr, void (*handler)(void));
-
 #define ISR_DBUG_ISR	0x01
 #define ISR_USER_ISR 	0x02
+
+#if defined(MACHINE_FIREBEE)
+/* Firebee FPGA interrupt controller */
+#define FPGA_INTR_CONTROL	((volatile uint32_t *) 0xf0010000)
+#define FPGA_INTR_ENABLE	((volatile uint32_t *) 0xf0010004)
+#define FPGA_INTR_CLEAR 	((volatile uint32_t *) 0xf0010008)
+#define FPGA_INTR_PENDING   ((volatile uint32_t *) 0xff01000c)
+
+/* register bits for Firebee FPGA-based interrupt controller */
+#define FPGA_INTR_PIC               (1)
+#define FPGA_INTR_ETHERNET          (1 << 1)
+#define FPGA_INTR_DVI               (1 << 2)
+#define FPGA_INTR_PCI_INTA          (1 << 3)
+#define FPGA_INTR_PCI_INTB          (1 << 4)
+#define FPGA_INTR_PCI_INTC          (1 << 5)
+#define FPGA_INTR_PCI_INTD          (1 << 6)
+#define FPGA_INTR_INT_DSP           (1 << 7)
+#define FPGA_INTR_INT_VSYNC         (1 << 8)
+#define FPGA_INTR_INT_HSYNC         (1 << 9)
+#define FPGA_INTR_INT_HSYNC_IRQ2    (1 << 26)
+#define FPGA_INTR_INT_CTR0_IRQ3     (1 << 27)
+#define FPGA_INTR_INT_VSYNC_IRQ4    (1 << 28)
+#define FPGA_INTR_INT_FPGA_IRQ5     (1 << 29)
+#define FPGA_INTR_INT_MFP_IRQ6      (1 << 30)
+#define FPGA_INTR_INT_IRQ7          (1 << 31)
+
+#endif /* MACHINE_FIREBEE */
 
 extern void isr_init(void);
 extern int isr_register_handler(int vector, int (*handler)(void *, void *), void *hdev, void *harg);
 extern void isr_remove_handler(int (*handler)(void *, void *));
 extern bool isr_execute_handler(int vector);
 extern int pic_interrupt_handler(void *arg1, void *arg2);
+extern int xlbpci_interrupt_handler(void *arg1, void *arg2);
+extern int pciarb_interrupt_handler(void *arg1, void *arg2);
 #endif /* _INTERRUPTS_H_ */

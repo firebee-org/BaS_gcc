@@ -213,6 +213,7 @@ struct virt_to_phys
     uint32_t physical_offset;
 };
 
+#if defined(MACHINE_FIREBEE)
 static struct virt_to_phys translation[] =
 {
     /* virtual  , length    , offset    */
@@ -221,9 +222,33 @@ static struct virt_to_phys translation[] =
     { 0x00f00000, 0x00100000, 0xff000000 },     /* map Falcon I/O area to FPGA */
     { 0x01000000, 0x1f000000, 0x00000000 },     /* map rest of ram virt = phys */
 };
+#elif defined(MACHINE_M5484LITE)
+static struct virt_to_phys translation[] =
+{
+    /* virtual  , length    , offset    */
+    { 0x00000000, 0x00e00000, 0x00000000 },     /* map first 14 MByte to first 14 Mb of SD ram */
+    { 0x00e00000, 0x00100000, 0x00000000 },     /* map TOS to SDRAM */
+    { 0x01000000, 0x04000000, 0x00000000 },     /* map rest of ram virt = phys */
+    { 0x60000000, 0x10000000, 0x00000000 },     /* map CPLD CF card I/O area */
+
+};
+#elif defined(MACHINE_M54455)
+/* FIXME: this is not determined yet! */
+static struct virt_to_phys translation[] =
+{
+    /* virtual  , length    , offset    */
+    { 0x00000000, 0x00e00000, 0x60000000 },     /* map first 14 MByte to first 14 Mb of video ram */
+    { 0x00e00000, 0x00100000, 0x00000000 },     /* map TOS to SDRAM */
+    { 0x00f00000, 0x00100000, 0xff000000 },     /* map Falcon I/O area to FPGA */
+    { 0x01000000, 0x1f000000, 0x00000000 },     /* map rest of ram virt = phys */
+};
+#else
+#error unknown machine!
+#endif
+
 static int num_translations = sizeof(translation) / sizeof(struct virt_to_phys);
 
-static inline uint32_t lookup_phys(uint32_t virt)
+static inline int32_t lookup_phys(int32_t virt)
 {
     int i;
 
@@ -235,6 +260,7 @@ static inline uint32_t lookup_phys(uint32_t virt)
         }
     }
     err("virtual address 0x%lx not found in translation table!\r\n", virt);
+
     return -1;
 }
 
@@ -253,19 +279,23 @@ struct page_descriptor
  * page descriptors. Size depending on DEFAULT_PAGE_SIZE, either 1M (resulting in 512
  * bytes size) or 8k pages (64k descriptor array size)
  */
-static struct page_descriptor pages[512UL * 1024 * 1024 / DEFAULT_PAGE_SIZE];
+static struct page_descriptor pages[SDRAM_SIZE / DEFAULT_PAGE_SIZE];
 
 
-int mmu_map_instruction_page(uint32_t virt, uint8_t asid)
+int mmu_map_instruction_page(int32_t virt, uint8_t asid)
 {
     const uint32_t size_mask = ~ (DEFAULT_PAGE_SIZE - 1);       /* pagesize */
     int page_index = (virt & size_mask) / DEFAULT_PAGE_SIZE;    /* index into page_descriptor array */
     struct page_descriptor *page = &pages[page_index];          /* attributes of page to map */
     int ipl;
-    uint32_t phys = lookup_phys(virt);                          /* virtual to physical translation of page */
+    int32_t phys = lookup_phys(virt);                          /* virtual to physical translation of page */
 
     if (phys == -1)
+    {
+        /* no valid mapping found, caller will issue a bus error in return */
+
         return 0;
+    }
 
 #ifdef DBG_MMU
     register int sp asm("sp");
@@ -307,17 +337,21 @@ int mmu_map_instruction_page(uint32_t virt, uint8_t asid)
     return 1;
 }
 
-int mmu_map_data_page(uint32_t virt, uint8_t asid)
+int mmu_map_data_page(int32_t virt, uint8_t asid)
 {
     uint16_t ipl;
     const uint32_t size_mask = ~ (DEFAULT_PAGE_SIZE - 1);       /* pagesize */
     int page_index = (virt & size_mask) / DEFAULT_PAGE_SIZE;	/* index into page_descriptor array */
     struct page_descriptor *page = &pages[page_index];          /* attributes of page to map */
 
-    uint32_t phys = lookup_phys(virt);                          /* virtual to physical translation of page */
+    int32_t phys = lookup_phys(virt);                          /* virtual to physical translation of page */
 
     if (phys == -1)
+    {
+        /* no valid mapping found, caller will issue a bus error in return */
+
         return 0;
+    }
 
 #ifdef DBG_MMU
     register int sp asm("sp");
@@ -365,7 +399,7 @@ int mmu_map_data_page(uint32_t virt, uint8_t asid)
  * per instruction as a minimum, more for performance. Thus locked pages (that can't be touched by the
  * LRU algorithm) should be used sparsingly.
  */
-int mmu_map_page(uint32_t virt, uint32_t phys, enum mmu_page_size sz, uint8_t page_id, const struct page_descriptor *flags)
+int mmu_map_page(int32_t virt, int32_t phys, enum mmu_page_size sz, uint8_t page_id, const struct page_descriptor *flags)
 {
     int size_mask;
     int ipl;
@@ -447,7 +481,8 @@ void mmu_init(void)
     {
         uint32_t addr = i * DEFAULT_PAGE_SIZE;
 
-        if (addr >= 0x00f00000 && addr < 0x00ffffff)
+#if defined(MACHINE_FIREBEE)
+        if (addr >= 0x00f00000UL && addr < 0x00ffffffUL)        /* Falcon I/O area on the Firebee */
         {
             pages[i].cache_mode = CACHE_NOCACHE_PRECISE;
             pages[i].execute = 0;
@@ -457,7 +492,7 @@ void mmu_init(void)
             pages[i].global = 1;
             pages[i].supervisor_protect = 1;
         }
-        else if (addr >= 0x0 && addr < 0x00e00000)      /* ST-RAM, potential video memory */
+        else if (addr >= 0x0UL && addr < 0x00e00000UL)          /* ST-RAM, potential video memory */
         {
             pages[i].cache_mode = CACHE_WRITETHROUGH;
             pages[i].execute = 1;
@@ -467,7 +502,7 @@ void mmu_init(void)
             pages[i].execute = 1;
             pages[i].global = 1;
         }
-        else if (addr >= 0x00e00000 && addr < 0x00f00000)      /* EmuTOS */
+        else if (addr >= 0x00e00000UL && addr < 0x00f00000UL)   /* EmuTOS */
         {
             pages[i].cache_mode = CACHE_COPYBACK;
             pages[i].execute = 1;
@@ -488,16 +523,107 @@ void mmu_init(void)
         }
         pages[i].locked = 0;				/* not locked */
         pages[0].supervisor_protect = 0;    /* protect system vectors */
+
+#elif defined(MACHINE_M5484LITE)
+        if (addr >= 0x60000000UL && addr < 0x70000000UL)        /* Compact Flash on the m5484lite */
+        {
+            pages[i].cache_mode = CACHE_NOCACHE_PRECISE;
+            pages[i].execute = 0;
+            pages[i].read = 1;
+            pages[i].write = 1;
+            pages[i].execute = 0;
+            pages[i].global = 1;
+            pages[i].supervisor_protect = 1;
+        }
+        else if (addr >= 0x0UL && addr < 0x00e00000UL)          /* ST-RAM, potential video memory */
+        {
+            pages[i].cache_mode = CACHE_WRITETHROUGH;
+            pages[i].execute = 1;
+            pages[i].supervisor_protect = 0;
+            pages[i].read = 1;
+            pages[i].write = 1;
+            pages[i].execute = 1;
+            pages[i].global = 1;
+        }
+        else if (addr >= 0x00e00000UL && addr < 0x00f00000UL)   /* EmuTOS */
+        {
+            pages[i].cache_mode = CACHE_COPYBACK;
+            pages[i].execute = 1;
+            pages[i].supervisor_protect = 1;
+            pages[i].read = 1;
+            pages[i].write = 0;
+            pages[i].execute = 1;
+            pages[i].global = 1;
+        }
+        else
+        {
+            pages[i].cache_mode = CACHE_COPYBACK;               /* rest of RAM */
+            pages[i].execute = 1;
+            pages[i].read = 1;
+            pages[i].write = 1;
+            pages[i].supervisor_protect = 0;
+            pages[i].global = 1;
+        }
+        pages[i].locked = 0;				/* not locked */
+        pages[0].supervisor_protect = 0;    /* protect system vectors */
+
+#elif defined(MACHINE_M54455)
+        if (addr >= 0x60000000UL && addr < 0x70000000UL)        /* Compact Flash on the m5484lite */
+        {
+            pages[i].cache_mode = CACHE_NOCACHE_PRECISE;
+            pages[i].execute = 0;
+            pages[i].read = 1;
+            pages[i].write = 1;
+            pages[i].execute = 0;
+            pages[i].global = 1;
+            pages[i].supervisor_protect = 1;
+        }
+        else if (addr >= 0x0UL && addr < 0x00e00000UL)          /* ST-RAM, potential video memory */
+        {
+            pages[i].cache_mode = CACHE_WRITETHROUGH;
+            pages[i].execute = 1;
+            pages[i].supervisor_protect = 0;
+            pages[i].read = 1;
+            pages[i].write = 1;
+            pages[i].execute = 1;
+            pages[i].global = 1;
+        }
+        else if (addr >= 0x00e00000UL && addr < 0x00f00000UL)   /* EmuTOS */
+        {
+            pages[i].cache_mode = CACHE_COPYBACK;
+            pages[i].execute = 1;
+            pages[i].supervisor_protect = 1;
+            pages[i].read = 1;
+            pages[i].write = 0;
+            pages[i].execute = 1;
+            pages[i].global = 1;
+        }
+        else
+        {
+            pages[i].cache_mode = CACHE_COPYBACK;               /* rest of RAM */
+            pages[i].execute = 1;
+            pages[i].read = 1;
+            pages[i].write = 1;
+            pages[i].supervisor_protect = 0;
+            pages[i].global = 1;
+        }
+        pages[i].locked = 0;				/* not locked */
+        pages[0].supervisor_protect = 0;    /* protect system vectors */
+#else
+#error Unknown machine!
+#endif /* MACHINE_FIREBEE */
     }
 
     set_asid(0);			/* do not use address extension (ASID provides virtual 48 bit addresses */
 
     /* set data access attributes in ACR0 and ACR1 */
+
+    /* map PCI address space */
     set_acr0(ACR_W(0) |								/* read and write accesses permitted */
-            ACR_SP(0) |								/* supervisor and user mode access permitted */
+            ACR_SP(1) |								/* supervisor and user mode access permitted */
             ACR_CM(ACR_CM_CACHE_INH_PRECISE) |		/* cache inhibit, precise */
             ACR_AMM(0) |							/* control region > 16 MB */
-            ACR_S(ACR_S_ALL) |						/* match addresses in user and supervisor mode */
+            ACR_S(ACR_S_SUPERVISOR_MODE) |      	/* match addresses in supervisor mode only */
             ACR_E(1) |								/* enable ACR */
 #if defined(MACHINE_FIREBEE)
             ACR_ADMSK(0x7f) |						/* cover 2GB area from 0x80000000 to 0xffffffff */
@@ -520,11 +646,11 @@ void mmu_init(void)
             ACR_SP(0) |
             ACR_CM(0) |
 #if defined(MACHINE_FIREBEE)
-            ACR_CM(ACR_CM_CACHEABLE_WT) |           /* flash on the Firebee */
+            ACR_CM(ACR_CM_CACHEABLE_WT) |
 #elif defined(MACHINE_M5484LITE)
-            ACR_CM(ACR_CM_CACHE_INH_PRECISE) |		/* Compact Flash on the M548xLITE */
+            ACR_CM(ACR_CM_CACHEABLE_WT) |
 #elif defined(MACHINE_M54455)
-            ACR_CM(ACR_CM_CACHE_INH_PRECISE) |		/* FIXME: not determined yet */
+            ACR_CM(ACR_CM_CACHEABLE_WT) |
 #else
 #error unknown machine!
 #endif /* MACHINE_FIREBEE */
@@ -568,6 +694,7 @@ void mmu_init(void)
     /* 0x00000000 - 0x00100000 (first MB of physical memory) locked virt = phys */
     mmu_map_page(0x0, 0x0, MMU_PAGE_SIZE_1M, 0, &flags);
 
+#ifdef _NOT_USED_
 #if defined(MACHINE_FIREBEE)
     /*
      * 0x00d00000 - 0x00e00000 (last megabyte of ST RAM = Falcon video memory) locked ID = 6
@@ -581,8 +708,8 @@ void mmu_init(void)
     flags.execute = 1;
     flags.locked = true;
     mmu_map_page(0x00d00000, 0x60d00000, MMU_PAGE_SIZE_1M, SCA_PAGE_ID, &flags);
-
 #endif /* MACHINE_FIREBEE */
+#endif
 
     /*
      * Make the TOS (in SDRAM) read-only
