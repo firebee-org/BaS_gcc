@@ -529,7 +529,7 @@ int usb_parse_config(struct usb_device *dev, unsigned char *buffer, int cfgno)
 
     if (head->bDescriptorType != USB_DT_CONFIG)
     {
-        dbg(" ERROR: NOT USB_CONFIG_DESC %x\r\n", head->bDescriptorType);
+        dbg(" ERROR: NOT USB_CONFIG_DESC (0x%x instead of 0x%x)\r\n", head->bDescriptorType, USB_DT_CONFIG);
         return -1;
     }
     memcpy(&dev->config, buffer, buffer[0]);
@@ -1089,6 +1089,7 @@ int usb_new_device(struct usb_device *dev)
     unsigned char *tmpbuf;
 
     dbg("\r\n");
+
 #ifndef CONFIG_LEGACY_USB_INIT_SEQ
     struct usb_device_descriptor *desc;
     int port = -1;
@@ -1113,6 +1114,7 @@ int usb_new_device(struct usb_device *dev)
         return 1;
     }
 
+//#define CONFIG_LEGACY_USB_INIT_SEQ
 #ifdef CONFIG_LEGACY_USB_INIT_SEQ
     /*
      * this is the old and known way of initializing devices, it is
@@ -1243,6 +1245,9 @@ int usb_new_device(struct usb_device *dev)
     dev->descriptor.idVendor = swpw(dev->descriptor.idVendor);
     dev->descriptor.idProduct = swpw(dev->descriptor.idProduct);
     dev->descriptor.bcdDevice = swpw(dev->descriptor.bcdDevice);
+
+    dbg("vendor: 0x%x, prod: 0x%x, dev: 0x%x\r\n",
+        dev->descriptor.idVendor, dev->descriptor.idProduct, dev->descriptor.bcdDevice);
 
     /* only support for one config for now */
     usb_get_configuration_no(dev, &tmpbuf[0], 0);

@@ -35,63 +35,19 @@
 #include "cache.h"
 #include "util.h"
 #include "dma.h"
+#include "pci.h"
 
 extern void (*rt_vbr[])(void);
 #define VBR	rt_vbr
 
-//#define IRQ_DEBUG
+#define IRQ_DEBUG
 #if defined(IRQ_DEBUG)
 #define dbg(format, arg...) do { xprintf("DEBUG %s(): " format, __FUNCTION__, ##arg); } while (0)
 #else
 #define dbg(format, arg...) do { ; } while (0)
 #endif
+#define err(format, arg...) do { xprintf("DEBUG %s(): " format, __FUNCTION__, ##arg); } while (0)
 
-/*
- * register an interrupt handler at the Coldfire interrupt controller and add the handler to
- * the interrupt vector table
- */
-int register_interrupt_handler(uint8_t source, uint8_t level, uint8_t priority, uint8_t intr, void (*handler)(void))
-{
-    int ipl;
-    int i;
-    volatile uint8_t *ICR = &MCF_INTC_ICR01 - 1;
-    uint8_t lp;
-
-    source &= 63;
-    priority &= 7;
-
-    if (source < 1 || source > 63)
-    {
-        dbg("interrupt source %d not defined\r\n", source);
-        return -1;
-    }
-
-    lp = MCF_INTC_ICR_IL(level) | MCF_INTC_ICR_IP(priority);
-
-    /* check if this combination is already set somewhere */
-    for (i = 1; i < 64; i++)
-    {
-        if (ICR[i] == lp)
-        {
-            dbg("level %d and priority %d already used for interrupt source %d!\r\n",
-                    level, priority, i);
-            return -1;
-        }
-    }
-
-    /* disable interrupts */
-    ipl = set_ipl(7);
-
-    VBR[64 + source] = handler;	/* first 64 vectors are system exceptions */
-
-    /* set level and priority in interrupt controller */
-    ICR[source] = lp;
-
-    /* set interrupt mask to where it was before */
-    set_ipl(ipl);
-
-    return 0;
-}
 
 #ifndef MAX_ISR_ENTRY
 #define MAX_ISR_ENTRY   (20)
@@ -236,12 +192,19 @@ int pic_interrupt_handler(void *arg1, void *arg2)
     return 1;
 }
 
-
-void video_addr_timeout(void)
+int xlbpci_interrupt_handler(void *arg1, void *arg2)
 {
-    dbg("video address timeout\r\n");
+    dbg("XLB PCI interrupt\r\n");
+
+    return 1;
 }
 
+int pciarb_interrupt_handler(void *arg1, void *arg2)
+{
+    dbg("PCI ARB interrupt\r\n");
+
+    return 1;
+}
 
 /*
  * blink the Firebee's LED to show we are still alive
@@ -288,6 +251,7 @@ bool irq6_interrupt_handler(uint32_t sf1, uint32_t sf2)
 {
     bool handled = false;
 
+    //err("IRQ6!\r\n");
     MCF_EPORT_EPFR |= (1 << 6);	/* clear int6 from edge port */
 
     if (FALCON_MFP_IPRA || FALCON_MFP_IPRB)
@@ -297,6 +261,65 @@ bool irq6_interrupt_handler(uint32_t sf1, uint32_t sf2)
 
     return handled;
 }
+
+#if defined(MACHINE_FIREBEE)
+/*
+ * This gets called from irq5 in exceptions.S
+ * Once we arrive here, the SR has been set to disable interrupts and the gcc scratch registers have been saved
+ */
+int irq5_handler(void)
+{
+    int32_t handle;
+    int32_t value = 0;
+    int32_t newvalue;
+
+    err("FPGA_INTR_CONTROL = 0x%08x\r\n", * FPGA_INTR_CONTROL);
+    err("FPGA_INTR_ENABLE  = 0x%08x\r\n", * FPGA_INTR_ENABLE);
+    err("FPGA_INTR_CLEAR   = 0x%08x\r\n", * FPGA_INTR_CLEAR);
+    err("FPGA_INTR_PENDING = 0x%08x\r\n", * FPGA_INTR_PENDING);
+
+    * FPGA_INTR_CLEAR &= ~0x20000000UL;     /* clear interrupt from FPGA */
+    err("\r\nFPGA_INTR_CLEAR = 0x%08x\r\n", * FPGA_INTR_CLEAR);
+    //MCF_EPORT_EPFR |= (1 << 5);             /* clear interrupt from edge port */
+
+    //xprintf("IRQ5!\r\n");
+
+    if ((handle = pci_get_interrupt_cause()) > 0)
+    {
+        newvalue = pci_call_interrupt_chain(handle, value);
+        if (newvalue == value)
+        {
+            dbg("interrupt not handled!\r\n");
+            return 1;
+        }
+    }
+    return 0;
+}
+#endif /* MACHINE_FIREBEE */
+
+#ifdef MACHINE_M5484LITE
+/*
+ * This gets called from irq7 in exceptions.S
+ * Once we arrive here, the SR has been set to disable interrupts and the gcc scratch registers have been saved
+ */
+void irq7_handler(void)
+{
+    int32_t handle;
+    int32_t value = 0;
+    int32_t newvalue;
+
+    MCF_EPORT_EPFR |= (1 << 7);
+    dbg("IRQ7!\r\n");
+    if ((handle = pci_get_interrupt_cause()) > 0)
+    {
+        newvalue = pci_call_interrupt_chain(handle, value);
+        if (newvalue == value)
+        {
+            dbg("interrupt not handled!\r\n");
+        }
+    }
+}
+#endif /* MACHINE_M548X */
 
 #if defined(MACHINE_FIREBEE)
 #define vbasehi		(* (volatile uint8_t *) 0xffff8201)

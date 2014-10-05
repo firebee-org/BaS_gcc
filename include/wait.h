@@ -44,6 +44,8 @@
 typedef bool (*checker_func)(void);
 
 extern void wait(uint32_t);
+extern void wait_us(uint32_t);  /* this is just an alias to the above */
+
 inline static void udelay(long us)
 {
     wait((uint32_t) us);

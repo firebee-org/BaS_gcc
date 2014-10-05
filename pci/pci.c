@@ -33,12 +33,13 @@
 #include "interrupts.h"
 #include "wait.h"
 
-#define DEBUG_PCI
+//#define DEBUG_PCI
 #ifdef DEBUG_PCI
 #define dbg(format, arg...) do { xprintf("DEBUG: %s(): " format, __FUNCTION__, ##arg); } while (0)
 #else
 #define dbg(format, arg...) do { ; } while (0)
 #endif /* DEBUG_PCI */
+#define err(format, arg...) do { xprintf("ERROR: %s(): " format, __FUNCTION__, ##arg); } while (0)
 
 #define pci_config_wait() do { __asm__ __volatile("tpf" ::: "memory"); } while (0)
 
@@ -122,36 +123,41 @@ static inline __attribute__((aligned(16))) void chip_errata_135(void)
      */
 
      __asm__ __volatile(
-        "		.extern __MBAR\n\t"
-        "		clr.l	d0\n\t"
-        "		move.l	d0,__MBAR+0xF0C\n\t"		/* Must use direct addressing. write to EPORT module */
+        "		.extern __MBAR          \n\t"
+        "		clr.l	d0              \n\t"
+        "		move.l	d0,__MBAR+0xF0C \n\t"		/* Must use direct addressing. write to EPORT module */
                                                     /* xlbus -> slavebus -> eport, writing '0' to register */
                                                     /* has no effect */
-        "		rts\n\t"
-        "		tpf.l	#0x0\n\t"
-        "		tpf.l	#0x0\n\t"
-        "		tpf.l	#0x0\n\t"
-        "		tpf.l	#0x0\n\t"
-        "		tpf.l	#0x0\n\t"
+        "		rts                     \n\t"
+        "		tpf.l	#0x0            \n\t"
+        "		tpf.l	#0x0            \n\t"
+        "		tpf.l	#0x0            \n\t"
+        "		tpf.l	#0x0            \n\t"
+        "		tpf.l	#0x0            \n\t"
         ::: "memory");
 }
 
-
-
-__attribute__((interrupt)) void pci_arb_interrupt(void)
+static inline void chip_errata_055(int32_t handle)
 {
-    dbg("XLBARB slave error interrupt\r\n");
-    MCF_XLB_XARB_SR |= ~MCF_XLB_XARB_SR_SEA;
-}
+    uint32_t dummy;
 
-__attribute__((interrupt)) void xlb_pci_interrupt(void)
-{
-    dbg("XLBPCI interrupt\r\n");
-}
+    return;     /* test */
 
-__attribute__((interrupt)) void pci_interrupt(void)
-{
-    dbg("PCI interrupt\r\n");
+    /* initiate PCI configuration access to device */
+    MCF_PCI_PCICAR = MCF_PCI_PCICAR_E |			/* enable configuration access special cycle */
+            MCF_PCI_PCICAR_BUSNUM(3) |          /* note: invalid bus number */
+            MCF_PCI_PCICAR_DEVNUM(PCI_DEVICE_FROM_HANDLE(handle)) |	/* device number, devices 0 - 9 are reserved */
+            MCF_PCI_PCICAR_FUNCNUM(PCI_FUNCTION_FROM_HANDLE(handle)) |	/* function number */
+            MCF_PCI_PCICAR_DWORD(0);
+
+    /* issue a dummy read to an unsupported bus number (will fail) */
+    dummy =  * (volatile uint32_t *) PCI_IO_OFFSET;	/* access device */
+
+    /* silently clear the PCI errors we produced just now */
+    MCF_PCI_PCIISR = 0xffffffff;     /* clear all errors */
+    MCF_PCI_PCIGSCR = MCF_PCI_PCIGSCR_PE | MCF_PCI_PCIGSCR_SE;
+
+    (void) dummy;
 }
 
 /*
@@ -162,14 +168,14 @@ __attribute__((interrupt)) void pci_interrupt(void)
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-function"
 
-static int32_t pci_get_interrupt_cause(int32_t *handles)
+int32_t pci_get_interrupt_cause(void)
 {
     int32_t handle;
-
+    int32_t *hdl = &handles[0];
     /*
      * loop through all PCI devices...
      */
-    while ((handle = *handles++) != -1)
+    while ((handle = *hdl++) != -1)
     {
         uint16_t command_register = swpw(pci_read_config_word(handle, PCICR));
         uint16_t status_register = swpw(pci_read_config_word(handle, PCISR));
@@ -188,7 +194,7 @@ static int32_t pci_get_interrupt_cause(int32_t *handles)
     return -1;
 }
 
-static int32_t pci_call_interrupt_chain(int32_t handle, int32_t data)
+int32_t pci_call_interrupt_chain(int32_t handle, int32_t data)
 {
     int i;
 
@@ -205,58 +211,12 @@ static int32_t pci_call_interrupt_chain(int32_t handle, int32_t data)
 }
 #pragma GCC diagnostic pop
 
-/*
- * This gets called from irq5 in exceptions.S
- * Once we arrive here, the SR has been set to disable interrupts and the gcc scratch registers have been saved
- */
-void irq5_handler(void)
-{
-    int32_t handle;
-    int32_t value = 0;
-    int32_t newvalue;
 
-    MCF_EPORT_EPFR |= (1 << 5);		/* clear interrupt from edge port */
-
-    xprintf("IRQ5!\r\n");
-
-    if ((handle = pci_get_interrupt_cause(handles)) > 0)
-    {
-        newvalue = pci_call_interrupt_chain(handle, value);
-        if (newvalue == value)
-        {
-            dbg("interrupt not handled!\r\n");
-        }
-    }
-}
-
-#ifdef MACHINE_M5484LITE
-/*
- * This gets called from irq7 in exceptions.S
- * Once we arrive here, the SR has been set to disable interrupts and the gcc scratch registers have been saved
- */
-void irq7_handler(void)
-{
-    int32_t handle;
-    int32_t value = 0;
-    int32_t newvalue;
-
-    MCF_EPORT_EPFR |= (1 << 7);
-    dbg("IRQ7!\r\n");
-    if ((handle = pci_get_interrupt_cause(handles)) > 0)
-    {
-        newvalue = pci_call_interrupt_chain(handle, value);
-        if (newvalue == value)
-        {
-            dbg("interrupt not handled!\r\n");
-        }
-    }
-}
-#endif /* MACHINE_M548X */
 
 /*
  * retrieve handle for i'th device
  */
-static int handle2index(int32_t handle)
+int pci_handle2index(int32_t handle)
 {
     int i;
 
@@ -288,6 +248,67 @@ static char *device_class(int classcode)
 }
 
 /*
+ * do error checking after a PCI transaction
+ */
+static int pci_check_status(void)
+{
+    uint32_t pcisr;
+    uint32_t pcigscr;
+
+    int ret = 0;
+
+    pcisr = MCF_PCI_PCIISR;             /* retrieve initiator status register */
+
+    if (pcisr & MCF_PCI_PCIISR_RE)
+    {
+        dbg("PCI initiator retry error. Cleared.\r\n");
+        MCF_PCI_PCIISR |= MCF_PCI_PCIISR_RE;
+
+        ret = 1;
+    }
+
+    if (pcisr & MCF_PCI_PCIISR_IA)
+    {
+        dbg("PCI initiator abort. Error cleared\r\n");
+        MCF_PCI_PCIISR |= MCF_PCI_PCIISR_IA;
+
+        ret = 1;
+    }
+
+    if (pcisr & MCF_PCI_PCIISR_TA)
+    {
+        dbg("PCI initiator target abort error. Error cleared\r\n");
+        MCF_PCI_PCIISR |= MCF_PCI_PCIISR_TA;
+
+        ret = 1;
+    }
+
+    pcigscr = MCF_PCI_PCIGSCR;
+
+    if (pcigscr & MCF_PCI_PCIGSCR_PE)
+    {
+        dbg("PCI parity error. Error cleared\r\n");
+        MCF_PCI_PCIGSCR |= MCF_PCI_PCIGSCR_PE;
+
+        ret = 1;
+    }
+
+    if (pcigscr & MCF_PCI_PCIGSCR_SE)
+    {
+        dbg("PCI system error. Error cleared\r\n");
+        MCF_PCI_PCIGSCR |= MCF_PCI_PCIGSCR_SE;
+
+        ret = 1;
+    }
+
+    if (!ret)
+    {
+        dbg("no error\r\n");
+    }
+    return ret;
+}
+
+/*
  * read an uint32_t from configuration space of card with handle and offset
  *
  * The returned value is in little endian format.
@@ -297,21 +318,22 @@ uint32_t pci_read_config_longword(int32_t handle, int offset)
     uint32_t value;
 
     /* initiate PCI configuration access to device */
-    MCF_PCI_PCICAR = MCF_PCI_PCICAR_E |			/* enable configuration access special cycle */
+    MCF_PCI_PCICAR = MCF_PCI_PCICAR_E |                                 /* enable configuration access special cycle */
             MCF_PCI_PCICAR_BUSNUM(PCI_BUS_FROM_HANDLE(handle)) |
-            MCF_PCI_PCICAR_DEVNUM(PCI_DEVICE_FROM_HANDLE(handle)) |	/* device number, devices 0 - 9 are reserved */
+            MCF_PCI_PCICAR_DEVNUM(PCI_DEVICE_FROM_HANDLE(handle)) |     /* device number, devices 0 - 9 are reserved */
             MCF_PCI_PCICAR_FUNCNUM(PCI_FUNCTION_FROM_HANDLE(handle)) |	/* function number */
             MCF_PCI_PCICAR_DWORD(offset / 4);
 
-    __asm__ __volatile__("nop" ::: "memory");				/* this is what the Linux BSP does */
+    NOP();
 
-    pci_config_wait();
     value =  * (volatile uint32_t *) PCI_IO_OFFSET;	/* access device */
 
-    __asm__ __volatile__("tpf" ::: "memory");				/* this is what the Linux BSP does */
+    NOP();
 
     /* finish PCI configuration access special cycle (allow regular PCI accesses) */
     MCF_PCI_PCICAR &= ~MCF_PCI_PCICAR_E;
+
+    pci_check_status();
 
     return value;
 }
@@ -329,14 +351,16 @@ uint16_t pci_read_config_word(int32_t handle, int offset)
             MCF_PCI_PCICAR_FUNCNUM(PCI_FUNCTION_FROM_HANDLE(handle)) |
             MCF_PCI_PCICAR_DWORD(offset / 4);
 
-    __asm__ __volatile("nop" ::: "memory");			/* this is what Linux BSP does */
+    NOP();
 
     value = * (volatile uint16_t *) PCI_IO_OFFSET + (offset & 2);
 
-    __asm__ __volatile("tpf" ::: "memory");
+    NOP();
 
     /* finish PCI configuration access special cycle */
     MCF_PCI_PCICAR &= ~MCF_PCI_PCICAR_E;
+
+    pci_check_status();
 
     return value;
 }
@@ -352,13 +376,15 @@ uint8_t pci_read_config_byte(int32_t handle, int offset)
         MCF_PCI_PCICAR_FUNCNUM(PCI_FUNCTION_FROM_HANDLE(handle)) |	/* function number */
         MCF_PCI_PCICAR_DWORD(offset / 4);
 
-    __asm__ __volatile__("nop" ::: "memory");
+    NOP();
 
     value = * (volatile uint8_t *) (PCI_IO_OFFSET + (offset & 3));
 
-    __asm__ __volatile__("tpf" ::: "memory");
+    NOP();
 
     MCF_PCI_PCICAR &= ~MCF_PCI_PCICAR_E;
+
+    pci_check_status();
 
     return value;
 }
@@ -376,18 +402,18 @@ int32_t pci_write_config_longword(int32_t handle, int offset, uint32_t value)
         MCF_PCI_PCICAR_DEVNUM(PCI_DEVICE_FROM_HANDLE(handle)) |		/* device number, devices 0 - 9 are reserved */
         MCF_PCI_PCICAR_FUNCNUM(PCI_FUNCTION_FROM_HANDLE(handle)) |	/* function number */
         MCF_PCI_PCICAR_DWORD(offset / 4);
-    chip_errata_135();
 
-    __asm__ __volatile__("nop" ::: "memory");
+    NOP();
 
     * (volatile uint32_t *) PCI_IO_OFFSET = value;	/* access device */
     chip_errata_135();
 
-    __asm__ __volatile__("tpf" ::: "memory");
+    NOP();
 
     /* finish configuration space access cycle */
     MCF_PCI_PCICAR &= ~MCF_PCI_PCICAR_E;
-    chip_errata_135();
+
+    pci_check_status();
 
     return PCI_SUCCESSFUL;
 }
@@ -405,16 +431,15 @@ int32_t pci_write_config_word(int32_t handle, int offset, uint16_t value)
             MCF_PCI_PCICAR_DWORD(offset / 4);
     chip_errata_135();
 
-    __asm__ __volatile__("tpf" ::: "memory");
+    NOP();
 
     * (volatile uint16_t *) (PCI_IO_OFFSET + (offset & 2)) = value;
     chip_errata_135();
 
-    __asm__ __volatile__("tpf" ::: "memory");
-
     /* finish configuration space access cycle */
     MCF_PCI_PCICAR &= ~MCF_PCI_PCICAR_E;
-    chip_errata_135();
+
+    pci_check_status();
 
     return PCI_SUCCESSFUL;
 }
@@ -431,7 +456,7 @@ int32_t pci_write_config_byte(int32_t handle, int offset, uint8_t value)
             MCF_PCI_PCICAR_DWORD(offset / 4);
     chip_errata_135();
 
-    __asm__ __volatile__("tpf" ::: "memory");
+    NOP();
 
     * (volatile uint8_t *) (PCI_IO_OFFSET + (offset & 3)) = value;
     chip_errata_135();
@@ -441,7 +466,7 @@ int32_t pci_write_config_byte(int32_t handle, int offset, uint8_t value)
     /* finish configuration space access cycle */
     MCF_PCI_PCICAR &= ~MCF_PCI_PCICAR_E;
 
-    chip_errata_135();
+    pci_check_status();
 
     return PCI_SUCCESSFUL;
 }
@@ -455,11 +480,15 @@ struct pci_rd *pci_get_resource(int32_t handle)
     int index = -1;
     struct pci_rd *ret;
 
-    index = handle2index(handle);
+    index = pci_handle2index(handle);
     if (index == -1)
+    {
         ret = NULL;
+    }
     else
+    {
         ret = &resource_descriptors[index][0];
+    }
 
     dbg("pci_get_resource: resource struct for handle %lx (index %d) is at %p\r\n", handle, index, ret);
 
@@ -840,7 +869,7 @@ static void pci_device_config(uint16_t bus, uint16_t device, uint16_t function)
     handle = PCI_HANDLE(bus, device, function);
 
     /* find index into resource descriptor table for handle */
-    index = handle2index(handle);
+    index = pci_handle2index(handle);
 
     if (index == -1)
     {
@@ -992,9 +1021,11 @@ static void pci_device_config(uint16_t bus, uint16_t device, uint16_t function)
     il = pci_read_config_byte(handle, PCIIPR);
     dbg("device requests interrupts on interrupt pin %d\r\n", il);
 
-    /* if so, register interrupts */
+    /* enable interrupt on PCI device */
 
-    /* TODO: register interrupts here */
+    il = pci_read_config_byte(handle, PCICR);
+    il &= ~PCICSR_INT_DISABLE;
+    pci_write_config_byte(handle, PCICR, il);
 
     /*
      * enable device memory or I/O access
@@ -1133,18 +1164,13 @@ void init_pci(void)
     xprintf("initializing PCI bridge:\r\n");
 
     (void) res; /* for now */
-    res = register_interrupt_handler(0, INT_SOURCE_PCIARB, 5, 5, pci_arb_interrupt);
-    dbg("registered interrupt handler for PCI arbiter: %s\r\n",
-            (res < 0 ? "failed" : "succeeded"));
-    register_interrupt_handler(0, INT_SOURCE_XLBPCI, 5, 5, xlb_pci_interrupt);
-    dbg("registered interrupt handler for XLB PCI: %s\r\n",
-            (res < 0 ? "failed" : "succeeded"));
 
     init_eport();
     init_xlbus_arbiter();
 
     MCF_PCI_PCIGSCR = 1;	/* reset PCI */
 
+#ifdef _NOT_USED_
     /*
      * setup the PCI arbiter
      */
@@ -1152,6 +1178,7 @@ void init_pci(void)
        | MCF_PCIARB_PACR_EXTMPRI(0xf)			/* external master priority: high */
        | MCF_PCIARB_PACR_INTMINTEN				/* enable "internal master broken" interrupt */
        | MCF_PCIARB_PACR_EXTMINTEN(0x0f);		/* enable "external master broken" interrupt */
+#endif
 
 #ifdef _NOT_USED_	/* since this is already done in sysinit.c */
 #if MACHINE_FIREBEE
@@ -1173,18 +1200,18 @@ void init_pci(void)
     /* Setup burst parameters */
     MCF_PCI_PCICR1 = MCF_PCI_PCICR1_CACHELINESIZE(8) |
                         MCF_PCI_PCICR1_LATTIMER(0xff); /* TODO: test increased latency timer */
-#ifdef _NOT_USED_
+
     MCF_PCI_PCICR2 = MCF_PCI_PCICR2_MINGNT(1) |
                     MCF_PCI_PCICR2_MAXLAT(32);
-#endif /* _NOT_USED_ */
-    MCF_PCI_PCICR2 = 0;		/* this is what Linux does */
+
+    // MCF_PCI_PCICR2 = 0;		/* this is what Linux does */
 
     /* error signaling */
-#ifdef NOT_USED
+
     MCF_PCI_PCIICR = MCF_PCI_PCIICR_TAE |	/* target abort enable */
         MCF_PCI_PCIICR_IAE; 				/* initiator abort enable */
-#endif /* NOT_USED */
-    MCF_PCI_PCIICR = 0;						/* this is what Linux does */
+
+    // MCF_PCI_PCIICR = 0;						/* this is what Linux does */
 
     MCF_PCI_PCIGSCR |= MCF_PCI_PCIGSCR_SEE;	/* system error interrupt enable */
 
@@ -1194,20 +1221,21 @@ void init_pci(void)
     MCF_PCI_PCIIW0BTAR = (PCI_MEMORY_OFFSET | (((PCI_MEMORY_SIZE - 1) >> 8) & 0xffff0000))
                           | ((PCI_MEMORY_OFFSET >> 16) & 0xff00);
 
+    NOP();
     dbg("PCIIW0BTAR=0x%08x\r\n", MCF_PCI_PCIIW0BTAR);
 
     /* initiator window 1 base / translation adress register */
     MCF_PCI_PCIIW1BTAR = (PCI_IO_OFFSET | ((PCI_IO_SIZE - 1) >> 8)) & 0xffff0000;
-
+    NOP();
     /* initiator window 2 base / translation address register */
     MCF_PCI_PCIIW2BTAR = 0L;   /* not used */
-
+    NOP();
     /* initiator window configuration register */
     MCF_PCI_PCIIWCR = MCF_PCI_PCIIWCR_WINCTRL0_MEMRDLINE |
                     MCF_PCI_PCIIWCR_WINCTRL1_IO |
                     MCF_PCI_PCIIWCR_WINCTRL0_E |
                     MCF_PCI_PCIIWCR_WINCTRL1_E;
-
+    NOP();
     /*
      * Initialize target control register.
      * Used when an external bus master accesses the Coldfire PCI as target
@@ -1219,7 +1247,7 @@ void init_pci(void)
 
     /* reset PCI devices */
     MCF_PCI_PCIGSCR &= ~MCF_PCI_PCIGSCR_PR;
-    do {;} while (MCF_PCI_PCIGSCR & MCF_PCI_PCIGSCR_PR); /* wait until reset finished */
+    do { NOP(); } while (MCF_PCI_PCIGSCR & MCF_PCI_PCIGSCR_PR); /* wait until reset finished */
     xprintf("finished\r\n");
 
     /* initialize/clear resource descriptor table */
@@ -1235,7 +1263,7 @@ void init_pci(void)
      * give devices a chance to come up befor attempting to configure them,
      * necessary to properly detect the FireBee USB chip
      */
-    wait(600000);
+    wait_ms(400);
 
     /*
      * do normal initialization

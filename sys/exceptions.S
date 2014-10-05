@@ -216,6 +216,9 @@ init_vec_loop:
 // install lowlevel_isr_handler for the PSC3 interrupt
 		move.l	a1,(INT_SOURCE_PSC3 + 64) * 4(a0)
 
+// install lowlevel_isr_handler for the XLBPCI interrupt
+		move.l	a1,(INT_SOURCE_XLBPCI + 64) * 4(a0)
+
 #ifndef MACHINE_FIREBEE
 // FEC1 not wired on the FireBee, but used on other machines
 		move.l	a1,(INT_SOURCE_FEC1 + 64) * 4(a0)
@@ -429,10 +432,65 @@ irq7text:
 		.text
 
 #elif MACHINE_FIREBEE				/* these handlers are only meaningful for the Firebee */
-irq5:
-		irq	0x74,5,0x20
 
-irq6:		// MFP interrupt from FPGA
+irq5:		move.w	#0x2700,sr		// disable interrupts
+		subq.l	#4,sp			// extra space
+
+		link	a6,#-4 * 4		// save gcc scratch registers
+		movem.l	d0-d1/a0-a1,(sp)
+
+		jsr	_irq5_handler		// call C handler routine
+
+		tst.l	d0			// handled?
+		bne	irq5_forward
+
+		movem.l	(sp),d0-d1/a0-a1	// restore registers
+		unlk	a6
+		addq.l	#4,sp
+
+		rte				// return from exception
+
+irq5_forward:	move.l	0x74,a0			// fetch OS irq5 vector
+		add.l	_rt_vbr,a0		// add runtime vbr
+		move.l	a0,4(a6)		// put on stack
+
+		movem.l	(sp),d0-d1/a0-a1	// restore registers
+		unlk	a6			//
+		move.w	#0x2500,sr		// set interrupt level
+		rts				// jump through vector
+
+
+irq6:		move.w	#0x2700,sr		// disable interrupt
+		subq.l	#4,sp			// extra space
+		link	a6,#-4 * 4		// save gcc scratch registers
+		movem.l	d0-d1/a0-a1,(sp)
+
+		move.l	4(a6),-(sp)		// format status word
+		move.l	8(a6),-(sp)		// pc at exception
+		jsr	_irq6_interrupt_handler	// call C handler
+		lea	8(sp),sp		// fix stack
+
+		tst.l	d0			// interrupt handled?
+		bne	irq6_forward		// no, forward to TOS
+
+		movem.l	(sp),d0-d1/a0-a1	// restore registers
+		unlk	a6
+		addq.l	#4,sp			// extra word not needed in this case
+		rte
+
+irq6_forward:
+		move.l	0xf0020000,a0		// fetch "autovector"
+		add.l	_rt_vbr,a0		// add runtime VBR
+		move.l	(a0),4(a6)		// fetch handler address and put it on stack
+
+		movem.l	(sp),d0-d1/a0-a1
+		unlk	a6
+		move.w	#0x2600,sr		// set interrupt level
+
+		rts				// jump through vector
+
+#ifdef _NOT_USED_
+		// MFP interrupt from FPGA
 		move.w	#0x2700,sr		// disable interrupt
 		subq.l	#8,sp
 		movem.l	d0/a5,(sp)		// save registers
@@ -555,6 +613,9 @@ acsi_dma_end:
 		move.l	(sp)+,d1
 		move.l	(sp)+,a1
 		rts
+
+#endif /* _NOT_USED_ */
+
 /*
  * irq 7 = pseudo bus error
  */

@@ -28,6 +28,7 @@
 #include "cache.h"
 #include "usb.h"
 #include "ehci.h"
+#include "pci.h"
 
 #define DBG_EHCI
 #ifdef DBG_EHCI
@@ -124,6 +125,15 @@ struct pci_device_id ehci_usb_pci_table[] =
         0,
         0
     }, /* NEC PCI OHCI module ids */
+    {
+        PCI_VENDOR_ID_NEC,
+        PCI_DEVICE_ID_NEC_USB_3,
+        PCI_ANY_ID,
+        PCI_ANY_ID,
+        PCI_CLASS_SERIAL_USB_EHCI,
+        0,
+        0
+    },
     {
         PCI_VENDOR_ID_PHILIPS,
         PCI_DEVICE_ID_PHILIPS_ISP1561_2,

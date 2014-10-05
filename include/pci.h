@@ -44,13 +44,13 @@
 #define PCIHTR                0x0E   /* PCI Header Type Register            */
 #define PCIBISTR              0x0F   /* PCI Build-In Self Test Register     */
 #define PCIBAR0               0x10   /* PCI Base Address Register for Memory
-										Accesses to Local, Runtime, and DMA */
+                                        Accesses to Local, Runtime, and DMA */
 #define PCIBAR1               0x14   /* PCI Base Address Register for I/O
-										Accesses to Local, Runtime, and DMA */
+                                        Accesses to Local, Runtime, and DMA */
 #define PCIBAR2               0x18   /* PCI Base Address Register for Memory
-										Accesses to Local Address Space 0   */
+                                        Accesses to Local Address Space 0   */
 #define PCIBAR3               0x1C   /* PCI Base Address Register for Memory
-										Accesses to Local Address Space 1   */
+                                        Accesses to Local Address Space 1   */
 #define PCIBAR4               0x20   /* PCI Base Address Register, reserved */
 #define PCIBAR5               0x24   /* PCI Base Address Register, reserved */
 #define PCICIS                0x28   /* PCI Cardbus CIS Pointer, not support*/
@@ -64,7 +64,7 @@
 #define PCIMLR                0x3F   /* PCI Max_Lat Register                */
 #define PMCAPID               0x40   /* Power Management Capability ID      */
 #define PMNEXT                0x41   /* Power Management Next Capability
-										Pointer                             */
+                                        Pointer                             */
 #define PMC                   0x42   /* Power Management Capabilities       */
 #define PMCSR                 0x44   /* Power Management Control/Status     */
 #define PMCSR_BSE             0x46   /* PMCSR Bridge Support Extensions     */
@@ -74,7 +74,7 @@
 #define HS_CSR                0x4A   /* Hot Swap Control/Status             */
 #define PVPDCNTL              0x4C   /* PCI Vital Product Data Control      */
 #define PVPD_NEXT             0x4D   /* PCI Vital Product Data Next
-										Capability Pointer                  */
+                                        Capability Pointer                  */
 #define PVPDAD                0x4E   /* PCI Vital Product Data Address      */
 #define PVPDATA               0x50   /* PCI VPD Data                        */
 
@@ -128,18 +128,18 @@
 
 struct pci_rd          /* structure of resource descriptor    */
 {
-	unsigned short next;               /* length of the following structure   */
-	unsigned short flags;              /* type of resource and misc. flags    */
-	unsigned long start;               /* start-address of resource           */
-	unsigned long length;              /* length of resource                  */
-	unsigned long offset;              /* offset PCI to phys. CPU Address     */
-	unsigned long dmaoffset;           /* offset for DMA-transfers            */
+    unsigned short next;               /* length of the following structure   */
+    unsigned short flags;              /* type of resource and misc. flags    */
+    unsigned long start;               /* start-address of resource           */
+    unsigned long length;              /* length of resource                  */
+    unsigned long offset;              /* offset PCI to phys. CPU Address     */
+    unsigned long dmaoffset;           /* offset for DMA-transfers            */
 } __attribute__ ((packed));
 
 typedef struct                       /* structure of address conversion     */
 {
-	unsigned long adr;                 /* calculated address (CPU<->PCI)      */
-	unsigned long len;                 /* length of memory range              */
+    unsigned long adr;                 /* calculated address (CPU<->PCI)      */
+    unsigned long len;                 /* length of memory range              */
 } PCI_CONV_ADR;
 
 /******************************************************************************/
@@ -227,9 +227,13 @@ typedef struct                       /* structure of address conversion     */
 extern void init_eport(void);
 extern void init_xlbus_arbiter(void);
 extern void init_pci(void);
+extern int pci_handle2index(int32_t handle);
 
 extern int32_t pci_find_device(uint16_t device_id, uint16_t vendor_id, int index);
 extern int32_t pci_find_classcode(uint32_t classcode, int index);
+
+extern int32_t pci_get_interrupt_cause(void);
+extern int32_t pci_call_interrupt_chain(int32_t handle, int32_t data);
 
 /*
  * match bits for pci_find_classcode()
@@ -337,9 +341,9 @@ extern int32_t wrapper_virt_to_phys(uint32_t address, PCI_CONV_ADR *pointer);
 extern int32_t wrapper_phys_to_virt(uint32_t address, PCI_CONV_ADR *pointer);
 
 #define PCI_MK_CONF_ADDR(bus, device, function)	(MCF_PCI_PCICAR_E | \
-												((bus) << 16) | \
-												((device << 8) | \
-												(function))
+                                                ((bus) << 16) | \
+                                                ((device << 8) | \
+                                                (function))
 
 #define PCI_HANDLE(bus, slot, function)	(0 | ((bus & 0xff) << 10 | (slot & 0x1f) << 3 | (function & 7)))
 #define PCI_BUS_FROM_HANDLE(h)				(((h) & 0xff00) >> 10)

@@ -43,17 +43,18 @@
  */
 
 
-#include "wait.h"			/* for wait routines */
+#include "wait.h"			/* for wait_ms routines */
 #include "bas_printf.h"
 #include "bas_string.h"     /* for memset() */
 #include "pci.h"
+#include "interrupts.h"
 
 #undef OHCI_USE_NPS         /* force NoPowerSwitching mode */
 
 #undef OHCI_VERBOSE_DEBUG	/* not always helpful */
 #undef OHCI_FILL_TRACE
 
-//#define DEBUG_OHCI
+#define DEBUG_OHCI
 #ifdef DEBUG_OHCI
 #define dbg(format, arg...) do { xprintf("DEBUG: %s(): " format, __FUNCTION__, ##arg); } while (0)
 #else
@@ -127,6 +128,15 @@ struct pci_device_id ohci_usb_pci_table[] =
         0
     }, /* NEC PCI OHCI module ids */
     {
+        PCI_VENDOR_ID_NEC,
+        PCI_DEVICE_ID_NEC_USB_A,
+        PCI_ANY_ID,
+        PCI_ANY_ID,
+        PCI_CLASS_SERIAL_USB_OHCI,
+        0,
+        0
+    }, /* NEC PCI OHCI module ids */
+    {
         PCI_VENDOR_ID_PHILIPS,
         PCI_DEVICE_ID_PHILIPS_ISP1561,
         PCI_ANY_ID,
@@ -148,7 +158,7 @@ struct pci_device_id ohci_usb_pci_table[] =
 };
 
 /* global ohci_t */
-static ohci_t gohci[2];
+static ohci_t gohci[10];
 int ohci_inited;
 
 static inline uint32_t roothub_a(ohci_t *ohci)	{ return readl(&ohci->regs->roothub.a); }
@@ -157,7 +167,6 @@ static inline uint32_t roothub_status(ohci_t *ohci) { return readl(&ohci->regs->
 static inline uint32_t roothub_portstatus(ohci_t *ohci, int i) { return readl(&ohci->regs->roothub.portstatus[i]); }
 
 /* forward declaration */
-static void flush_data_cache(ohci_t *ohci);
 static int hc_interrupt(ohci_t *ohci);
 static void td_submit_job(ohci_t *ohci, struct usb_device *dev, uint32_t pipe,
                             void *buffer, int transfer_len, struct devrequest *setup,
@@ -550,10 +559,13 @@ static int sohci_submit_job(ohci_t *ohci, urb_priv_t *urb, struct devrequest *se
 
     /* link the ed into a chain if is not already */
     if (ed->state != ED_OPER)
+    {
         ep_link(ohci, ed);
+    }
 
     /* fill the TDs and link it to the ed */
     td_submit_job(ohci, dev, pipe, buffer, transfer_len, setup, purb_priv, interval);
+
     return 0;
 }
 
@@ -571,7 +583,7 @@ static inline int sohci_return_job(ohci_t *ohci, urb_priv_t *urb)
                 readl(&regs->intrenable); /* PCI posting flush */
 
                 /* call interrupt device routine */
-// 				dbg("irq_handle device %d", urb->dev->devnum);
+                dbg("irq_handle device %d", urb->dev->devnum);
                 urb->dev->irq_handle(urb->dev);
 
                 writel(OHCI_INTR_WDH, &regs->intrdisable);
@@ -1374,7 +1386,7 @@ static int ohci_submit_rh_msg(ohci_t *ohci, struct usb_device *dev, uint32_t pip
 #else
     if (ohci->irq)
     {
-        wait(10);
+        wait_ms(10);
     }
 #endif
 
@@ -1462,7 +1474,7 @@ static int ohci_submit_rh_msg(ohci_t *ohci, struct usb_device *dev, uint32_t pip
                     OK(0);
                 case (RH_PORT_POWER):
                     WR_RH_PORTSTAT(RH_PS_PPS);
-                    wait(100);
+                    wait_ms(100);
                     OK(0);
                 case (RH_PORT_ENABLE): /* BUG IN HUP CODE *********/
                     if (RD_RH_PORTSTAT & RH_PS_CCS)
@@ -1562,7 +1574,7 @@ static int ohci_submit_rh_msg(ohci_t *ohci, struct usb_device *dev, uint32_t pip
 #else
     if (ohci->irq)
     {
-        wait(10);
+        wait_ms(10);
     }
 #endif
 
@@ -1582,7 +1594,7 @@ static int ohci_submit_rh_msg(ohci_t *ohci, struct usb_device *dev, uint32_t pip
 
     if (ohci->irq)
     {
-        wait(10);
+        wait_ms(10);
     }
 #endif
 
@@ -1629,7 +1641,7 @@ static int submit_common_msg(ohci_t *ohci, struct usb_device *dev, uint32_t pipe
 #else
     if (ohci->irq)
     {
-        wait(10);
+        wait_ms(10);
     }
 #endif
 
@@ -1646,7 +1658,7 @@ static int submit_common_msg(ohci_t *ohci, struct usb_device *dev, uint32_t pipe
     }
 
 #if 0
-    wait(10);
+    wait_ms(10);
     /* ohci_dump_status(ohci); */
 #endif
 
@@ -1663,7 +1675,7 @@ static int submit_common_msg(ohci_t *ohci, struct usb_device *dev, uint32_t pipe
         timeout = 1000;
     }
 
-    /* wait for it to complete */
+    /* wait_ms for it to complete */
     while (ohci->irq)
     {
         /* check whether the controller is done */
@@ -1702,13 +1714,13 @@ static int submit_common_msg(ohci_t *ohci, struct usb_device *dev, uint32_t pipe
 
         if (--timeout)
         {
-            wait(10);
+            wait_ms(10);
             if (!urb->finished)
-                xprintf("*");
+                xprintf("*\r\n");
         }
         else
         {
-            err("OHCI usb-%s-%c CTL:TIMEOUT", ohci->slot_name, (char)ohci->controller + '0');
+            err("OHCI usb-%s-%c CTL:TIMEOUT", ohci->slot_name, (char) ohci->controller + '0');
             dbg("submit_common_msg: TO status %x\r\n", stat);
             urb->finished = 1;
             stat = USB_ST_CRC_ERR;
@@ -1722,7 +1734,7 @@ static int submit_common_msg(ohci_t *ohci, struct usb_device *dev, uint32_t pipe
     pkt_print(ohci, urb, dev, pipe, buffer, transfer_len, setup, "RET(ctlr)", usb_pipein(pipe));
 #else
     if (ohci->irq)
-        wait(10);
+        wait_ms(10);
 #endif
     /* free TDs in urb_priv */
     if (!usb_pipeint(pipe))
@@ -1749,7 +1761,7 @@ int ohci_submit_control_msg(struct usb_device *dev, uint32_t pipe, void *buffer,
 #else
     if (ohci->irq)
     {
-        wait(10);
+        wait_ms(10);
     }
 #endif
 
@@ -1796,7 +1808,7 @@ static int hc_reset(ohci_t *ohci)
          * Some multi-function controllers (e.g. ISP1562) allow root hub
          * resetting via EHCI registers only.
          */
-        short index = 0;
+        int index = 0;
         long handle;
 
         do
@@ -1831,7 +1843,7 @@ static int hc_reset(ohci_t *ohci)
                                             err("USB RootHub reset timed out!\r\n");
                                             break;
                                         }
-                                        wait(1);
+                                        wait_ms(1);
                                     }
                                 }
                             }
@@ -1845,6 +1857,7 @@ static int hc_reset(ohci_t *ohci)
         }
         while (handle >= 0);
     }
+
     if ((ohci->controller == 0) && (ohci->ent->vendor == PCI_VENDOR_ID_NEC)
                                 && (ohci->ent->device == PCI_DEVICE_ID_NEC_USB))
     {
@@ -1853,26 +1866,28 @@ static int hc_reset(ohci_t *ohci)
         {
             dbg("USB OHCI set 48MHz clock\r\n");
             pci_write_config_longword(ohci->handle, 0xE4, 0x21); // oscillator & disable ehci
-            wait(10);
+            wait_us(1);
         }
         //else
 #else
         {
             pci_write_config_longword(ohci->handle, 0xE4, pci_read_config_longword(ohci->handle, 0xE4) | 0x01); // disable ehci
-            wait(10);
+            wait_us(1);
         }
 #endif
     }
 
     dbg("control: %x\r\n", readl(&ohci->regs->control));
+
     if (readl(&ohci->regs->control) & OHCI_CTRL_IR)
     {
         /* SMM owns the HC */
-        writel(OHCI_OCR, &ohci->regs->cmdstatus);/* request ownership */
+        writel(OHCI_OCR, &ohci->regs->cmdstatus);   /* request ownership */
+
         err("USB HC TakeOver from SMM");
         while (readl(&ohci->regs->control) & OHCI_CTRL_IR)
         {
-            wait(10);
+            wait_us(10);
             if (--smm_timeout == 0)
             {
                 err("USB HC TakeOver failed!");
@@ -1884,17 +1899,12 @@ static int hc_reset(ohci_t *ohci)
     /* Disable HC interrupts */
     writel(OHCI_INTR_MIE, &ohci->regs->intrdisable);
 
-#ifdef DEBUG_OHCI
-    ohci_dump_status(ohci);
-#endif /* DEBUG_OHCI */
-
     dbg("USB OHCI HC reset_hc usb-%s-%c: ctrl = 0x%X\r\n", ohci->slot_name,
         (char) ohci->controller + '0', readl(&ohci->regs->control));
 
     /* Reset USB (needed by some controllers) */
     ohci->hc_control = 0;
     writel(ohci->hc_control, &ohci->regs->control);
-    wait(50);
 
     /* HC Reset requires max 10 us delay */
     writel(OHCI_HCR, &ohci->regs->cmdstatus);
@@ -1908,12 +1918,11 @@ static int hc_reset(ohci_t *ohci)
 #endif /* DEBUG_OHCI */
             return -1;
         }
-        wait(10);
+        wait_us(1);
     }
     return 0;
 }
 
-/*-------------------------------------------------------------------------*/
 
 /*
  * Start an OHCI controller, set the BUS operational
@@ -1935,7 +1944,7 @@ static int hc_start(ohci_t *ohci)
     writel(0, &ohci->regs->ed_controlhead);
     writel(0, &ohci->regs->ed_bulkhead);
 
-    writel((uint32_t) ohci->hcca - ohci->dma_offset, &ohci->regs->hcca); /* a reset clears this */
+    writel((uint32_t) ohci->hcca, &ohci->regs->hcca); /* a reset clears this */
 
     fminterval = 0x2edf;
     writel((fminterval * 9) / 10, &ohci->regs->periodicstart);
@@ -1951,7 +1960,8 @@ static int hc_start(ohci_t *ohci)
 
     /* disable all interrupts */
     mask = (OHCI_INTR_SO | OHCI_INTR_WDH | OHCI_INTR_SF | OHCI_INTR_RD |
-            OHCI_INTR_UE | OHCI_INTR_FNO | OHCI_INTR_RHSC | OHCI_INTR_OC | OHCI_INTR_MIE);
+            OHCI_INTR_UE | OHCI_INTR_FNO | OHCI_INTR_RHSC |
+            OHCI_INTR_OC | OHCI_INTR_MIE);
     writel(mask, &ohci->regs->intrdisable);
 
     /* clear all interrupts */
@@ -1970,9 +1980,12 @@ static int hc_start(ohci_t *ohci)
 #endif /* OHCI_USE_NPS */
 
     /* POTPGT delay is bits 24-31, in 2 ms units. */
-#define mdelay(n) ({unsigned long msec = (n); while (msec--) wait(1); })
+#define mdelay(n) ({unsigned long msec = (n); while (msec--) wait_ms(1); })
+
+    dbg("wait_ms(0x%x)\r\n", (ohci->ndp >> 23) & 0x1fe);
     mdelay((ohci->ndp >> 23) & 0x1fe);
-    ohci->ndp &= RH_A_NDP;
+
+    // ohci->ndp &= RH_A_NDP;
 
     /* connect the virtual root hub */
     ohci->rh.devnum = 0;
@@ -1981,33 +1994,7 @@ static int hc_start(ohci_t *ohci)
 }
 
 
-#ifdef CONFIG_USB_INTERRUPT_POLLING
 
-/* Poll USB interrupt. */
-void ohci_usb_event_poll(int interrupt)
-{
-    if (ohci_inited)
-    {
-        int i;
-        for (i = 0; i < (sizeof(gohci) / sizeof(ohci_t)); i++)
-        {
-            ohci_t *ohci = &gohci[i];
-            if (!ohci->handle || ohci->disabled)
-                continue;
-            else
-            {
-                flush_data_cache(ohci);
-                if (interrupt)
-                    ohci->irq = 0;
-                hc_interrupt(ohci);
-                if (interrupt)
-                    ohci->irq = -1;
-            }
-        }
-    }
-}
-
-#endif /* CONFIG_USB_INTERRUPT_POLLING */
 
 /*
  * an interrupt happens
@@ -2018,6 +2005,7 @@ static int hc_interrupt(ohci_t *ohci)
     int ints;
     int stat = -1;
 
+    dbg("\r\n");
     if ((ohci->hcca->done_head != 0) && !(swpl(ohci->hcca->done_head) & 0x01))
     {
         ints =  OHCI_INTR_WDH;
@@ -2050,18 +2038,6 @@ static int hc_interrupt(ohci_t *ohci)
 
     if (ints & OHCI_INTR_RHSC) /* root hub status change */
     {
-#ifdef USB_POLL_HUB
-        if ((queue_poll_hub != NULL) && (rh_check_port_status(ohci) >= 0))
-        {
-            if (ohci->irq)
-                xQueueAltSend(queue_poll_hub, (void *)&ohci->usbnum, 0);
-            else
-            {
-                portBASE_TYPE xNeedSwitch = pdFALSE;
-                xNeedSwitch = xQueueSendFromISR(queue_poll_hub, &ohci->usbnum, xNeedSwitch);
-            } /* to fix xNeedSwitch usage */
-        }
-#endif /* USB_POLL_HUB */
         stat = 0xff;
     }
 
@@ -2085,7 +2061,7 @@ static int hc_interrupt(ohci_t *ohci)
 #else
         if (ohci->irq)
         {
-            wait(1);
+            wait_ms(1);
         }
 #endif
         /* HC Reset */
@@ -2099,7 +2075,7 @@ static int hc_interrupt(ohci_t *ohci)
     {
         if (ohci->irq)
         {
-            wait(1);
+            wait_ms(1);
         }
 
         writel(OHCI_INTR_WDH, &regs->intrdisable);
@@ -2122,29 +2098,26 @@ static int hc_interrupt(ohci_t *ohci)
     {
         unsigned int frame = swpw(ohci->hcca->frame_no) & 1;
 
-        if (ohci->irq)
-            wait(1);
+        wait_ms(1);
         writel(OHCI_INTR_SF, &regs->intrdisable);
         if (ohci->ed_rm_list[frame] != NULL)
+        {
             writel(OHCI_INTR_SF, &regs->intrenable);
+        }
         stat = 0xff;
     }
     writel(ints, &regs->intrstatus);
+
     return stat;
 }
 
-#ifndef CONFIG_USB_INTERRUPT_POLLING
-
 static int handle_usb_interrupt(ohci_t *ohci)
 {
-    if (!ohci->irq_enabled)
+    if(!ohci->irq_enabled)
     {
-        dbg("no interrupts enabled\r\n");
-
         return 0;
     }
 
-    // flush_data_cache(ohci); no need for that
     ohci->irq = 0;
     ohci->stat_irq = hc_interrupt(ohci);
     ohci->irq = -1;
@@ -2157,11 +2130,14 @@ void ohci_usb_enable_interrupt(int enable)
     int i;
 
     dbg("usb_enable_interrupt(%d)", enable);
-    for (i = 0; i < (sizeof(gohci) / sizeof(ohci_t)); i++)
+
+    for(i = 0; i < (sizeof(gohci) / sizeof(ohci_t)); i++)
     {
         ohci_t *ohci = &gohci[i];
-        if (!ohci->handle)
+        if(!ohci->handle)
+        {
             continue;
+        }
         ohci->irq_enabled = enable;
         if (enable)
             writel(OHCI_INTR_MIE, &ohci->regs->intrenable);
@@ -2170,15 +2146,15 @@ void ohci_usb_enable_interrupt(int enable)
     }
 }
 
-#endif /* !CONFIG_USB_INTERRUPT_POLLING */
-
 /* De-allocate all resources.. */
 
 static void hc_release_ohci(ohci_t *ohci)
 {
-    dbg("USB HC release OHCI usb-%s-%c", ohci->slot_name, (char)ohci->controller + '0');
+    dbg("USB HC release OHCI usb-%s-%c", ohci->slot_name, (char) ohci->controller + '0');
     if (!ohci->disabled)
+    {
         hc_reset(ohci);
+    }
 }
 
 static void hc_free_buffers(ohci_t *ohci)
@@ -2206,7 +2182,7 @@ static void hc_free_buffers(ohci_t *ohci)
 int ohci_usb_lowlevel_init(int32_t handle, const struct pci_device_id *ent, void **priv)
 {
     uint32_t usb_base_addr = 0xFFFFFFFF;
-    ohci_t *ohci = &gohci[PCI_FUNCTION_FROM_HANDLE(handle) & 1];
+    ohci_t *ohci = &gohci[pci_handle2index(handle)];
     struct pci_rd *pci_rsc_desc = pci_get_resource(handle); /* USB OHCI */
 
     if (handle && (ent != NULL))
@@ -2372,9 +2348,11 @@ int ohci_usb_lowlevel_init(int32_t handle, const struct pci_device_id *ent, void
 #ifdef DEBUG_OHCI
     ohci_dump(ohci, 1);
 #endif
-    pci_hook_interrupt(handle, handle_usb_interrupt, ohci);
+    pci_hook_interrupt(handle, (pci_interrupt_handler) handle_usb_interrupt, ohci);
     if (priv != NULL)
+    {
         *priv = (void *) ohci;
+    }
 
     ohci_inited = 1;
 

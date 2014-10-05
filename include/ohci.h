@@ -6,62 +6,62 @@
  *
  * usb-ohci.h
  */
- 
+
 #define USB_OHCI_MAX_ROOT_PORTS	4
 
 static int cc_to_error[16] =
 {
 
 /* mapping of the OHCI CC status to error codes */
-	/* No  Error  */	       0,
-	/* CRC Error  */	       USB_ST_CRC_ERR,
-	/* Bit Stuff  */	       USB_ST_BIT_ERR,
-	/* Data Togg  */	       USB_ST_CRC_ERR,
-	/* Stall      */	       USB_ST_STALLED,
-	/* DevNotResp */	       -1,
-	/* PIDCheck   */	       USB_ST_BIT_ERR,
-	/* UnExpPID   */	       USB_ST_BIT_ERR,
-	/* DataOver   */	       USB_ST_BUF_ERR,
-	/* DataUnder  */	       USB_ST_BUF_ERR,
-	/* reservd    */	       -1,
-	/* reservd    */	       -1,
-	/* BufferOver */	       USB_ST_BUF_ERR,
-	/* BuffUnder  */	       USB_ST_BUF_ERR,
-	/* Not Access */	       -1,
-	/* Not Access */	       -1
+    /* No  Error  */	       0,
+    /* CRC Error  */	       USB_ST_CRC_ERR,
+    /* Bit Stuff  */	       USB_ST_BIT_ERR,
+    /* Data Togg  */	       USB_ST_CRC_ERR,
+    /* Stall      */	       USB_ST_STALLED,
+    /* DevNotResp */	       -1,
+    /* PIDCheck   */	       USB_ST_BIT_ERR,
+    /* UnExpPID   */	       USB_ST_BIT_ERR,
+    /* DataOver   */	       USB_ST_BUF_ERR,
+    /* DataUnder  */	       USB_ST_BUF_ERR,
+    /* reservd    */	       -1,
+    /* reservd    */	       -1,
+    /* BufferOver */	       USB_ST_BUF_ERR,
+    /* BuffUnder  */	       USB_ST_BUF_ERR,
+    /* Not Access */	       -1,
+    /* Not Access */	       -1
 };
 
 static const char *cc_to_string[16] =
 {
-	"No Error",
-	"CRC: Last data packet from endpoint contained a CRC error.",
-	"BITSTUFFING:\r\nLast data packet from endpoint contained a bit stuffing violation",
-	"DATATOGGLEMISMATCH:\r\n Last packet from endpoint had data toggle PID\r\n" \
-		     "that did not match the expected value.",
-	"STALL: TD was moved to the Done Queue because the endpoint returned a STALL PID",
-	"DEVICENOTRESPONDING:\r\nDevice did not respond to token (IN) or did\r\n" \
-		     "not provide a handshake (OUT)",
-	"PIDCHECKFAILURE:\r\nCheck bits on PID from endpoint failed on data PID\r\n"\
-		     "(IN) or handshake (OUT)",
-	"UNEXPECTEDPID:\r\nReceive PID was not valid when encountered or PID\r\n" \
-		     "value is not defined.",
-	"DATAOVERRUN:\r\nThe amount of data returned by the endpoint exceeded\r\n" \
-		     "either the size of the maximum data packet allowed\r\n" \
-		     "from the endpoint (found in MaximumPacketSize field\r\n" \
-		     "of ED) or the remaining buffer size.",
-	"DATAUNDERRUN:\r\nThe endpoint returned less than MaximumPacketSize\r\n" \
-		     "and that amount was not sufficient to fill the\r\n" \
-		     "specified buffer",
-	"reserved1",
-	"reserved2",
-	"BUFFEROVERRUN:\r\nDuring an IN, HC received data from endpoint faster\r\n" \
-		     "than it could be written to system memory",
-	"BUFFERUNDERRUN:\r\nDuring an OUT, HC could not retrieve data from\r\n" \
-		     "system memory fast enough to keep up with data USB data rate.",
-	"NOT ACCESSED:\r\nThis code is set by software before the TD is placed\r\n" \
-		     "on a list to be processed by the HC.(1)",
-	"NOT ACCESSED:\r\nThis code is set by software before the TD is placed\r\n" \
-		     "on a list to be processed by the HC.(2)",
+    "No Error",
+    "CRC: Last data packet from endpoint contained a CRC error.",
+    "BITSTUFFING:\r\nLast data packet from endpoint contained a bit stuffing violation",
+    "DATATOGGLEMISMATCH:\r\n Last packet from endpoint had data toggle PID\r\n" \
+             "that did not match the expected value.",
+    "STALL: TD was moved to the Done Queue because the endpoint returned a STALL PID",
+    "DEVICENOTRESPONDING:\r\nDevice did not respond to token (IN) or did\r\n" \
+             "not provide a handshake (OUT)",
+    "PIDCHECKFAILURE:\r\nCheck bits on PID from endpoint failed on data PID\r\n"\
+             "(IN) or handshake (OUT)",
+    "UNEXPECTEDPID:\r\nReceive PID was not valid when encountered or PID\r\n" \
+             "value is not defined.",
+    "DATAOVERRUN:\r\nThe amount of data returned by the endpoint exceeded\r\n" \
+             "either the size of the maximum data packet allowed\r\n" \
+             "from the endpoint (found in MaximumPacketSize field\r\n" \
+             "of ED) or the remaining buffer size.",
+    "DATAUNDERRUN:\r\nThe endpoint returned less than MaximumPacketSize\r\n" \
+             "and that amount was not sufficient to fill the\r\n" \
+             "specified buffer",
+    "reserved1",
+    "reserved2",
+    "BUFFEROVERRUN:\r\nDuring an IN, HC received data from endpoint faster\r\n" \
+             "than it could be written to system memory",
+    "BUFFERUNDERRUN:\r\nDuring an OUT, HC could not retrieve data from\r\n" \
+             "system memory fast enough to keep up with data USB data rate.",
+    "NOT ACCESSED:\r\nThis code is set by software before the TD is placed\r\n" \
+             "on a list to be processed by the HC.(1)",
+    "NOT ACCESSED:\r\nThis code is set by software before the TD is placed\r\n" \
+             "on a list to be processed by the HC.(2)",
 };
 
 /* ED States */
@@ -75,24 +75,24 @@ static const char *cc_to_string[16] =
 /* usb_ohci_ed */
 struct ed
 {
-	uint32_t hwINFO;
-	uint32_t hwTailP;
-	uint32_t hwHeadP;
-	uint32_t hwNextED;
+    uint32_t hwINFO;
+    uint32_t hwTailP;
+    uint32_t hwHeadP;
+    uint32_t hwNextED;
 
-	struct ed *ed_prev;
-	uint8_t int_period;
-	uint8_t int_branch;
-	uint8_t int_load;
-	uint8_t int_interval;
-	uint8_t state;
-	uint8_t type;
-	uint16_t last_iso;
-	struct ed *ed_rm_list;
+    struct ed *ed_prev;
+    uint8_t int_period;
+    uint8_t int_branch;
+    uint8_t int_load;
+    uint8_t int_interval;
+    uint8_t state;
+    uint8_t type;
+    uint16_t last_iso;
+    struct ed *ed_rm_list;
 
-	struct usb_device *usb_dev;
-	void *purb;
-	uint32_t unused[2];
+    struct usb_device *usb_dev;
+    void *purb;
+    uint32_t unused[2];
 } __attribute__((aligned(16)));
 typedef struct ed ed_t;
 
@@ -137,21 +137,21 @@ typedef struct ed ed_t;
 
 struct td
 {
-	uint32_t hwINFO;
-	uint32_t hwCBP;		/* Current Buffer Pointer */
-	uint32_t hwNextTD;		/* Next TD Pointer */
-	uint32_t hwBE;		/* Memory Buffer End Pointer */
+    uint32_t hwINFO;
+    uint32_t hwCBP;		/* Current Buffer Pointer */
+    uint32_t hwNextTD;		/* Next TD Pointer */
+    uint32_t hwBE;		/* Memory Buffer End Pointer */
 
-	uint16_t hwPSW[MAXPSW];
-	uint8_t unused;
-	uint8_t index;
-	struct ed *ed;
-	struct td *next_dl_td;
-	struct usb_device *usb_dev;
-	int transfer_len;
-	uint32_t data;
+    uint16_t hwPSW[MAXPSW];
+    uint8_t unused;
+    uint8_t index;
+    struct ed *ed;
+    struct td *next_dl_td;
+    struct usb_device *usb_dev;
+    int transfer_len;
+    uint32_t data;
 
-	uint32_t unused2[2];
+    uint32_t unused2[2];
 } __attribute__((aligned(32)));
 typedef struct td td_t;
 
@@ -166,16 +166,16 @@ typedef struct td td_t;
 #define NUM_INTS 32	/* part of the OHCI standard */
 struct ohci_hcca
 {
-	uint32_t	int_table[NUM_INTS];	/* Interrupt ED table */
+    uint32_t	int_table[NUM_INTS];	/* Interrupt ED table */
 #if defined(CONFIG_MPC5200)
-	uint16_t	pad1;			/* set to 0 on each frame_no change */
-	uint16_t	frame_no;		/* current frame number */
+    uint16_t	pad1;			/* set to 0 on each frame_no change */
+    uint16_t	frame_no;		/* current frame number */
 #else
-	uint16_t	frame_no;		/* current frame number */
-	uint16_t	pad1;			/* set to 0 on each frame_no change */
+    uint16_t	frame_no;		/* current frame number */
+    uint16_t	pad1;			/* set to 0 on each frame_no change */
 #endif
-	uint32_t	done_head;		/* info returned for an interrupt */
-	uint8_t		reserved_for_hc[116];
+    uint32_t	done_head;		/* info returned for an interrupt */
+    uint8_t		reserved_for_hc[116];
 } __attribute__((aligned(256)));
 
 /*
@@ -185,35 +185,35 @@ struct ohci_hcca
  */
 struct ohci_regs
 {
-	/* control and status registers */
-	uint32_t	revision;
-	uint32_t	control;
-	uint32_t	cmdstatus;
-	uint32_t	intrstatus;
-	uint32_t	intrenable;
-	uint32_t	intrdisable;
-	/* memory pointers */
-	uint32_t	hcca;
-	uint32_t	ed_periodcurrent;
-	uint32_t	ed_controlhead;
-	uint32_t	ed_controlcurrent;
-	uint32_t	ed_bulkhead;
-	uint32_t	ed_bulkcurrent;
-	uint32_t	donehead;
-	/* frame counters */
-	uint32_t	fminterval;
-	uint32_t	fmremaining;
-	uint32_t	fmnumber;
-	uint32_t	periodicstart;
-	uint32_t	lsthresh;
-	/* Root hub ports */
+    /* control and status registers */
+    uint32_t	revision;
+    uint32_t	control;
+    uint32_t	cmdstatus;
+    uint32_t	intrstatus;
+    uint32_t	intrenable;
+    uint32_t	intrdisable;
+    /* memory pointers */
+    uint32_t	hcca;
+    uint32_t	ed_periodcurrent;
+    uint32_t	ed_controlhead;
+    uint32_t	ed_controlcurrent;
+    uint32_t	ed_bulkhead;
+    uint32_t	ed_bulkcurrent;
+    uint32_t	donehead;
+    /* frame counters */
+    uint32_t	fminterval;
+    uint32_t	fmremaining;
+    uint32_t	fmnumber;
+    uint32_t	periodicstart;
+    uint32_t	lsthresh;
+    /* Root hub ports */
     struct	ohci_roothub_regs
     {
-		uint32_t	a;
-		uint32_t	b;
-		uint32_t	status;
-		uint32_t	portstatus[USB_OHCI_MAX_ROOT_PORTS];
-	} roothub;
+        uint32_t	a;
+        uint32_t	b;
+        uint32_t	status;
+        uint32_t	portstatus[USB_OHCI_MAX_ROOT_PORTS];
+    } roothub;
 } __attribute__((aligned(32)));
 
 /* Some EHCI controls */
@@ -270,11 +270,11 @@ struct ohci_regs
 /* Virtual Root HUB */
 struct virt_root_hub
 {
-	int devnum; /* Address of Root Hub endpoint */
-	void *dev;  /* was urb */
-	void *int_addr;
-	int send;
-	int interval;
+    int devnum; /* Address of Root Hub endpoint */
+    void *dev;  /* was urb */
+    void *int_addr;
+    int send;
+    int interval;
 };
 
 /* USB HUB CONSTANTS (not OHCI-specific; see hub.h) */
@@ -372,18 +372,18 @@ struct virt_root_hub
 #define N_URB_TD 48
 typedef struct
 {
-	ed_t *ed;
-	uint16_t length;	/* number of tds associated with this request */
-	uint16_t td_cnt;	/* number of tds already serviced */
-	struct usb_device *dev;
-	int   state;
-	uint32_t pipe;
-	void *transfer_buffer;
-	int transfer_buffer_length;
-	int interval;
-	int actual_length;
-	int finished;
-	td_t *td[N_URB_TD];	/* list pointer to all corresponding TDs associated with this request */
+    ed_t *ed;
+    uint16_t length;	/* number of tds associated with this request */
+    uint16_t td_cnt;	/* number of tds already serviced */
+    struct usb_device *dev;
+    int   state;
+    uint32_t pipe;
+    void *transfer_buffer;
+    int transfer_buffer_length;
+    int interval;
+    int actual_length;
+    int finished;
+    td_t *td[N_URB_TD];	/* list pointer to all corresponding TDs associated with this request */
 } urb_priv_t;
 #define URB_DEL 1
 
@@ -391,8 +391,8 @@ typedef struct
 
 struct ohci_device
 {
-	ed_t	ed[NUM_EDS];
-	int ed_cnt;
+    ed_t	ed[NUM_EDS];
+    int ed_cnt;
 };
 
 /*
@@ -404,45 +404,45 @@ struct ohci_device
 
 typedef struct ohci
 {
-	/* ------- common part -------- */
-	long handle;              /* PCI BIOS */
-	const struct pci_device_id *ent;
-	int usbnum;
+    /* ------- common part -------- */
+    long handle;              /* PCI BIOS */
+    const struct pci_device_id *ent;
+    int usbnum;
   /* ---- end of common part ---- */
-	int big_endian;           /* PCI BIOS */
-	int controller;
-	struct ohci_hcca *hcca_unaligned;
-	struct ohci_hcca *hcca;		/* hcca */
-	td_t *td_unaligned;
-	struct ohci_device *ohci_dev_unaligned;
-	/* this allocates EDs for all possible endpoints */
-	struct ohci_device *ohci_dev;
+    int big_endian;           /* PCI BIOS */
+    int controller;
+    struct ohci_hcca *hcca_unaligned;
+    struct ohci_hcca *hcca;		/* hcca */
+    td_t *td_unaligned;
+    struct ohci_device *ohci_dev_unaligned;
+    /* this allocates EDs for all possible endpoints */
+    struct ohci_device *ohci_dev;
 
-	int irq_enabled;
-	int stat_irq;
-	int irq;
-	int disabled;			/* e.g. got a UE, we're hung */
-	int sleeping;
+    int irq_enabled;
+    int stat_irq;
+    int irq;
+    int disabled;			/* e.g. got a UE, we're hung */
+    int sleeping;
 #define OHCI_FLAGS_NEC 0x80000000
-	uint32_t flags;		/* for HC bugs */
+    uint32_t flags;		/* for HC bugs */
 
-	uint32_t offset;
-	uint32_t dma_offset;
-	struct ohci_regs *regs; /* OHCI controller's memory */
+    uint32_t offset;
+    uint32_t dma_offset;
+    struct ohci_regs *regs; /* OHCI controller's memory */
 
-	int ohci_int_load[32];	 /* load of the 32 Interrupt Chains (for load balancing)*/
-	ed_t *ed_rm_list[2];	 /* lists of all endpoints to be removed */
-	ed_t *ed_bulktail;	 /* last endpoint of bulk list */
-	ed_t *ed_controltail;	 /* last endpoint of control list */
-	int intrstatus;
-	uint32_t hc_control;		/* copy of the hc control reg */
-	uint32_t ndp;          /* copy NDP from roothub_a */
-	struct virt_root_hub rh;
+    int ohci_int_load[32];	 /* load of the 32 Interrupt Chains (for load balancing)*/
+    ed_t *ed_rm_list[2];	 /* lists of all endpoints to be removed */
+    ed_t *ed_bulktail;	 /* last endpoint of bulk list */
+    ed_t *ed_controltail;	 /* last endpoint of control list */
+    int intrstatus;
+    uint32_t hc_control;		/* copy of the hc control reg */
+    uint32_t ndp;          /* copy NDP from roothub_a */
+    struct virt_root_hub rh;
 
-	const char *slot_name;
+    const char *slot_name;
 
-	/* device which was disconnected */
-	struct usb_device *devgone;
+    /* device which was disconnected */
+    struct usb_device *devgone;
 } ohci_t;
 
 /* hcd */
@@ -458,7 +458,7 @@ static ed_t * ep_add_ed(ohci_t * ohci, struct usb_device * usb_dev, uint32_t pip
 
 static inline void ed_free(struct ed *ed)
 {
-	ed->usb_dev = NULL;
+    ed->usb_dev = NULL;
 }
 
 

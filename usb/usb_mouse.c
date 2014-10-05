@@ -216,12 +216,14 @@ static int usb_mouse_probe(struct usb_device *dev, unsigned int ifnum)
     int pipe;
     int maxp;
 
+#ifdef _NOT_USED_
     if (dev->descriptor.bNumConfigurations != 1)
     {
         dbg("dev->descriptor.bNumConfigurations != 1\r\n");
 
         return 0;
     }
+#endif
 
     iface = &dev->config.if_desc[ifnum];
 
