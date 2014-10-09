@@ -158,7 +158,7 @@ bool isr_execute_handler(int vector)
             }
         }
     }
-    dbg("no BaS isr handler for vector %d found\r\n", vector);
+    dbg("no isr handler for vector %d found\r\n", vector);
 
     return retval;
 }
@@ -267,7 +267,7 @@ bool irq6_interrupt_handler(uint32_t sf1, uint32_t sf2)
  * This gets called from irq5 in exceptions.S
  * Once we arrive here, the SR has been set to disable interrupts and the gcc scratch registers have been saved
  */
-int irq5_handler(void)
+int irq5_handler(void *arg1, void *arg2)
 {
     int32_t handle;
     int32_t value = 0;
@@ -280,7 +280,7 @@ int irq5_handler(void)
 
     * FPGA_INTR_CLEAR &= ~0x20000000UL;     /* clear interrupt from FPGA */
     err("\r\nFPGA_INTR_CLEAR = 0x%08x\r\n", * FPGA_INTR_CLEAR);
-    //MCF_EPORT_EPFR |= (1 << 5);             /* clear interrupt from edge port */
+    MCF_EPORT_EPFR |= (1 << 5);             /* clear interrupt from edge port */
 
     //xprintf("IRQ5!\r\n");
 
@@ -295,6 +295,12 @@ int irq5_handler(void)
     }
     return 0;
 }
+#else
+int irq5_handler(void *arg1, void *arg2)
+{
+    ;
+}
+
 #endif /* MACHINE_FIREBEE */
 
 #ifdef MACHINE_M5484LITE
