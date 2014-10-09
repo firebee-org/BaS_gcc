@@ -641,9 +641,11 @@ int32_t pci_find_classcode(uint32_t classcode, int index)
     return PCI_DEVICE_NOT_FOUND;
 }
 
-int32_t pci_hook_interrupt(int32_t handle, pci_interrupt_handler handler, void *parameter)
+int32_t pci_hook_interrupt(int32_t handle, void *handler, void *parameter)
 {
     int i;
+
+    pci_interrupt_handler h = handler;
 
     /*
      * find empty slot
@@ -1170,7 +1172,6 @@ void init_pci(void)
 
     MCF_PCI_PCIGSCR = 1;	/* reset PCI */
 
-#ifdef _NOT_USED_
     /*
      * setup the PCI arbiter
      */
@@ -1178,17 +1179,22 @@ void init_pci(void)
        | MCF_PCIARB_PACR_EXTMPRI(0xf)			/* external master priority: high */
        | MCF_PCIARB_PACR_INTMINTEN				/* enable "internal master broken" interrupt */
        | MCF_PCIARB_PACR_EXTMINTEN(0x0f);		/* enable "external master broken" interrupt */
-#endif
 
-#ifdef _NOT_USED_	/* since this is already done in sysinit.c */
-#if MACHINE_FIREBEE
-    //MCF_PAD_PAR_PCIBG = 0x3f; // FIXME: MiNT initialization hangs if this is enabled ???
-    //MCF_PAD_PAR_PCIBR = 0x3f;
+#if defined(MACHINE_FIREBEE)
+    MCF_PAD_PAR_PCIBG = MCF_PAD_PAR_PCIBG_PAR_PCIBG4_TBST |
+            MCF_PAD_PAR_PCIBG_PAR_PCIBG3_GPIO |
+            MCF_PAD_PAR_PCIBG_PAR_PCIBG2_PCIBG2 |
+            MCF_PAD_PAR_PCIBG_PAR_PCIBG1_PCIBG1 |
+            MCF_PAD_PAR_PCIBG_PAR_PCIBG0_PCIBG0;
+    MCF_PAD_PAR_PCIBR = MCF_PAD_PAR_PCIBR_PAR_PCIBR4_IRQ4 |
+            MCF_PAD_PAR_PCIBR_PAR_PCIBR3_GPIO |
+            MCF_PAD_PAR_PCIBR_PAR_PCIBR2_PCIBR2 |
+            MCF_PAD_PAR_PCIBR_PAR_PCIBR1_PCIBR1 |
+            MCF_PAD_PAR_PCIBR_PAR_PCIBR0_PCIBR0;
 #elif MACHINE_M5484LITE
     MCF_PAD_PAR_PCIBG = 0x3ff; /* enable all PCI bus grant and bus requests on the LITE board */
     MCF_PAD_PAR_PCIBR = 0x3ff;
 #endif /* MACHINE_FIREBEE */
-#endif /* _NOT_USED_ */
 
     MCF_PCI_PCISCR =  MCF_PCI_PCISCR_M | /* memory access control enabled */
         MCF_PCI_PCISCR_B |		/* bus master enabled */
@@ -1198,8 +1204,8 @@ void init_pci(void)
 
 
     /* Setup burst parameters */
-    MCF_PCI_PCICR1 = MCF_PCI_PCICR1_CACHELINESIZE(8) |
-                        MCF_PCI_PCICR1_LATTIMER(0xff); /* TODO: test increased latency timer */
+    MCF_PCI_PCICR1 = MCF_PCI_PCICR1_CACHELINESIZE(0) |
+                        MCF_PCI_PCICR1_LATTIMER(0x20); /* TODO: test increased latency timer */
 
     MCF_PCI_PCICR2 = MCF_PCI_PCICR2_MINGNT(1) |
                     MCF_PCI_PCICR2_MAXLAT(32);
