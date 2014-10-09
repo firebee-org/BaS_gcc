@@ -36,6 +36,7 @@ CFLAGS=-mcpu=5474 \
 		-fomit-frame-pointer \
 		-ffreestanding \
 		-fleading-underscore \
+		-mno-strict-align \
 		-Wa,--register-prefix-optional
 CFLAGS_OPTIMIZED = -mcpu=5474 \
 		-Wall \
