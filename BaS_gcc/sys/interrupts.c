@@ -86,32 +86,34 @@ int isr_register_handler(int vector, int (*handler)(void *, void *), void *hdev,
 
     if ((vector == 0) || (handler == NULL))
     {
-        dbg("illegal vector or handler!\r\n");
-        return false;
+	dbg("illegal vector or handler!\r\n");
+
+	return false;
     }
 
     for (index = 0; index < MAX_ISR_ENTRY; index++)
     {
-        if (isrtab[index].vector == vector)
-        {
-            /* one cross each, only! */
-            dbg("already set handler with this vector (%d, %d)\r\n", vector);
-            return false;
-        }
+	if (isrtab[index].vector == vector)
+	{
+	    /* one cross each, only! */
+	    dbg("already set handler with this vector (%d, %d)\r\n", vector);
 
-        if (isrtab[index].vector == 0)
-        {
-            isrtab[index].vector = vector;
-            isrtab[index].handler = handler;
-            isrtab[index].hdev = hdev;
-            isrtab[index].harg = harg;
+	    return false;
+	}
 
-            return true;
-        }
-    }
-    dbg("no available slots to register handler for vector %d\n\r", vector);
+	if (isrtab[index].vector == 0)
+	{
+	    isrtab[index].vector = vector;
+	    isrtab[index].handler = handler;
+	    isrtab[index].hdev = hdev;
+	    isrtab[index].harg = harg;
 
-    return false;   /* no available slots */
+	    return true;
+	}
+	}
+	dbg("no available slots to register handler for vector %d\n\r", vector);
+
+	return false;   /* no available slots */
 }
 
 void isr_remove_handler(int (*handler)(void *, void *))
@@ -124,19 +126,19 @@ void isr_remove_handler(int (*handler)(void *, void *))
 
     for (index = 0; index < MAX_ISR_ENTRY; index++)
     {
-        if (isrtab[index].handler == handler)
-        {
-            memset(&isrtab[index], 0, sizeof(struct isrentry));
+	if (isrtab[index].handler == handler)
+	{
+	    memset(&isrtab[index], 0, sizeof(struct isrentry));
 
-            return;
-        }
+	    return;
+	}
     }
     dbg("no such handler registered (handler=%p\r\n", handler);
 }
 
 /*
  * This routine searches the ISR table for an entry that matches
- * 'vector'.  If one is found, then 'handler' is executed.
+ * 'vector'. If one is found, then 'handler' is executed.
  */
 bool isr_execute_handler(int vector)
 {
@@ -144,19 +146,19 @@ bool isr_execute_handler(int vector)
     bool retval = false;
 
     /*
-     * locate a BaS Interrupt Service Routine handler.
+     * locate an Interrupt Service Routine handler.
      */
     for (index = 0; index < MAX_ISR_ENTRY; index++)
     {
-        if (isrtab[index].vector == vector)
-        {
-            retval = true;
+	if (isrtab[index].vector == vector)
+	{
+	    retval = true;
 
-            if (isrtab[index].handler(isrtab[index].hdev, isrtab[index].harg))
-            {
-                return retval;
-            }
-        }
+	    if (isrtab[index].handler(isrtab[index].hdev, isrtab[index].harg))
+	    {
+		return retval;
+	    }
+	}
     }
     dbg("no isr handler for vector %d found\r\n", vector);
 
@@ -176,18 +178,18 @@ int pic_interrupt_handler(void *arg1, void *arg2)
     rcv_byte = MCF_PSC3_PSCRB_8BIT;
     if (rcv_byte == 2)	// PIC requests RTC data
     {
-        uint8_t *rtc_reg = (uint8_t *) 0xffff8961;
-        uint8_t *rtc_data = (uint8_t *) 0xffff8963;
-        int index = 0;
+	uint8_t *rtc_reg = (uint8_t *) 0xffff8961;
+	uint8_t *rtc_data = (uint8_t *) 0xffff8963;
+	int index = 0;
 
-        xprintf("PIC interrupt: requesting RTC data\r\n");
+	xprintf("PIC interrupt: requesting RTC data\r\n");
 
-        MCF_PSC3_PSCTB_8BIT = 0x82;		// header byte to PIC
-        do
-        {
-            *rtc_reg = 0;
-            MCF_PSC3_PSCTB_8BIT = *rtc_data;
-        } while (index++ < 64);
+	MCF_PSC3_PSCTB_8BIT = 0x82;		// header byte to PIC
+	do
+	{
+	    *rtc_reg = 0;
+	    MCF_PSC3_PSCTB_8BIT = *rtc_data;
+	} while (index++ < 64);
     }
     return 1;
 }
@@ -206,6 +208,53 @@ int pciarb_interrupt_handler(void *arg1, void *arg2)
     return 1;
 }
 
+#if defined(MACHINE_FIREBEE)
+/*
+ * This gets called from irq5 in exceptions.S
+ * Once we arrive here, the SR has been set to disable interrupts and the gcc scratch registers have been saved
+ */
+int irq5_handler(void *arg1, void *arg2)
+{
+    int32_t handle;
+    int32_t value = 0;
+    int32_t newvalue;
+
+    err("FPGA_INTR_CONTROL = 0x%08x\r\n", * FPGA_INTR_CONTROL);
+    err("FPGA_INTR_ENABLE  = 0x%08x\r\n", * FPGA_INTR_ENABLE);
+    err("FPGA_INTR_CLEAR   = 0x%08x\r\n", * FPGA_INTR_CLEAR);
+    err("FPGA_INTR_PENDING = 0x%08x\r\n", * FPGA_INTR_PENDING);
+
+    * FPGA_INTR_CLEAR &= ~0x20000000UL;     /* clear interrupt from FPGA */
+    err("\r\nFPGA_INTR_CLEAR = 0x%08x\r\n", * FPGA_INTR_CLEAR);
+    MCF_EPORT_EPFR |= (1 << 5);             /* clear interrupt from edge port */
+
+    //xprintf("IRQ5!\r\n");
+
+    if ((handle = pci_get_interrupt_cause()) > 0)
+    {
+	newvalue = pci_call_interrupt_chain(handle, value);
+	if (newvalue == value)
+	{
+	    dbg("interrupt not handled!\r\n");
+
+	    return 1;
+	}
+    }
+    return 0;
+}
+
+int irq6_handler(void *arg1, void *arg2)
+{
+    err("IRQ6!\r\n");
+
+    return 0;
+}
+#else
+int irq5_handler(void *arg1, void *arg2)
+{
+    return 0;
+}
+
 /*
  * blink the Firebee's LED to show we are still alive
  */
@@ -215,11 +264,11 @@ void blink_led(void)
 
     if ((blinker++ & 0x80) > 0)
     {
-        MCF_GPIO_PODR_FEC1L |= (1 << 4);    /* LED off */
+	MCF_GPIO_PODR_FEC1L |= (1 << 4);    /* LED off */
     }
     else
     {
-        MCF_GPIO_PODR_FEC1L &= ~(1 << 4);   /* LED on */
+	MCF_GPIO_PODR_FEC1L &= ~(1 << 4);   /* LED on */
     }
 }
 
@@ -247,7 +296,7 @@ bool irq6_acsi_dma_interrupt(void)
     return false;
 }
 
-bool irq6_interrupt_handler(uint32_t sf1, uint32_t sf2)
+bool irq6_handler(uint32_t sf1, uint32_t sf2)
 {
     bool handled = false;
 
@@ -256,49 +305,10 @@ bool irq6_interrupt_handler(uint32_t sf1, uint32_t sf2)
 
     if (FALCON_MFP_IPRA || FALCON_MFP_IPRB)
     {
-        blink_led();
+	blink_led();
     }
 
     return handled;
-}
-
-#if defined(MACHINE_FIREBEE)
-/*
- * This gets called from irq5 in exceptions.S
- * Once we arrive here, the SR has been set to disable interrupts and the gcc scratch registers have been saved
- */
-int irq5_handler(void *arg1, void *arg2)
-{
-    int32_t handle;
-    int32_t value = 0;
-    int32_t newvalue;
-
-    err("FPGA_INTR_CONTROL = 0x%08x\r\n", * FPGA_INTR_CONTROL);
-    err("FPGA_INTR_ENABLE  = 0x%08x\r\n", * FPGA_INTR_ENABLE);
-    err("FPGA_INTR_CLEAR   = 0x%08x\r\n", * FPGA_INTR_CLEAR);
-    err("FPGA_INTR_PENDING = 0x%08x\r\n", * FPGA_INTR_PENDING);
-
-    * FPGA_INTR_CLEAR &= ~0x20000000UL;     /* clear interrupt from FPGA */
-    err("\r\nFPGA_INTR_CLEAR = 0x%08x\r\n", * FPGA_INTR_CLEAR);
-    MCF_EPORT_EPFR |= (1 << 5);             /* clear interrupt from edge port */
-
-    //xprintf("IRQ5!\r\n");
-
-    if ((handle = pci_get_interrupt_cause()) > 0)
-    {
-        newvalue = pci_call_interrupt_chain(handle, value);
-        if (newvalue == value)
-        {
-            dbg("interrupt not handled!\r\n");
-            return 1;
-        }
-    }
-    return 0;
-}
-#else
-int irq5_handler(void *arg1, void *arg2)
-{
-    ;
 }
 
 #endif /* MACHINE_FIREBEE */
@@ -318,11 +328,11 @@ void irq7_handler(void)
     dbg("IRQ7!\r\n");
     if ((handle = pci_get_interrupt_cause()) > 0)
     {
-        newvalue = pci_call_interrupt_chain(handle, value);
-        if (newvalue == value)
-        {
-            dbg("interrupt not handled!\r\n");
-        }
+	newvalue = pci_call_interrupt_chain(handle, value);
+	if (newvalue == value)
+	{
+	    dbg("interrupt not handled!\r\n");
+	}
     }
 }
 #endif /* MACHINE_M548X */
@@ -333,8 +343,9 @@ void irq7_handler(void)
 #define vbaselow	(* (volatile uint8_t *) 0xffff820d)
 
 #define vwrap		(* (volatile uint16_t *) 0xffff8210)
-#define vde			(* (volatile uint16_t *) 0xffff82aa)
-#define vdb			(* (volatile uint16_t *) 0xffff82a8)
+#define vde		(* (volatile uint16_t *) 0xffff82aa)
+#define vdb		(* (volatile uint16_t *) 0xffff82a8)
+
 /*
  * this is the higlevel interrupt service routine for gpt0 timer interrupts.
  *

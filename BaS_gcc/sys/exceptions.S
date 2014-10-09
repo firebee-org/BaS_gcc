@@ -40,9 +40,11 @@
 		.extern _video_tlb
 		.extern _video_sbt
 		.extern _flush_and_invalidate_caches
+		.extern	_get_bas_drivers
 
 		/* PCI interrupt handlers */
 		.extern _irq5_handler
+		.extern _irq6_handler
 		.extern _irq7_handler
 
 		.global	_vec_init
@@ -133,7 +135,7 @@
  */
 		.altmacro
 		.macro	irq	vector,int_mask,clr_int
-		//move.w	#0x2700,sr		// disable interrupt
+		move.w	#0x2700,sr		// disable interrupt
 		subq.l	#8,sp
 		movem.l	d0/a5,(sp)		// save registers
 
@@ -159,6 +161,10 @@ _vec_init:
 		movec	d0,VBR
 		move.l	d0,a0
 		move.l	a0,a2
+
+/*
+ * first, set standard vector for all exceptions
+ */
 init_vec:
 		move.l	#256,d0
 		lea	std_exc_vec(pc),a1	// standard vector
@@ -175,7 +181,6 @@ init_vec_loop:
 		lea	access(pc),a1		// set illegal access exception handler
 		move.l	a1,0x08(a0)
 
-		.extern	_get_bas_drivers
 // trap #0 (without any parameters for now) is used to provide BaS' driver addresses to the OS
 		lea	_get_bas_drivers(pc),a1
 		move.l	a1,0x80(a0)		// trap #0 exception vector
@@ -467,7 +472,7 @@ irq6:		move.w	#0x2700,sr		// disable interrupt
 
 		move.l	4(a6),-(sp)		// format status word
 		move.l	8(a6),-(sp)		// pc at exception
-		jsr	_irq6_interrupt_handler	// call C handler
+		jsr	_irq6_handler		// call C handler
 		lea	8(sp),sp		// fix stack
 
 		tst.l	d0			// interrupt handled?
