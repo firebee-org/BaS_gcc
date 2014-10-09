@@ -132,4 +132,5 @@ extern bool isr_execute_handler(int vector);
 extern int pic_interrupt_handler(void *arg1, void *arg2);
 extern int xlbpci_interrupt_handler(void *arg1, void *arg2);
 extern int pciarb_interrupt_handler(void *arg1, void *arg2);
+extern int irq5_handler(void *arg1, void *arg2);
 #endif /* _INTERRUPTS_H_ */
