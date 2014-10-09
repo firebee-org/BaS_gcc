@@ -252,7 +252,7 @@ extern int32_t pci_write_config_byte(int32_t handle, int offset, uint8_t value);
 
 typedef int (*pci_interrupt_handler)(int param);
 
-extern int32_t pci_hook_interrupt(int32_t handle, pci_interrupt_handler handler, void *parameter);
+extern int32_t pci_hook_interrupt(int32_t handle, void *handler, void *parameter);
 extern int32_t pci_unhook_interrupt(int32_t handle);
 
 extern struct pci_rd *pci_get_resource(int32_t handle);
