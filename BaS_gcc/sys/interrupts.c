@@ -300,7 +300,7 @@ bool irq6_handler(uint32_t sf1, uint32_t sf2)
 {
     bool handled = false;
 
-    //err("IRQ6!\r\n");
+    err("IRQ6!\r\n");
     MCF_EPORT_EPFR |= (1 << 6);	/* clear int6 from edge port */
 
     if (FALCON_MFP_IPRA || FALCON_MFP_IPRB)

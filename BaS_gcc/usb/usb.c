@@ -162,7 +162,7 @@ int usb_init(int32_t handle, const struct pci_device_id *ent)
 
         case PCI_CLASS_SERIAL_USB_OHCI:
             dbg("initialize ohci host controller interface\r\n");
-            res = ohci_usb_lowlevel_init(handle, ent, (void *) &priv);
+            //res = ohci_usb_lowlevel_init(handle, ent, (void *) &priv);
             break;
 
         case PCI_CLASS_SERIAL_USB_EHCI:
