@@ -123,6 +123,27 @@
 #define FPGA_INTR_INT_MFP_IRQ6      (1 << 30)
 #define FPGA_INTR_INT_IRQ7          (1 << 31)
 
+/*
+ * Atari MFP interrupt registers.
+ *
+ * TODO: should go into a header file
+ */
+
+#define FALCON_MFP_IERA     *((volatile uint8_t *) 0xfffffa07)
+#define FALCON_MFP_IERB     *((volatile uint8_t *) 0xfffffa09)
+#define FALCON_MFP_IPRA     *((volatile uint8_t *) 0xfffffa0b)
+#define FALCON_MFP_IPRB     *((volatile uint8_t *) 0xfffffa0d)
+#define FALCON_MFP_IMRA     *((volatile uint8_t *) 0xfffffa13)
+#define FALCON_MFP_IMRB     *((volatile uint8_t *) 0xfffffa15)
+
+#define vbasehi		(* (volatile uint8_t *) 0xffff8201)
+#define vbasemid	(* (volatile uint8_t *) 0xffff8203)
+#define vbaselow	(* (volatile uint8_t *) 0xffff820d)
+
+#define vwrap		(* (volatile uint16_t *) 0xffff8210)
+#define vde			(* (volatile uint16_t *) 0xffff82aa)
+#define vdb			(* (volatile uint16_t *) 0xffff82a8)
+
 #endif /* MACHINE_FIREBEE */
 
 extern void isr_init(void);
