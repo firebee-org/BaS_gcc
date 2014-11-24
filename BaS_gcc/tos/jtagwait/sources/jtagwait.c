@@ -54,6 +54,10 @@ void wait_for_jtag(void)
 						  MCF_GPIO_PDDR_FEC1L_PDDR_FEC1L4;	/* bit 4 = LED => output */
 															/* all other bits = input */
 
+    /*
+     * configure DSPI_CS3 as GPIO input to avoid the MCU driving against the FPGA blink
+     */
+    MCF_PAD_PAR_DSPI &= ~MCF_PAD_PAR_DSPI_PAR_CS3(MCF_PAD_PAR_DSPI_PAR_CS3_DSPICS3);
 	/*
 	 * now that GPIO ports have been switched to input, we can poll for FPGA config
 	 * started from the JTAG interface (CONF_DONE goes low) and finish (CONF_DONE goes high)
