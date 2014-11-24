@@ -45,6 +45,7 @@
 #else
 #define dbg(format, arg...) do { ; } while (0)
 #endif /* DBG_DMA */
+#define err(format, arg...) do { xprintf("ERROR: %s(): " format, __FUNCTION__, ##arg); } while (0)
 
 extern char _SYS_SRAM[];
 #define SYS_SRAM &_SYS_SRAM[0]
@@ -174,7 +175,7 @@ int dma_set_initiator(int initiator)
             }
             else /* No empty slots */
             {
-                dbg("no free slot found\r\n");
+                err("no free slot found\r\n");
 
                 return 1;
             }
@@ -193,7 +194,7 @@ int dma_set_initiator(int initiator)
             }
             else /* No empty slots */
             {
-                dbg("no free slot\r\n");
+                err("no free slot\r\n");
 
                 return 1;
             }
@@ -207,7 +208,7 @@ int dma_set_initiator(int initiator)
             }
             else /* No empty slots */
             {
-                dbg("no free slot\r\n");
+                err("no free slot\r\n");
 
                 return 1;
             }
@@ -221,7 +222,7 @@ int dma_set_initiator(int initiator)
             }
             else /* No empty slots */
             {
-                dbg("no free slot\r\n");
+                err("no free slot\r\n");
 
                 return 1;
             }
@@ -235,7 +236,7 @@ int dma_set_initiator(int initiator)
             }
             else /* No empty slots */
             {
-                dbg("no free slot\r\n");
+                err("no free slot\r\n");
 
                 return 1;
             }
@@ -249,7 +250,7 @@ int dma_set_initiator(int initiator)
             }
             else /* No empty slots */
             {
-                dbg("no free slot\r\n");
+                err("no free slot\r\n");
 
                 return 1;
             }
@@ -263,7 +264,7 @@ int dma_set_initiator(int initiator)
             }
             else /* No empty slots */
             {
-                dbg("no free slot\r\n");
+                err("no free slot\r\n");
 
                 return 1;
             }
@@ -277,7 +278,7 @@ int dma_set_initiator(int initiator)
             }
             else /* No empty slots */
             {
-                dbg("no free slot\r\n");
+                err("no free slot\r\n");
 
                 return 1;
             }
@@ -291,7 +292,7 @@ int dma_set_initiator(int initiator)
             }
             else /* No empty slots */
             {
-                dbg("no free slot\r\n");
+                err("no free slot\r\n");
 
                 return 1;
             }
@@ -305,7 +306,7 @@ int dma_set_initiator(int initiator)
             }
             else /* No empty slots */
             {
-                dbg("no free slot\r\n");
+                err("no free slot\r\n");
 
                 return 1;
             }
@@ -319,7 +320,7 @@ int dma_set_initiator(int initiator)
             }
             else /* No empty slots */
             {
-                dbg("no free slot\r\n");
+                err("no free slot\r\n");
 
                 return 1;
             }
@@ -333,7 +334,7 @@ int dma_set_initiator(int initiator)
             }
             else /* No empty slots */
             {
-                dbg("no free slot\r\n");
+                err("no free slot\r\n");
 
                 return 1;
             }
@@ -346,7 +347,10 @@ int dma_set_initiator(int initiator)
                 used_reqs[28] = DMA_USBEP6;
             }
             else /* No empty slots */
+            {
+                err("no free slot\r\n");
                 return 1;
+            }
             break;
 
         case DMA_PSC2_RX:
@@ -356,7 +360,7 @@ int dma_set_initiator(int initiator)
                 used_reqs[28] = DMA_PSC2_RX;            }
             else /* No empty slots */
             {
-                dbg("no free slot\r\n");
+                err("no free slot\r\n");
 
                 return 1;
             }
@@ -370,7 +374,7 @@ int dma_set_initiator(int initiator)
             }
             else /* No empty slots */
             {
-                dbg("no free slot\r\n");
+                err("no free slot\r\n");
 
                 return 1;
             }
@@ -384,7 +388,7 @@ int dma_set_initiator(int initiator)
             }
             else /* No empty slots */
             {
-                dbg("no free slot\r\n");
+                err("no free slot\r\n");
 
                 return 1;
             }
@@ -398,7 +402,7 @@ int dma_set_initiator(int initiator)
             }
             else /* No empty slots */
             {
-                dbg("no free slot\r\n");
+                err("no free slot\r\n");
 
                 return 1;
             }
@@ -406,7 +410,7 @@ int dma_set_initiator(int initiator)
 
         default:
             {
-                dbg("don't know what to do\r\n");
+                err("don't know what to do\r\n");
 
                 return 1;
             }
@@ -433,7 +437,7 @@ uint32_t dma_get_initiator(int requestor)
         if (used_reqs[i] == requestor)
             return i;
     }
-    dbg("no initiator found for requestor %d\r\n", requestor);
+    err("no initiator found for requestor %d\r\n", requestor);
 
     return 0;
 }
@@ -487,7 +491,7 @@ int dma_set_channel(int requestor, void (*handler)(void))
             return i;
         }
     }
-    dbg("no free DMA channel found for requestor %d\r\n", requestor);
+    err("no free DMA channel found for requestor %d\r\n", requestor);
 
     /* All channels taken */
     return -1;
@@ -567,7 +571,7 @@ int dma_interrupt_handler(void *arg1, void *arg2)
     /* Make sure we are here for a reason */
     if (interrupts == 0)
     {
-        dbg("not DMA interrupt! Spurious?\r\n");
+        dbg("not DMA interrupt!\r\n");
         return 0;
     }
 
@@ -665,7 +669,7 @@ int dma_init(void)
     res = MCD_initDma((dmaRegs *) &_MBAR[0x8000], SYS_SRAM, MCD_RELOC_TASKS | MCD_COMM_PREFETCH_EN);
     if (res != MCD_OK)
     {
-        dbg("DMA API initialization failed (0x%x)\r\n", res);
+        err("DMA API initialization failed (0x%x)\r\n", res);
         return 0;
     }
 
