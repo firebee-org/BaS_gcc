@@ -27,7 +27,7 @@
 #include "bas_printf.h"
 
 
-unsigned long xhdi_call(uint16_t *stack)
+uint32_t xhdi_call(uint16_t *stack)
 {
 	uint16_t opcode = *stack;
 

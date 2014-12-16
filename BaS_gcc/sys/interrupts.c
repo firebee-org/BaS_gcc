@@ -182,7 +182,7 @@ int pic_interrupt_handler(void *arg1, void *arg2)
 	uint8_t *rtc_data = (uint8_t *) 0xffff8963;
 	int index = 0;
 
-	xprintf("PIC interrupt: requesting RTC data\r\n");
+    err("PIC interrupt: requesting RTC data\r\n");
 
 	MCF_PSC3_PSCTB_8BIT = 0x82;		// header byte to PIC
 	do
@@ -305,7 +305,7 @@ bool irq6_handler(uint32_t sf1, uint32_t sf2)
 
     if (FALCON_MFP_IPRA || FALCON_MFP_IPRB)
     {
-	blink_led();
+        blink_led();
     }
 
     return handled;
@@ -328,23 +328,27 @@ void irq7_handler(void)
     dbg("IRQ7!\r\n");
     if ((handle = pci_get_interrupt_cause()) > 0)
     {
-	newvalue = pci_call_interrupt_chain(handle, value);
-	if (newvalue == value)
-	{
-	    dbg("interrupt not handled!\r\n");
-	}
+        newvalue = pci_call_interrupt_chain(handle, value);
+        if (newvalue == value)
+        {
+            dbg("interrupt not handled!\r\n");
+        }
     }
 }
 #endif /* MACHINE_M548X */
 
 #if defined(MACHINE_FIREBEE)
+/*
+ * Firebee/Falcon Videl registers
+ * TODO: should go into an include file
+ */
 #define vbasehi		(* (volatile uint8_t *) 0xffff8201)
 #define vbasemid	(* (volatile uint8_t *) 0xffff8203)
 #define vbaselow	(* (volatile uint8_t *) 0xffff820d)
 
 #define vwrap		(* (volatile uint16_t *) 0xffff8210)
-#define vde		(* (volatile uint16_t *) 0xffff82aa)
-#define vdb		(* (volatile uint16_t *) 0xffff82a8)
+#define vde         (* (volatile uint16_t *) 0xffff82aa)
+#define vdb         (* (volatile uint16_t *) 0xffff82a8)
 
 /*
  * this is the higlevel interrupt service routine for gpt0 timer interrupts.
