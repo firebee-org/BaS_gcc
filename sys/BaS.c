@@ -57,6 +57,7 @@
 #else
 #define dbg(format, arg...) do { ; } while (0)
 #endif
+#define err(format, arg...) do { xprintf("ERROR: %s(): " format, __FUNCTION__, ##arg); } while (0)
 
 /* imported routines */
 extern int vec_init();
@@ -79,7 +80,9 @@ extern uint8_t _EMUTOS_SIZE[];
 static inline bool pic_txready(void)
 {
 	if (MCF_PSC3_PSCSR & MCF_PSC_PSCSR_TXRDY)
+    {
 		return true;
+    }
 
 	return false;
 }
@@ -90,26 +93,36 @@ static inline bool pic_txready(void)
 static inline bool pic_rxready(void)
 {
 	if (MCF_PSC3_PSCSR & MCF_PSC_PSCSR_RXRDY)
+    {
 		return true;
+    }
 
 	return false;
 }
 
 void write_pic_byte(uint8_t value)
 {
-	/* Wait until the transmitter is ready or 1000us are passed */
+    /*
+     * Wait until the transmitter is ready or 1000us are passed
+     */
 	waitfor(1000, pic_txready);
 
-	/* Transmit the byte */
+    /*
+     * Transmit the byte
+     */
 	*(volatile uint8_t*)(&MCF_PSC3_PSCTB_8BIT) = value; // Really 8-bit
 }
 
 uint8_t read_pic_byte(void)
 {
-	/* Wait until a byte has been received or 1000us are passed */
+    /*
+     * Wait until a byte has been received or 1000us are passed
+     */
 	waitfor(1000, pic_rxready);
 
-	/* Return the received byte */
+    /*
+     * Return the received byte
+     */
 	return * (volatile uint8_t *) (&MCF_PSC3_PSCTB_8BIT); // Really 8-bit
 }
 
@@ -119,13 +132,17 @@ void pic_init(void)
 
 	xprintf("initialize the PIC: ");
 
-	/* Send the PIC initialization string */
+    /*
+     * Send the PIC initialization string
+     */
 	write_pic_byte('A');
 	write_pic_byte('C');
 	write_pic_byte('P');
 	write_pic_byte('F');
 
-	/* Read the 3-char answer string. Should be "OK!". */
+    /*
+     * Read the 3-char answer string. Should be "OK!".
+     */
 	answer[0] = read_pic_byte();
 	answer[1] = read_pic_byte();
 	answer[2] = read_pic_byte();
