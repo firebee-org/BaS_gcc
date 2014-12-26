@@ -11,7 +11,7 @@
 #include "bas_printf.h"
 #include <stddef.h>
 
-#define DBG_FECBD
+//#define DBG_FECBD
 #ifdef DBG_FECBD
 #define dbg(format, arg...) do { xprintf("DEBUG: " format, ##arg); } while (0)
 #else
@@ -62,94 +62,94 @@ static int iRxbd;
  */
 void fecbd_init(uint8_t ch)
 {
-	NBUF *nbuf;
-	int i;
+    NBUF *nbuf;
+    int i;
 
     dbg("\r\n");
 
-	/* 
-	 * Align Buffer Descriptors to 4-byte boundary 
-	 */
-	RxBD = (FECBD *)(((int) unaligned_bds + 3) & 0xFFFFFFFC);
-	TxBD = (FECBD *)((int) RxBD + (sizeof(FECBD) * 2 * NRXBD));
+    /* 
+     * Align Buffer Descriptors to 4-byte boundary 
+     */
+    RxBD = (FECBD *)(((int) unaligned_bds + 3) & 0xFFFFFFFC);
+    TxBD = (FECBD *)((int) RxBD + (sizeof(FECBD) * 2 * NRXBD));
 
     dbg("initialise RX buffer descriptor ring\r\n");
 
-	/* 
-	 * Initialize the Rx Buffer Descriptor ring 
-	 */
-	for (i = 0; i < NRXBD; ++i)
-	{
-		/* Grab a network buffer from the free list */
-		nbuf = nbuf_alloc();
-		if (nbuf == NULL)
-		{
+    /* 
+     * Initialize the Rx Buffer Descriptor ring 
+     */
+    for (i = 0; i < NRXBD; ++i)
+    {
+        /* Grab a network buffer from the free list */
+        nbuf = nbuf_alloc();
+        if (nbuf == NULL)
+        {
             dbg("could not allocate network buffer\r\n");
-			return;
-		}
+            return;
+        }
 
-		/* Initialize the BD */
-		RxBD(ch,i).status = RX_BD_E | RX_BD_INTERRUPT;
-		RxBD(ch,i).length = RX_BUF_SZ;
-		RxBD(ch,i).data =  nbuf->data;
+        /* Initialize the BD */
+        RxBD(ch,i).status = RX_BD_E | RX_BD_INTERRUPT;
+        RxBD(ch,i).length = RX_BUF_SZ;
+        RxBD(ch,i).data =  nbuf->data;
 
-		/* Add the network buffer to the Rx queue */
-		nbuf_add(NBUF_RX_RING, nbuf);
-	}
+        /* Add the network buffer to the Rx queue */
+        nbuf_add(NBUF_RX_RING, nbuf);
+    }
 
-	/*
-	 * Set the WRAP bit on the last one
-	 */
-	RxBD(ch, i - 1).status |= RX_BD_W;
+    /*
+     * Set the WRAP bit on the last one
+     */
+    RxBD(ch, i - 1).status |= RX_BD_W;
 
     dbg("initialise TX buffer descriptor ring\r\n");
 
-	/* 
-	 * Initialize the Tx Buffer Descriptor ring 
-	 */
-	for (i = 0; i < NTXBD; ++i)
-	{
-		TxBD(ch, i).status = TX_BD_INTERRUPT;
-		TxBD(ch, i).length = 0;
-		TxBD(ch, i).data = NULL;
-	}
+    /* 
+     * Initialize the Tx Buffer Descriptor ring 
+     */
+    for (i = 0; i < NTXBD; ++i)
+    {
+        TxBD(ch, i).status = TX_BD_INTERRUPT;
+        TxBD(ch, i).length = 0;
+        TxBD(ch, i).data = NULL;
+    }
 
-	/*
-	 * Set the WRAP bit on the last one
-	 */
-	TxBD(ch, i - 1).status |= TX_BD_W;
+    /*
+     * Set the WRAP bit on the last one
+     */
+    TxBD(ch, i - 1).status |= TX_BD_W;
 
-	/* 
-	 * Initialize the buffer descriptor indexes 
-	 */
-	iTxbd_new = iTxbd_old = iRxbd = 0;
+    /* 
+     * Initialize the buffer descriptor indexes 
+     */
+    iTxbd_new = iTxbd_old = iRxbd = 0;
 }
 
 void fecbd_dump(uint8_t ch)
 {
 #ifdef DBG_FECBD
-	int i;
+    int i;
 
-	xprintf("\n------------ FEC%d BDs -----------\n",ch);
-	xprintf("RxBD Ring\n");
-	for (i = 0; i < NRXBD; i++)
-	{
-		xprintf("%02d: BD Addr=0x%08x, Ctrl=0x%04x, Lgth=%04d, DataPtr=0x%08x\n",
-				i, &RxBD(ch, i), 
-				RxBD(ch, i).status, 
-				RxBD(ch, i).length, 
-				RxBD(ch, i).data);
-	}
-	xprintf("TxBD Ring\n");
-	for (i = 0; i < NTXBD; i++)
-	{
-		xprintf("%02d: BD Addr=0x%08x, Ctrl=0x%04x, Lgth=%04d, DataPtr=0x%08x\n",
-				i, &TxBD(ch, i), 
-				TxBD(ch, i).status, 
-				TxBD(ch, i).length, 
-				TxBD(ch, i).data);
-	}
-	xprintf("--------------------------------\n\n");
+    xprintf("\n------------ FEC%d BDs -----------\n",ch);
+    xprintf("RxBD Ring\n");
+    for (i = 0; i < NRXBD; i++)
+    {
+        xprintf("%02d: BD Addr=0x%08x, Ctrl=0x%04x, Lgth=%04d, DataPtr=0x%08x\n",
+                i, &RxBD(ch, i), 
+                RxBD(ch, i).status, 
+                RxBD(ch, i).length, 
+                RxBD(ch, i).data);
+    }
+    xprintf("TxBD Ring\n");
+    for (i = 0; i < NTXBD; i++)
+    {
+        xprintf("%02d: BD Addr=0x%08x, Ctrl=0x%04x, Lgth=%04d, DataPtr=0x%08x\n",
+                i, &TxBD(ch, i), 
+                TxBD(ch, i).status, 
+                TxBD(ch, i).length, 
+                TxBD(ch, i).data);
+    }
+    xprintf("--------------------------------\n\n");
 #endif /* DBG_FECBD */
 }
 
@@ -165,28 +165,28 @@ void fecbd_dump(uint8_t ch)
  */
 uint32_t fecbd_get_start(uint8_t ch, uint8_t direction)
 {
-	switch (direction)
-	{
-		case Rx:
-			return (uint32_t)((int)RxBD + (ch * sizeof(FECBD) * NRXBD));
-		case Tx:
-		default:
-			return (uint32_t)((int)TxBD + (ch * sizeof(FECBD) * NTXBD));
-	}
+    switch (direction)
+    {
+        case Rx:
+            return (uint32_t)((int)RxBD + (ch * sizeof(FECBD) * NRXBD));
+        case Tx:
+        default:
+            return (uint32_t)((int)TxBD + (ch * sizeof(FECBD) * NTXBD));
+    }
 }
 
 FECBD *fecbd_rx_alloc(uint8_t ch)
 {
-	int i = iRxbd;
+    int i = iRxbd;
 
-	/* Check to see if the ring of BDs is full */
-	if (RxBD(ch, i).status & RX_BD_E)
-		return NULL;
+    /* Check to see if the ring of BDs is full */
+    if (RxBD(ch, i).status & RX_BD_E)
+        return NULL;
 
-	/* Increment the circular index */
-	iRxbd = (uint8_t)((iRxbd + 1) % NRXBD);
+    /* Increment the circular index */
+    iRxbd = (uint8_t)((iRxbd + 1) % NRXBD);
 
-	return &RxBD(ch, i);
+    return &RxBD(ch, i);
 }
 
 /*
@@ -201,16 +201,16 @@ FECBD *fecbd_rx_alloc(uint8_t ch)
  */
 FECBD *fecbd_tx_alloc(uint8_t ch)
 {
-	int i = iTxbd_new;
+    int i = iTxbd_new;
 
-	/* Check to see if the ring of BDs is full */
-	if (TxBD(ch, i).status & TX_BD_R)
-		return NULL;
+    /* Check to see if the ring of BDs is full */
+    if (TxBD(ch, i).status & TX_BD_R)
+        return NULL;
 
-	/* Increment the circular index */
-	iTxbd_new = (uint8_t)((iTxbd_new + 1) % NTXBD);
+    /* Increment the circular index */
+    iTxbd_new = (uint8_t)((iTxbd_new + 1) % NTXBD);
 
-	return &TxBD(ch, i);
+    return &TxBD(ch, i);
 }
 
 /*
@@ -226,14 +226,14 @@ FECBD *fecbd_tx_alloc(uint8_t ch)
  */
 FECBD *fecbd_tx_free(uint8_t ch)
 {
-	int i = iTxbd_old;
+    int i = iTxbd_old;
 
-	/* Check to see if the ring of BDs is empty */
-	if ((TxBD(ch, i).data == NULL) || (TxBD(ch, i).status & TX_BD_R))
-		return NULL;
+    /* Check to see if the ring of BDs is empty */
+    if ((TxBD(ch, i).data == NULL) || (TxBD(ch, i).status & TX_BD_R))
+        return NULL;
 
-	/* Increment the circular index */
-	iTxbd_old = (uint8_t)((iTxbd_old + 1) % NTXBD);
+    /* Increment the circular index */
+    iTxbd_old = (uint8_t)((iTxbd_old + 1) % NTXBD);
 
-	return &TxBD(ch, i);
+    return &TxBD(ch, i);
 }
