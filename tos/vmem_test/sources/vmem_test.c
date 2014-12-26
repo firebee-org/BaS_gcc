@@ -7,11 +7,6 @@
 #include "MCF5475.h"
 #include "driver_vec.h"
 
-extern long _FPGA_JTAG_LOADED;
-extern long _FPGA_JTAG_VALID;
-
-#define VALID_JTAG  0xaffeaffe
-
 #define FPGA_CONFIG                         (1 << 2)
 #define FPGA_CONF_DONE                      (1 << 5)
 
@@ -22,8 +17,47 @@ extern long _FPGA_JTAG_VALID;
 #define NOP() __asm__ __volatile__("nop\n\t" : : : "memory")
 
 long bas_start = 0xe0000000;
-volatile uint32_t *_VRAM = (uint32_t *) 0x60000000;
+volatile uint32_t *_VRAM = (uint32_t *) 0x40000000;
 
+void do_tests(void)
+{
+    /* read out shifter registers */
+    unsigned char * _vmem_hi = (unsigned char *) 0xffff8201;
+    unsigned char * _vmem_mid = (unsigned char *) 0xffff8203;
+    unsigned char * _vmem_lo = (unsigned char *) 0xffff820d;
+
+    xprintf("vmem_hi = %x\r\n", *_vmem_hi);
+    xprintf("vmem_mid = %x\r\n", *_vmem_mid);
+    xprintf("vmem_lo = %x\r\n", *_vmem_lo);
+
+    /* try to write to them */
+
+    xprintf("trying to write to _vbas\r\n");
+
+    *_vmem_hi = 0xd0;
+    *_vmem_mid = 0x00;
+    *_vmem_lo = 0x00;
+
+    xprintf("read back values\r\n");
+
+    xprintf("vmem_hi = %x\r\n", *_vmem_hi);
+    xprintf("vmem_mid = %x\r\n", *_vmem_mid);
+    xprintf("vmem_lo = %x\r\n", *_vmem_lo);
+
+    xprintf("read Firebee clut\r\n");
+
+    hexdump((uint8_t *) 0xf0000000, 0x400);
+
+    xprintf("set Firebee clut\r\n");
+
+    int i;
+    for (i = 0; i < 0x400; i++)
+    {
+        * (unsigned char *) (0xf0000000 + i) = (uint8_t) i;
+    }
+
+    hexdump((uint8_t *) 0xf0000000, 0x400);
+}
 
 void wait_for_jtag(void)
 {
@@ -69,29 +103,20 @@ void wait_for_jtag(void)
     while (!(MCF_GPIO_PPDSDR_FEC1L & FPGA_CONF_DONE));     /* wait for JTAG config load finished */
 
     xprintf("JTAG configuration finished.\r\n");
-    _FPGA_JTAG_LOADED = 1;                              /* indicate jtag loaded FPGA config to BaS */
-    _FPGA_JTAG_VALID = VALID_JTAG;                      /* set magic word to indicate _FPGA_JTAG_LOADED is valid */
 
     /* wait */
     xprintf("wait a little to let things settle...\r\n");
     for (i = 0; i < 10000000; i++);
 
-    xprintf("write byte data to FPGA memory\r\n");
-    for (i = 0; i < 512; i++)
-    {
-        _VRAM[i] = i;
-    }
-    hexdump((uint8_t *) _VRAM, 512);
+    /* begin of tests */
+    do_tests();
 
     xprintf("wait a little to let things settle...\r\n");
     for (i = 0; i < 10000000; i++);
 
-    __asm__ __volatile__(
-        "       jmp     (%[bas_start])\n\t"
-        : /* no output */
-        : [bas_start] "a" (bas_start)
-        : /* clobber not needed */
-    );
+    xprintf("INFO: endless loop now. Press reset to reboot\r\n");
+    while (1)
+        ;
 }
 
 int main(int argc, char *argv[])
