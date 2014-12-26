@@ -22,9 +22,9 @@ volatile uint32_t *_VRAM = (uint32_t *) 0x40000000;
 void do_tests(void)
 {
     /* read out shifter registers */
-    unsigned char * _vmem_hi = (unsigned char *) 0xffff8201;
-    unsigned char * _vmem_mid = (unsigned char *) 0xffff8203;
-    unsigned char * _vmem_lo = (unsigned char *) 0xffff820d;
+    uint8_t * _vmem_hi = (uint8_t *) 0xfff08201;
+    uint8_t * _vmem_mid = (uint8_t *) 0xfff08203;
+    uint8_t * _vmem_lo = (uint8_t *) 0xfff0820d;
 
     xprintf("vmem_hi = %x\r\n", *_vmem_hi);
     xprintf("vmem_mid = %x\r\n", *_vmem_mid);
@@ -57,6 +57,23 @@ void do_tests(void)
     }
 
     hexdump((uint8_t *) 0xf0000000, 0x400);
+
+    xprintf("try to access Firebee FPGA memory\r\n");
+
+    uint8_t * vram = (uint8_t *) 0x40000000;
+
+    xprintf("read\r\n");
+    hexdump(vram, 64);
+
+    xprintf("write\r\n");
+
+    for (i = 0; i < 64; i++)
+    {
+        * (vram + i) = (uint8_t) i;
+    }
+
+    xprintf("read\r\n");
+    hexdump(vram, 64);
 }
 
 void wait_for_jtag(void)
