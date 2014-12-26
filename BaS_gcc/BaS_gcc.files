@@ -261,8 +261,6 @@ tos/jtagwait/include/MCF5475_USB.h
 tos/jtagwait/include/MCF5475_XLB.h
 tos/jtagwait/include/MCF5475.h
 tos/jtagwait/include/driver_vec.h
-tos/jtagwait/sources/bas_printf.c
-tos/jtagwait/sources/bas_string.c
 tos/jtagwait/sources/printf_helper.S
 tos/bascook/Makefile
 tos/bascook/sources/bascook.c
@@ -271,3 +269,5 @@ usb/usb_hub.c
 include/usb_hub.h
 tos/Makefile
 usb/usb_kbd.c
+tos/jtagwait/sources/bas_printf.c
+tos/jtagwait/sources/bas_string.c
