@@ -22,7 +22,7 @@ extern long _FPGA_JTAG_VALID;
 #define NOP() __asm__ __volatile__("nop\n\t" : : : "memory")
 
 long bas_start = 0xe0000000;
-volatile uint32_t *_VRAM = (uint32_t *) 0xFFF00000;
+volatile uint32_t *_VRAM = (uint32_t *) 0x60000000;
 
 
 void wait_for_jtag(void)

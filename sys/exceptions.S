@@ -100,32 +100,32 @@
                 .equ    INT_SOURCE_USB_DSPI_TCF,29  // transfer complete interrupt
                 .equ    INT_SOURCE_USB_DSPI_TFFF,30 // transfer FIFO fill interrupt
                 .equ    INT_SOURCE_USB_DSPI_EOQF,31 // end of queue interrupt
-                .equ    INT_SOURCE_PSC3,32      // PSC3 interrupt
-                .equ    INT_SOURCE_PSC2,33      // PSC2 interrupt
-                .equ    INT_SOURCE_PSC1,34      // PSC1 interrupt
-                .equ    INT_SOURCE_PSC0,35      // PSC0 interrupt
+                .equ    INT_SOURCE_PSC3,32          // PSC3 interrupt
+                .equ    INT_SOURCE_PSC2,33          // PSC2 interrupt
+                .equ    INT_SOURCE_PSC1,34          // PSC1 interrupt
+                .equ    INT_SOURCE_PSC0,35          // PSC0 interrupt
                 .equ    INT_SOURCE_CTIMERS,36       // combined source for comm timers
-                .equ    INT_SOURCE_SEC,37       // SEC interrupt
-                .equ    INT_SOURCE_FEC1,38      // FEC1 interrupt
-                .equ    INT_SOURCE_FEC0,39      // FEC0 interrupt
-                .equ    INT_SOURCE_I2C,40       // I2C interrupt
+                .equ    INT_SOURCE_SEC,37           // SEC interrupt
+                .equ    INT_SOURCE_FEC1,38          // FEC1 interrupt
+                .equ    INT_SOURCE_FEC0,39          // FEC0 interrupt
+                .equ    INT_SOURCE_I2C,40           // I2C interrupt
                 .equ    INT_SOURCE_PCIARB,41        // PCI arbiter interrupt
-                .equ    INT_SOURCE_CBPCI,42     // COMM bus PCI interrupt
+                .equ    INT_SOURCE_CBPCI,42         // COMM bus PCI interrupt
                 .equ    INT_SOURCE_XLBPCI,43        // XLB PCI interrupt
                 .equ    INT_SOURCE_XLBARB,47        // XLBARB to PCI interrupt
-                .equ    INT_SOURCE_DMA,48       // multichannel DMA interrupt
+                .equ    INT_SOURCE_DMA,48           // multichannel DMA interrupt
                 .equ    INT_SOURCE_CAN0_ERROR,49    // FlexCAN error interrupt
                 .equ    INT_SOURCE_CAN0_BUSOFF,50   // FlexCAN bus off interrupt
                 .equ    INT_SOURCE_CAN0_MBOR,51     // message buffer ORed interrupt
-                .equ    INT_SOURCE_SLT1,53      // slice timer 1 interrupt
-                .equ    INT_SOURCE_SLT0,54      // slice timer 0 interrupt
+                .equ    INT_SOURCE_SLT1,53          // slice timer 1 interrupt
+                .equ    INT_SOURCE_SLT0,54          // slice timer 0 interrupt
                 .equ    INT_SOURCE_CAN1_ERROR,55    // FlexCAN error interrupt
                 .equ    INT_SOURCE_CAN1_BUSOFF,56   // FlexCAN bus off interrupt
                 .equ    INT_SOURCE_CAN1_MBOR,57     // message buffer ORed interrupt
-                .equ    INT_SOURCE_GPT3,59      // GPT3 timer interrupt
-                .equ    INT_SOURCE_GPT2,60      // GPT2 timer interrupt
-                .equ    INT_SOURCE_GPT1,61      // GPT1 timer interrupt
-                .equ    INT_SOURCE_GPT0,62      // GPT0 timer interrupt
+                .equ    INT_SOURCE_GPT3,59          // GPT3 timer interrupt
+                .equ    INT_SOURCE_GPT2,60          // GPT2 timer interrupt
+                .equ    INT_SOURCE_GPT1,61          // GPT1 timer interrupt
+                .equ    INT_SOURCE_GPT0,62          // GPT0 timer interrupt
 
 // Atari register equates (provided by FPGA)
                 .equ    vbasehi, 0xffff8201
@@ -135,14 +135,14 @@
  */
                 .altmacro
                 .macro  irq vector,int_mask,clr_int
-                move.w  #0x2700,sr      // disable interrupt
+                move.w  #0x2700,sr                  // disable interrupt
                 subq.l  #8,sp
-                movem.l d0/a5,(sp)      // save registers
+                movem.l d0/a5,(sp)                  // save registers
 
                 lea MCF_EPORT_EPFR,a5
-                move.b  #\clr_int,(a5)      // clear int pending
+                move.b  #\clr_int,(a5)              // clear int pending
 
-                movem.l (sp),d0/a5      // restore registers
+                movem.l (sp),d0/a5                  // restore registers
                 addq.l  #8,sp
                 move.l  \vector,-(sp)
                 move    #0x2\int_mask\()00,sr
@@ -151,13 +151,13 @@
 
                 .text
 _vec_init:
-                move.l  a2,-(sp)        // Backup registers
+                move.l  a2,-(sp)                    // Backup registers
 
-                mov3q.l #-1,_rt_mod     // rt_mod auf super
+                mov3q.l #-1,_rt_mod                 // rt_mod auf super
                 clr.l   _rt_ssp
                 clr.l   _rt_usp
                 clr.l   _rt_vbr
-                move.l  #__RAMBAR0,d0       // exception vectors reside in rambar0
+                move.l  #__RAMBAR0,d0               // exception vectors reside in rambar0
                 movec   d0,VBR
                 move.l  d0,a0
                 move.l  a0,a2
@@ -167,23 +167,23 @@ _vec_init:
  */
 init_vec:
                 move.l  #256,d0
-                lea std_exc_vec(pc),a1  // standard vector
+                lea std_exc_vec(pc),a1              // standard vector
 init_vec_loop:
-                move.l  a1,(a2)+        // set standard vector for all exceptions
+                move.l  a1,(a2)+                    // set standard vector for all exceptions
                 subq.l  #1,d0
                 bne init_vec_loop
 
-                move.l  #__SUP_SP,(a0)                  // set initial stack pointer at start of exception vector table
+                move.l  #__SUP_SP,(a0)              // set initial stack pointer at start of exception vector table
 
-                lea reset_vector(pc),a1 // set reset vector
+                lea reset_vector(pc),a1             // set reset vector
                 move.l  a1,0x04(a0)
 
-                lea access(pc),a1       // set illegal access exception handler
+                lea access(pc),a1                   // set illegal access exception handler
                 move.l  a1,0x08(a0)
 
 // trap #0 (without any parameters for now) is used to provide BaS' driver addresses to the OS
                 lea _get_bas_drivers(pc),a1
-                move.l  a1,0x80(a0)     // trap #0 exception vector
+                move.l  a1,0x80(a0)                 // trap #0 exception vector
 
 #ifdef MACHINE_FIREBEE
 // ACP interrupts 1-7 (user-defined, generated by FPGA on the FireBee, M5484LITE has irq7 and irq5 for PCI)
@@ -232,7 +232,7 @@ init_vec_loop:
 // install lowlevel_isr_handler for DMA interrupts
                 move.l  a1,(INT_SOURCE_DMA + 64) * 4(a0)
 
-                move.l  (sp)+,a2        // Restore registers
+                move.l  (sp)+,a2            // Restore registers
                 rts
 /*
  * exception vector routines
@@ -240,19 +240,19 @@ init_vec_loop:
 vector_table_start:
 std_exc_vec:
 _std_exc_vec:
-                //move.w    #0x2700,sr      // disable interrupt
+                //move.w    #0x2700,sr              // disable interrupt
                 subq.l  #8,sp
-                movem.l d0/a5,(sp)      // save registers
-                move.w  8(sp),d0        // fetch vector
-                and.l   #0x3fc,d0       // mask out vector number
+                movem.l d0/a5,(sp)                  // save registers
+                move.w  8(sp),d0                    // fetch vector
+                and.l   #0x3fc,d0                   // mask out vector number
 
 #ifdef DBG_EXC
                 // printout vector number of exception
 
-                lea -4 * 4(sp),sp       // reserve stack space
-                movem.l d0-d1/a0-a1,(sp)    // save gcc scratch registers
+                lea -4 * 4(sp),sp                   // reserve stack space
+                movem.l d0-d1/a0-a1,(sp)            // save gcc scratch registers
 
-                lsr.l   #2,d0           // shift vector number in place
+                lsr.l   #2,d0                       // shift vector number in place
                 cmp.l   #33,d0
                 beq noprint
                 cmp.l   #34,d0
@@ -261,30 +261,30 @@ _std_exc_vec:
                 beq noprint
                 cmp.l   #46,d0
                 beq noprint
-                move.l  4 * 4 + 8 + 4(sp),-(sp) // pc at exception
-                move.l  d0,-(sp)        // provide it to xprintf()
+                move.l  4 * 4 + 8 + 4(sp),-(sp)     // pc at exception
+                move.l  d0,-(sp)                    // provide it to xprintf()
                 pea exception_text
-                jsr _xprintf        // call xprintf()
-                add.l   #3*4,sp         // adjust stack
+                jsr _xprintf                        // call xprintf()
+                add.l   #3*4,sp                     // adjust stack
 noprint:
 
-                movem.l (sp),d0-d1/a0-a1    // restore registers
+                movem.l (sp),d0-d1/a0-a1            // restore registers
                 lea 4 * 4(sp),sp
 #endif /* DBG_EXC */
 
-                add.l   _rt_vbr,d0      // + VBR
+                add.l   _rt_vbr,d0                  // + VBR
                 move.l  d0,a5
-                move.l  (a5),d0         // fetch exception routine address
+                move.l  (a5),d0                     // fetch exception routine address
 
-                move.l  4(sp),a5        // restore a5
-                move.l  d0,4(sp)        // store exception routine address
+                move.l  4(sp),a5                    // restore a5
+                move.l  d0,4(sp)                    // store exception routine address
 
                 // FIXME: not clear why we would need the following?
-                //move.w    10(sp),d0   // restore original SR
-                //bset  #13,d0          // set supervisor bit
-                //move.w    d0,sr       //
-                move.l  (sp)+,d0        // restore d0
-                rts             // jump to exception handler
+                //move.w    10(sp),d0               // restore original SR
+                //bset  #13,d0                      // set supervisor bit
+                //move.w    d0,sr                   //
+                move.l  (sp)+,d0                    // restore d0
+                rts                                 // jump to exception handler
 
 exception_text:
                 .ascii  "DEBUG: EXCEPTION %d caught at %p"
@@ -292,62 +292,62 @@ exception_text:
                 .align  4
 
 reset_vector:
-                move.w  #0x2700,sr      // disable interrupt
+                move.w  #0x2700,sr                  // disable interrupt
                 move.l  #0x31415926,d0
-                cmp.l   0x426,d0        // _resvalid: reset vector valid?
-                beq std_exc_vec     // yes->
-                jmp _rom_entry      // no, cold start machine
+                cmp.l   0x426,d0                    // _resvalid: reset vector valid?
+                beq std_exc_vec                     // yes->
+                jmp _rom_entry                      // no, cold start machine
 
 access:
-                move.w  #0x2700,sr      // disable interrupts
+                move.w  #0x2700,sr                  // disable interrupts
 
-                link    a6,#-4 * 4      // make room for gcc scratch registers
-                movem.l d0-d1/a0-a1,(sp)    // save them
+                link    a6,#-4 * 4                  // make room for gcc scratch registers
+                movem.l d0-d1/a0-a1,(sp)            // save them
 
-                move.l  4(a6),-(sp)     // push format_status
-                move.l  8(a6),-(sp)     // pc at exception
-                move.l  MCF_MMU_MMUAR,-(sp) // MMU fault address
-                move.l  MCF_MMU_MMUSR,-(sp) // MMU status regisrter
-                move.w  #0x2300,sr      // can lower interrupt mask now that MMU status is safe
-                jsr _mmutr_miss     // call C routine
-                lea 4 * 4(sp),sp        // adjust stack
+                move.l  4(a6),-(sp)                 // push format_status
+                move.l  8(a6),-(sp)                 // pc at exception
+                move.l  MCF_MMU_MMUAR,-(sp)         // MMU fault address
+                move.l  MCF_MMU_MMUSR,-(sp)         // MMU status regisrter
+                move.w  #0x2300,sr                  // can lower interrupt mask now that MMU status is safe
+                jsr _mmutr_miss                     // call C routine
+                lea 4 * 4(sp),sp                    // adjust stack
 
-                tst.l   d0          // exception handler signals bus error
+                tst.l   d0                          // exception handler signals bus error
                 bne bus_error
 
-                movem.l (sp),d0-d1/a0-a1    // restore registers
+                movem.l (sp),d0-d1/a0-a1            // restore registers
                 unlk    a6
                 rte
 
 bus_error:
-                movem.l (sp),d0-d1/a0-a1    // restore registers
+                movem.l (sp),d0-d1/a0-a1            // restore registers
                 unlk    a6
                 bra std_exc_vec
 
 zero_divide:
-                move.w  #0x2700,sr      // disable interrupt
+                move.w  #0x2700,sr                  // disable interrupt
                 move.l  a0,-(sp)
                 move.l  d0,-(sp)
-                move.l  12(sp),a0       // pc
-                move.w  (a0)+,d0        // command word
-                btst    #7,d0           // long?
-                beq zd_word         // nein->
+                move.l  12(sp),a0                   // pc
+                move.w  (a0)+,d0                    // command word
+                btst    #7,d0                       // long?
+                beq zd_word                         // nein->
                 addq.l  #2,a0
 
 zd_word:
-                and.l   0x3f,d0         // mask out ea field
-                cmp.w   #0x08,d0        // -(ax) or less?
+                and.l   0x3f,d0                     // mask out ea field
+                cmp.w   #0x08,d0                    // -(ax) or less?
                 ble zd_end
                 addq.l  #2,a0
-                cmp.w   #0x39,d0        // xxx.L
+                cmp.w   #0x39,d0                    // xxx.L
                 bne zd_nal
                 addq.l  #2,a0
                 bra zd_end
 
-zd_nal: cmp.w   #0x3c,d0            // immediate?
-                bne zd_end          // no->
-                btst    #7,d0           // long?
-                beq zd_end          // no
+zd_nal: cmp.w   #0x3c,d0                            // immediate?
+                bne zd_end                          // no->
+                btst    #7,d0                       // long?
+                beq zd_end                          // no
                 addq.l  #2,a0
 zd_end:
                 move.l  a0,12(sp)
@@ -357,77 +357,77 @@ zd_end:
 
 #ifdef _NOT_USED_
 linea:
-                move.w  #0x2700,sr      // disable interrupt
+                move.w  #0x2700,sr                  // disable interrupt
                 halt
                 nop
                 nop
 linef:
-                move.w  #0x2700,sr      // disable interrupt
+                move.w  #0x2700,sr                  // disable interrupt
                 halt
                 nop
                 nop
 format:
-                move.w  #0x2700,sr      // disable interrupt
+                move.w  #0x2700,sr                  // disable interrupt
                 halt
                 nop
                 nop
 
 //floating point
 flpoow:
-                move.w  #0x2700,sr      // disable interrupt
+                move.w  #0x2700,sr                  // disable interrupt
                 halt
                 nop
                 nop
 #endif /* _NOT_USED */
 
 irq1:
-                irq 0x64,1,0x02     // IRQ1
+                irq 0x64,1,0x02                     // IRQ1
 
 irq2:
-                irq 0x68,2,0x04     // IRQ2
+                irq 0x68,2,0x04                     // IRQ2
 
 irq3:
-                irq 0x6c,3,0x08     // IRQ3
+                irq 0x6c,3,0x08                     // IRQ3
 
 irq4:
-                irq 0x70,4,0x10     // IRQ4
+                irq 0x70,4,0x10                     // IRQ4
 
 irq5:
-                irq 0x74,5,0x20     // IRQ5
+                irq 0x74,5,0x20                     // IRQ5
 
 irq6:
-                irq 0x78,6,0x40     // IRQ6
+                irq 0x78,6,0x40                     // IRQ6
 
 irq7:
-                irq 0x7c,7,0x80     // IRQ7
+                irq 0x7c,7,0x80                     // IRQ7
 
 mfp_irq1:
-                irq 0x104,1,0x02        // IRQ1
+                irq 0x104,1,0x02                    // IRQ1
 
 mfp_irq2:
-                irq 0x108,2,0x04        // IRQ2
+                irq 0x108,2,0x04                    // IRQ2
 
 mfp_irq3:
-                irq 0x10c,3,0x08        // IRQ3
+                irq 0x10c,3,0x08                    // IRQ3
 
 mfp_irq4:
-                irq 0x110,4,0x10        // IRQ4
+                irq 0x110,4,0x10                    // IRQ4
 
 
-#if MACHINE_M5484LITE_notyet            // handlers for M5484LITE
+#if MACHINE_M5484LITE_notyet                        // handlers for M5484LITE
 
-irq5:                       // irq5 is tied to PCI INTC# and PCI INTD# on the M5484LITE
-                move.w  #0x2700,sr      // disable interrupts
+irq5:                                               // irq5 is tied to PCI INTC# and PCI INTD# on the M5484LITE
+                move.w  #0x2700,sr                  // disable interrupts
 
-                lea -4*4(sp),sp     // save gcc scratch registers
+                lea -4*4(sp),sp                     // save gcc scratch registers
                 movem.l d0-d1/a0-a1,(sp)
 
-                jsr _irq5_handler       // call C handler routine
+                jsr _irq5_handler                   // call C handler routine
 
-                movem.l (sp),d0-d1/a0-a1    // restore registers
+                movem.l (sp),d0-d1/a0-a1            // restore registers
                 lea 4*4(sp),sp
 
-                rte             // return from exception
+                rte                                 // return from exception
 
 irq5text:
                 .ascii  "IRQ5!"
@@ -436,19 +436,19 @@ irq5text:
 mfp_irq6:
                 irq 0x74,5,0x20
 
-mfp_irq7:                   // irq7 is tied to PCI INTA# and PCI INTB# on the M5484LITE
+mfp_irq7:                                           // irq7 is tied to PCI INTA# and PCI INTB# on the M5484LITE
 
-                move.w  #0x2700,sr      // disable interrupts
+                move.w  #0x2700,sr                  // disable interrupts
 
-                lea -4*4(sp),sp     // save gcc scratch registers
+                lea -4*4(sp),sp                     // save gcc scratch registers
                 movem.l d0-d1/a0-a1,(sp)
 
-                jsr _irq7_handler       // call C handler routine
+                jsr _irq7_handler                   // call C handler routine
 
-                movem.l (sp),d0-d1/a0-a1    // restore registers
+                movem.l (sp),d0-d1/a0-a1            // restore registers
                 lea 4*4(sp),sp
 
-                rte             // return from exception
+                rte                                 // return from exception
 
 irq7text:
                 .data
@@ -456,62 +456,62 @@ irq7text:
                 .dc.b   13,10,0
                 .text
 
-#elif MACHINE_FIREBEE               /* these handlers are only meaningful for the Firebee */
-mfp_irq5:   move.w  #0x2700,sr      // disable interrupts
-                subq.l  #4,sp           // extra space
+#elif MACHINE_FIREBEE                               /* these handlers are only meaningful for the Firebee */
+mfp_irq5:   move.w  #0x2700,sr                      // disable interrupts
+                subq.l  #4,sp                       // extra space
 
-                link    a6,#-4 * 4      // save gcc scratch registers
+                link    a6,#-4 * 4                  // save gcc scratch registers
                 movem.l d0-d1/a0-a1,(sp)
 
-                jsr _irq5_handler       // call C handler routine
+                jsr _irq5_handler                   // call C handler routine
 
-                tst.l   d0          // handled?
+                tst.l   d0                          // handled?
                 bne irq5_forward
 
-                movem.l (sp),d0-d1/a0-a1    // restore registers
+                movem.l (sp),d0-d1/a0-a1            // restore registers
                 unlk    a6
                 addq.l  #4,sp
 
-                rte             // return from exception
+                rte                                 // return from exception
 
-irq5_forward:   move.l  0x74,a0         // fetch OS irq5 vector
-                add.l   _rt_vbr,a0      // add runtime vbr
-                move.l  a0,4(a6)        // put on stack
+irq5_forward:   move.l  0x74,a0                     // fetch OS irq5 vector
+                add.l   _rt_vbr,a0                  // add runtime vbr
+                move.l  a0,4(a6)                    // put on stack
 
-                movem.l (sp),d0-d1/a0-a1    // restore registers
-                unlk    a6          //
-                move.w  #0x2500,sr      // set interrupt level
-                rts             // jump through vector
+                movem.l (sp),d0-d1/a0-a1            // restore registers
+                unlk    a6                          //
+                move.w  #0x2500,sr                  // set interrupt level
+                rts                                 // jump through vector
 
 #ifdef _NOT_USED_
-mfp_irq6:   move.w  #0x2700,sr      // disable interrupt
-                subq.l  #4,sp           // extra space
-                link    a6,#-4 * 4      // save gcc scratch registers
+mfp_irq6:   move.w  #0x2700,sr                      // disable interrupt
+                subq.l  #4,sp                       // extra space
+                link    a6,#-4 * 4                  // save gcc scratch registers
                 movem.l d0-d1/a0-a1,(sp)
 
-                move.l  4(a6),-(sp)     // format status word
-                move.l  8(a6),-(sp)     // pc at exception
-                jsr _irq6_handler       // call C handler
-                lea 8(sp),sp        // fix stack
+                move.l  4(a6),-(sp)                 // format status word
+                move.l  8(a6),-(sp)                 // pc at exception
+                jsr _irq6_handler                   // call C handler
+                lea 8(sp),sp                        // fix stack
 
-                tst.l   d0          // interrupt handled?
-                bne irq6_forward        // no, forward to TOS
+                tst.l   d0                          // interrupt handled?
+                bne irq6_forward                    // no, forward to TOS
 
-                movem.l (sp),d0-d1/a0-a1    // restore registers
+                movem.l (sp),d0-d1/a0-a1            // restore registers
                 unlk    a6
-                addq.l  #4,sp           // "extra space" not needed in this case
+                addq.l  #4,sp                       // "extra space" not needed in this case
                 rte
 
 mfp_irq6_forward:
-                move.l  0xf0020000,a0       // fetch FPGA "autovector"
-                add.l   _rt_vbr,a0      // add runtime VBR
-                move.l  (a0),4(a6)      // fetch handler address and put it on "extra space"
+                move.l  0xf0020000,a0               // fetch FPGA "autovector"
+                add.l   _rt_vbr,a0                  // add runtime VBR
+                move.l  (a0),4(a6)                  // fetch handler address and put it on "extra space"
 
                 movem.l (sp),d0-d1/a0-a1
                 unlk    a6
-                move.w  #0x2600,sr      // set interrupt level
+                move.w  #0x2600,sr                  // set interrupt level
 
-                rts             // jump through vector
+                rts                                 // jump through vector
 
 #else /* _NOT_USED_ */
 
@@ -519,18 +519,18 @@ mfp_irq6_forward:
 
 mfp_irq6:
                 // MFP interrupt from FPGA
-                move.w  #0x2700,sr      // disable interrupt
+                move.w  #0x2700,sr                  // disable interrupt
                 subq.l  #8,sp
-                movem.l d0/a5,(sp)      // save registers
+                movem.l d0/a5,(sp)                  // save registers
 
-                lea MCF_EPORT_EPFR,a5   // clear int6 from edge port
+                lea MCF_EPORT_EPFR,a5               // clear int6 from edge port
                 bset    #6,(a5)
 
 mfp_irq6_non_sca:
 // test auf acsi dma -----------------------------------------------------------------
                 lea 0xfffffa0b,a5
-                bset    #7,-4(a5)       // int ena
-                btst.b  #7,(a5)         // acsi dma int?
+                bset    #7,-4(a5)                   // int ena
+                btst.b  #7,(a5)                     // acsi dma int?
                 beq mfp_non_acsi_dma
                 bsr acsi_dma
 mfp_non_acsi_dma:
@@ -544,14 +544,14 @@ mfp_non_acsi_dma:
                 rte
 mfp_irq6_1:
                 lea MCF_GPIO_PODR_FEC1L,a5
-                bclr.b  #4,(a5)         // led on
+                bclr.b  #4,(a5)                     // led on
                 lea blinker,a5
-                addq.l  #1,(a5)         // +1
+                addq.l  #1,(a5)                     // +1
                 move.l  (a5),d0
                 and.l   #0x80,d0
                 bne mfp_irq6_2
                 lea MCF_GPIO_PODR_FEC1L,a5
-                bset.b  #4,(a5)         // led off
+                bset.b  #4,(a5)                     // led off
 
 /*
  * Firebee inthandler. 0xf0020000 delivers the interrupt vector
@@ -569,12 +569,12 @@ mfp_irq6_1:
  */
 
 mfp_irq6_2:
-                move.l  0xF0020000,a5       // vector holen
-                add.l   _rt_vbr,a5      // basis
-                move.l  (a5),d0         // vector holen
-                move.l  4(sp),a5        // a5 zurück
-                move.l  d0,4(sp)        // vector eintragen
-                move.l  (sp)+,d0        // d0 zurück
+                move.l  0xF0020000,a5               // vector holen
+                add.l   _rt_vbr,a5                  // basis
+                move.l  (a5),d0                     // vector holen
+                move.l  4(sp),a5                    // a5 zurück
+                move.l  d0,4(sp)                    // vector eintragen
+                move.l  (sp)+,d0                    // d0 zurück
                 move    #0x2600,sr
                 rts
 
@@ -591,55 +591,55 @@ acsi_dma:                   // atari dma
                 move.l  a1,-(sp)
                 move.l  d1,-(sp)
 
-                //lea MCF_PSC0_PSCTB_8BIT,a1  // ++ vr
+                //lea MCF_PSC0_PSCTB_8BIT,a1        // ++ vr
                 // mchar move.l, 'D,'M','A,'\ ,(a1)
                 //move.l    #"DMA ",(a1)
                 // mchar   move.l,'I,'N,'T,'!,(a1)
                 // move.l   #'INT!',(a1)
 
-                lea     0xf0020110,a5       // fifo daten
+                lea     0xf0020110,a5               // fifo daten
 acsi_dma_start:
-                move.l  -12(a5),a1      // dma adresse
-                move.l  -8(a5),d0       // byt counter
+                move.l  -12(a5),a1                  // dma adresse
+                move.l  -8(a5),d0                   // byt counter
                 ble acsi_dma_end
-                btst.b  #0,-16(a5)      // write? (dma modus reg)
-                bne acsi_dma_wl     // ja->
+                btst.b  #0,-16(a5)                  // write? (dma modus reg)
+                bne acsi_dma_wl                     // ja->
 acsi_dma_rl:
-                tst.b   -4(a5)          // dma req?
-                bpl acsi_dma_finished   // nein->
-                move.l  (a5),(a1)+      // read 4 bytes
-                move.l  (a5),(a1)+      // read 4 bytes
-                move.l  (a5),(a1)+      // read 4 bytes
-                move.l  (a5),(a1)+      // read 4 bytes
+                tst.b   -4(a5)                      // dma req?
+                bpl acsi_dma_finished               // nein->
+                move.l  (a5),(a1)+                  // read 4 bytes
+                move.l  (a5),(a1)+                  // read 4 bytes
+                move.l  (a5),(a1)+                  // read 4 bytes
+                move.l  (a5),(a1)+                  // read 4 bytes
 
                 moveq   #'.',d1
                 move.b  d1,MCF_PSC0_PSCTB_8BIT
 
-                sub.l   #16,d0          // byt counter -16
+                sub.l   #16,d0                      // byt counter -16
                 bpl acsi_dma_rl
                 bra acsi_dma_finished
 acsi_dma_wl:
-                tst.b   -4(a5)          // dma req?
-                bpl acsi_dma_finished   // nein->
-                move.l  (a1)+,(a5)      // write 4 byts
-                move.l  (a1)+,(a5)      // write 4 byts
-                move.l  (a1)+,(a5)      // write 4 byts
-                move.l  (a1)+,(a5)      // write 4 byts
+                tst.b   -4(a5)                      // dma req?
+                bpl acsi_dma_finished               // nein->
+                move.l  (a1)+,(a5)                  // write 4 byts
+                move.l  (a1)+,(a5)                  // write 4 byts
+                move.l  (a1)+,(a5)                  // write 4 byts
+                move.l  (a1)+,(a5)                  // write 4 byts
 
                 moveq   #'.',d1
                 move.b  d1,MCF_PSC0_PSCTB_8BIT
 
-                sub.l   #16,d0          // byt counter -16
+                sub.l   #16,d0                      // byt counter -16
                 bpl acsi_dma_wl
 acsi_dma_finished:
-                move.l  a1,-12(a5)      // adresse zur�ck
-                move.l  d0,-8(a5)       // byt counter zur�ck
+                move.l  a1,-12(a5)                  // adresse zur�ck
+                move.l  d0,-8(a5)                   // byt counter zur�ck
 acsi_dma_end:
-                tst.b   -4(a5)          // dma req?
-                bmi acsi_dma_start      // ja->
+                tst.b   -4(a5)                      // dma req?
+                bmi acsi_dma_start                  // ja->
                 lea 0xfffffa0b,a5
-                bclr.b  #7,4(a5)        // clear int in service mfp
-                bclr.b  #7,(a5)         // clear int pending mfp 0xfffffa0b
+                bclr.b  #7,4(a5)                    // clear int in service mfp
+                bclr.b  #7,(a5)                     // clear int pending mfp 0xfffffa0b
 
                 move.w  #0x0d0a,d1
                 move.w  d1,MCF_PSC0_PSCTB_8BIT
@@ -657,23 +657,23 @@ mfp_irq7:
                 lea -12(sp),sp
                 movem.l d0/a0,(sp)
 
-                move.l  __RAMBAR0+0x008,a0  // real access error handler
-                move.l  a0,8(sp)        // this will be the return address for rts
+                move.l  __RAMBAR0+0x008,a0          // real access error handler
+                move.l  a0,8(sp)                    // this will be the return address for rts
 
-                move.w  12(sp),d0       // format/vector word
-                andi.l  #0xf000,d0      // keep only the format
-                ori.l   #2*4,d0         // simulate vector #2, no fault
+                move.w  12(sp),d0                   // format/vector word
+                andi.l  #0xf000,d0                  // keep only the format
+                ori.l   #2*4,d0                     // simulate vector #2, no fault
                 move.w  d0,12(sp)
 
                 // TODO: Inside an interrupt handler, 16(sp) is the return address.
                 // For an Access Error, it should be the address of the fault instruction instead
 
                 lea MCF_EPORT_EPFR,a0
-                bset    #7,(a0)         // clear int 7
+                bset    #7,(a0)                     // clear int 7
 
-                move.l  (sp)+,d0        // restore registers
+                move.l  (sp)+,d0                    // restore registers
                 move.l  (sp)+,a0
-                rts             // Forward to the Access Error handler
+                rts                                 // Forward to the Access Error handler
 
 
 /*
@@ -687,17 +687,17 @@ mfp_irq7:
 handler_gpt0:
                 .extern _gpt0_interrupt_handler
 
-                move.w  #0x2700,sr      // disable interrupts
-                link    a6,#-4 * 4      // make room for
-                movem.l d0-d1/a0-a1,(sp)    // gcc scratch registers and save them,
-                                                // other registers will be handled by gcc itself
+                move.w  #0x2700,sr                  // disable interrupts
+                link    a6,#-4 * 4                  // make room for
+                movem.l d0-d1/a0-a1,(sp)            // gcc scratch registers and save them,
+                                                    // other registers will be handled by gcc itself
 
-                move.w  4(a6),d0        // fetch vector number from stack
-                move.l  d0,-(sp)        // push it
-                jsr _gpt0_interrupt_handler // call C handler
-                addq.l  #4,sp           // adjust stack
+                move.w  4(a6),d0                    // fetch vector number from stack
+                move.l  d0,-(sp)                    // push it
+                jsr _gpt0_interrupt_handler         // call C handler
+                addq.l  #4,sp                       // adjust stack
 
-                movem.l (sp),d0-d1/a0-a1    // restore registers
+                movem.l (sp),d0-d1/a0-a1            // restore registers
 
                 unlk    a6
                 rte
@@ -712,18 +712,18 @@ handler_gpt0:
 
 
 _lowlevel_isr_handler:
-                move.w  #0x2700,sr      // do not disturb
-                link    a6,#-4 * 4      // make room for
-                movem.l d0-d1/a0-a1,(sp)    // gcc scratch registers and save them,
-                                                // other registers will be handled by gcc itself
+                move.w  #0x2700,sr                  // do not disturb
+                link    a6,#-4 * 4                  // make room for
+                movem.l d0-d1/a0-a1,(sp)            // gcc scratch registers and save them,
+                                                    // other registers will be handled by gcc itself
 
-                move.w  4(a6),d0        // fetch vector number from stack
-                lsr.l   #2,d0           // move it in place
-                andi.l  #0xff,d0        // mask it out
-                move.l  d0,-(sp)        // push it
-                jsr _isr_execute_handler    // call the C handler
-                addq.l  #4,sp           // adjust stack
+                move.w  4(a6),d0                    // fetch vector number from stack
+                lsr.l   #2,d0                       // move it in place
+                andi.l  #0xff,d0                    // mask it out
+                move.l  d0,-(sp)                    // push it
+                jsr _isr_execute_handler            // call the C handler
+                addq.l  #4,sp                       // adjust stack
 
-                movem.l (sp),d0-d1/a0-a1    // restore registers
+                movem.l (sp),d0-d1/a0-a1            // restore registers
                 unlk    a6
                 rte
