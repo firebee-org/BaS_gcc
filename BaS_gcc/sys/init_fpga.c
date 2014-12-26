@@ -51,8 +51,6 @@ extern uint8_t _FPGA_CONFIG_SIZE[];
  * init_fpga() will honour this and not overwrite config.
  */
 extern bool _FPGA_JTAG_LOADED;
-extern long _FPGA_JTAG_VALID;
-#define VALID_JTAG      0xaffeaffe
 extern int32_t _FPGA_JTAG_VALID;
 #define VALID_JTAG 0xaffeaffe
 
