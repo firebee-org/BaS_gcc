@@ -87,13 +87,15 @@ bool init_fpga(void)
     volatile int32_t time, start, end;
     int i;
 
-    xprintf("FPGA load config (_FPGA_JTAG_LOADED = %x, _FPGA_JTAG_VALID = %x)...", _FPGA_JTAG_LOADED, _FPGA_JTAG_VALID);
+    xprintf("FPGA load config...\r\n");
+    xprintf("_FPGA_JTAG_LOADED = %x, _FPGA_JTAG_VALID = %x)\r\n", _FPGA_JTAG_LOADED, _FPGA_JTAG_VALID);
     if (_FPGA_JTAG_LOADED == 1 && _FPGA_JTAG_VALID == VALID_JTAG)
     {
         xprintf("detected _FPGA_JTAG_LOADED flag. Not overwriting FPGA config.\r\n");
 
         /* reset the flag so that next boot will load config again from flash */
         _FPGA_JTAG_LOADED = 0;
+        _FPGA_JTAG_VALID = 0;
 
         return true;
     }
