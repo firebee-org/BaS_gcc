@@ -40,39 +40,42 @@ extern uint8_t _FPGA_CONFIG_SIZE[];
 
 /*
  * flag located in processor SRAM1 that indicates that the FPGA configuration has
- * been loaded through JTAG. init_fpga() will honour this and not overwrite config.
+ * been loaded through the onboard JTAG interface.
+ * init_fpga() will honour this and not overwrite config.
  */
 extern int32_t _FPGA_JTAG_LOADED;
+extern int32_t _FPGA_JTAG_VALID;
+#define VALID_JTAG 0xaffeaffe
 
 void config_gpio_for_fpga_config(void)
 {
 #if defined(MACHINE_FIREBEE)
-	/*
-	 * Configure GPIO FEC1L port directions (needed to load FPGA configuration)
-	 */
-	MCF_GPIO_PDDR_FEC1L = 0 |								/* bit 7 = input */
-						  0	|								/* bit 6 = input */
-						  0 | 								/* bit 5 = input */
-						  MCF_GPIO_PDDR_FEC1L_PDDR_FEC1L4 |	/* bit 4 = LED => output */
-						  MCF_GPIO_PDDR_FEC1L_PDDR_FEC1L3 |	/* bit 3 = PRG_DQ0 => output */
-						  MCF_GPIO_PDDR_FEC1L_PDDR_FEC1L2 |	/* bit 2 = FPGA_CONFIG => output */
-						  MCF_GPIO_PDDR_FEC1L_PDDR_FEC1L1 |	/* bit 1 = PRG_CLK (FPGA) => output */
-						  0;								/* bit 0 => input */
+    /*
+     * Configure GPIO FEC1L port directions (needed to load FPGA configuration)
+     */
+    MCF_GPIO_PDDR_FEC1L = 0 |                   /* bit 7 = input */
+            0	|                               /* bit 6 = input */
+            0 |                                 /* bit 5 = input */
+            MCF_GPIO_PDDR_FEC1L_PDDR_FEC1L4 |   /* bit 4 = LED => output */
+            MCF_GPIO_PDDR_FEC1L_PDDR_FEC1L3 |   /* bit 3 = PRG_DQ0 => output */
+            MCF_GPIO_PDDR_FEC1L_PDDR_FEC1L2 |   /* bit 2 = FPGA_CONFIG => output */
+            MCF_GPIO_PDDR_FEC1L_PDDR_FEC1L1 |   /* bit 1 = PRG_CLK (FPGA) => output */
+            0;                                  /* bit 0 => input */
 #endif /* MACHINE_FIREBEE */
 }
 
 void config_gpio_for_jtag_config(void)
 {
-	/*
-	 * configure FEC1L port directions to enable external JTAG configuration download to FPGA
-	 */
-	MCF_GPIO_PDDR_FEC1L = 0 |
-						  MCF_GPIO_PDDR_FEC1L_PDDR_FEC1L4;	/* bit 4 = LED => output */
-															/* all other bits = input */
-	/*
-	 * unfortunately, the GPIO module cannot trigger interrupts. That means FPGA_CONFIG needs to be polled to detect
-	 * external FPGA (re)configuration and reset the system in that case. Could be done from the OS as well...
-	 */
+    /*
+     * configure FEC1L port directions to enable external JTAG configuration download to FPGA
+     */
+    MCF_GPIO_PDDR_FEC1L = 0 |
+            MCF_GPIO_PDDR_FEC1L_PDDR_FEC1L4;	/* bit 4 = LED => output */
+    /* all other bits = input */
+    /*
+     * unfortunately, the GPIO module cannot trigger interrupts. That means FPGA_CONFIG needs to be polled to detect
+     * external FPGA (re)configuration and reset the system in that case. Could be done from the OS as well...
+     */
 }
 
 /*
@@ -80,96 +83,99 @@ void config_gpio_for_jtag_config(void)
  */
 bool init_fpga(void)
 {
-	uint8_t *fpga_data;
-	volatile int32_t time, start, end;
-	int i;
+    uint8_t *fpga_data;
+    volatile int32_t time, start, end;
+    int i;
 
-	xprintf("FPGA load config (_FPGA_JTAG_LOADED = %x)...", _FPGA_JTAG_LOADED);
-	if (_FPGA_JTAG_LOADED == 1)
-	{
-		xprintf("detected _FPGA_JTAG_LOADED flag. Not overwriting FPGA config.\r\n");
+    xprintf("FPGA load config (_FPGA_JTAG_LOADED = %x, _FPGA_JTAG_VALID = %x)...", _FPGA_JTAG_LOADED, _FPGA_JTAG_VALID);
+    if (_FPGA_JTAG_LOADED == 1 && _FPGA_JTAG_VALID == VALID_JTAG)
+    {
+        xprintf("detected _FPGA_JTAG_LOADED flag. Not overwriting FPGA config.\r\n");
 
-		/* reset the flag so that next boot will load config again from flash */
-		_FPGA_JTAG_LOADED = 0;
-		return true;
-	}
-	start = MCF_SLT0_SCNT;
+        /* reset the flag so that next boot will load config again from flash */
+        _FPGA_JTAG_LOADED = 0;
 
-	config_gpio_for_fpga_config();
-	MCF_GPIO_PODR_FEC1L &= ~FPGA_CLOCK;		/* FPGA clock => low */
+        return true;
+    }
+    start = MCF_SLT0_SCNT;
 
-	/* pulling FPGA_CONFIG to low resets the FPGA */
-	MCF_GPIO_PODR_FEC1L &= ~FPGA_CONFIG;	/* FPGA config => low */
-	wait(10);			/* give it some time to do its reset stuff */
+    config_gpio_for_fpga_config();
+    MCF_GPIO_PODR_FEC1L &= ~FPGA_CLOCK;                 /* FPGA clock => low */
 
-	while ((MCF_GPIO_PPDSDR_FEC1L & FPGA_STATUS) && (MCF_GPIO_PPDSDR_FEC1L & FPGA_CONF_DONE));
+    /* pulling FPGA_CONFIG to low resets the FPGA */
+    MCF_GPIO_PODR_FEC1L &= ~FPGA_CONFIG;                /* FPGA config => low */
+    wait(10);                                           /* give it some time to do its reset stuff */
 
-	MCF_GPIO_PODR_FEC1L |= FPGA_CONFIG;				/* pull FPGA_CONFIG high to start config cycle */
-	while (!(MCF_GPIO_PPDSDR_FEC1L & FPGA_STATUS));	/* wait until status becomes high */
+    while ((MCF_GPIO_PPDSDR_FEC1L & FPGA_STATUS) && (MCF_GPIO_PPDSDR_FEC1L & FPGA_CONF_DONE));
 
-	/*
-	 * excerpt from an Altera configuration manual:
-	 *
-	 * The low-to-high transition of nCONFIG on the FPGA begins the configuration cycle. The
-	 * configuration cycle consists of 3 stages�reset, configuration, and initialization.
-	 * While nCONFIG is low, the device is in reset. When the device comes out of reset,
-	 * nCONFIG must be at a logic high level in order for the device to release the open-drain
-	 * nSTATUS pin. After nSTATUS is released, it is pulled high by a pull-up resistor and the FPGA
-	 * is ready to receive configuration data. Before and during configuration, all user I/O pins
-	 * are tri-stated. Stratix series, Arria series, and Cyclone series have weak pull-up resistors
-	 * on the I/O pins which are on, before and during configuration.
-	 *
-	 * To begin configuration, nCONFIG and nSTATUS must be at a logic high level. You can delay
-	 * configuration by holding the nCONFIG low. The device receives configuration data on its
-	 * DATA0 pins. Configuration data is latched into the FPGA on the rising edge of DCLK. After
-	 * the FPGA has received all configuration data successfully, it releases the CONF_DONE pin,
-	 * which is pulled high by a pull-up resistor. A low to high transition on CONF_DONE indicates
-	 * configuration is complete and initialization of the device can begin.
-	 */
+    MCF_GPIO_PODR_FEC1L |= FPGA_CONFIG;                 /* pull FPGA_CONFIG high to start config cycle */
+    while (!(MCF_GPIO_PPDSDR_FEC1L & FPGA_STATUS))
+        ;                                               /* wait until status becomes high */
 
-	const uint8_t *fpga_flash_data_end = FPGA_FLASH_DATA + FPGA_FLASH_DATA_SIZE;
+    /*
+     * excerpt from an Altera configuration manual:
+     *
+     * The low-to-high transition of nCONFIG on the FPGA begins the configuration cycle. The
+     * configuration cycle consists of 3 stages�reset, configuration, and initialization.
+     * While nCONFIG is low, the device is in reset. When the device comes out of reset,
+     * nCONFIG must be at a logic high level in order for the device to release the open-drain
+     * nSTATUS pin. After nSTATUS is released, it is pulled high by a pull-up resistor and the FPGA
+     * is ready to receive configuration data. Before and during configuration, all user I/O pins
+     * are tri-stated. Stratix series, Arria series, and Cyclone series have weak pull-up resistors
+     * on the I/O pins which are on, before and during configuration.
+     *
+     * To begin configuration, nCONFIG and nSTATUS must be at a logic high level. You can delay
+     * configuration by holding the nCONFIG low. The device receives configuration data on its
+     * DATA0 pins. Configuration data is latched into the FPGA on the rising edge of DCLK. After
+     * the FPGA has received all configuration data successfully, it releases the CONF_DONE pin,
+     * which is pulled high by a pull-up resistor. A low to high transition on CONF_DONE indicates
+     * configuration is complete and initialization of the device can begin.
+     */
 
-	fpga_data = (uint8_t *) FPGA_FLASH_DATA;
-	do
-	{
-		uint8_t value = *fpga_data++;
-		for (i = 0; i < 8; i++, value >>= 1)
-		{
+    const uint8_t *fpga_flash_data_end = FPGA_FLASH_DATA + FPGA_FLASH_DATA_SIZE;
 
-			if (value & 1)
-			{
-				/* bit set -> toggle DATA0 to high */
-				MCF_GPIO_PODR_FEC1L |= FPGA_DATA0;
-			}
-			else
-			{
-				/* bit is cleared -> toggle DATA0 to low */
-				MCF_GPIO_PODR_FEC1L &= ~FPGA_DATA0;
-			}
-			/* toggle DCLK -> FPGA reads the bit */
-			MCF_GPIO_PODR_FEC1L |= FPGA_CLOCK;
-			MCF_GPIO_PODR_FEC1L &= ~FPGA_CLOCK;
-		}
-	} while ((!(MCF_GPIO_PPDSDR_FEC1L & FPGA_CONF_DONE)) && (fpga_data < fpga_flash_data_end));
+    fpga_data = (uint8_t *) FPGA_FLASH_DATA;
+    do
+    {
+        uint8_t value = *fpga_data++;
+        for (i = 0; i < 8; i++, value >>= 1)
+        {
 
-	if (fpga_data < fpga_flash_data_end)
-	{
+            if (value & 1)
+            {
+                /* bit set -> toggle DATA0 to high */
+                MCF_GPIO_PODR_FEC1L |= FPGA_DATA0;
+            }
+            else
+            {
+                /* bit is cleared -> toggle DATA0 to low */
+                MCF_GPIO_PODR_FEC1L &= ~FPGA_DATA0;
+            }
+            /* toggle DCLK -> FPGA reads the bit */
+            MCF_GPIO_PODR_FEC1L |= FPGA_CLOCK;
+            MCF_GPIO_PODR_FEC1L &= ~FPGA_CLOCK;
+        }
+    } while ((!(MCF_GPIO_PPDSDR_FEC1L & FPGA_CONF_DONE)) && (fpga_data < fpga_flash_data_end));
+
+    if (fpga_data < fpga_flash_data_end)
+    {
 #ifdef _NOT_USED_
-		while (fpga_data++ < fpga_flash_data_end)
-		{
-			/* toggle a little more since it's fun ;) */
-			MCF_GPIO_PODR_FEC1L |= FPGA_CLOCK;
-			MCF_GPIO_PODR_FEC1L &= ~FPGA_CLOCK;
-		}
+        while (fpga_data++ < fpga_flash_data_end)
+        {
+            /* toggle a little more since it's fun ;) */
+            MCF_GPIO_PODR_FEC1L |= FPGA_CLOCK;
+            MCF_GPIO_PODR_FEC1L &= ~FPGA_CLOCK;
+        }
 #endif /* _NOT_USED_ */
-		end = MCF_SLT0_SCNT;
-		time = (start - end) / (SYSCLK / 1000) / 1000;
+        end = MCF_SLT0_SCNT;
+        time = (start - end) / (SYSCLK / 1000) / 1000;
 
-		xprintf("finished (took %f seconds).\r\n", time / 1000.0);
-		config_gpio_for_jtag_config();
-		return true;
-	}
-	xprintf("FAILED!\r\n");
-	config_gpio_for_jtag_config();
-	return false;
+        xprintf("finished (took %f seconds).\r\n", time / 1000.0);
+        config_gpio_for_jtag_config();
+        return true;
+    }
+    xprintf("FAILED!\r\n");
+    config_gpio_for_jtag_config();
+
+    return false;
 }
