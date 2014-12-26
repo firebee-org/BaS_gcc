@@ -86,34 +86,34 @@ int isr_register_handler(int vector, int (*handler)(void *, void *), void *hdev,
 
     if ((vector == 0) || (handler == NULL))
     {
-	dbg("illegal vector or handler!\r\n");
+        dbg("illegal vector or handler!\r\n");
 
-	return false;
+        return false;
     }
 
     for (index = 0; index < MAX_ISR_ENTRY; index++)
     {
-	if (isrtab[index].vector == vector)
-	{
-	    /* one cross each, only! */
-	    dbg("already set handler with this vector (%d, %d)\r\n", vector);
+        if (isrtab[index].vector == vector)
+        {
+            /* one cross each, only! */
+            dbg("already set handler with this vector (%d, %d)\r\n", vector);
 
-	    return false;
-	}
+            return false;
+        }
 
-	if (isrtab[index].vector == 0)
-	{
-	    isrtab[index].vector = vector;
-	    isrtab[index].handler = handler;
-	    isrtab[index].hdev = hdev;
-	    isrtab[index].harg = harg;
+        if (isrtab[index].vector == 0)
+        {
+            isrtab[index].vector = vector;
+            isrtab[index].handler = handler;
+            isrtab[index].hdev = hdev;
+            isrtab[index].harg = harg;
 
-	    return true;
-	}
-	}
-	dbg("no available slots to register handler for vector %d\n\r", vector);
+            return true;
+        }
+        }
+        dbg("no available slots to register handler for vector %d\n\r", vector);
 
-	return false;   /* no available slots */
+        return false;   /* no available slots */
 }
 
 void isr_remove_handler(int (*handler)(void *, void *))
@@ -126,12 +126,12 @@ void isr_remove_handler(int (*handler)(void *, void *))
 
     for (index = 0; index < MAX_ISR_ENTRY; index++)
     {
-	if (isrtab[index].handler == handler)
-	{
-	    memset(&isrtab[index], 0, sizeof(struct isrentry));
+        if (isrtab[index].handler == handler)
+        {
+            memset(&isrtab[index], 0, sizeof(struct isrentry));
 
-	    return;
-	}
+            return;
+        }
     }
     dbg("no such handler registered (handler=%p\r\n", handler);
 }
@@ -150,15 +150,15 @@ bool isr_execute_handler(int vector)
      */
     for (index = 0; index < MAX_ISR_ENTRY; index++)
     {
-	if (isrtab[index].vector == vector)
-	{
-	    retval = true;
+        if (isrtab[index].vector == vector)
+        {
+            retval = true;
 
-	    if (isrtab[index].handler(isrtab[index].hdev, isrtab[index].harg))
-	    {
-		return retval;
-	    }
-	}
+            if (isrtab[index].handler(isrtab[index].hdev, isrtab[index].harg))
+            {
+                return retval;
+            }
+        }
     }
     dbg("no isr handler for vector %d found\r\n", vector);
 
@@ -178,18 +178,18 @@ int pic_interrupt_handler(void *arg1, void *arg2)
     rcv_byte = MCF_PSC3_PSCRB_8BIT;
     if (rcv_byte == 2)	// PIC requests RTC data
     {
-	uint8_t *rtc_reg = (uint8_t *) 0xffff8961;
-	uint8_t *rtc_data = (uint8_t *) 0xffff8963;
-	int index = 0;
+        uint8_t *rtc_reg = (uint8_t *) 0xffff8961;
+        uint8_t *rtc_data = (uint8_t *) 0xffff8963;
+        int index = 0;
 
     err("PIC interrupt: requesting RTC data\r\n");
 
-	MCF_PSC3_PSCTB_8BIT = 0x82;		// header byte to PIC
-	do
-	{
-	    *rtc_reg = 0;
-	    MCF_PSC3_PSCTB_8BIT = *rtc_data;
-	} while (index++ < 64);
+        MCF_PSC3_PSCTB_8BIT = 0x82;		// header byte to PIC
+        do
+        {
+            *rtc_reg = 0;
+            MCF_PSC3_PSCTB_8BIT = *rtc_data;
+        } while (index++ < 64);
     }
     return 1;
 }
@@ -219,27 +219,30 @@ int irq5_handler(void *arg1, void *arg2)
     int32_t value = 0;
     int32_t newvalue;
 
-    err("FPGA_INTR_CONTROL = 0x%08x\r\n", * FPGA_INTR_CONTROL);
-    err("FPGA_INTR_ENABLE  = 0x%08x\r\n", * FPGA_INTR_ENABLE);
-    err("FPGA_INTR_CLEAR   = 0x%08x\r\n", * FPGA_INTR_CLEAR);
-    err("FPGA_INTR_PENDING = 0x%08x\r\n", * FPGA_INTR_PENDING);
+    dbg("FPGA_INTR_CONTROL = 0x%08x\r\n", * FPGA_INTR_CONTROL);
+    dbg("FPGA_INTR_ENABLE  = 0x%08x\r\n", * FPGA_INTR_ENABLE);
+    dbg("FPGA_INTR_CLEAR   = 0x%08x\r\n", * FPGA_INTR_CLEAR);
+    dbg("FPGA_INTR_PENDING = 0x%08x\r\n", * FPGA_INTR_PENDING);
 
     * FPGA_INTR_CLEAR &= ~0x20000000UL;     /* clear interrupt from FPGA */
-    err("\r\nFPGA_INTR_CLEAR = 0x%08x\r\n", * FPGA_INTR_CLEAR);
+    dbg("\r\nFPGA_INTR_CLEAR = 0x%08x\r\n", * FPGA_INTR_CLEAR);
     MCF_EPORT_EPFR |= (1 << 5);             /* clear interrupt from edge port */
 
     //xprintf("IRQ5!\r\n");
 
+#ifdef _NOT_USED_
     if ((handle = pci_get_interrupt_cause()) > 0)
     {
-	newvalue = pci_call_interrupt_chain(handle, value);
-	if (newvalue == value)
-	{
-	    dbg("interrupt not handled!\r\n");
+        newvalue = pci_call_interrupt_chain(handle, value);
+        if (newvalue == value)
+        {
+            dbg("interrupt not handled!\r\n");
 
-	    return 1;
-	}
+            return 1;
+        }
     }
+#endif
+
     return 0;
 }
 
@@ -264,11 +267,11 @@ void blink_led(void)
 
     if ((blinker++ & 0x80) > 0)
     {
-	MCF_GPIO_PODR_FEC1L |= (1 << 4);    /* LED off */
+        MCF_GPIO_PODR_FEC1L |= (1 << 4);    /* LED off */
     }
     else
     {
-	MCF_GPIO_PODR_FEC1L &= ~(1 << 4);   /* LED on */
+        MCF_GPIO_PODR_FEC1L &= ~(1 << 4);   /* LED on */
     }
 }
 

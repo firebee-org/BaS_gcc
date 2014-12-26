@@ -17,14 +17,14 @@
 #define NOP() __asm__ __volatile__("nop\n\t" : : : "memory")
 
 long bas_start = 0xe0000000;
-volatile uint32_t *_VRAM = (uint32_t *) 0x40000000;
+extern volatile uint32_t _VRAM[];
 
 void do_tests(void)
 {
     /* read out shifter registers */
-    uint8_t * _vmem_hi = (uint8_t *) 0xfff08201;
-    uint8_t * _vmem_mid = (uint8_t *) 0xfff08203;
-    uint8_t * _vmem_lo = (uint8_t *) 0xfff0820d;
+    uint8_t * _vmem_hi = (uint8_t *) 0xffff8201;
+    uint8_t * _vmem_mid = (uint8_t *) 0xffff8203;
+    uint8_t * _vmem_lo = (uint8_t *) 0xffff820d;
 
     xprintf("vmem_hi = %x\r\n", *_vmem_hi);
     xprintf("vmem_mid = %x\r\n", *_vmem_mid);
@@ -60,20 +60,113 @@ void do_tests(void)
 
     xprintf("try to access Firebee FPGA memory\r\n");
 
-    uint8_t * vram = (uint8_t *) 0x40000000;
-
     xprintf("read\r\n");
-    hexdump(vram, 64);
+    hexdump(_VRAM, 512);
 
     xprintf("write\r\n");
 
-    for (i = 0; i < 64; i++)
+    for (i = 0; i < 512; i++)
     {
-        * (vram + i) = (uint8_t) i;
+        _VRAM[i] = (uint32_t) i;
     }
 
     xprintf("read\r\n");
-    hexdump(vram, 64);
+    hexdump(_VRAM, 512);
+}
+
+/*
+ * INIT VIDEO DDR RAM
+ */
+
+void init_video_ddr(void)
+{
+    xprintf("init video RAM: ");
+
+    * (volatile uint16_t *) 0xf0000400 = 0xb;	/* set cke = 1, cs=1, config = 1 */
+    NOP();
+
+    _VRAM[0] = 0x00050400;	/* IPALL */
+    NOP();
+
+    _VRAM[0] = 0x00072000;	/* load EMR pll on */
+    NOP();
+
+    _VRAM[0] = 0x00070122;	/* load MR: reset pll, cl=2, burst=4lw */
+    NOP();
+
+    _VRAM[0] = 0x00050400;	/* IPALL */
+    NOP();
+
+    _VRAM[0] = 0x00060000;	/* auto refresh */
+    NOP();
+
+    _VRAM[0] = 0x00060000;	/* auto refresh */
+    NOP();
+
+    _VRAM[0] = 0000070022;	/* load MR dll on */
+    NOP();
+
+    * (uint32_t *) 0xf0000400 = 0x01070002; /* fifo on, refresh on, ddrcs und cke on, video dac on */
+
+    xprintf("finished\r\n");
+}
+
+void wait_pll(void)
+{
+    int32_t trgt = MCF_SLT0_SCNT - 100000;
+    do
+    {
+        ;
+    } while ((* (volatile int16_t *) 0xf0000800 < 0) && MCF_SLT0_SCNT > trgt);
+}
+
+static volatile uint8_t *pll_base = (volatile uint8_t *) 0xf0000600;
+
+void init_pll(void)
+{
+    xprintf("FPGA PLL initialization: ");
+
+    wait_pll();
+    * (volatile uint16_t *) (pll_base + 0x48) = 27;	/* loopfilter  r */
+
+    wait_pll();
+    * (volatile uint16_t *) (pll_base + 0x08) = 1;		/* charge pump 1 */
+
+    wait_pll();
+    * (volatile uint16_t *) (pll_base + 0x00) = 12;		/* N counter high = 12 */
+
+    wait_pll();
+    * (volatile uint16_t *) (pll_base + 0x40) = 12;		/* N counter low = 12 */
+
+    wait_pll();
+    * (volatile uint16_t *) (pll_base + 0x114) = 1;		/* ck1 bypass */
+
+    wait_pll();
+    * (volatile uint16_t *) (pll_base + 0x118) = 1;		/* ck2 bypass */
+
+    wait_pll();
+    * (volatile uint16_t *) (pll_base + 0x11c) = 1;		/* ck3 bypass */
+
+    wait_pll();
+    * (volatile uint16_t *) (pll_base + 0x10) = 1;		/* ck0 high  = 1 */
+
+    wait_pll();
+    * (volatile uint16_t *) (pll_base + 0x50) = 1;		/* ck0 low = 1 */
+
+    wait_pll();
+    * (volatile uint16_t *) (pll_base + 0x144) = 1;		/* M odd division */
+
+    wait_pll();
+    * (volatile uint16_t *) (pll_base + 0x44) = 1;		/* M low = 1 */
+
+    wait_pll();
+    * (volatile uint16_t *) (pll_base + 0x04) = 145;	/* M high = 145 = 146 MHz */
+
+    wait_pll();
+
+    * (volatile uint8_t *) 0xf0000800 = 0;				/* set */
+
+    xprintf("finished\r\n");
 }
 
 void wait_for_jtag(void)
@@ -123,13 +216,19 @@ void wait_for_jtag(void)
 
     /* wait */
     xprintf("wait a little to let things settle...\r\n");
-    for (i = 0; i < 10000000; i++);
+    for (i = 0; i < 1000000; i++);
+
+    /* initialize FPGA PLL's */
+    init_pll();
+
+    /* initialize DDR RAM controller */
+    init_video_ddr();
 
     /* begin of tests */
     do_tests();
 
     xprintf("wait a little to let things settle...\r\n");
-    for (i = 0; i < 10000000; i++);
+    for (i = 0; i < 1000000; i++);
 
     xprintf("INFO: endless loop now. Press reset to reboot\r\n");
     while (1)

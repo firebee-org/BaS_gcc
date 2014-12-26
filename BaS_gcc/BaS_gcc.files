@@ -271,3 +271,8 @@ tos/Makefile
 usb/usb_kbd.c
 tos/jtagwait/sources/bas_printf.c
 tos/jtagwait/sources/bas_string.c
+tos/vmem_test/Makefile
+tos/vmem_test/sources/bas_printf.c
+tos/vmem_test/sources/bas_string.c
+tos/vmem_test/sources/printf_helper.S
+tos/vmem_test/sources/vmem_test.c

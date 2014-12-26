@@ -646,7 +646,7 @@ void init_pll(void)
 }
 
 
-
+#define NOP() __asm__ __volatile__("nop\n\t" : : : "memory")
 /*
  * INIT VIDEO DDR RAM
  */
@@ -784,12 +784,12 @@ static bool i2c_bus_free(void)
 void dvi_on(void)
 {
     uint8_t receivedByte;
-    uint8_t dummyByte; /* only used for a dummy read */
+    uint8_t dummyByte;                                  /* only used for a dummy read */
     int num_tries = 0;
 
     xprintf("DVI digital video output initialization: ");
 
-    MCF_I2C_I2FDR = 0x3c;		/* divide system clock by 1280: 100kHz standard */
+    MCF_I2C_I2FDR = 0x3c;                               /* divide system clock by 1280: 100kHz standard */
 
     do
     {
@@ -802,44 +802,44 @@ void dvi_on(void)
         /* repeat start, transmit acknowledge */
         MCF_I2C_I2CR = MCF_I2C_I2CR_RSTA | MCF_I2C_I2CR_TXAK;
 
-        receivedByte = MCF_I2C_I2DR;	/* read a byte */
-        MCF_I2C_I2SR = 0x0;		/* clear status register */
-        MCF_I2C_I2CR = 0x0;		/* disable i2c */
+        receivedByte = MCF_I2C_I2DR;                    /* read a byte */
+        MCF_I2C_I2SR = 0x0;                             /* clear status register */
+        MCF_I2C_I2CR = 0x0;                             /* disable i2c */
 
-        MCF_I2C_I2ICR = MCF_I2C_I2ICR_IE;	/* route i2c interrupts to cpu */
+        MCF_I2C_I2ICR = MCF_I2C_I2ICR_IE;               /* route i2c interrupts to cpu */
         /* i2c enable, master mode, transmit acknowledge */
         MCF_I2C_I2CR = MCF_I2C_I2CR_IEN | MCF_I2C_I2CR_MSTA | MCF_I2C_I2CR_MTX;
 
-        MCF_I2C_I2DR = 0x7a;						/* send data: address of TFP410 */
+        MCF_I2C_I2DR = 0x7a;                            /* send data: address of TFP410 */
         wait_i2c_transfer_finished();
 
         if (MCF_I2C_I2SR & MCF_I2C_I2SR_RXAK)		/* next try if no acknowledge */
             continue;
 
-        MCF_I2C_I2DR = 0x00;						/* send data: SUB ADRESS 0 */
+        MCF_I2C_I2DR = 0x00;                            /* send data: SUB ADRESS 0 */
         wait_i2c_transfer_finished();
 
-        MCF_I2C_I2CR |= MCF_I2C_I2CR_RSTA;			/* repeat start */
-        MCF_I2C_I2DR = 0x7b;						/* begin read */
+        MCF_I2C_I2CR |= MCF_I2C_I2CR_RSTA;              /* repeat start */
+        MCF_I2C_I2DR = 0x7b;                        	/* begin read */
 
         wait_i2c_transfer_finished();
         if (MCF_I2C_I2SR & MCF_I2C_I2SR_RXAK)		/* next try if no acknowledge */
             continue;
 
 #ifdef _NOT_USED_
-        MCH_I2C_I2CR &= ~MCF_I2C_I2CR_MTX;			/* FIXME: not clear where this came from ... */
+        MCH_I2C_I2CR &= ~MCF_I2C_I2CR_MTX;              /* FIXME: not clear where this came from ... */
 #endif /* _NOT_USED_ */
-        MCF_I2C_I2CR &= 0xef; 						/* ... this actually disables the I2C module... */
-        dummyByte = MCF_I2C_I2DR; 					/* dummy read */
+        MCF_I2C_I2CR &= 0xef;                           /* ... this actually disables the I2C module... */
+        dummyByte = MCF_I2C_I2DR;                       /* dummy read */
 
         wait_i2c_transfer_finished();
 
-        MCF_I2C_I2CR |= MCF_I2C_I2CR_TXAK; 			/* transmit acknowledge enable */
-        receivedByte = MCF_I2C_I2DR;				/* read a byte */
+        MCF_I2C_I2CR |= MCF_I2C_I2CR_TXAK;              /* transmit acknowledge enable */
+        receivedByte = MCF_I2C_I2DR;                    /* read a byte */
 
         wait_i2c_transfer_finished();
 
-        MCF_I2C_I2CR = MCF_I2C_I2CR_IEN;			/* stop */
+        MCF_I2C_I2CR = MCF_I2C_I2CR_IEN;                /* stop */
 
         dummyByte = MCF_I2C_I2DR; // dummy read
 
@@ -863,7 +863,7 @@ void dvi_on(void)
 
         wait_i2c_transfer_finished();
 
-        MCF_I2C_I2DR = 0xbf; // ctl1: power on, T:M:D:S: enable
+        MCF_I2C_I2DR = 0xbf;                            // ctl1: power on, T:M:D:S: enable
 
         wait_i2c_transfer_finished();
 
