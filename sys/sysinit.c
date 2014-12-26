@@ -813,7 +813,7 @@ void dvi_on(void)
         MCF_I2C_I2DR = 0x7a;                            /* send data: address of TFP410 */
         wait_i2c_transfer_finished();
 
-        if (MCF_I2C_I2SR & MCF_I2C_I2SR_RXAK)		/* next try if no acknowledge */
+        if (MCF_I2C_I2SR & MCF_I2C_I2SR_RXAK)           /* next try if no acknowledge */
             continue;
 
         MCF_I2C_I2DR = 0x00;                            /* send data: SUB ADRESS 0 */
@@ -823,12 +823,13 @@ void dvi_on(void)
         MCF_I2C_I2DR = 0x7b;                        	/* begin read */
 
         wait_i2c_transfer_finished();
-        if (MCF_I2C_I2SR & MCF_I2C_I2SR_RXAK)		/* next try if no acknowledge */
+        if (MCF_I2C_I2SR & MCF_I2C_I2SR_RXAK)           /* next try if no acknowledge */
             continue;
 
 #ifdef _NOT_USED_
         MCH_I2C_I2CR &= ~MCF_I2C_I2CR_MTX;              /* FIXME: not clear where this came from ... */
 #endif /* _NOT_USED_ */
+
         MCF_I2C_I2CR &= 0xef;                           /* ... this actually disables the I2C module... */
         dummyByte = MCF_I2C_I2DR;                       /* dummy read */
 
@@ -841,17 +842,17 @@ void dvi_on(void)
 
         MCF_I2C_I2CR = MCF_I2C_I2CR_IEN;                /* stop */
 
-        dummyByte = MCF_I2C_I2DR; // dummy read
+        dummyByte = MCF_I2C_I2DR;                       /* dummy read */
 
         if (receivedByte != 0x4c)
             continue;
 
-        MCF_I2C_I2CR = 0x0; // stop
-        MCF_I2C_I2SR = 0x0; // clear sr
+        MCF_I2C_I2CR = 0x0;                             /* stop */
+        MCF_I2C_I2SR = 0x0;                             /* clear sr */
 
         waitfor(10000, i2c_bus_free);
 
-        MCF_I2C_I2CR = 0xb0; // on tx master
+        MCF_I2C_I2CR = 0xb0;                            /* on tx master */
         MCF_I2C_I2DR = 0x7A;
 
         wait_i2c_transfer_finished();
@@ -859,45 +860,45 @@ void dvi_on(void)
         if (MCF_I2C_I2SR & MCF_I2C_I2SR_RXAK)
             continue;
 
-        MCF_I2C_I2DR = 0x08; // SUB ADRESS 8
+        MCF_I2C_I2DR = 0x08;                            /* SUB ADRESS 8 */
 
         wait_i2c_transfer_finished();
 
-        MCF_I2C_I2DR = 0xbf;                            // ctl1: power on, T:M:D:S: enable
+        MCF_I2C_I2DR = 0xbf;                            /* ctl1: power on, T:M:D:S: enable */
 
         wait_i2c_transfer_finished();
 
-        MCF_I2C_I2CR = 0x80; // stop
-        dummyByte = MCF_I2C_I2DR; // dummy read
-        MCF_I2C_I2SR = 0x0; // clear sr
+        MCF_I2C_I2CR = 0x80;                            /* stop */
+        dummyByte = MCF_I2C_I2DR;                       /* dummy read */
+        MCF_I2C_I2SR = 0x0;                             /* clear sr */
 
         waitfor(10000, i2c_bus_free);
 
         MCF_I2C_I2CR = 0xb0;
-        MCF_I2C_I2DR = 0x7A;
+        MCF_I2C_I2DR = 0x7a;
 
         wait_i2c_transfer_finished();
 
         if (MCF_I2C_I2SR & MCF_I2C_I2SR_RXAK)
             continue;
 
-        MCF_I2C_I2DR = 0x08; // SUB ADRESS 8
+        MCF_I2C_I2DR = 0x08;                            /* SUB ADRESS 8 */
 
         wait_i2c_transfer_finished();
 
-        MCF_I2C_I2CR |= 0x4; // repeat start
-        MCF_I2C_I2DR = 0x7b; // beginn read
+        MCF_I2C_I2CR |= 0x4;                            /* repeat start */
+        MCF_I2C_I2DR = 0x7b;                            /* begin read */
 
         wait_i2c_transfer_finished();
 
         if (MCF_I2C_I2SR & MCF_I2C_I2SR_RXAK)
             continue;
 
-        MCF_I2C_I2CR &= 0xef; // switch to rx
-        dummyByte = MCF_I2C_I2DR; // dummy read
+        MCF_I2C_I2CR &= 0xef;                           /* switch to rx */
+        dummyByte = MCF_I2C_I2DR;                       /* dummy read */
 
         wait_i2c_transfer_finished();
-        MCF_I2C_I2CR |= 0x08; // txak=1
+        MCF_I2C_I2CR |= 0x08;                           /* txak=1 */
 
         wait(50);
 
@@ -905,26 +906,29 @@ void dvi_on(void)
 
         wait_i2c_transfer_finished();
 
-        MCF_I2C_I2CR = 0x80; // stop
+        MCF_I2C_I2CR = 0x80;                            /* stop */
 
-        dummyByte = MCF_I2C_I2DR; // dummy read
+        dummyByte = MCF_I2C_I2DR;                       /* dummy read */
         num_tries++;
     } while ((receivedByte != 0xbf) && (num_tries < 10));
 
-    if (num_tries >= 10) {
+    if (num_tries >= 10)
+    {
         xprintf("FAILED!\r\n");
-    } else {
+    }
+    else
+    {
         xprintf("finished\r\n");
     }
-    UNUSED(dummyByte);
-    // Avoid warning
+    UNUSED(dummyByte);                                  /* Avoid warning */
 }
 
 
 /*
  * AC97
  */
-void init_ac97(void) {
+void init_ac97(void)
+{
     // PSC2: AC97 ----------
     int i;
     int zm;
@@ -934,9 +938,9 @@ void init_ac97(void) {
 
     xprintf("AC97 sound chip initialization: ");
     MCF_PAD_PAR_PSC2 = MCF_PAD_PAR_PSC2_PAR_RTS2_RTS	// PSC2=TX,RX BCLK,CTS->AC'97
-           | MCF_PAD_PAR_PSC2_PAR_CTS2_BCLK
-             | MCF_PAD_PAR_PSC2_PAR_TXD2
-             | MCF_PAD_PAR_PSC2_PAR_RXD2;
+                | MCF_PAD_PAR_PSC2_PAR_CTS2_BCLK
+                | MCF_PAD_PAR_PSC2_PAR_TXD2
+                | MCF_PAD_PAR_PSC2_PAR_RXD2;
     MCF_PSC2_PSCMR1 = 0x0;
     MCF_PSC2_PSCMR2 = 0x0;
     MCF_PSC2_PSCIMR = 0x0300;
@@ -990,28 +994,32 @@ livo:
     MCF_PSC2_PSCTB_AC97 = 0xE0000000;	//START SLOT1 + SLOT2, FIRST FRAME
     MCF_PSC2_PSCTB_AC97 = 0x16000000;	//SLOT1:WR REG AUX VOLUME adr 0x16
     MCF_PSC2_PSCTB_AC97 = 0x06060000;	//SLOT1:VOLUME
-    for (i = 3; i < 13; i++) {
-        MCF_PSC2_PSCTB_AC97 = 0x0;	//SLOT2-12:WR REG ALLES 0
+    for (i = 3; i < 13; i++)
+    {
+        MCF_PSC2_PSCTB_AC97 = 0x0;      //SLOT2-12:WR REG ALLES 0
     }
 
     // line in VOLUME +12dB
     MCF_PSC2_PSCTB_AC97 = 0xE0000000;	//START SLOT1 + SLOT2, FIRST FRAME
     MCF_PSC2_PSCTB_AC97 = 0x10000000;	//SLOT1:WR REG MASTER VOLUME adr 0x02
-    for (i = 2; i < 13; i++) {
-        MCF_PSC2_PSCTB_AC97 = 0x0;	//SLOT2-12:WR REG ALLES 0
+    for (i = 2; i < 13; i++)
+    {
+        MCF_PSC2_PSCTB_AC97 = 0x0;      //SLOT2-12:WR REG ALLES 0
     }
     // cd in VOLUME 0dB
     MCF_PSC2_PSCTB_AC97 = 0xE0000000;	//START SLOT1 + SLOT2, FIRST FRAME
     MCF_PSC2_PSCTB_AC97 = 0x12000000;	//SLOT1:WR REG MASTER VOLUME adr 0x02
-    for (i = 2; i < 13; i++) {
-        MCF_PSC2_PSCTB_AC97 = 0x0;	//SLOT2-12:WR REG ALLES 0
+    for (i = 2; i < 13; i++)
+    {
+        MCF_PSC2_PSCTB_AC97 = 0x0;      //SLOT2-12:WR REG ALLES 0
     }
     // mono out VOLUME 0dB
     MCF_PSC2_PSCTB_AC97 = 0xE0000000;	//START SLOT1 + SLOT2, FIRST FRAME
     MCF_PSC2_PSCTB_AC97 = 0x06000000;	//SLOT1:WR REG MASTER VOLUME adr 0x02
     MCF_PSC2_PSCTB_AC97 = 0x00000000;	//SLOT1:WR REG MASTER VOLUME adr 0x02
-    for (i = 3; i < 13; i++) {
-        MCF_PSC2_PSCTB_AC97 = 0x0;	//SLOT2-12:WR REG ALLES 0
+    for (i = 3; i < 13; i++)
+    {
+        MCF_PSC2_PSCTB_AC97 = 0x0;      //SLOT2-12:WR REG ALLES 0
     }
     MCF_PSC2_PSCTFCR |= MCF_PSC_PSCTFCR_WFR;	//set EOF
     MCF_PSC2_PSCTB_AC97 = 0x00000000;	//last data
@@ -1024,16 +1032,16 @@ extern uint8_t _STRAM_END[];
 #define STRAM_END ((uint32_t)_STRAM_END)
 
 extern uint8_t _FIRETOS[];
-#define FIRETOS ((uint32_t)_FIRETOS) /* where FireTOS is stored in flash */
+#define FIRETOS ((uint32_t)_FIRETOS)        /* where FireTOS is stored in flash */
 
 extern uint8_t _BAS_LMA[];
-#define BAS_LMA (&_BAS_LMA[0]) /* where the BaS is stored in flash */
+#define BAS_LMA (&_BAS_LMA[0])              /* where the BaS is stored in flash */
 
 extern uint8_t _BAS_IN_RAM[];
-#define BAS_IN_RAM (&_BAS_IN_RAM[0]) /* where the BaS is run in RAM */
+#define BAS_IN_RAM (&_BAS_IN_RAM[0])        /* where the BaS is run in RAM */
 
 extern uint8_t _BAS_SIZE[];
-#define BAS_SIZE ((uint32_t)_BAS_SIZE) /* size of the BaS, in bytes */
+#define BAS_SIZE ((uint32_t)_BAS_SIZE)      /* size of the BaS, in bytes */
 
 extern uint8_t _FASTRAM_END[];
 #define FASTRAM_END ((uint32_t)_FASTRAM_END)
@@ -1063,7 +1071,7 @@ void initialize_hardware(void)
         init_gpio();
         init_serial();
         init_slt();
-        init_fbcs();
+        init_fbcs(); 
         init_ddram();
         init_fpga();
 

@@ -1,3 +1,2 @@
 include
-/usr/m68k-elf/include
-tos
+tos/jtagwait/include
