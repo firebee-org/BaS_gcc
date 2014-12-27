@@ -16,8 +16,13 @@
 
 #define NOP() __asm__ __volatile__("nop\n\t" : : : "memory")
 
+#define SYSCLK 132000
+
 long bas_start = 0xe0000000;
 extern volatile uint32_t _VRAM[];
+
+volatile int32_t time, start, end;
+int i;
 
 void do_tests(void)
 {
@@ -50,7 +55,7 @@ void do_tests(void)
 
     xprintf("set Firebee clut\r\n");
 
-    int i;
+    long i;
     for (i = 0; i < 0x400; i++)
     {
         * (unsigned char *) (0xf0000000 + i) = (uint8_t) i;
@@ -61,17 +66,31 @@ void do_tests(void)
     xprintf("try to access Firebee FPGA memory\r\n");
 
     xprintf("read\r\n");
-    hexdump(_VRAM, 512);
+    start = MCF_SLT0_SCNT;
+    hexdump(_VRAM, 64);
+    end = MCF_SLT0_SCNT;
+    time = (start - end) / (SYSCLK / 1000) / 1000;
+
+    xprintf("finished (took %f seconds).\r\n", time / 1000.0);
 
     xprintf("write\r\n");
-
-    for (i = 0; i < 512; i++)
+    start = MCF_SLT0_SCNT;
+    for (i = 0; i < 64; i++)
     {
-        _VRAM[i] = (uint32_t) i;
+       ((uint8_t *) _VRAM)[i] = (uint32_t) i;
     }
+    end = MCF_SLT0_SCNT;
+    time = (start - end) / (SYSCLK / 1000) / 1000;
+
+    xprintf("finished (took %f seconds).\r\n", time / 1000.0);
 
     xprintf("read\r\n");
-    hexdump(_VRAM, 512);
+    start = MCF_SLT0_SCNT;
+    hexdump(_VRAM, 64);
+    end = MCF_SLT0_SCNT;
+    time = (start - end) / (SYSCLK / 1000) / 1000;
+
+    xprintf("finished (took %f seconds).\r\n", time / 1000.0);
 }
 
 /*
@@ -171,7 +190,7 @@ void init_pll(void)
 
 void wait_for_jtag(void)
 {
-    int i;
+    long i;
 
     /* set supervisor stack to end of SRAM1 */
     __asm__ __volatile__ (
@@ -216,7 +235,7 @@ void wait_for_jtag(void)
 
     /* wait */
     xprintf("wait a little to let things settle...\r\n");
-    for (i = 0; i < 1000000; i++);
+    for (i = 0; i < 100000L; i++);
 
     /* initialize FPGA PLL's */
     init_pll();
@@ -224,11 +243,18 @@ void wait_for_jtag(void)
     /* initialize DDR RAM controller */
     init_video_ddr();
 
+    xprintf("disable caches\r\n");
+    __asm__ __volatile(
+                "move.l     #0x01000000,d0      \r\n"
+                "movec      d0,CACR             \r\n"
+                : /* no output */
+                : /* no input */
+                : "d0", "memory");
     /* begin of tests */
     do_tests();
 
     xprintf("wait a little to let things settle...\r\n");
-    for (i = 0; i < 1000000; i++);
+    for (i = 0; i < 100000L; i++);
 
     xprintf("INFO: endless loop now. Press reset to reboot\r\n");
     while (1)
