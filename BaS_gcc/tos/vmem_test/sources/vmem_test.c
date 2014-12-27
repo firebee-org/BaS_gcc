@@ -27,9 +27,9 @@ int i;
 void do_tests(void)
 {
     /* read out shifter registers */
-    uint8_t * _vmem_hi = (uint8_t *) 0xffff8201;
-    uint8_t * _vmem_mid = (uint8_t *) 0xffff8203;
-    uint8_t * _vmem_lo = (uint8_t *) 0xffff820d;
+    uint8_t * _vmem_hi = (uint8_t *) 0xff8201;
+    uint8_t * _vmem_mid = (uint8_t *) 0xff8203;
+    uint8_t * _vmem_lo = (uint8_t *) 0xff820d;
 
     xprintf("vmem_hi = %x\r\n", *_vmem_hi);
     xprintf("vmem_mid = %x\r\n", *_vmem_mid);
@@ -37,7 +37,7 @@ void do_tests(void)
 
     /* try to write to them */
 
-    xprintf("trying to write to _vbas\r\n");
+    xprintf("trying to write to _vbas_ad\r\n");
 
     *_vmem_hi = 0xd0;
     *_vmem_mid = 0x00;
@@ -67,7 +67,7 @@ void do_tests(void)
 
     xprintf("read\r\n");
     start = MCF_SLT0_SCNT;
-    hexdump(_VRAM, 64);
+    hexdump((uint8_t *) _VRAM, 64);
     end = MCF_SLT0_SCNT;
     time = (start - end) / (SYSCLK / 1000) / 1000;
 
@@ -86,7 +86,7 @@ void do_tests(void)
 
     xprintf("read\r\n");
     start = MCF_SLT0_SCNT;
-    hexdump(_VRAM, 64);
+    hexdump((uint8_t *) _VRAM, 64);
     end = MCF_SLT0_SCNT;
     time = (start - end) / (SYSCLK / 1000) / 1000;
 
@@ -127,6 +127,12 @@ void init_video_ddr(void)
 
     * (uint32_t *) 0xf0000400 = 0x01070002; /* fifo on, refresh on, ddrcs und cke on, video dac on */
 
+    xprintf("read out the Firebee vram control register to verify correct settings: %lx\r\n", * (uint32_t *) 0xff000400);
+    if (* (uint32_t *) 0xff000400 != 0x01070002)
+    {
+        xprintf("initializing firebee video RAM DDR controller failed.\r\nINFO: infinite loop. Press reset.\r\n");
+        while (1);
+    }
     xprintf("finished\r\n");
 }
 
