@@ -127,12 +127,15 @@ void init_video_ddr(void)
 
     * (uint32_t *) 0xf0000400 = 0x01070002; /* fifo on, refresh on, ddrcs und cke on, video dac on */
 
-    xprintf("read out the Firebee vram control register to verify correct settings: %lx\r\n", * (uint32_t *) 0xff000400);
-    if (* (uint32_t *) 0xff000400 != 0x01070002)
+    // vram control register cannot be read
+#ifdef _NOT_USED_
+    xprintf("read out the Firebee vram control register to verify correct settings: %lx\r\n", * (uint32_t *) 0xf0000400);
+    if (* (uint32_t *) 0xf0000400 != 0x01070002)
     {
         xprintf("initializing firebee video RAM DDR controller failed.\r\nINFO: infinite loop. Press reset.\r\n");
         while (1);
     }
+#endif /* _NOT_USED_ */
     xprintf("finished\r\n");
 }
 
