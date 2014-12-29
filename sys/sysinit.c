@@ -1,6 +1,6 @@
 /*
- * File:		sysinit.c
- * Purpose:		Power-on Reset configuration of the Firebee board.
+ * File:        sysinit.c
+ * Purpose:     Power-on Reset configuration of the Firebee board.
  *
  * Notes:
  *
@@ -30,6 +30,7 @@
 #include "startcf.h"
 #include "cache.h"
 #include "sysinit.h"
+#include "pci.h"
 #include "bas_printf.h"
 #include "bas_string.h"
 #include "bas_types.h"
@@ -46,24 +47,19 @@
 #error "unknown machine"
 #endif /* MACHINE_M5484LITE */
 
+#
 #include "dma.h"
 #include "mod_devicetable.h"
 #include "pci_ids.h"
 #include "driver_mem.h"
 #include "usb.h"
+#include "video.h"
 
-#define DEBUG_SYSINIT
-#ifdef DEBUG_SYSINIT
-#define dbg(format, arg...) do { xprintf("DEBUG: %s(): " format, __FUNCTION__, ##arg); } while (0)
-#else
-#define dbg(format, arg...) do { ; } while (0)
-#endif /* DEBUG_SYSINIT */
+#define UNUSED(x) (void)(x)             /* Unused variable         */
 
-#define UNUSED(x) (void)(x)				/* Unused variable         */
+bool fpga_configured = false;           /* for FPGA JTAG configuration */
 
-bool fpga_configured = false;			/* for FPGA JTAG configuration */
-
-extern volatile long _VRAM;	/* start address of video ram from linker script */
+extern volatile long _VRAM; /* start address of video ram from linker script */
 
 /*
  * init SLICE TIMER 0
@@ -78,7 +74,7 @@ void init_slt(void)
 {
     xprintf("slice timer initialization: ");
     MCF_SLT0_STCNT = 0xffffffff;
-    MCF_SLT0_SCR = MCF_SLT_SCR_TEN | MCF_SLT_SCR_RUN;	/* enable and run continuously */
+    MCF_SLT0_SCR = MCF_SLT_SCR_TEN | MCF_SLT_SCR_RUN;   /* enable and run continuously */
     xprintf("finished\r\n");
 }
 
@@ -221,26 +217,26 @@ void init_gpio(void)
 void init_serial(void)
 {
     /* PSC0: SER1 */
-    MCF_PSC0_PSCSICR = 0;		/* PSC control register: select UART mode */
-    MCF_PSC0_PSCCSR = 0xDD;		/* use TX and RX baud rate from PSC timer */
-    MCF_PSC0_PSCCTUR = 0x00;	/* =\ */
+    MCF_PSC0_PSCSICR = 0;       /* PSC control register: select UART mode */
+    MCF_PSC0_PSCCSR = 0xDD;     /* use TX and RX baud rate from PSC timer */
+    MCF_PSC0_PSCCTUR = 0x00;    /* =\ */
 #ifdef MACHINE_FIREBEE
-    MCF_PSC0_PSCCTLR = 36;		/* divide sys_clk by 36 => BAUD RATE = 115200 bps */
+    MCF_PSC0_PSCCTLR = 36;      /* divide sys_clk by 36 => BAUD RATE = 115200 bps */
 #endif
 #ifdef MACHINE_M5484LITE
-    MCF_PSC0_PSCCTLR = 27;		/* LITE board has 100 MHz sys_clk only */
+    MCF_PSC0_PSCCTLR = 27;      /* LITE board has 100 MHz sys_clk only */
 #endif
-    MCF_PSC0_PSCCR = 0x20;		/* reset receiver and RxFIFO */
-    MCF_PSC0_PSCCR = 0x30;		/* reset transmitter and TxFIFO */
-    MCF_PSC0_PSCCR = 0x40;		/* reset all error status */
-    MCF_PSC0_PSCCR = 0x50;		/* reset break change interrupt */
-    MCF_PSC0_PSCCR = 0x10;		/* reset MR pointer */
-    MCF_PSC0_PSCIMR = 0x8700;	/* enable input port change interrupt, enable delta break interrupt, */
+    MCF_PSC0_PSCCR = 0x20;      /* reset receiver and RxFIFO */
+    MCF_PSC0_PSCCR = 0x30;      /* reset transmitter and TxFIFO */
+    MCF_PSC0_PSCCR = 0x40;      /* reset all error status */
+    MCF_PSC0_PSCCR = 0x50;      /* reset break change interrupt */
+    MCF_PSC0_PSCCR = 0x10;      /* reset MR pointer */
+    MCF_PSC0_PSCIMR = 0x8700;   /* enable input port change interrupt, enable delta break interrupt, */
                                 /* enable receiver interrupt/request, enable transceiver interrupt/request */
 
-    MCF_PSC0_PSCACR = 0x03;		/* enable state change of CTS */
-    MCF_PSC0_PSCMR1 = 0xb3;		/* 8 bit, no parity */
-    MCF_PSC0_PSCMR2 = 0x07;		/* 1 stop bit */
+    MCF_PSC0_PSCACR = 0x03;     /* enable state change of CTS */
+    MCF_PSC0_PSCMR1 = 0xb3;     /* 8 bit, no parity */
+    MCF_PSC0_PSCMR2 = 0x07;     /* 1 stop bit */
     MCF_PSC0_PSCRFCR = 0x0F;
     MCF_PSC0_PSCTFCR = 0x0F;
     MCF_PSC0_PSCRFAR = 0x00F0;
@@ -248,18 +244,18 @@ void init_serial(void)
     MCF_PSC0_PSCOPSET = 0x01;
     MCF_PSC0_PSCCR = 0x05;
 
-#if defined(MACHINE_FIREBEE)	/* PSC3 is not connected to anything on the LITE board */
+#ifdef MACHINE_FIREBEE  /* PSC3 is not connected to anything on the LITE board */
     /* PSC3: PIC */
-    MCF_PSC3_PSCSICR = 0;	// UART
+    MCF_PSC3_PSCSICR = 0;   // UART
     MCF_PSC3_PSCCSR = 0xDD;
     MCF_PSC3_PSCCTUR = 0x00;
-    MCF_PSC3_PSCCTLR = 36;	// BAUD RATE = 115200
+    MCF_PSC3_PSCCTLR = 36;  // BAUD RATE = 115200
     MCF_PSC3_PSCCR = 0x20;
     MCF_PSC3_PSCCR = 0x30;
     MCF_PSC3_PSCCR = 0x40;
     MCF_PSC3_PSCCR = 0x50;
     MCF_PSC3_PSCCR = 0x10;
-    MCF_PSC3_PSCIMR = 0x0200;	// receiver interrupt enable
+    MCF_PSC3_PSCIMR = 0x0200;   // receiver interrupt enable
     MCF_PSC3_PSCACR = 0x03;
     MCF_PSC3_PSCMR1 = 0xb3;
     MCF_PSC3_PSCMR2 = 0x07;
@@ -271,7 +267,7 @@ void init_serial(void)
     MCF_PSC3_PSCCR = 0x05;
 #endif /* MACHINE_FIREBEE */
 
-    MCF_INTC_ICR32 = 0x3F;		/* PSC3 interrupt vector. Do we need it? */
+    MCF_INTC_ICR32 = 0x3F;      /* PSC3 interrupt vector. Do we need it? */
 
     xprintf("\r\nserial interfaces initialization: finished\r\n");
 }
@@ -291,102 +287,102 @@ bool init_ddram(void)
         /* Basic configuration and initialization */
 
         /*
-         * SB_E (Bits 9-8):  10	<=> 7.6 mA (SDCKE)
-         * SB_C (Bits 7-6):	 10 <=> 7.6 mA (SDRAM Clocks)
-         * SB_A (Bits 5-4):	 10 <=> 7.6 mA (RAS, CAS, SDWE, SDADDR[12:0], and SDBA)
+         * SB_E (Bits 9-8):  10 <=> 7.6 mA (SDCKE)
+         * SB_C (Bits 7-6):  10 <=> 7.6 mA (SDRAM Clocks)
+         * SB_A (Bits 5-4):  10 <=> 7.6 mA (RAS, CAS, SDWE, SDADDR[12:0], and SDBA)
          * SB_S (Bits 3-2):  10 <=> 7.6 mA (SDRDQS)
-         * SB_D (Bits 1-0):	 10 <=> 7.6 mA (SDRDQS)
+         * SB_D (Bits 1-0):  10 <=> 7.6 mA (SDRDQS)
          *
          * -> lowest setting the Coldfire SDRAM controller allows
          */
         MCF_SDRAMC_SDRAMDS = 0x000002AA;/* SDRAMDS configuration */
 
 #if MACHINE_FIREBEE
-        MCF_SDRAMC_CS0CFG = 0x0000001A;	/* SDRAM CS0 configuration (128Mbytes 0000_0000 - 07FF_FFFF) */
-        MCF_SDRAMC_CS1CFG = 0x0800001A;	/* SDRAM CS1 configuration (128Mbytes 0800_0000 - 0FFF_FFFF) */
-        MCF_SDRAMC_CS2CFG = 0x1000001A;	/* SDRAM CS2 configuration (128Mbytes 1000_0000 - 07FF_FFFF) */
-        MCF_SDRAMC_CS3CFG = 0x1800001A;	/* SDRAM CS3 configuration (128Mbytes 1800_0000 - 1FFF_FFFF) */
+        MCF_SDRAMC_CS0CFG = 0x0000001A; /* SDRAM CS0 configuration (128Mbytes 0000_0000 - 07FF_FFFF) */
+        MCF_SDRAMC_CS1CFG = 0x0800001A; /* SDRAM CS1 configuration (128Mbytes 0800_0000 - 0FFF_FFFF) */
+        MCF_SDRAMC_CS2CFG = 0x1000001A; /* SDRAM CS2 configuration (128Mbytes 1000_0000 - 07FF_FFFF) */
+        MCF_SDRAMC_CS3CFG = 0x1800001A; /* SDRAM CS3 configuration (128Mbytes 1800_0000 - 1FFF_FFFF) */
 
         /*
          *
          */
-        MCF_SDRAMC_SDCFG1 = MCF_SDRAMC_SDCFG1_WTLAT(3)	/* Write latency */
-                | MCF_SDRAMC_SDCFG1_REF2ACT(8)			/* Refresh to Active Delay */
-                | MCF_SDRAMC_SDCFG1_PRE2ACT(2)			/* Precharge to Active Delay */
-                | MCF_SDRAMC_SDCFG1_ACT2RW(2)			/* Active to Read/Write Delay */
-                | MCF_SDRAMC_SDCFG1_RDLAT(6)			/* Read CAS latency */
-                | MCF_SDRAMC_SDCFG1_SWT2RD(3)			/* Single Write to Read/Write/Precharge delay */
-                | MCF_SDRAMC_SDCFG1_SRD2RW(7);			/* Single Read to Read/Write/Precharge delay */
+        MCF_SDRAMC_SDCFG1 = MCF_SDRAMC_SDCFG1_WTLAT(3)  /* Write latency */
+                | MCF_SDRAMC_SDCFG1_REF2ACT(8)          /* Refresh to Active Delay */
+                | MCF_SDRAMC_SDCFG1_PRE2ACT(2)          /* Precharge to Active Delay */
+                | MCF_SDRAMC_SDCFG1_ACT2RW(2)           /* Active to Read/Write Delay */
+                | MCF_SDRAMC_SDCFG1_RDLAT(6)            /* Read CAS latency */
+                | MCF_SDRAMC_SDCFG1_SWT2RD(3)           /* Single Write to Read/Write/Precharge delay */
+                | MCF_SDRAMC_SDCFG1_SRD2RW(7);          /* Single Read to Read/Write/Precharge delay */
 
-        MCF_SDRAMC_SDCFG2 = MCF_SDRAMC_SDCFG2_BL(7)		/* Burst Length */
-                | MCF_SDRAMC_SDCFG2_BRD2WT(7)			/* Burst Read to Write delay */
-                | MCF_SDRAMC_SDCFG2_BWT2RW(6)			/* Burst Write to Read/Write/Precharge delay */
-                | MCF_SDRAMC_SDCFG2_BRD2PRE(4);			/* Burst Read to Read/Precharge delay */
+        MCF_SDRAMC_SDCFG2 = MCF_SDRAMC_SDCFG2_BL(7)     /* Burst Length */
+                | MCF_SDRAMC_SDCFG2_BRD2WT(7)           /* Burst Read to Write delay */
+                | MCF_SDRAMC_SDCFG2_BWT2RW(6)           /* Burst Write to Read/Write/Precharge delay */
+                | MCF_SDRAMC_SDCFG2_BRD2PRE(4);         /* Burst Read to Read/Precharge delay */
 
 
-        MCF_SDRAMC_SDCR = MCF_SDRAMC_SDCR_IPALL			/* initiate Precharge All command */
-                | MCF_SDRAMC_SDCR_RCNT(13)				/* Refresh Count (= (x + 1) * 64 */
-                | MCF_SDRAMC_SDCR_MUX(1)				/* Muxing control */
+        MCF_SDRAMC_SDCR = MCF_SDRAMC_SDCR_IPALL         /* initiate Precharge All command */
+                | MCF_SDRAMC_SDCR_RCNT(13)              /* Refresh Count (= (x + 1) * 64 */
+                | MCF_SDRAMC_SDCR_MUX(1)                /* Muxing control */
                 | MCF_SDRAMC_SDCR_DDR
                 | MCF_SDRAMC_SDCR_CKE
                 | MCF_SDRAMC_SDCR_MODE_EN;
 
-        MCF_SDRAMC_SDMR = MCF_SDRAMC_SDMR_CMD			/* Generate an LMR/LEMR command */
-                | MCF_SDRAMC_SDMR_AD(0)					/* Address */
-                | MCF_SDRAMC_SDMR_BNKAD(1);				/* LEMR */
-        MCF_SDRAMC_SDMR = MCF_SDRAMC_SDMR_CMD			/* Generate an LMR/LEMR command */
+        MCF_SDRAMC_SDMR = MCF_SDRAMC_SDMR_CMD           /* Generate an LMR/LEMR command */
+                | MCF_SDRAMC_SDMR_AD(0)                 /* Address */
+                | MCF_SDRAMC_SDMR_BNKAD(1);             /* LEMR */
+        MCF_SDRAMC_SDMR = MCF_SDRAMC_SDMR_CMD           /* Generate an LMR/LEMR command */
                 | MCF_SDRAMC_SDMR_AD(0x123)
-                | MCF_SDRAMC_SDMR_BNKAD(0);				/* LMR */
+                | MCF_SDRAMC_SDMR_BNKAD(0);             /* LMR */
 
-        MCF_SDRAMC_SDCR = 0xE10D0002;	/* SDCR + IPALL */
-        MCF_SDRAMC_SDCR = 0xE10D0004;	/* SDCR + IREF (first refresh) */
-        MCF_SDRAMC_SDCR = 0xE10D0004;	/* SDCR + IREF (second refresh) */
-        MCF_SDRAMC_SDMR = 0x008D0000;	/* SDMR (write to LMR) */
-        MCF_SDRAMC_SDCR = 0x710D0F00;	/* SDCR (lock SDMR and enable refresh) */
+        MCF_SDRAMC_SDCR = 0xE10D0002;   /* SDCR + IPALL */
+        MCF_SDRAMC_SDCR = 0xE10D0004;   /* SDCR + IREF (first refresh) */
+        MCF_SDRAMC_SDCR = 0xE10D0004;   /* SDCR + IREF (second refresh) */
+        MCF_SDRAMC_SDMR = 0x008D0000;   /* SDMR (write to LMR) */
+        MCF_SDRAMC_SDCR = 0x710D0F00;   /* SDCR (lock SDMR and enable refresh) */
 
 #elif MACHINE_M5484LITE
-        MCF_SDRAMC_CS0CFG = 0x00000019;	/* SDRAM CS0 configuration (64 Mbytes 0000_0000 - 03FF_FFFF) */
-        MCF_SDRAMC_CS1CFG = 0x00000000;	/* SDRAM CS1 configuration - off */
-        MCF_SDRAMC_CS2CFG = 0x00000000;	/* SDRAM CS2 configuration - off */
-        MCF_SDRAMC_CS3CFG = 0x00000000;	/* SDRAM CS3 configuration - off */
+        MCF_SDRAMC_CS0CFG = 0x00000019; /* SDRAM CS0 configuration (64 Mbytes 0000_0000 - 03FF_FFFF) */
+        MCF_SDRAMC_CS1CFG = 0x00000000; /* SDRAM CS1 configuration - off */
+        MCF_SDRAMC_CS2CFG = 0x00000000; /* SDRAM CS2 configuration - off */
+        MCF_SDRAMC_CS3CFG = 0x00000000; /* SDRAM CS3 configuration - off */
 
 
         /*
          *
          */
-        MCF_SDRAMC_SDCFG1 = MCF_SDRAMC_SDCFG1_WTLAT(3)	/* Write latency */
-                | MCF_SDRAMC_SDCFG1_REF2ACT(8)			/* Refresh to Active Delay */
-                | MCF_SDRAMC_SDCFG1_PRE2ACT(2)			/* Precharge to Active Delay */
-                | MCF_SDRAMC_SDCFG1_ACT2RW(2)			/* Active to Read/Write Delay */
-                | MCF_SDRAMC_SDCFG1_RDLAT(6)			/* Read CAS latency */
-                | MCF_SDRAMC_SDCFG1_SWT2RD(3)			/* Single Write to Read/Write/Precharge delay */
-                | MCF_SDRAMC_SDCFG1_SRD2RW(7);			/* Single Read to Read/Write/Precharge delay */
+        MCF_SDRAMC_SDCFG1 = MCF_SDRAMC_SDCFG1_WTLAT(3)  /* Write latency */
+                | MCF_SDRAMC_SDCFG1_REF2ACT(8)          /* Refresh to Active Delay */
+                | MCF_SDRAMC_SDCFG1_PRE2ACT(2)          /* Precharge to Active Delay */
+                | MCF_SDRAMC_SDCFG1_ACT2RW(2)           /* Active to Read/Write Delay */
+                | MCF_SDRAMC_SDCFG1_RDLAT(6)            /* Read CAS latency */
+                | MCF_SDRAMC_SDCFG1_SWT2RD(3)           /* Single Write to Read/Write/Precharge delay */
+                | MCF_SDRAMC_SDCFG1_SRD2RW(7);          /* Single Read to Read/Write/Precharge delay */
 
-        MCF_SDRAMC_SDCFG2 = MCF_SDRAMC_SDCFG2_BL(7)		/* Burst Length */
-                | MCF_SDRAMC_SDCFG2_BRD2WT(7)			/* Burst Read to Write delay */
-                | MCF_SDRAMC_SDCFG2_BWT2RW(6)			/* Burst Write to Read/Write/Precharge delay */
-                | MCF_SDRAMC_SDCFG2_BRD2PRE(4);			/* Burst Read to Read/Precharge delay */
+        MCF_SDRAMC_SDCFG2 = MCF_SDRAMC_SDCFG2_BL(7)     /* Burst Length */
+                | MCF_SDRAMC_SDCFG2_BRD2WT(7)           /* Burst Read to Write delay */
+                | MCF_SDRAMC_SDCFG2_BWT2RW(6)           /* Burst Write to Read/Write/Precharge delay */
+                | MCF_SDRAMC_SDCFG2_BRD2PRE(4);         /* Burst Read to Read/Precharge delay */
 
 
-        MCF_SDRAMC_SDCR = MCF_SDRAMC_SDCR_IPALL			/* initiate Precharge All command */
-                | MCF_SDRAMC_SDCR_RCNT(13)				/* Refresh Count (= (x + 1) * 64 */
-                | MCF_SDRAMC_SDCR_MUX(1)				/* Muxing control */
+        MCF_SDRAMC_SDCR = MCF_SDRAMC_SDCR_IPALL         /* initiate Precharge All command */
+                | MCF_SDRAMC_SDCR_RCNT(13)              /* Refresh Count (= (x + 1) * 64 */
+                | MCF_SDRAMC_SDCR_MUX(1)                /* Muxing control */
                 | MCF_SDRAMC_SDCR_DDR
                 | MCF_SDRAMC_SDCR_CKE
                 | MCF_SDRAMC_SDCR_MODE_EN;
 
-        MCF_SDRAMC_SDMR = MCF_SDRAMC_SDMR_CMD			/* Generate an LMR/LEMR command */
-                | MCF_SDRAMC_SDMR_AD(0)					/* Address */
-                | MCF_SDRAMC_SDMR_BNKAD(1);				/* LEMR */
-        MCF_SDRAMC_SDMR = MCF_SDRAMC_SDMR_CMD			/* Generate an LMR/LEMR command */
+        MCF_SDRAMC_SDMR = MCF_SDRAMC_SDMR_CMD           /* Generate an LMR/LEMR command */
+                | MCF_SDRAMC_SDMR_AD(0)                 /* Address */
+                | MCF_SDRAMC_SDMR_BNKAD(1);             /* LEMR */
+        MCF_SDRAMC_SDMR = MCF_SDRAMC_SDMR_CMD           /* Generate an LMR/LEMR command */
                 | MCF_SDRAMC_SDMR_AD(0x123)
-                | MCF_SDRAMC_SDMR_BNKAD(0);				/* LMR */
+                | MCF_SDRAMC_SDMR_BNKAD(0);             /* LMR */
 
-        MCF_SDRAMC_SDCR = 0xE10D0002;	/* SDCR + IPALL */
-        MCF_SDRAMC_SDCR = 0xE10D0004;	/* SDCR + IREF (first refresh) */
-        MCF_SDRAMC_SDCR = 0xE10D0004;	/* SDCR + IREF (second refresh) */
-        MCF_SDRAMC_SDMR = 0x008D0000;	/* SDMR (write to LMR) */
-        MCF_SDRAMC_SDCR = 0x710D0F00;	/* SDCR (lock SDMR and enable refresh) */
+        MCF_SDRAMC_SDCR = 0xE10D0002;   /* SDCR + IPALL */
+        MCF_SDRAMC_SDCR = 0xE10D0004;   /* SDCR + IREF (first refresh) */
+        MCF_SDRAMC_SDCR = 0xE10D0004;   /* SDCR + IREF (second refresh) */
+        MCF_SDRAMC_SDMR = 0x008D0000;   /* SDMR (write to LMR) */
+        MCF_SDRAMC_SDCR = 0x710D0F00;   /* SDCR (lock SDMR and enable refresh) */
 
 #endif /* MACHINE_FIREBEE */
 
@@ -409,41 +405,41 @@ void init_fbcs()
     xprintf("FlexBus chip select registers initialization: ");
 
     /* Flash */
-    MCF_FBCS0_CSAR = BOOTFLASH_BASE_ADDRESS;	/* flash base address */
-    MCF_FBCS0_CSCR = MCF_FBCS_CSCR_PS_16 |		/* 16 bit word access */
-            MCF_FBCS_CSCR_WS(6)|						/* 6 Waitstates */
+    MCF_FBCS0_CSAR = BOOTFLASH_BASE_ADDRESS;    /* flash base address */
+    MCF_FBCS0_CSCR = MCF_FBCS_CSCR_PS_16 |      /* 16 bit word access */
+            MCF_FBCS_CSCR_WS(6)|                        /* 6 Waitstates */
             MCF_FBCS_CSCR_AA |
             MCF_FBCS_CSCR_ASET(1) |
-            MCF_FBCS_CSCR_RDAH(1);				/* chip errata SECF077 */
+            MCF_FBCS_CSCR_RDAH(1);              /* chip errata SECF077 */
     MCF_FBCS0_CSMR = BOOTFLASH_BAM |
-            MCF_FBCS_CSMR_V;							/* enable */
+            MCF_FBCS_CSMR_V;                            /* enable */
 
 
 #if MACHINE_FIREBEE /* FBC setup for FireBee */
-    MCF_FBCS1_CSAR = 0xFFF00000;			/* ATARI I/O ADRESS */
-    MCF_FBCS1_CSCR = MCF_FBCS_CSCR_PS_16	/* 16BIT PORT */
-        | MCF_FBCS_CSCR_WS(8)				/* DEFAULT 8WS */
-        | MCF_FBCS_CSCR_AA;					/* AA */
+    MCF_FBCS1_CSAR = 0xFFF00000;                        /* ATARI I/O ADRESS */
+    MCF_FBCS1_CSCR = MCF_FBCS_CSCR_PS_16                /* 16BIT PORT */
+        | MCF_FBCS_CSCR_WS(8)                           /* DEFAULT 8WS */
+        | MCF_FBCS_CSCR_AA;                             /* AA */
     MCF_FBCS1_CSMR = MCF_FBCS_CSMR_BAM_1M | MCF_FBCS_CSMR_V;
 
-    MCF_FBCS2_CSAR = 0xF0000000;			// NEUER I/O ADRESS-BEREICH
-    MCF_FBCS2_CSCR = MCF_FBCS_CSCR_PS_32	// 32BIT PORT
-        | MCF_FBCS_CSCR_WS(8)				// DEFAULT 4WS
-        | MCF_FBCS_CSCR_AA;					// AA
-    MCF_FBCS2_CSMR = (MCF_FBCS_CSMR_BAM_128M	// F000'0000-F7FF'FFFF
+    MCF_FBCS2_CSAR = 0xF0000000;                        /* Firebee new I/O address range */
+    MCF_FBCS2_CSCR = MCF_FBCS_CSCR_PS_32                /* 32BIT PORT */
+        | MCF_FBCS_CSCR_WS(8)                           /* DEFAULT 4WS */
+        | MCF_FBCS_CSCR_AA;                             /* AA */
+    MCF_FBCS2_CSMR = (MCF_FBCS_CSMR_BAM_128M            /* F000'0000-F7FF'FFFF */
               | MCF_FBCS_CSMR_V);
 
-    MCF_FBCS3_CSAR = 0xF8000000;			// NEUER I/O ADRESS-BEREICH
-    MCF_FBCS3_CSCR = MCF_FBCS_CSCR_PS_16	// 16BIT PORT
-        | MCF_FBCS_CSCR_AA;	// AA
-    MCF_FBCS3_CSMR = (MCF_FBCS_CSMR_BAM_64M	// F800'0000-FBFF'FFFF
+    MCF_FBCS3_CSAR = 0xF8000000;                        /* Firebee new I/O address range */
+    MCF_FBCS3_CSCR = MCF_FBCS_CSCR_PS_16                /* 16BIT PORT */
+        | MCF_FBCS_CSCR_AA; // AA
+    MCF_FBCS3_CSMR = (MCF_FBCS_CSMR_BAM_64M             /* F800'0000-FBFF'FFFF */
               | MCF_FBCS_CSMR_V);
 
-    MCF_FBCS4_CSAR = 0x40000000;			// VIDEO RAM BEREICH, #FB_CS3 WIRD NICHT BENÜTZT, DECODE DIREKT AUF DEM FPGA
-    MCF_FBCS4_CSCR = MCF_FBCS_CSCR_PS_32	// 32BIT PORT
-        | MCF_FBCS_CSCR_BSTR				// BURST READ ENABLE
-        | MCF_FBCS_CSCR_BSTW;				// BURST WRITE ENABLE
-    MCF_FBCS4_CSMR = MCF_FBCS_CSMR_BAM_1G	// 4000'0000-7FFF'FFFF
+    MCF_FBCS4_CSAR = 0x40000000;                        /* video ram area, FB_CS3 not used, decoded on FPGA */
+    MCF_FBCS4_CSCR = MCF_FBCS_CSCR_PS_32                /* 32BIT PORT */
+        | MCF_FBCS_CSCR_BSTR                            /* burst read enable */
+        | MCF_FBCS_CSCR_BSTW;                           /* burst write enable */
+    MCF_FBCS4_CSMR = MCF_FBCS_CSMR_BAM_1G               /* 4000'0000-7FFF'FFFF */
               | MCF_FBCS_CSMR_V;
 #elif MACHINE_M5484LITE
     /* disable other FBCS for now */
@@ -453,7 +449,7 @@ void init_fbcs()
     MCF_FBCS4_CSMR = 0;
 
     MCF_FBCS5_CSAR = MCF_FBCS_CSAR_BA(0x60000000);
-    MCF_FBCS5_CSCR = MCF_FBCS_CSCR_PS_16 	/* CPLD access */
+    MCF_FBCS5_CSCR = MCF_FBCS_CSCR_PS_16    /* CPLD access */
         | MCF_FBCS_CSCR_WS(32)
         | MCF_FBCS_CSCR_ASET(1)
         | MCF_FBCS_CSCR_AA;
@@ -467,7 +463,7 @@ void init_fbcs()
     MCF_FBCS5_CSCR = MCF_FBCS_CSCR_PS_8
         | MCF_FBCS_CSCR_BSTR
         | MCF_FBCS_CSCR_BSTW
-        | MCF_FBCS_CSCR_RDAH(1);				/* chip errata SECF077 */
+        | MCF_FBCS_CSCR_RDAH(1);                /* chip errata SECF077 */
     MCF_FBCS5_CSMR = MCF_FBCS_CSMR_BAM_1G;
         //| MCF_FBCS_CSMR_V;
 #endif /* MACHINE_M5484LITE */
@@ -484,169 +480,57 @@ void wait_pll(void)
     } while ((* (volatile int16_t *) 0xf0000800 < 0) && MCF_SLT0_SCNT > trgt);
 }
 
-
-volatile uint8_t *pll_base = (volatile uint8_t *) 0xf0000600;
-
-//#define _OLD_CODE_ /* use old PLL initialization code */
-#ifndef _OLD_CODE_
-
-/*
- * the altpll_reconfig component is connected to the Bus as follows:
- *
- * 9 bit data:
- * 876543210 (this _is_ actually the last part of the address written or read!)
- * | ||  |
- * | |+--+- counter_type
- * +-+----- counter_param
- *
- * 9 bit data
- * 876543210
- * +-------+- data_in
- *
- * counter_type selects which counter should be affected by data_in:
- * 0000 - N
- * 0001 - M
- * 0010 - CP/LF (charge pump/loop filter)
- * 0011 - VCO (voltage controlled oscillator)
- * 0100 - C0
- * 0101 - C1
- * 0110 - C2
- * 0111 - C3
- * 1000 - C4
- *
- * counter_param selects which part of the selected counter_type is set/read and how many
- * bits are used/valid:
- *
- * for counter_type N, M, C0-C4:
- * 000 - high count, 8 bit
- * 001 - low count, 8 bit
- * 100 - bypass, 1 bit
- * 101 - mode (odd/even division), 1 bit
- *
- * for counter_type CP/LF:
- * 101 - charge pump unused, 5 bit
- * 000 - charge pump current, 3 bit
- * 100 - loop filter unused, 1 bit
- * 001 - loop filter resistor, 5 bit
- * 010 - loop filter capacitance, 2 bit
- *
- * for counter_type VCO:
- * 000 - VCO post scale, 1 bit
- */
-
-#define PLL_COUNTER_TYPE_N      0
-#define PLL_COUNTER_TYPE_M      1
-#define PLL_COUNTER_TYPE_CPLF   2
-#define PLL_COUNTER_TYPE_VCO    3
-#define PLL_COUNTER_TYPE_C0     4
-#define PLL_COUNTER_TYPE_C1     5
-#define PLL_COUNTER_TYPE_C2     6
-#define PLL_COUNTER_TYPE_C3     7
-#define PLL_COUNTER_TYPE_C4     8
-
-#define PLL_COUNTER_PARAM_HC    0
-#define PLL_COUNTER_PARAM_LC    1
-#define PLL_COUNTER_PARAM_BP    4
-#define PLL_COUNTER_PARAM_MODE  5
-
-#define PLL_COUNTER_PARAM_CP_U  5
-#define PLL_COUNTER_PARAM_CP_C  0
-#define PLL_COUNTER_PARAM_LF_U  4
-#define PLL_COUNTER_PARAM_LF_R  1
-#define PLL_COUNTER_PARAM_LF_C  2
-
-#define PLL_COUNTER_PARAM_VCO_PS    0
-
-void pll_write(int type, int param, int data)
-{
-    wait_pll();
-    * (volatile uint16_t *) (pll_base + ((param << 6) | (type << 2))) = data;
-}
-
-struct pll_init
-{
-    int type;
-    int param;
-    int data;
-};
-
-struct pll_init pll_values[] =
-{
-    { PLL_COUNTER_TYPE_CPLF, PLL_COUNTER_PARAM_LF_R, 27 },	/* loopfilter R */
-    { PLL_COUNTER_TYPE_CPLF, PLL_COUNTER_PARAM_LF_C, 1 },	/* charge pump 1 */
-    { PLL_COUNTER_TYPE_N, PLL_COUNTER_PARAM_HC, 12 },		/* N counter high */
-    { PLL_COUNTER_TYPE_N, PLL_COUNTER_PARAM_LC, 12 },		/* N counter low */
-    { PLL_COUNTER_TYPE_C1, PLL_COUNTER_PARAM_BP, 1 },		/* c1 bypass */
-    { PLL_COUNTER_TYPE_C2, PLL_COUNTER_PARAM_BP, 1 },		/* c2 bypass */
-    { PLL_COUNTER_TYPE_C3, PLL_COUNTER_PARAM_BP, 1 },		/* c3 bypass */
-    { PLL_COUNTER_TYPE_C0, PLL_COUNTER_PARAM_HC, 1 },		/* c0 high */
-    { PLL_COUNTER_TYPE_C0, PLL_COUNTER_PARAM_LC, 1 },		/* c0 low */
-    { PLL_COUNTER_TYPE_M, PLL_COUNTER_PARAM_MODE, 1 },		/* M odd division */
-    { PLL_COUNTER_TYPE_M, PLL_COUNTER_PARAM_LC, 1 },		/* M low = 1 */
-    { PLL_COUNTER_TYPE_M, PLL_COUNTER_PARAM_HC, 145 }		/* M high = 145 = 146 MHz */
-};
-int num_pll_values = sizeof(pll_values) / sizeof(struct pll_init);
-#endif /* _OLD_CODE_ */
+static volatile uint8_t *pll_base = (volatile uint8_t *) 0xf0000600;
 
 void init_pll(void)
 {
-    int i;
-
     xprintf("FPGA PLL initialization: ");
 
-#ifndef _OLD_CODE_
-    for (i = 0; i < num_pll_values; i++)
-    {
-        pll_write(pll_values[i].type, pll_values[i].param, pll_values[i].data);
-    }
-
-#else /* _OLD_CODE_ */
     wait_pll();
-    * (volatile uint16_t *) (pll_base + 0x48) = 27;	/* loopfilter  r */
+    * (volatile uint16_t *) (pll_base + 0x48) = 27; /* loopfilter  r */
 
     wait_pll();
-    * (volatile uint16_t *) (pll_base + 0x08) = 1;		/* charge pump 1 */
+    * (volatile uint16_t *) (pll_base + 0x08) = 1;      /* charge pump 1 */
 
     wait_pll();
-    * (volatile uint16_t *) (pll_base + 0x00) = 12;		/* N counter high = 12 */
+    * (volatile uint16_t *) (pll_base + 0x00) = 12;     /* N counter high = 12 */
 
     wait_pll();
-     * (volatile uint16_t *) (pll_base + 0x40) = 12;		/* N counter low = 12 */
+    * (volatile uint16_t *) (pll_base + 0x40) = 12;     /* N counter low = 12 */
 
     wait_pll();
-    * (volatile uint16_t *) (pll_base + 0x114) = 1;		/* ck1 bypass */
+    * (volatile uint16_t *) (pll_base + 0x114) = 1;     /* ck1 bypass */
 
     wait_pll();
-    * (volatile uint16_t *) (pll_base + 0x118) = 1;		/* ck2 bypass */
+    * (volatile uint16_t *) (pll_base + 0x118) = 1;     /* ck2 bypass */
 
     wait_pll();
-    * (volatile uint16_t *) (pll_base + 0x11c) = 1;		/* ck3 bypass */
+    * (volatile uint16_t *) (pll_base + 0x11c) = 1;     /* ck3 bypass */
 
     wait_pll();
-    * (volatile uint16_t *) (pll_base + 0x10) = 1;		/* ck0 high  = 1 */
+    * (volatile uint16_t *) (pll_base + 0x10) = 1;      /* ck0 high  = 1 */
 
     wait_pll();
-    * (volatile uint16_t *) (pll_base + 0x50) = 1;		/* ck0 low = 1 */
+    * (volatile uint16_t *) (pll_base + 0x50) = 1;      /* ck0 low = 1 */
 
     wait_pll();
-    * (volatile uint16_t *) (pll_base + 0x144) = 1;		/* M odd division */
+    * (volatile uint16_t *) (pll_base + 0x144) = 1;     /* M odd division */
 
     wait_pll();
-    * (volatile uint16_t *) (pll_base + 0x44) = 1;		/* M low = 1 */
+    * (volatile uint16_t *) (pll_base + 0x44) = 1;      /* M low = 1 */
 
     wait_pll();
-    * (volatile uint16_t *) (pll_base + 0x04) = 145;	/* M high = 145 = 146 MHz */
+    * (volatile uint16_t *) (pll_base + 0x04) = 145;    /* M high = 145 = 146 MHz */
 
     wait_pll();
-#endif /* _OLD_CODE_ */
 
-    * (volatile uint8_t *) 0xf0000800 = 0;				/* set */
+    * (volatile uint8_t *) 0xf0000800 = 0;              /* set */
 
     xprintf("finished\r\n");
 }
 
 
-#define NOP() __asm__ __volatile__("nop\n\t" : : : "memory")
+
 /*
  * INIT VIDEO DDR RAM
  */
@@ -654,31 +538,31 @@ void init_pll(void)
 void init_video_ddr(void) {
     xprintf("init video RAM: ");
 
-    * (volatile uint16_t *) 0xf0000400 = 0xb;	/* set cke = 1, cs=1, config = 1 */
+    * (volatile uint16_t *) 0xf0000400 = 0xb;   /* set cke = 1, cs=1, config = 1 */
     NOP();
 
-    _VRAM = 0x00050400;	/* IPALL */
+    _VRAM = 0x00050400; /* IPALL */
     NOP();
 
-    _VRAM = 0x00072000;	/* load EMR pll on */
+    _VRAM = 0x00072000; /* load EMR pll on */
     NOP();
 
-    _VRAM = 0x00070122;	/* load MR: reset pll, cl=2, burst=4lw */
+    _VRAM = 0x00070122; /* load MR: reset pll, cl=2, burst=4lw */
     NOP();
 
-    _VRAM = 0x00050400;	/* IPALL */
+    _VRAM = 0x00050400; /* IPALL */
     NOP();
 
-    _VRAM = 0x00060000;	/* auto refresh */
+    _VRAM = 0x00060000; /* auto refresh */
     NOP();
 
-    _VRAM = 0x00060000;	/* auto refresh */
+    _VRAM = 0x00060000; /* auto refresh */
     NOP();
 
-    _VRAM = 0000070022;	/* load MR dll on */
+    _VRAM = 0000070022; /* load MR dll on */
     NOP();
 
-    * (uint32_t *) 0xf0000400 = 0x01070002; /* fifo on, refresh on, ddrcs and cke on, video dac on */
+    * (uint32_t *) 0xf0000400 = 0x01070002; /* fifo on, refresh on, ddrcs und cke on, video dac on */
 
     xprintf("finished\r\n");
 }
@@ -700,33 +584,29 @@ void init_usb(void)
 
     do
     {
-        handle = pci_find_classcode(PCI_CLASS_SERIAL_USB, index++);
+        handle = pci_find_device(0x0000, 0xffff, index++);
         if (handle > 0)
         {
             uint32_t id = 0;
-            uint32_t pci_class = 0;
-
-            dbg("PCI device handle = %x\r\n", handle);
+            uint32_t class = 0;
 
             id = pci_read_config_longword(handle, PCIIDR);
-            pci_class = pci_read_config_longword(handle, PCIREV);
+            class = pci_read_config_longword(handle, PCIREV);
 
-            if (PCI_CLASS_CODE(pci_class) == PCI_CLASS_SERIAL_USB)
+            if (PCI_CLASS_CODE(class) == PCI_CLASS_SERIAL_USB)
             {
                 xprintf("serial USB found at bus=0x%x, dev=0x%x, fnc=0x%x (0x%x)\r\n",
                         PCI_BUS_FROM_HANDLE(handle),
                         PCI_DEVICE_FROM_HANDLE(handle),
                         PCI_FUNCTION_FROM_HANDLE(handle),
                         handle);
-
-                if (PCI_SUBCLASS(pci_class) == PCI_CLASS_SERIAL_USB_EHCI)
+                if (PCI_SUBCLASS(class) == PCI_CLASS_SERIAL_USB_EHCI)
                 {
                     board = ehci_usb_pci_table;
                     while (board->vendor)
                     {
                         if ((board->vendor == PCI_VENDOR_ID(id)) && board->device == PCI_DEVICE_ID(id))
                         {
-                            dbg("match. trying to init board\r\n");
                             if (usb_init(handle, board) >= 0)
                             {
                                 usb_found++;
@@ -735,19 +615,15 @@ void init_usb(void)
                         board++;
                     }
                 }
-
-                if (PCI_SUBCLASS(pci_class) == PCI_CLASS_SERIAL_USB_OHCI)
+                if (PCI_SUBCLASS(class) == PCI_CLASS_SERIAL_USB_OHCI)
                 {
                     board = ohci_usb_pci_table;
-
                     while (board->vendor)
                     {
                         if ((board->vendor == PCI_VENDOR_ID(id)) && board->device == PCI_DEVICE_ID(id))
                         {
                             if (usb_init(handle, board) >= 0)
-                            {
                                 usb_found++;
-                            }
                         }
                         board++;
                     }
@@ -756,7 +632,7 @@ void init_usb(void)
         }
     } while (handle >= 0);
 
-    xprintf("finished (found %d USB host controller(s))\r\n", usb_found);
+    xprintf("finished (found %d USB controller(s))\r\n", usb_found);
 }
 
 static bool i2c_transfer_finished(void)
@@ -769,8 +645,8 @@ static bool i2c_transfer_finished(void)
 
 static void wait_i2c_transfer_finished(void)
 {
-    waitfor(100000, i2c_transfer_finished);		/* wait until interrupt bit has been set */
-    MCF_I2C_I2SR &= ~MCF_I2C_I2SR_IIF; 			/* clear interrupt bit (byte transfer finished */
+    waitfor(10000, i2c_transfer_finished);      /* wait until interrupt bit has been set */
+    MCF_I2C_I2SR &= ~MCF_I2C_I2SR_IIF;          /* clear interrupt bit (byte transfer finished */
 }
 
 static bool i2c_bus_free(void)
@@ -784,17 +660,17 @@ static bool i2c_bus_free(void)
 void dvi_on(void)
 {
     uint8_t receivedByte;
-    uint8_t dummyByte;                                  /* only used for a dummy read */
+    uint8_t dummyByte; /* only used for a dummy read */
     int num_tries = 0;
 
     xprintf("DVI digital video output initialization: ");
 
-    MCF_I2C_I2FDR = 0x3c;                               /* divide system clock by 1280: 100kHz standard */
+    MCF_I2C_I2FDR = 0x3c;       /* divide system clock by 1280: 100kHz standard */
 
     do
     {
         /* disable all i2c interrupt routing targets */
-        MCF_I2C_I2ICR = 0x0;	// ~(MCF_I2C_I2ICR_IE | MCF_I2C_I2ICR_RE | MCF_I2C_I2ICR_TE | MCF_I2C_I2ICR_BNBE);
+        MCF_I2C_I2ICR = 0x0;    // ~(MCF_I2C_I2ICR_IE | MCF_I2C_I2ICR_RE | MCF_I2C_I2ICR_TE | MCF_I2C_I2ICR_BNBE);
 
         /* disable i2c, disable i2c interrupts, slave, receive, i2c = acknowledge, no repeat start */
         MCF_I2C_I2CR = 0x0;
@@ -802,103 +678,102 @@ void dvi_on(void)
         /* repeat start, transmit acknowledge */
         MCF_I2C_I2CR = MCF_I2C_I2CR_RSTA | MCF_I2C_I2CR_TXAK;
 
-        receivedByte = MCF_I2C_I2DR;                    /* read a byte */
-        MCF_I2C_I2SR = 0x0;                             /* clear status register */
-        MCF_I2C_I2CR = 0x0;                             /* disable i2c */
+        receivedByte = MCF_I2C_I2DR;    /* read a byte */
+        MCF_I2C_I2SR = 0x0;     /* clear status register */
+        MCF_I2C_I2CR = 0x0;     /* disable i2c */
 
-        MCF_I2C_I2ICR = MCF_I2C_I2ICR_IE;               /* route i2c interrupts to cpu */
+        MCF_I2C_I2ICR = MCF_I2C_I2ICR_IE;   /* route i2c interrupts to cpu */
         /* i2c enable, master mode, transmit acknowledge */
         MCF_I2C_I2CR = MCF_I2C_I2CR_IEN | MCF_I2C_I2CR_MSTA | MCF_I2C_I2CR_MTX;
 
-        MCF_I2C_I2DR = 0x7a;                            /* send data: address of TFP410 */
+        MCF_I2C_I2DR = 0x7a;                        /* send data: address of TFP410 */
         wait_i2c_transfer_finished();
 
-        if (MCF_I2C_I2SR & MCF_I2C_I2SR_RXAK)           /* next try if no acknowledge */
-            continue;
+        if (MCF_I2C_I2SR & MCF_I2C_I2SR_RXAK)       /* next try if no acknowledge */
+            goto try_again;
 
-        MCF_I2C_I2DR = 0x00;                            /* send data: SUB ADRESS 0 */
+        MCF_I2C_I2DR = 0x00;                        /* send data: SUB ADRESS 0 */
         wait_i2c_transfer_finished();
 
-        MCF_I2C_I2CR |= MCF_I2C_I2CR_RSTA;              /* repeat start */
-        MCF_I2C_I2DR = 0x7b;                        	/* begin read */
+        MCF_I2C_I2CR |= MCF_I2C_I2CR_RSTA;          /* repeat start */
+        MCF_I2C_I2DR = 0x7b;                        /* begin read */
 
         wait_i2c_transfer_finished();
-        if (MCF_I2C_I2SR & MCF_I2C_I2SR_RXAK)           /* next try if no acknowledge */
-            continue;
+        if (MCF_I2C_I2SR & MCF_I2C_I2SR_RXAK)       /* next try if no acknowledge */
+            goto try_again;
 
 #ifdef _NOT_USED_
-        MCH_I2C_I2CR &= ~MCF_I2C_I2CR_MTX;              /* FIXME: not clear where this came from ... */
+        MCH_I2C_I2CR &= ~MCF_I2C_I2CR_MTX;          /* FIXME: not clear where this came from ... */
 #endif /* _NOT_USED_ */
-
-        MCF_I2C_I2CR &= 0xef;                           /* ... this actually disables the I2C module... */
-        dummyByte = MCF_I2C_I2DR;                       /* dummy read */
-
-        wait_i2c_transfer_finished();
-
-        MCF_I2C_I2CR |= MCF_I2C_I2CR_TXAK;              /* transmit acknowledge enable */
-        receivedByte = MCF_I2C_I2DR;                    /* read a byte */
+        MCF_I2C_I2CR &= 0xef;                       /* ... this actually disables the I2C module... */
+        dummyByte = MCF_I2C_I2DR;                   /* dummy read */
 
         wait_i2c_transfer_finished();
 
-        MCF_I2C_I2CR = MCF_I2C_I2CR_IEN;                /* stop */
+        MCF_I2C_I2CR |= MCF_I2C_I2CR_TXAK;          /* transmit acknowledge enable */
+        receivedByte = MCF_I2C_I2DR;                /* read a byte */
 
-        dummyByte = MCF_I2C_I2DR;                       /* dummy read */
+        wait_i2c_transfer_finished();
+
+        MCF_I2C_I2CR = MCF_I2C_I2CR_IEN;            /* stop */
+
+        dummyByte = MCF_I2C_I2DR; // dummy read
 
         if (receivedByte != 0x4c)
-            continue;
+            goto try_again;
 
-        MCF_I2C_I2CR = 0x0;                             /* stop */
-        MCF_I2C_I2SR = 0x0;                             /* clear sr */
+        MCF_I2C_I2CR = 0x0; // stop
+        MCF_I2C_I2SR = 0x0; // clear sr
 
         waitfor(10000, i2c_bus_free);
 
-        MCF_I2C_I2CR = 0xb0;                            /* on tx master */
+        MCF_I2C_I2CR = 0xb0; // on tx master
         MCF_I2C_I2DR = 0x7A;
 
         wait_i2c_transfer_finished();
 
         if (MCF_I2C_I2SR & MCF_I2C_I2SR_RXAK)
-            continue;
+            goto try_again;
 
-        MCF_I2C_I2DR = 0x08;                            /* SUB ADRESS 8 */
-
-        wait_i2c_transfer_finished();
-
-        MCF_I2C_I2DR = 0xbf;                            /* ctl1: power on, T:M:D:S: enable */
+        MCF_I2C_I2DR = 0x08; // SUB ADRESS 8
 
         wait_i2c_transfer_finished();
 
-        MCF_I2C_I2CR = 0x80;                            /* stop */
-        dummyByte = MCF_I2C_I2DR;                       /* dummy read */
-        MCF_I2C_I2SR = 0x0;                             /* clear sr */
+        MCF_I2C_I2DR = 0xbf; // ctl1: power on, T:M:D:S: enable
+
+        wait_i2c_transfer_finished();
+
+        MCF_I2C_I2CR = 0x80; // stop
+        dummyByte = MCF_I2C_I2DR; // dummy read
+        MCF_I2C_I2SR = 0x0; // clear sr
 
         waitfor(10000, i2c_bus_free);
 
         MCF_I2C_I2CR = 0xb0;
-        MCF_I2C_I2DR = 0x7a;
+        MCF_I2C_I2DR = 0x7A;
 
         wait_i2c_transfer_finished();
 
         if (MCF_I2C_I2SR & MCF_I2C_I2SR_RXAK)
-            continue;
+            goto try_again;
 
-        MCF_I2C_I2DR = 0x08;                            /* SUB ADRESS 8 */
+        MCF_I2C_I2DR = 0x08; // SUB ADRESS 8
 
         wait_i2c_transfer_finished();
 
-        MCF_I2C_I2CR |= 0x4;                            /* repeat start */
-        MCF_I2C_I2DR = 0x7b;                            /* begin read */
+        MCF_I2C_I2CR |= 0x4; // repeat start
+        MCF_I2C_I2DR = 0x7b; // beginn read
 
         wait_i2c_transfer_finished();
 
         if (MCF_I2C_I2SR & MCF_I2C_I2SR_RXAK)
-            continue;
+            goto try_again;
 
-        MCF_I2C_I2CR &= 0xef;                           /* switch to rx */
-        dummyByte = MCF_I2C_I2DR;                       /* dummy read */
+        MCF_I2C_I2CR &= 0xef; // switch to rx
+        dummyByte = MCF_I2C_I2DR; // dummy read
 
         wait_i2c_transfer_finished();
-        MCF_I2C_I2CR |= 0x08;                           /* txak=1 */
+        MCF_I2C_I2CR |= 0x08; // txak=1
 
         wait(50);
 
@@ -906,9 +781,11 @@ void dvi_on(void)
 
         wait_i2c_transfer_finished();
 
-        MCF_I2C_I2CR = 0x80;                            /* stop */
+        MCF_I2C_I2CR = 0x80; // stop
 
-        dummyByte = MCF_I2C_I2DR;                       /* dummy read */
+        dummyByte = MCF_I2C_I2DR; // dummy read
+
+try_again:
         num_tries++;
     } while ((receivedByte != 0xbf) && (num_tries < 10));
 
@@ -920,7 +797,8 @@ void dvi_on(void)
     {
         xprintf("finished\r\n");
     }
-    UNUSED(dummyByte);                                  /* Avoid warning */
+    UNUSED(dummyByte);
+    // Avoid warning
 }
 
 
@@ -937,20 +815,20 @@ void init_ac97(void)
     int vc;
 
     xprintf("AC97 sound chip initialization: ");
-    MCF_PAD_PAR_PSC2 = MCF_PAD_PAR_PSC2_PAR_RTS2_RTS	// PSC2=TX,RX BCLK,CTS->AC'97
-                | MCF_PAD_PAR_PSC2_PAR_CTS2_BCLK
-                | MCF_PAD_PAR_PSC2_PAR_TXD2
-                | MCF_PAD_PAR_PSC2_PAR_RXD2;
+    MCF_PAD_PAR_PSC2 = MCF_PAD_PAR_PSC2_PAR_RTS2_RTS    // PSC2=TX,RX BCLK,CTS->AC'97
+           | MCF_PAD_PAR_PSC2_PAR_CTS2_BCLK
+             | MCF_PAD_PAR_PSC2_PAR_TXD2
+             | MCF_PAD_PAR_PSC2_PAR_RXD2;
     MCF_PSC2_PSCMR1 = 0x0;
     MCF_PSC2_PSCMR2 = 0x0;
     MCF_PSC2_PSCIMR = 0x0300;
-    MCF_PSC2_PSCSICR = 0x03;	//AC97
+    MCF_PSC2_PSCSICR = 0x03;    //AC97
     MCF_PSC2_PSCRFCR = 0x0f000000;
     MCF_PSC2_PSCTFCR = 0x0f000000;
     MCF_PSC2_PSCRFAR = 0x00F0;
     MCF_PSC2_PSCTFAR = 0x00F0;
 
-    for (zm = 0; zm < 100000; zm++)	// wiederholen bis synchron
+    for (zm = 0; zm < 100000; zm++) // wiederholen bis synchron
     {
         MCF_PSC2_PSCCR = 0x20;
         MCF_PSC2_PSCCR = 0x30;
@@ -958,21 +836,21 @@ void init_ac97(void)
         MCF_PSC2_PSCCR = 0x05;
 
         // MASTER VOLUME -0dB
-        MCF_PSC2_PSCTB_AC97 = 0xE0000000;	//START SLOT1 + SLOT2, FIRST FRAME
-        MCF_PSC2_PSCTB_AC97 = 0x02000000;	//SLOT1:WR REG MASTER VOLUME adr 0x02
+        MCF_PSC2_PSCTB_AC97 = 0xE0000000;   //START SLOT1 + SLOT2, FIRST FRAME
+        MCF_PSC2_PSCTB_AC97 = 0x02000000;   //SLOT1:WR REG MASTER VOLUME adr 0x02
 
         for (i = 2; i < 13; i++)
         {
-            MCF_PSC2_PSCTB_AC97 = 0x0;	//SLOT2-12:WR REG ALLES 0
+            MCF_PSC2_PSCTB_AC97 = 0x0;  //SLOT2-12:WR REG ALLES 0
         }
 
         // read register
-        MCF_PSC2_PSCTB_AC97 = 0xc0000000;	//START SLOT1 + SLOT2, FIRST FRAME
-        MCF_PSC2_PSCTB_AC97 = 0x82000000;	//SLOT1:master volume
+        MCF_PSC2_PSCTB_AC97 = 0xc0000000;   //START SLOT1 + SLOT2, FIRST FRAME
+        MCF_PSC2_PSCTB_AC97 = 0x82000000;   //SLOT1:master volume
 
         for (i = 2; i < 13; i++)
         {
-            MCF_PSC2_PSCTB_AC97 = 0x00000000;	//SLOT2-12:RD REG ALLES 0
+            MCF_PSC2_PSCTB_AC97 = 0x00000000;   //SLOT2-12:RD REG ALLES 0
         }
         wait(50);
 
@@ -991,38 +869,34 @@ void init_ac97(void)
     xprintf(" NOT");
 livo:
     // AUX VOLUME ->-0dB
-    MCF_PSC2_PSCTB_AC97 = 0xE0000000;	//START SLOT1 + SLOT2, FIRST FRAME
-    MCF_PSC2_PSCTB_AC97 = 0x16000000;	//SLOT1:WR REG AUX VOLUME adr 0x16
-    MCF_PSC2_PSCTB_AC97 = 0x06060000;	//SLOT1:VOLUME
-    for (i = 3; i < 13; i++)
-    {
-        MCF_PSC2_PSCTB_AC97 = 0x0;      //SLOT2-12:WR REG ALLES 0
+    MCF_PSC2_PSCTB_AC97 = 0xE0000000;   //START SLOT1 + SLOT2, FIRST FRAME
+    MCF_PSC2_PSCTB_AC97 = 0x16000000;   //SLOT1:WR REG AUX VOLUME adr 0x16
+    MCF_PSC2_PSCTB_AC97 = 0x06060000;   //SLOT1:VOLUME
+    for (i = 3; i < 13; i++) {
+        MCF_PSC2_PSCTB_AC97 = 0x0;  //SLOT2-12:WR REG ALLES 0
     }
 
     // line in VOLUME +12dB
-    MCF_PSC2_PSCTB_AC97 = 0xE0000000;	//START SLOT1 + SLOT2, FIRST FRAME
-    MCF_PSC2_PSCTB_AC97 = 0x10000000;	//SLOT1:WR REG MASTER VOLUME adr 0x02
-    for (i = 2; i < 13; i++)
-    {
-        MCF_PSC2_PSCTB_AC97 = 0x0;      //SLOT2-12:WR REG ALLES 0
+    MCF_PSC2_PSCTB_AC97 = 0xE0000000;   //START SLOT1 + SLOT2, FIRST FRAME
+    MCF_PSC2_PSCTB_AC97 = 0x10000000;   //SLOT1:WR REG MASTER VOLUME adr 0x02
+    for (i = 2; i < 13; i++) {
+        MCF_PSC2_PSCTB_AC97 = 0x0;  //SLOT2-12:WR REG ALLES 0
     }
     // cd in VOLUME 0dB
-    MCF_PSC2_PSCTB_AC97 = 0xE0000000;	//START SLOT1 + SLOT2, FIRST FRAME
-    MCF_PSC2_PSCTB_AC97 = 0x12000000;	//SLOT1:WR REG MASTER VOLUME adr 0x02
-    for (i = 2; i < 13; i++)
-    {
-        MCF_PSC2_PSCTB_AC97 = 0x0;      //SLOT2-12:WR REG ALLES 0
+    MCF_PSC2_PSCTB_AC97 = 0xE0000000;   //START SLOT1 + SLOT2, FIRST FRAME
+    MCF_PSC2_PSCTB_AC97 = 0x12000000;   //SLOT1:WR REG MASTER VOLUME adr 0x02
+    for (i = 2; i < 13; i++) {
+        MCF_PSC2_PSCTB_AC97 = 0x0;  //SLOT2-12:WR REG ALLES 0
     }
     // mono out VOLUME 0dB
-    MCF_PSC2_PSCTB_AC97 = 0xE0000000;	//START SLOT1 + SLOT2, FIRST FRAME
-    MCF_PSC2_PSCTB_AC97 = 0x06000000;	//SLOT1:WR REG MASTER VOLUME adr 0x02
-    MCF_PSC2_PSCTB_AC97 = 0x00000000;	//SLOT1:WR REG MASTER VOLUME adr 0x02
-    for (i = 3; i < 13; i++)
-    {
-        MCF_PSC2_PSCTB_AC97 = 0x0;      //SLOT2-12:WR REG ALLES 0
+    MCF_PSC2_PSCTB_AC97 = 0xE0000000;   //START SLOT1 + SLOT2, FIRST FRAME
+    MCF_PSC2_PSCTB_AC97 = 0x06000000;   //SLOT1:WR REG MASTER VOLUME adr 0x02
+    MCF_PSC2_PSCTB_AC97 = 0x00000000;   //SLOT1:WR REG MASTER VOLUME adr 0x02
+    for (i = 3; i < 13; i++) {
+        MCF_PSC2_PSCTB_AC97 = 0x0;  //SLOT2-12:WR REG ALLES 0
     }
-    MCF_PSC2_PSCTFCR |= MCF_PSC_PSCTFCR_WFR;	//set EOF
-    MCF_PSC2_PSCTB_AC97 = 0x00000000;	//last data
+    MCF_PSC2_PSCTFCR |= MCF_PSC_PSCTFCR_WFR;    //set EOF
+    MCF_PSC2_PSCTB_AC97 = 0x00000000;   //last data
     xprintf(" finished\r\n");
 }
 
@@ -1032,16 +906,16 @@ extern uint8_t _STRAM_END[];
 #define STRAM_END ((uint32_t)_STRAM_END)
 
 extern uint8_t _FIRETOS[];
-#define FIRETOS ((uint32_t)_FIRETOS)        /* where FireTOS is stored in flash */
+#define FIRETOS ((uint32_t)_FIRETOS) /* where FireTOS is stored in flash */
 
 extern uint8_t _BAS_LMA[];
-#define BAS_LMA (&_BAS_LMA[0])              /* where the BaS is stored in flash */
+#define BAS_LMA (&_BAS_LMA[0]) /* where the BaS is stored in flash */
 
 extern uint8_t _BAS_IN_RAM[];
-#define BAS_IN_RAM (&_BAS_IN_RAM[0])        /* where the BaS is run in RAM */
+#define BAS_IN_RAM (&_BAS_IN_RAM[0]) /* where the BaS is run in RAM */
 
 extern uint8_t _BAS_SIZE[];
-#define BAS_SIZE ((uint32_t)_BAS_SIZE)      /* size of the BaS, in bytes */
+#define BAS_SIZE ((uint32_t)_BAS_SIZE) /* size of the BaS, in bytes */
 
 extern uint8_t _FASTRAM_END[];
 #define FASTRAM_END ((uint32_t)_FASTRAM_END)
@@ -1064,6 +938,8 @@ void clear_bss_segment(void)
 
 void initialize_hardware(void)
 {
+    bool coldboot = true;
+
     /* Test for FireTOS switch: DIP switch #5 up */
 #ifdef MACHINE_FIREBEE
     if (!(DIP_SWITCH & (1 << 6))) {
@@ -1071,15 +947,15 @@ void initialize_hardware(void)
         init_gpio();
         init_serial();
         init_slt();
-        init_fbcs(); 
+        init_fbcs();
         init_ddram();
         init_fpga();
 
         /* Validate ST RAM */
-        * (volatile uint32_t *) 0x42e = STRAM_END;	/* phystop TOS system variable */
-        * (volatile uint32_t *) 0x420 = 0x752019f3;	/* memvalid TOS system variable */
-        * (volatile uint32_t *) 0x43a = 0x237698aa;	/* memval2 TOS system variable */
-        * (volatile uint32_t *) 0x51a = 0x5555aaaa;	/* memval3 TOS system variable */
+        * (volatile uint32_t *) 0x42e = STRAM_END;  /* phystop TOS system variable */
+        * (volatile uint32_t *) 0x420 = 0x752019f3; /* memvalid TOS system variable */
+        * (volatile uint32_t *) 0x43a = 0x237698aa; /* memval2 TOS system variable */
+        * (volatile uint32_t *) 0x51a = 0x5555aaaa; /* memval3 TOS system variable */
 
         /* TT-RAM */
 
@@ -1089,7 +965,7 @@ void initialize_hardware(void)
         /* Jump into FireTOS */
         typedef void void_func(void);
         void_func* FireTOS = (void_func*) FIRETOS;
-        FireTOS(); 	// Should never return
+        FireTOS();  // Should never return
         return;
     }
 #endif /* MACHINE_FIREBEE */
@@ -1107,9 +983,6 @@ void initialize_hardware(void)
 #endif
     , MAJOR_VERSION, MINOR_VERSION, __DATE__, __TIME__);
 
-    extern char *rom_header;
-
-    xprintf("running from %p\r\n\r\n", &rom_header);
     /*
      * Determine cause(s) of Reset
      */
@@ -1172,8 +1045,8 @@ void initialize_hardware(void)
     }
 
     /* make sure MMU is disabled */
-    MCF_MMU_MMUCR = 0;	/* MMU off */
-    NOP();				/* force pipeline sync */
+    MCF_MMU_MMUCR = 0;  /* MMU off */
+    NOP();              /* force pipeline sync */
 
     /*
      * Determine the processor revision
@@ -1182,30 +1055,36 @@ void initialize_hardware(void)
 
     init_slt();
     init_fbcs();
-    init_ddram();
+    coldboot = init_ddram();
 
     /*
      * install (preliminary) exception vectors
      */
     setup_vectors();
 
+#ifdef _NOT_USED_
+    /* make sure the handlers are called */
+    __asm__ __volatile__("dc.w 0xafff");  /* should trigger a line-A exception */
+#endif /* _NOT_USED_ */
+
+
     /*
      * save the planet (and reduce case heat): disable clocks of unused SOC modules
      */
-    MCF_CLOCK_SPCR =	0xffffffff & ~(
-                            0					  	|	/* leave memory clock enabled */
-                            0				   	  	|	/* leave PCI clock enabled */
-                            0					  	|	/* leave FlexBus clock enabled */
-                            MCF_CLOCK_SPCR_CAN0EN 	|	/* disable CAN0 */
-                            0					  	|	/* leave DMA clock enabled */
-                            0					  	|	/* leave FEC0 clock enabled */
-                            MCF_CLOCK_SPCR_FEC1EN 	|	/* disable FEC1 */
-                            MCF_CLOCK_SPCR_USBEN 	|	/* disable USB slave */
-                            0					  	|	/* leave PSC clock enabled */
-                            MCF_CLOCK_SPCR_CAN1EN 	|	/* disable CAN1 */
-                            MCF_CLOCK_SPCR_CRYENA 	|	/* disable crypto clock A */
-                            MCF_CLOCK_SPCR_CRYENB	|	/* disable crypto clock B */
-                            0							/* leave core clock enabled */
+    MCF_CLOCK_SPCR =    0xffffffff & ~(
+                            0                       |   /* leave memory clock enabled */
+                            0                       |   /* leave PCI clock enabled */
+                            0                       |   /* leave FlexBus clock enabled */
+                            MCF_CLOCK_SPCR_CAN0EN   |   /* disable CAN0 */
+                            0                       |   /* leave DMA clock enabled */
+                            0                       |   /* leave FEC0 clock enabled */
+                            MCF_CLOCK_SPCR_FEC1EN   |   /* disable FEC1 */
+                            MCF_CLOCK_SPCR_USBEN    |   /* disable USB slave */
+                            0                       |   /* leave PSC clock enabled */
+                            MCF_CLOCK_SPCR_CAN1EN   |   /* disable CAN1 */
+                            MCF_CLOCK_SPCR_CRYENA   |   /* disable crypto clock A */
+                            MCF_CLOCK_SPCR_CRYENB   |   /* disable crypto clock B */
+                            0                           /* leave core clock enabled */
                         );
 
     /* the following only makes sense _after_ DDRAM has been initialized */
@@ -1222,6 +1101,8 @@ void initialize_hardware(void)
     }
 
 #if MACHINE_FIREBEE
+    if (coldboot) /* does not work with BDM */
+        ;
     fpga_configured = init_fpga();
 
     init_pll();
@@ -1230,6 +1111,13 @@ void initialize_hardware(void)
 
 #endif /* MACHINE_FIREBEE */
     driver_mem_init();
+    init_pci();
+    video_init();
+
+    /* do not try to init USB for now on the Firebee, it hangs the machine */
+#ifndef MACHINE_FIREBEE
+    //init_usb();
+#endif
 
 #if MACHINE_FIREBEE
     init_ac97();
