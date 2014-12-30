@@ -74,17 +74,7 @@ void wait_for_jtag(void)
 
     /* wait */
     xprintf("wait a little to let things settle...\r\n");
-    for (i = 0; i < 10000000; i++);
-
-    xprintf("write byte data to FPGA memory\r\n");
-    for (i = 0; i < 512; i++)
-    {
-        _VRAM[i] = i;
-    }
-    hexdump((uint8_t *) _VRAM, 512);
-
-    xprintf("wait a little to let things settle...\r\n");
-    for (i = 0; i < 10000000; i++);
+    for (i = 0; i < 100000; i++);
 
     __asm__ __volatile__(
         "       jmp     (%[bas_start])\n\t"
