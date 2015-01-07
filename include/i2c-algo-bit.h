@@ -32,18 +32,19 @@
  * manipulate the line states, and to init any hw-specific features. This is
  * only used if you have more than one hw-type of adapter running. 
  */
-struct i2c_algo_bit_data {
-	void *data;		/* private data for lowlevel routines */
-	void (*setsda) (void *data, int state);
-	void (*setscl) (void *data, int state);
-	int  (*getsda) (void *data);
-	int  (*getscl) (void *data);
+struct i2c_algo_bit_data
+{
+    void *data;		/* private data for lowlevel routines */
+    void (*setsda) (void *data, int state);
+    void (*setscl) (void *data, int state);
+    int  (*getsda) (void *data);
+    int  (*getscl) (void *data);
 
-	/* local settings */
-	int udelay;		/* half-clock-cycle time in microsecs */
-				/* i.e. clock is (500 / udelay) KHz */
-	int mdelay;		/* in millisecs, unused */
-	int timeout;		/* in jiffies */
+    /* local settings */
+    int udelay;     /* half-clock-cycle time in microsecs */
+                    /* i.e. clock is (500 / udelay) KHz */
+    int mdelay;     /* in millisecs, unused */
+    int timeout;    /* in jiffies */
 };
 
 #define I2C_BIT_ADAP_MAX	16

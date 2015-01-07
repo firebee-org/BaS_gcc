@@ -191,3 +191,7 @@ tos/vmem_test/sources/printf_helper.S
 tos/vmem_test/sources/vmem_test.c
 sys/startcf.S
 sys/exceptions.S
+util/bas_printf.c
+util/bas_string.c
+util/printf_helper.S
+util/wait.c
