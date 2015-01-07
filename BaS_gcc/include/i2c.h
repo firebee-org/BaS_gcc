@@ -44,39 +44,42 @@ extern int i2c_transfer(struct i2c_adapter *adap, struct i2c_msg *msgs, int num)
  * be addressed using the same bus algorithms - i.e. bit-banging or the PCF8584
  * to name two of the most common.
  */
-struct i2c_algorithm {
-	unsigned int id;
-	int (*master_xfer)(struct i2c_adapter *adap,struct i2c_msg *msgs, int num);
-	/* --- ioctl like call to set div. parameters. */
-	int (*algo_control)(struct i2c_adapter *, unsigned int, unsigned long);
+struct i2c_algorithm
+{
+    unsigned int id;
+    int (*master_xfer)(struct i2c_adapter *adap,struct i2c_msg *msgs, int num);
+    /* --- ioctl like call to set div. parameters. */
+    int (*algo_control)(struct i2c_adapter *, unsigned int, unsigned long);
 };
 
 /*
  * i2c_adapter is the structure used to identify a physical i2c bus along
  * with the access algorithms necessary to access it.
  */
-struct i2c_adapter {
-	struct i2c_algorithm *algo;/* the algorithm to access the bus	*/
-	void *algo_data;
-	int timeout;
-	int retries;
-	int nr;
+struct i2c_adapter
+{
+    struct i2c_algorithm *algo;     /* the algorithm to access the bus	*/
+    void *algo_data;
+    int timeout;
+    int retries;
+    int nr;
 };
 
 /*
  * I2C Message - used for pure i2c transaction, also from /dev interface
  */
-struct i2c_msg {
-	unsigned short addr;	/* slave address			*/
- 	unsigned short flags;		
-#define I2C_M_TEN	0x10	/* we have a ten bit chip address	*/
-#define I2C_M_RD	0x01
-#define I2C_M_NOSTART	0x4000
-#define I2C_M_REV_DIR_ADDR	0x2000
-#define I2C_M_IGNORE_NAK	0x1000
-#define I2C_M_NO_RD_ACK		0x0800
- 	unsigned short len;		/* msg length				*/
- 	unsigned char *buf;		/* pointer to msg data			*/
+struct i2c_msg
+{
+    unsigned short addr;	/* slave address			*/
+    unsigned short flags;
+#define I2C_M_TEN           0x10	/* we have a ten bit chip address	*/
+#define I2C_M_RD            0x01
+#define I2C_M_NOSTART       0x4000
+#define I2C_M_REV_DIR_ADDR  0x2000
+#define I2C_M_IGNORE_NAK    0x1000
+#define I2C_M_NO_RD_ACK     0x0800
+    unsigned short len;     /* msg length				*/
+    unsigned char *buf;     /* pointer to msg data			*/
 };
 
 #endif /* _I2C_H */

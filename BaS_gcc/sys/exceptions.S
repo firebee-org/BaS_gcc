@@ -225,7 +225,7 @@ init_vec_loop:
                 move.l  a1,(INT_SOURCE_XLBPCI + 64) * 4(a0)
 
 #ifndef MACHINE_FIREBEE
-// FEC1 not wired on the FireBee, but used on other machines
+// FEC1 not wired on the FireBee (used for FPGA as GPIO), but used on other machines
                 move.l  a1,(INT_SOURCE_FEC1 + 64) * 4(a0)
 #endif
 
@@ -234,6 +234,7 @@ init_vec_loop:
 
                 move.l  (sp)+,a2            // Restore registers
                 rts
+
 /*
  * exception vector routines
  */
@@ -295,8 +296,8 @@ reset_vector:
                 move.w  #0x2700,sr                  // disable interrupt
                 move.l  #0x31415926,d0
                 cmp.l   0x426,d0                    // _resvalid: reset vector valid?
-                beq std_exc_vec                     // yes->
-                jmp _rom_entry                      // no, cold start machine
+                beq     std_exc_vec                 // yes->
+                jmp     _rom_entry                  // no, cold start machine
 
 access:
                 move.w  #0x2700,sr                  // disable interrupts
@@ -310,7 +311,7 @@ access:
                 move.l  MCF_MMU_MMUSR,-(sp)         // MMU status regisrter
                 move.w  #0x2300,sr                  // can lower interrupt mask now that MMU status is safe
                 jsr     _mmutr_miss                 // call C routine
-                lea 4 * 4(sp),sp                    // adjust stack
+                lea     4 * 4(sp),sp                // adjust stack
 
                 tst.l   d0                          // exception handler signals bus error
                 bne     bus_error
@@ -402,16 +403,16 @@ irq7:
                 irq 0x7c,7,0x80                     // IRQ7
 
 mfp_irq1:
-                irq 0x104,1,0x02                    // IRQ1
+                irq 0x104,1,0x02                    // MFP IRQ1
 
 mfp_irq2:
-                irq 0x108,2,0x04                    // IRQ2
+                irq 0x108,2,0x04                    // MFP IRQ2
 
 mfp_irq3:
-                irq 0x10c,3,0x08                    // IRQ3
+                irq 0x10c,3,0x08                    // MFP IRQ3
 
 mfp_irq4:
-                irq 0x110,4,0x10                    // IRQ4
+                irq 0x110,4,0x10                    // MFP IRQ4
 
 
 #if MACHINE_M5484LITE_notyet                        // handlers for M5484LITE
@@ -531,12 +532,12 @@ mfp_irq6_non_sca:
                 lea     0xfffffa0b,a5
                 bset    #7,-4(a5)                   // int ena
                 btst.b  #7,(a5)                     // acsi dma int?
-                beq mfp_non_acsi_dma
-                bsr acsi_dma
+                beq     mfp_non_acsi_dma
+                bsr     acsi_dma
 mfp_non_acsi_dma:
 // ----------------------------------------------------------------------------------
                 tst.b   (a5)
-                bne mfp_irq6_1
+                bne     mfp_irq6_1
                 tst.b   2(a5)
                 bne     mfp_irq6_1
                 movem.l (sp),d0/a5
@@ -591,11 +592,11 @@ acsi_dma:                   // atari dma
                 move.l  a1,-(sp)
                 move.l  d1,-(sp)
 
-                //lea MCF_PSC0_PSCTB_8BIT,a1        // ++ vr
-                // mchar move.l, 'D,'M','A,'\ ,(a1)
-                //move.l    #"DMA ",(a1)
-                // mchar   move.l,'I,'N,'T,'!,(a1)
-                // move.l   #'INT!',(a1)
+                //lea     MCF_PSC0_PSCTB_8BIT,a1        // ++ vr
+                //mchar   move.l, 'D,'M','A,'\ ,(a1)
+                //move.l  #"DMA ",(a1)
+                //mchar   move.l,'I,'N,'T,'!,(a1)
+                //move.l  #'INT!',(a1)
 
                 lea     0xf0020110,a5               // fifo daten
 acsi_dma_start:
@@ -684,6 +685,11 @@ mfp_irq7:
  * when the video base address gets changed
  */
 
+/*
+ * TODO: remove. This interrupt still fires, but doesn't do anything anymore.
+ * BaS_gcc handles FPGA RAM as STRAM, so there is no page copy necessary as
+ * it was with previous versions.
+ */
 handler_gpt0:
                 .extern _gpt0_interrupt_handler
 
@@ -721,7 +727,7 @@ _lowlevel_isr_handler:
                 lsr.l   #2,d0                       // move it in place
                 andi.l  #0xff,d0                    // mask it out
                 move.l  d0,-(sp)                    // push it
-                jsr _isr_execute_handler            // call the C handler
+                jsr     _isr_execute_handler        // call the C handler
                 addq.l  #4,sp                       // adjust stack
 
                 movem.l (sp),d0-d1/a0-a1            // restore registers
