@@ -99,34 +99,34 @@
 #define ISR_USER_ISR 	0x02
 
 #if defined(MACHINE_FIREBEE)
+
 /* Firebee FPGA interrupt controller */
-#define FPGA_INTR_CONTROL	((volatile uint32_t *) 0xf0010000)
-#define FPGA_INTR_ENABLE	((volatile uint32_t *) 0xf0010004)
-#define FPGA_INTR_CLEAR 	((volatile uint32_t *) 0xf0010008)
-#define FPGA_INTR_PENDING   ((volatile uint32_t *) 0xff01000c)
+#define FBEE_INTR_CONTROL	* ((volatile uint32_t *) 0xf0010000)
+#define FBEE_INTR_ENABLE	* ((volatile uint32_t *) 0xf0010004)
+#define FBEE_INTR_CLEAR 	* ((volatile uint32_t *) 0xf0010008)
+#define FBEE_INTR_PENDING   * ((volatile uint32_t *) 0xff01000c)
 
 /* register bits for Firebee FPGA-based interrupt controller */
-#define FPGA_INTR_PIC               (1)
-#define FPGA_INTR_ETHERNET          (1 << 1)
-#define FPGA_INTR_DVI               (1 << 2)
-#define FPGA_INTR_PCI_INTA          (1 << 3)
-#define FPGA_INTR_PCI_INTB          (1 << 4)
-#define FPGA_INTR_PCI_INTC          (1 << 5)
-#define FPGA_INTR_PCI_INTD          (1 << 6)
-#define FPGA_INTR_INT_DSP           (1 << 7)
-#define FPGA_INTR_INT_VSYNC         (1 << 8)
-#define FPGA_INTR_INT_HSYNC         (1 << 9)
-#define FPGA_INTR_INT_HSYNC_IRQ2    (1 << 26)
-#define FPGA_INTR_INT_CTR0_IRQ3     (1 << 27)
-#define FPGA_INTR_INT_VSYNC_IRQ4    (1 << 28)
-#define FPGA_INTR_INT_FPGA_IRQ5     (1 << 29)
-#define FPGA_INTR_INT_MFP_IRQ6      (1 << 30)
-#define FPGA_INTR_INT_IRQ7          (1 << 31)
+#define FBEE_INTR_PIC               (1 << 0)        /* PIC interrupt enable/pending/clear bit */
+#define FBEE_INTR_ETHERNET          (1 << 1)        /* ethernet PHY interrupt enable/pending/clear bit */
+#define FBEE_INTR_DVI               (1 << 2)        /* TFP410 monitor sense interrupt enable/pending/clear bit */
+#define FBEE_INTR_PCI_INTA          (1 << 3)        /* /PCIINTA enable/pending clear bit */
+#define FBEE_INTR_PCI_INTB          (1 << 4)        /* /PCIINTB enable/pending clear bit */
+#define FBEE_INTR_PCI_INTC          (1 << 5)        /* /PCIINTC enable/pending clear bit */
+#define FBEE_INTR_PCI_INTD          (1 << 6)        /* /PCIINTD enable/pending clear bit */
+#define FBEE_INTR_DSP               (1 << 7)        /* DSP interrupt enable/pending/clear bit */
+#define FBEE_INTR_VSYNC             (1 << 8)        /* VSYNC interrupt enable/pending/clear bit */
+#define FBEE_INTR_HSYNC             (1 << 9)        /* HSYNC interrupt enable/pending/clear bit */
+
+#define FBEE_INTR_INT_HSYNC_IRQ2    (1 << 26)       /* these bits are only meaningful for the FBEE_INTR_ENABLE register */
+#define FBEE_INTR_INT_CTR0_IRQ3     (1 << 27)
+#define FBEE_INTR_INT_VSYNC_IRQ4    (1 << 28)
+#define FBEE_INTR_INT_FPGA_IRQ5     (1 << 29)
+#define FBEE_INTR_INT_MFP_IRQ6      (1 << 30)
+#define FBEE_INTR_INT_IRQ7          (1 << 31)
 
 /*
  * Atari MFP interrupt registers.
- *
- * TODO: should go into a header file
  */
 
 #define FALCON_MFP_IERA     *((volatile uint8_t *) 0xfffffa07)
@@ -136,14 +136,15 @@
 #define FALCON_MFP_IMRA     *((volatile uint8_t *) 0xfffffa13)
 #define FALCON_MFP_IMRB     *((volatile uint8_t *) 0xfffffa15)
 
-#define vbasehi		(* (volatile uint8_t *) 0xffff8201)
-#define vbasemid	(* (volatile uint8_t *) 0xffff8203)
-#define vbaselow	(* (volatile uint8_t *) 0xffff820d)
+#ifdef _NOT_USED_
+#define vbasehi		* ((volatile uint8_t *) 0xffff8201)
+#define vbasemid	* ((volatile uint8_t *) 0xffff8203)
+#define vbaselow	* ((volatile uint8_t *) 0xffff820d)
 
-#define vwrap		(* (volatile uint16_t *) 0xffff8210)
-#define vde			(* (volatile uint16_t *) 0xffff82aa)
-#define vdb			(* (volatile uint16_t *) 0xffff82a8)
-
+#define vwrap		* ((volatile uint16_t *) 0xffff8210)
+#define vde			* ((volatile uint16_t *) 0xffff82aa)
+#define vdb			* ((volatile uint16_t *) 0xffff82a8)
+#endif /* _NOT_USED_ */
 #endif /* MACHINE_FIREBEE */
 
 extern void isr_init(void);

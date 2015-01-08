@@ -182,7 +182,7 @@ int pic_interrupt_handler(void *arg1, void *arg2)
         uint8_t *rtc_data = (uint8_t *) 0xffff8963;
         int index = 0;
 
-    err("PIC interrupt: requesting RTC data\r\n");
+        err("PIC interrupt: requesting RTC data\r\n");
 
         MCF_PSC3_PSCTB_8BIT = 0x82;		// header byte to PIC
         do
@@ -211,50 +211,59 @@ int pciarb_interrupt_handler(void *arg1, void *arg2)
 #if defined(MACHINE_FIREBEE)
 /*
  * This gets called from irq5 in exceptions.S
+ *
+ * IRQ5 are the "FBEE" (PIC, ETH PHY, PCI, DVI monitor sense and DSP) interrupts multiplexed by the FPGA interrupt handler
+ *
  * Once we arrive here, the SR has been set to disable interrupts and the gcc scratch registers have been saved
  */
 int irq5_handler(void *arg1, void *arg2)
 {
-    int32_t handle;
-    int32_t value = 0;
-    int32_t newvalue;
+    uint32_t pending_interrupts = FBEE_INTR_PENDING;
 
-    dbg("FPGA_INTR_CONTROL = 0x%08x\r\n", * FPGA_INTR_CONTROL);
-    dbg("FPGA_INTR_ENABLE  = 0x%08x\r\n", * FPGA_INTR_ENABLE);
-    dbg("FPGA_INTR_CLEAR   = 0x%08x\r\n", * FPGA_INTR_CLEAR);
-    dbg("FPGA_INTR_PENDING = 0x%08x\r\n", * FPGA_INTR_PENDING);
+    if (pending_interrupts & FBEE_INTR_PIC)
+    {
+        dbg("PIC interrupt\r\n");
+        FBEE_INTR_CLEAR = FBEE_INTR_PIC;
+    }
 
-    * FPGA_INTR_CLEAR &= ~0x20000000UL;     /* clear interrupt from FPGA */
-    dbg("\r\nFPGA_INTR_CLEAR = 0x%08x\r\n", * FPGA_INTR_CLEAR);
+    if (pending_interrupts & FBEE_INTR_ETHERNET)
+    {
+        dbg("ethernet 0 PHY interrupt\r\n");
+        FBEE_INTR_CLEAR = FBEE_INTR_ETHERNET;
+    }
+
+    if (pending_interrupts & FBEE_INTR_DVI)
+    {
+        dbg("DVI monitor sense interrupt\r\n");
+        FBEE_INTR_CLEAR = FBEE_INTR_DVI;
+    }
+
+    if (pending_interrupts & FBEE_INTR_PCI_INTA ||
+        pending_interrupts & FBEE_INTR_PCI_INTB ||
+        pending_interrupts & FBEE_INTR_PCI_INTC ||
+        pending_interrupts & FBEE_INTR_PCI_INTD)
+    {
+        dbg("PCI interrupt\r\n");
+        FBEE_INTR_CLEAR = FBEE_INTR_PCI_INTA |
+                          FBEE_INTR_PCI_INTB |
+                          FBEE_INTR_PCI_INTC |
+                          FBEE_INTR_PCI_INTD;
+    }
+
+    if (pending_interrupts & FBEE_INTR_DSP)
+    {
+        dbg("DSP interrupt\r\n");
+        FBEE_INTR_CLEAR = FBEE_INTR_DSP;
+    }
+
+    if (pending_interrupts & FBEE_INTR_VSYNC || pending_interrupts & FBEE_INTR_HSYNC)
+    {
+        /* hsync and vsync should go to TOS unhandled */
+        return 1;
+    }
+
     MCF_EPORT_EPFR |= (1 << 5);             /* clear interrupt from edge port */
 
-    //xprintf("IRQ5!\r\n");
-
-#ifdef _NOT_USED_
-    if ((handle = pci_get_interrupt_cause()) > 0)
-    {
-        newvalue = pci_call_interrupt_chain(handle, value);
-        if (newvalue == value)
-        {
-            dbg("interrupt not handled!\r\n");
-
-            return 1;
-        }
-    }
-#endif
-
-    return 0;
-}
-
-int irq6_handler(void *arg1, void *arg2)
-{
-    err("IRQ6!\r\n");
-
-    return 0;
-}
-#else
-int irq5_handler(void *arg1, void *arg2)
-{
     return 0;
 }
 
@@ -314,9 +323,20 @@ bool irq6_handler(uint32_t sf1, uint32_t sf2)
     return handled;
 }
 
-#endif /* MACHINE_FIREBEE */
+#else /* MACHINE_FIREBEE */
 
-#ifdef MACHINE_M5484LITE
+int irq5_handler(void *arg1, void *arg2)
+{
+    return 0;
+}
+
+bool irq6_handler(void *arg1, void *arg2)
+{
+    err("IRQ6!\r\n");
+
+    return 0;
+}
+
 /*
  * This gets called from irq7 in exceptions.S
  * Once we arrive here, the SR has been set to disable interrupts and the gcc scratch registers have been saved
@@ -342,18 +362,6 @@ void irq7_handler(void)
 
 #if defined(MACHINE_FIREBEE)
 /*
- * Firebee/Falcon Videl registers
- * TODO: should go into an include file
- */
-#define vbasehi		(* (volatile uint8_t *) 0xffff8201)
-#define vbasemid	(* (volatile uint8_t *) 0xffff8203)
-#define vbaselow	(* (volatile uint8_t *) 0xffff820d)
-
-#define vwrap		(* (volatile uint16_t *) 0xffff8210)
-#define vde         (* (volatile uint16_t *) 0xffff82aa)
-#define vdb         (* (volatile uint16_t *) 0xffff82a8)
-
-/*
  * this is the higlevel interrupt service routine for gpt0 timer interrupts.
  *
  * It is called from handler_gpt0 in exceptions.S
@@ -369,8 +377,6 @@ void irq7_handler(void)
  */
 void gpt0_interrupt_handler(void)
 {
-    dbg("screen base = 0x%x\r\n", vbasehi);
-
     MCF_GPT0_GMS &= ~1;		/* rearm trigger */
     NOP();
     MCF_GPT0_GMS |= 1;
