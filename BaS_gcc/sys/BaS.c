@@ -231,7 +231,7 @@ void enable_coldfire_interrupts()
             MCF_GPT_GMS_IEN |
             MCF_GPT_GMS_TMS(1);             /* route GPT0 interrupt on interrupt controller */
     MCF_INTC_ICR62 = MCF_INTC_ICR_IL(7) |
-        MCF_INTC_ICR_IP(7);                 /* interrupt level 7, interrupt priority 7 */
+                     MCF_INTC_ICR_IP(6);    /* interrupt level 7, interrupt priority 7 */
 
 
     MCF_EPORT_EPIER = 0xfe;                 /* int 1-7 on */
@@ -282,29 +282,27 @@ void init_isr(void)
      */
     if (!isr_register_handler(64 + INT_SOURCE_FEC0, fec0_interrupt_handler, NULL, (void *) &nif1))
     {
-        dbg("unable to register isr for FEC0\r\n");
-        return;
+        err("unable to register isr for FEC0\r\n");
     }
 
     /*
      * Register the DMA interrupt handler
      */
 
-    if (!isr_register_handler(64 + INT_SOURCE_DMA, dma_interrupt_handler, NULL,NULL))
+    if (!isr_register_handler(64 + INT_SOURCE_DMA, dma_interrupt_handler, NULL, NULL))
     {
-        dbg("Error: Unable to register isr for DMA\r\n");
-        return;
+        err("Error: Unable to register isr for DMA\r\n");
     }
 
-    dma_irq_enable(5, 3);   /* TODO: need to match the FEC driver's specs in MiNT? */
+    dma_irq_enable(7, 7);       /* TODO: need to match the FEC driver's specs in MiNT? */
 
+#ifdef _NOT_USED_
     /*
      * register the PIC interrupt handler
      */
-    if (isr_register_handler(64 + INT_SOURCE_PSC3, pic_interrupt_handler, NULL, NULL))
+    if (!isr_register_handler(64 + INT_SOURCE_PSC3, pic_interrupt_handler, NULL, NULL))
     {
-        dbg("Error: unable to register ISR for PSC3\r\n");
-        return;
+        err("Error: unable to register ISR for PSC3\r\n");
     }
 
     /*
@@ -312,15 +310,16 @@ void init_isr(void)
      */
     if (!isr_register_handler(64 + INT_SOURCE_XLBPCI, xlbpci_interrupt_handler, NULL, NULL))
     {
-        dbg("Error: unable to register isr for XLB PCI interrupts\r\n");
-        return;
+        err("Error: unable to register isr for XLB PCI interrupts\r\n");
     }
-    MCF_INTC_ICR43 = MCF_INTC_ICR_IL(5) |           /* level 5, priority 1 */
-        MCF_INTC_ICR_IP(1);
+
+    MCF_INTC_ICR43 = MCF_INTC_ICR_IL(7) |           /* level 7, priority 6 */
+                     MCF_INTC_ICR_IP(6);
+    MCF_INTC_IMRH &= ~MCF_INTC_IMRH_INT_MASK43;     /* enable XLB PCI interrupts in DMA controller */
 
     MCF_XLB_XARB_IMR = MCF_XLB_XARB_IMR_SEAE |      /* slave error acknowledge interrupt */
-            MCF_XLB_XARB_IMR_MME |          /* multiple master at prio 0 interrupt */
-            MCF_XLB_XARB_IMR_TTAE |         /* TT address only interrupt */
+            MCF_XLB_XARB_IMR_MME |                  /* multiple master at prio 0 interrupt */
+            MCF_XLB_XARB_IMR_TTAE |                 /* TT address only interrupt */
             MCF_XLB_XARB_IMR_TTRE |                 /* TT reserved interrupt enable */
             MCF_XLB_XARB_IMR_ECWE |                 /* external control word interrupt */
             MCF_XLB_XARB_IMR_TTME |                 /* TBST/TSIZ mismatch interrupt */
@@ -328,15 +327,17 @@ void init_isr(void)
 
     if (!isr_register_handler(64 + INT_SOURCE_PCIARB, pciarb_interrupt_handler, NULL, NULL))
     {
-        dbg("Error: unable to register isr for PCIARB interrupts\r\n");
+        err("Error: unable to register isr for PCIARB interrupts\r\n");
 
         return;
     }
-    MCF_INTC_ICR41 = MCF_INTC_ICR_IL(5) |           /* level 5, priority 0 */
-        MCF_INTC_ICR_IP(0);
+    MCF_INTC_ICR41 = MCF_INTC_ICR_IL(7) |           /* level 5, priority 0 */
+                     MCF_INTC_ICR_IP(5);
+    MCF_INTC_IMRH &= ~MCF_INTC_IMRH_INT_MASK41;     /* enable PCIARB interrupts in DMA controller */
 
     MCF_PCIARB_PACR = MCF_PCIARB_PACR_EXTMINTEN(0x1f) | /* external master broken interrupt */
-            MCF_PCIARB_PACR_INTMINTEN;              /* internal master broken interrupt */
+                      MCF_PCIARB_PACR_INTMINTEN;        /* internal master broken interrupt */
+#endif /* _NOT_USED_ */
 }
 
 void BaS(void)
@@ -349,15 +350,15 @@ void BaS(void)
     nvram_init();
 #endif /* MACHINE_FIREBEE */
 
+    xprintf("initialize MMU: ");
+    mmu_init();
+    xprintf("finished\r\n");
+
     xprintf("copy EmuTOS: ");
 
     /* copy EMUTOS */
     src = (uint8_t *) EMUTOS;
     dma_memcpy(dst, src, EMUTOS_SIZE);
-    xprintf("finished\r\n");
-
-    xprintf("initialize MMU: ");
-    mmu_init();
     xprintf("finished\r\n");
 
     xprintf("initialize exception vector table: ");
@@ -440,14 +441,13 @@ void BaS(void)
     xprintf("BaS initialization finished, enable interrupts\r\n");
     init_isr();
     enable_coldfire_interrupts();
-    init_pci();
-    video_init();
-    set_ipl(0);                     /* enable interrupts */
+    //init_pci();
+    // video_init();
 
     /* initialize USB devices */
-    init_usb();
+    //init_usb();
 
-    //set_ipl(7);     /* disable interrupts */
+    set_ipl(7);     /* disable interrupts */
 
     xprintf("call EmuTOS\r\n");
     struct rom_header *os_header = (struct rom_header *) TOS;

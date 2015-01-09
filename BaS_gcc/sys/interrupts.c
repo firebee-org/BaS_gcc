@@ -38,7 +38,7 @@
 #include "pci.h"
 
 extern void (*rt_vbr[])(void);
-#define VBR	rt_vbr
+#define VBR rt_vbr
 
 #define IRQ_DEBUG
 #if defined(IRQ_DEBUG)
@@ -145,6 +145,8 @@ bool isr_execute_handler(int vector)
     int index;
     bool retval = false;
 
+    dbg("vector = 0x%x\r\n", vector);
+
     /*
      * locate an Interrupt Service Routine handler.
      */
@@ -176,7 +178,7 @@ int pic_interrupt_handler(void *arg1, void *arg2)
     uint8_t rcv_byte;
 
     rcv_byte = MCF_PSC3_PSCRB_8BIT;
-    if (rcv_byte == 2)	// PIC requests RTC data
+    if (rcv_byte == 2)  // PIC requests RTC data
     {
         uint8_t *rtc_reg = (uint8_t *) 0xffff8961;
         uint8_t *rtc_data = (uint8_t *) 0xffff8963;
@@ -184,7 +186,7 @@ int pic_interrupt_handler(void *arg1, void *arg2)
 
         err("PIC interrupt: requesting RTC data\r\n");
 
-        MCF_PSC3_PSCTB_8BIT = 0x82;		// header byte to PIC
+        MCF_PSC3_PSCTB_8BIT = 0x82;     // header byte to PIC
         do
         {
             *rtc_reg = 0;
@@ -312,8 +314,8 @@ bool irq6_handler(uint32_t sf1, uint32_t sf2)
 {
     bool handled = false;
 
-    err("IRQ6!\r\n");
-    MCF_EPORT_EPFR |= (1 << 6);	/* clear int6 from edge port */
+    // err("IRQ6!\r\n");
+    MCF_EPORT_EPFR |= (1 << 6); /* clear int6 from edge port */
 
     if (FALCON_MFP_IPRA || FALCON_MFP_IPRB)
     {
@@ -377,7 +379,9 @@ void irq7_handler(void)
  */
 void gpt0_interrupt_handler(void)
 {
-    MCF_GPT0_GMS &= ~1;		/* rearm trigger */
+    dbg("handler called\n\r");
+
+    MCF_GPT0_GMS &= ~1;     /* rearm trigger */
     NOP();
     MCF_GPT0_GMS |= 1;
 }

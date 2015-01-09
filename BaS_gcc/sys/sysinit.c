@@ -267,7 +267,8 @@ void init_serial(void)
     MCF_PSC3_PSCCR = 0x05;
 #endif /* MACHINE_FIREBEE */
 
-    MCF_INTC_ICR32 = 0x3F;      /* PSC3 interrupt vector. Do we need it? */
+    MCF_INTC_ICR32 = MCF_INTC_ICR_IL(7) |
+                     MCF_INTC_ICR_IL(4);      /* PSC3 interrupt vector. Do we need it? */
 
     xprintf("\r\nserial interfaces initialization: finished\r\n");
 }
@@ -645,7 +646,7 @@ static bool i2c_transfer_finished(void)
 
 static void wait_i2c_transfer_finished(void)
 {
-    waitfor(10000, i2c_transfer_finished);      /* wait until interrupt bit has been set */
+    waitfor(1000, i2c_transfer_finished);      /* wait until interrupt bit has been set */
     MCF_I2C_I2SR &= ~MCF_I2C_I2SR_IIF;          /* clear interrupt bit (byte transfer finished */
 }
 
@@ -660,7 +661,7 @@ static bool i2c_bus_free(void)
 void dvi_on(void)
 {
     uint8_t receivedByte;
-    uint8_t dummyByte; /* only used for a dummy read */
+    uint8_t dummyByte;          /* only used for a dummy read */
     int num_tries = 0;
 
     xprintf("DVI digital video output initialization: ");
@@ -678,11 +679,12 @@ void dvi_on(void)
         /* repeat start, transmit acknowledge */
         MCF_I2C_I2CR = MCF_I2C_I2CR_RSTA | MCF_I2C_I2CR_TXAK;
 
-        receivedByte = MCF_I2C_I2DR;    /* read a byte */
-        MCF_I2C_I2SR = 0x0;     /* clear status register */
-        MCF_I2C_I2CR = 0x0;     /* disable i2c */
+        receivedByte = MCF_I2C_I2DR;                /* read a byte */
+        MCF_I2C_I2SR = 0x0;                         /* clear status register */
+        MCF_I2C_I2CR = 0x0;                         /* clear control register */
 
-        MCF_I2C_I2ICR = MCF_I2C_I2ICR_IE;   /* route i2c interrupts to cpu */
+        MCF_I2C_I2ICR = MCF_I2C_I2ICR_IE;           /* route i2c interrupts to cpu */
+
         /* i2c enable, master mode, transmit acknowledge */
         MCF_I2C_I2CR = MCF_I2C_I2CR_IEN | MCF_I2C_I2CR_MSTA | MCF_I2C_I2CR_MTX;
 
@@ -1111,13 +1113,6 @@ void initialize_hardware(void)
 
 #endif /* MACHINE_FIREBEE */
     driver_mem_init();
-    init_pci();
-    video_init();
-
-    /* do not try to init USB for now on the Firebee, it hangs the machine */
-#ifndef MACHINE_FIREBEE
-    //init_usb();
-#endif
 
 #if MACHINE_FIREBEE
     init_ac97();

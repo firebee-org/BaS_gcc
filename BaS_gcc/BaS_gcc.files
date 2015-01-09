@@ -195,3 +195,4 @@ util/bas_printf.c
 util/bas_string.c
 util/printf_helper.S
 util/wait.c
+bas.lk.in

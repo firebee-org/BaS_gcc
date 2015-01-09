@@ -1133,9 +1133,8 @@ void fec_irq_enable(uint8_t ch, uint8_t lvl, uint8_t pri)
     /*
      * Setup the appropriate ICR
      */
-    MCF_INTC_ICR((ch == 0) ? 39 : 38) = (uint8_t)(0
-            | MCF_INTC_ICR_IP(pri)
-            | MCF_INTC_ICR_IL(lvl));
+    MCF_INTC_ICR((ch == 0) ? 39 : 38) = MCF_INTC_ICR_IP(pri) |
+                                        MCF_INTC_ICR_IL(lvl);
 
     /*
      * Clear any pending FEC interrupt events
@@ -1257,7 +1256,6 @@ static void fec_irq_handler(uint8_t ch)
     {
         fec_log[ch].txf++;
         dbg("TXF\r\n");
-        fec_log_dump(0);
     }
 
     if (event & MCF_FEC_EIR_GRA)

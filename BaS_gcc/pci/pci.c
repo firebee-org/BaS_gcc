@@ -1,7 +1,7 @@
 /*
  * pci.c
  *
- * Purpose:		PCI configuration for the Coldfire builtin PCI bridge.
+ * Purpose:     PCI configuration for the Coldfire builtin PCI bridge.
  *
  * Notes:
  *
@@ -74,8 +74,8 @@ static struct pci_class
 };
 static int num_pci_classes = sizeof(pci_classes) / sizeof(struct pci_class);
 
-#define NUM_CARDS		10
-#define NUM_RESOURCES	7
+#define NUM_CARDS       10
+#define NUM_RESOURCES   7
 /* holds the handle of a card at position = array index */
 static int32_t handles[NUM_CARDS];
 
@@ -97,7 +97,7 @@ struct pci_interrupt
     struct pci_interrupt *next;
 };
 
-#define MAX_INTERRUPTS	(NUM_CARDS * 3)
+#define MAX_INTERRUPTS  (NUM_CARDS * 3)
 static struct pci_interrupt interrupts[MAX_INTERRUPTS];
 
 static inline __attribute__((aligned(16))) void chip_errata_135(void)
@@ -123,17 +123,17 @@ static inline __attribute__((aligned(16))) void chip_errata_135(void)
      */
 
      __asm__ __volatile(
-        "		.extern __MBAR          \n\t"
-        "		clr.l	d0              \n\t"
-        "		move.l	d0,__MBAR+0xF0C \n\t"		/* Must use direct addressing. write to EPORT module */
+        "       .extern __MBAR          \n\t"
+        "       clr.l   d0              \n\t"
+        "       move.l  d0,__MBAR+0xF0C \n\t"       /* Must use direct addressing. write to EPORT module */
                                                     /* xlbus -> slavebus -> eport, writing '0' to register */
                                                     /* has no effect */
-        "		rts                     \n\t"
-        "		tpf.l	#0x0            \n\t"
-        "		tpf.l	#0x0            \n\t"
-        "		tpf.l	#0x0            \n\t"
-        "		tpf.l	#0x0            \n\t"
-        "		tpf.l	#0x0            \n\t"
+        "       rts                     \n\t"
+        "       tpf.l   #0x0            \n\t"
+        "       tpf.l   #0x0            \n\t"
+        "       tpf.l   #0x0            \n\t"
+        "       tpf.l   #0x0            \n\t"
+        "       tpf.l   #0x0            \n\t"
         ::: "memory");
 }
 
@@ -144,14 +144,14 @@ static inline void chip_errata_055(int32_t handle)
     return;     /* test */
 
     /* initiate PCI configuration access to device */
-    MCF_PCI_PCICAR = MCF_PCI_PCICAR_E |			/* enable configuration access special cycle */
+    MCF_PCI_PCICAR = MCF_PCI_PCICAR_E |         /* enable configuration access special cycle */
             MCF_PCI_PCICAR_BUSNUM(3) |          /* note: invalid bus number */
-            MCF_PCI_PCICAR_DEVNUM(PCI_DEVICE_FROM_HANDLE(handle)) |	/* device number, devices 0 - 9 are reserved */
-            MCF_PCI_PCICAR_FUNCNUM(PCI_FUNCTION_FROM_HANDLE(handle)) |	/* function number */
+            MCF_PCI_PCICAR_DEVNUM(PCI_DEVICE_FROM_HANDLE(handle)) | /* device number, devices 0 - 9 are reserved */
+            MCF_PCI_PCICAR_FUNCNUM(PCI_FUNCTION_FROM_HANDLE(handle)) |  /* function number */
             MCF_PCI_PCICAR_DWORD(0);
 
     /* issue a dummy read to an unsupported bus number (will fail) */
-    dummy =  * (volatile uint32_t *) PCI_IO_OFFSET;	/* access device */
+    dummy =  * (volatile uint32_t *) PCI_IO_OFFSET; /* access device */
 
     /* silently clear the PCI errors we produced just now */
     MCF_PCI_PCIISR = 0xffffffff;     /* clear all errors */
@@ -207,7 +207,7 @@ int32_t pci_call_interrupt_chain(int32_t handle, int32_t data)
             return 1;
         }
     }
-    return data;	/* unmodified - means: not handled */
+    return data;    /* unmodified - means: not handled */
 }
 #pragma GCC diagnostic pop
 
@@ -321,12 +321,12 @@ uint32_t pci_read_config_longword(int32_t handle, int offset)
     MCF_PCI_PCICAR = MCF_PCI_PCICAR_E |                                 /* enable configuration access special cycle */
             MCF_PCI_PCICAR_BUSNUM(PCI_BUS_FROM_HANDLE(handle)) |
             MCF_PCI_PCICAR_DEVNUM(PCI_DEVICE_FROM_HANDLE(handle)) |     /* device number, devices 0 - 9 are reserved */
-            MCF_PCI_PCICAR_FUNCNUM(PCI_FUNCTION_FROM_HANDLE(handle)) |	/* function number */
+            MCF_PCI_PCICAR_FUNCNUM(PCI_FUNCTION_FROM_HANDLE(handle)) |  /* function number */
             MCF_PCI_PCICAR_DWORD(offset / 4);
 
     NOP();
 
-    value =  * (volatile uint32_t *) PCI_IO_OFFSET;	/* access device */
+    value =  * (volatile uint32_t *) PCI_IO_OFFSET; /* access device */
 
     NOP();
 
@@ -345,7 +345,7 @@ uint16_t pci_read_config_word(int32_t handle, int offset)
     /*
      * initiate PCI configuration space access to device
      */
-    MCF_PCI_PCICAR = MCF_PCI_PCICAR_E |		/* enable configuration space special cycle */
+    MCF_PCI_PCICAR = MCF_PCI_PCICAR_E |     /* enable configuration space special cycle */
             MCF_PCI_PCICAR_BUSNUM(PCI_BUS_FROM_HANDLE(handle)) |
             MCF_PCI_PCICAR_DEVNUM(PCI_DEVICE_FROM_HANDLE(handle)) |
             MCF_PCI_PCICAR_FUNCNUM(PCI_FUNCTION_FROM_HANDLE(handle)) |
@@ -370,10 +370,10 @@ uint8_t pci_read_config_byte(int32_t handle, int offset)
     uint8_t value;
 
     /* initiate PCI configuration access to device */
-    MCF_PCI_PCICAR = MCF_PCI_PCICAR_E |				/* enable configuration access special cycle */
+    MCF_PCI_PCICAR = MCF_PCI_PCICAR_E |             /* enable configuration access special cycle */
         MCF_PCI_PCICAR_BUSNUM(PCI_BUS_FROM_HANDLE(handle)) |
-        MCF_PCI_PCICAR_DEVNUM(PCI_DEVICE_FROM_HANDLE(handle)) |		/* device number, devices 0 - 9 are reserved */
-        MCF_PCI_PCICAR_FUNCNUM(PCI_FUNCTION_FROM_HANDLE(handle)) |	/* function number */
+        MCF_PCI_PCICAR_DEVNUM(PCI_DEVICE_FROM_HANDLE(handle)) |     /* device number, devices 0 - 9 are reserved */
+        MCF_PCI_PCICAR_FUNCNUM(PCI_FUNCTION_FROM_HANDLE(handle)) |  /* function number */
         MCF_PCI_PCICAR_DWORD(offset / 4);
 
     NOP();
@@ -397,15 +397,15 @@ uint8_t pci_read_config_byte(int32_t handle, int offset)
 int32_t pci_write_config_longword(int32_t handle, int offset, uint32_t value)
 {
     /* initiate PCI configuration access to device */
-    MCF_PCI_PCICAR = MCF_PCI_PCICAR_E |				/* enable configuration access special cycle */
+    MCF_PCI_PCICAR = MCF_PCI_PCICAR_E |             /* enable configuration access special cycle */
         MCF_PCI_PCICAR_BUSNUM(PCI_BUS_FROM_HANDLE(handle)) |
-        MCF_PCI_PCICAR_DEVNUM(PCI_DEVICE_FROM_HANDLE(handle)) |		/* device number, devices 0 - 9 are reserved */
-        MCF_PCI_PCICAR_FUNCNUM(PCI_FUNCTION_FROM_HANDLE(handle)) |	/* function number */
+        MCF_PCI_PCICAR_DEVNUM(PCI_DEVICE_FROM_HANDLE(handle)) |     /* device number, devices 0 - 9 are reserved */
+        MCF_PCI_PCICAR_FUNCNUM(PCI_FUNCTION_FROM_HANDLE(handle)) |  /* function number */
         MCF_PCI_PCICAR_DWORD(offset / 4);
 
     NOP();
 
-    * (volatile uint32_t *) PCI_IO_OFFSET = value;	/* access device */
+    * (volatile uint32_t *) PCI_IO_OFFSET = value;  /* access device */
     chip_errata_135();
 
     NOP();
@@ -424,7 +424,7 @@ int32_t pci_write_config_longword(int32_t handle, int offset, uint32_t value)
 int32_t pci_write_config_word(int32_t handle, int offset, uint16_t value)
 {
     /* initiate PCI configuration access to device */
-    MCF_PCI_PCICAR = MCF_PCI_PCICAR_E |				/* enable configuration access special cycle */
+    MCF_PCI_PCICAR = MCF_PCI_PCICAR_E |             /* enable configuration access special cycle */
             MCF_PCI_PCICAR_BUSNUM(PCI_BUS_FROM_HANDLE(handle)) |
             MCF_PCI_PCICAR_DEVNUM(PCI_DEVICE_FROM_HANDLE(handle)) |
             MCF_PCI_PCICAR_FUNCNUM(PCI_FUNCTION_FROM_HANDLE(handle)) |
@@ -518,7 +518,7 @@ int32_t pci_find_device(uint16_t device_id, uint16_t vendor_id, int index)
 
             handle = PCI_HANDLE(bus, device, 0);
             value = pci_read_config_longword(handle, PCIIDR);
-            if (value != 0xffffffff)	/* we have a device at this position */
+            if (value != 0xffffffff)    /* we have a device at this position */
             {
                 if (vendor_id == 0xffff ||
                     (PCI_VENDOR_ID(value) == vendor_id && PCI_DEVICE_ID(value) == device_id))
@@ -543,7 +543,7 @@ int32_t pci_find_device(uint16_t device_id, uint16_t vendor_id, int index)
                     {
                         handle = PCI_HANDLE(bus, device, function);
                         value = pci_read_config_longword(handle, PCIIDR);
-                        if (value != 0xffffffff)	/* device found */
+                        if (value != 0xffffffff)    /* device found */
                         {
                             if (vendor_id == 0xffff ||
                                 (PCI_VENDOR_ID(value) == vendor_id && PCI_DEVICE_ID(value) == device_id))
@@ -589,7 +589,7 @@ int32_t pci_find_classcode(uint32_t classcode, int index)
 
             value = pci_read_config_longword(handle, PCIIDR);
 
-            if (value != 0xffffffff)	/* device found */
+            if (value != 0xffffffff)    /* device found */
             {
                 value = pci_read_config_longword(handle, PCICCR);
 
@@ -618,7 +618,7 @@ int32_t pci_find_classcode(uint32_t classcode, int index)
                         handle = PCI_HANDLE(bus, device, function);
                         value = pci_read_config_longword(handle, PCIIDR);
 
-                        if (value != 0xffffffff)	/* device found */
+                        if (value != 0xffffffff)    /* device found */
                         {
                             value = pci_read_config_longword(handle, PCICCR);
 
@@ -884,13 +884,13 @@ static void pci_device_config(uint16_t bus, uint16_t device, uint16_t function)
      */
 
     cr = swpw(pci_read_config_word(handle, PCICSR));
-    cr &= ~3;	/* disable device response to address */
+    cr &= ~3;   /* disable device response to address */
     pci_write_config_word(handle, PCICSR, swpw(cr));
 
     int barnum = 0;
 
     descriptors = resource_descriptors[index];
-    for (i = 0; i < 6 * 4; i += 4)		/* for all bars */
+    for (i = 0; i < 6 * 4; i += 4)      /* for all bars */
     {
         /*
          * write all bits of BAR[i]
@@ -902,7 +902,7 @@ static void pci_device_config(uint16_t bus, uint16_t device, uint16_t function)
          */
         address = swpl(pci_read_config_longword(handle, PCIBAR0 + i));
 
-        if (address)	/* is bar in use? */
+        if (address)    /* is bar in use? */
         {
             /*
              * resource descriptor for this device
@@ -1093,7 +1093,6 @@ void pci_scan(void)
                         PCI_DEVICE_FROM_HANDLE(handle),
                         PCI_FUNCTION_FROM_HANDLE(handle));
         }
-
         handle = pci_find_device(0x0, 0xFFFF, ++index);
     }
     xprintf("\r\n...finished\r\n");
@@ -1105,7 +1104,7 @@ void init_eport(void)
     /* configure IRQ1-7 pins on EPORT falling edge triggered */
     MCF_EPORT_EPPAR = MCF_EPORT_EPPAR_EPPA7(MCF_EPORT_EPPAR_FALLING) |
             MCF_EPORT_EPPAR_EPPA6(MCF_EPORT_EPPAR_FALLING) |
-#if MACHINE_FIREBEE		/* irq5 level triggered on FireBee */
+#if MACHINE_FIREBEE     /* irq5 level triggered on FireBee */
             MCF_EPORT_EPPAR_EPPA5(MCF_EPORT_EPPAR_LEVEL) |
 #elif MACHINE_M5484LITE
             MCF_EPORT_EPPAR_EPPA5(MCF_EPORT_EPPAR_FALLING) |
@@ -1114,9 +1113,9 @@ void init_eport(void)
             MCF_EPORT_EPPAR_EPPA3(MCF_EPORT_EPPAR_FALLING) |
             MCF_EPORT_EPPAR_EPPA2(MCF_EPORT_EPPAR_FALLING) |
             MCF_EPORT_EPPAR_EPPA1(MCF_EPORT_EPPAR_FALLING);
-    MCF_EPORT_EPDDR = 0;	/* clear data direction register. All pins as input */
-    MCF_EPORT_EPFR = -1;	/* clear all EPORT interrupt flags */
-    MCF_EPORT_EPIER = 0xfe;	/* enable all EPORT interrupts (for now) */
+    MCF_EPORT_EPDDR = 0;    /* clear data direction register. All pins as input */
+    MCF_EPORT_EPFR = -1;    /* clear all EPORT interrupt flags */
+    MCF_EPORT_EPIER = 0xfe; /* enable all EPORT interrupts (for now) */
 }
 
 void init_xlbus_arbiter(void)
@@ -1151,12 +1150,12 @@ void init_xlbus_arbiter(void)
      * M3 = PCI target interface
      */
 
-    MCF_XLB_XARB_PRIEN = MCF_XLB_XARB_PRIEN_M0 |	/* activate programmed priority for Coldfire core */
-                    MCF_XLB_XARB_PRIEN_M2 |			/* activate programmed priority for Multichannel DMA */
-                    MCF_XLB_XARB_PRIEN_M3;			/* activate programmed priority for PCI target interface */
-    MCF_XLB_XARB_PRI = MCF_XLB_XARB_PRI_M0P(7) |	/* Coldfire core gets lowest */
-                    MCF_XLB_XARB_PRI_M2P(5) |		/* Multichannel DMA mid priority */
-                    MCF_XLB_XARB_PRI_M3P(3);		/* PCI target interface is highest priority */
+    MCF_XLB_XARB_PRIEN = MCF_XLB_XARB_PRIEN_M0 |    /* activate programmed priority for Coldfire core */
+                    MCF_XLB_XARB_PRIEN_M2 |         /* activate programmed priority for Multichannel DMA */
+                    MCF_XLB_XARB_PRIEN_M3;          /* activate programmed priority for PCI target interface */
+    MCF_XLB_XARB_PRI = MCF_XLB_XARB_PRI_M0P(7) |    /* Coldfire core gets lowest */
+                    MCF_XLB_XARB_PRI_M2P(5) |       /* Multichannel DMA mid priority */
+                    MCF_XLB_XARB_PRI_M3P(3);        /* PCI target interface is highest priority */
 }
 
 void init_pci(void)
@@ -1170,15 +1169,15 @@ void init_pci(void)
     init_eport();
     init_xlbus_arbiter();
 
-    MCF_PCI_PCIGSCR = 1;	/* reset PCI */
+    MCF_PCI_PCIGSCR = 1;    /* reset PCI */
 
     /*
      * setup the PCI arbiter
      */
-    MCF_PCIARB_PACR = MCF_PCIARB_PACR_INTMPRI	/* internal master priority: high */
-       | MCF_PCIARB_PACR_EXTMPRI(0xf)			/* external master priority: high */
-       | MCF_PCIARB_PACR_INTMINTEN				/* enable "internal master broken" interrupt */
-       | MCF_PCIARB_PACR_EXTMINTEN(0x0f);		/* enable "external master broken" interrupt */
+    MCF_PCIARB_PACR = MCF_PCIARB_PACR_INTMPRI   /* internal master priority: high */
+       | MCF_PCIARB_PACR_EXTMPRI(0xf)           /* external master priority: high */
+       | MCF_PCIARB_PACR_INTMINTEN              /* enable "internal master broken" interrupt */
+       | MCF_PCIARB_PACR_EXTMINTEN(0x0f);       /* enable "external master broken" interrupt */
 
 #if defined(MACHINE_FIREBEE)
     MCF_PAD_PAR_PCIBG = MCF_PAD_PAR_PCIBG_PAR_PCIBG4_TBST |
@@ -1197,10 +1196,10 @@ void init_pci(void)
 #endif /* MACHINE_FIREBEE */
 
     MCF_PCI_PCISCR =  MCF_PCI_PCISCR_M | /* memory access control enabled */
-        MCF_PCI_PCISCR_B |		/* bus master enabled */
-        MCF_PCI_PCISCR_M |		/* mem access enable */
-        MCF_PCI_PCISCR_MA |		/* clear master abort error */
-        MCF_PCI_PCISCR_MW;		/* memory write and invalidate enabled */
+        MCF_PCI_PCISCR_B |      /* bus master enabled */
+        MCF_PCI_PCISCR_M |      /* mem access enable */
+        MCF_PCI_PCISCR_MA |     /* clear master abort error */
+        MCF_PCI_PCISCR_MW;      /* memory write and invalidate enabled */
 
 
     /* Setup burst parameters */
@@ -1210,16 +1209,16 @@ void init_pci(void)
     MCF_PCI_PCICR2 = MCF_PCI_PCICR2_MINGNT(1) |
                     MCF_PCI_PCICR2_MAXLAT(32);
 
-    // MCF_PCI_PCICR2 = 0;		/* this is what Linux does */
+    // MCF_PCI_PCICR2 = 0;      /* this is what Linux does */
 
     /* error signaling */
 
-    MCF_PCI_PCIICR = MCF_PCI_PCIICR_TAE |	/* target abort enable */
-        MCF_PCI_PCIICR_IAE; 				/* initiator abort enable */
+    MCF_PCI_PCIICR = MCF_PCI_PCIICR_TAE |   /* target abort enable */
+        MCF_PCI_PCIICR_IAE;                 /* initiator abort enable */
 
-    // MCF_PCI_PCIICR = 0;						/* this is what Linux does */
+    // MCF_PCI_PCIICR = 0;                      /* this is what Linux does */
 
-    MCF_PCI_PCIGSCR |= MCF_PCI_PCIGSCR_SEE;	/* system error interrupt enable */
+    MCF_PCI_PCIGSCR |= MCF_PCI_PCIGSCR_SEE; /* system error interrupt enable */
 
     /* Configure Initiator Windows */
 
@@ -1246,9 +1245,9 @@ void init_pci(void)
      * Initialize target control register.
      * Used when an external bus master accesses the Coldfire PCI as target
      */
-    MCF_PCI_PCIBAR0 = 0x40000000;	/* 256 kB window */
-    MCF_PCI_PCITBATR0 = (uint32_t) &_MBAR[0] |  MCF_PCI_PCITBATR0_EN;	/* target base address translation register 0 */
-    MCF_PCI_PCIBAR1 = 0;			/* 1GB window */
+    MCF_PCI_PCIBAR0 = 0x40000000;   /* 256 kB window */
+    MCF_PCI_PCITBATR0 = (uint32_t) &_MBAR[0] |  MCF_PCI_PCITBATR0_EN;   /* target base address translation register 0 */
+    MCF_PCI_PCIBAR1 = 0;            /* 1GB window */
     MCF_PCI_PCITBATR1 = MCF_PCI_PCITBATR1_EN;
 
     /* reset PCI devices */
