@@ -385,10 +385,10 @@ irq5text:
                 .ascii  "IRQ5!"
                 .dc.b   13,10,0
 
-mfp_irq6:
+irq6:
                 irq 0x74,5,0x20
 
-mfp_irq7:                                           // irq7 is tied to PCI INTA# and PCI INTB# on the M5484LITE
+irq7:                                               // irq7 is tied to PCI INTA# and PCI INTB# on the M5484LITE
 
                 move.w  #0x2700,sr                  // disable interrupts
 
@@ -456,9 +456,9 @@ irq6:           move.w  #0x2700,sr                  // disable interrupt
                 rte
 
 irq6_forward:
-                move.l  0xf0020000,a0               // fetch FPGA "MFP autovector"
+                move.l  0xf0020000,a0               // fetch "MFP interrupt vector from FPGA"
                 add.l   _rt_vbr,a0                  // add runtime VBR
-                move.l  (a0),4(a6)                  // fetch handler address and put it on "extra space"
+                move.l  (a0),8(a6)                  // fetch handler address and put it on "extra space"
 
                 movem.l (sp),d0-d1/a0-a1
                 unlk    a6
