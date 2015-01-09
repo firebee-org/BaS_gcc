@@ -86,9 +86,8 @@ static struct dma_channel dma_channel[NCHANNELS] =
 void dma_irq_enable(uint8_t lvl, uint8_t pri)
 {
     /* Setup the DMA ICR (#48) */
-    MCF_INTC_ICR48 = 0
-        | MCF_INTC_ICR_IP(pri)
-        | MCF_INTC_ICR_IL(lvl);
+    MCF_INTC_ICR48 = MCF_INTC_ICR_IP(pri) |
+                     MCF_INTC_ICR_IL(lvl);
     dbg("DMA irq assigned level %d, priority %d\r\n", lvl, pri);
 
     /* Unmask all task interrupts */
@@ -479,7 +478,9 @@ int dma_set_channel(int requestor, void (*handler)(void))
     /* Check to see if this requestor is already assigned to a channel */
     dbg("check if requestor %d is already assigned to a channel\r\n", requestor);
     if ((i = dma_get_channel(requestor)) != -1)
+    {
         return i;
+    }
 
     for (i = 0; i < NCHANNELS; ++i)
     {
@@ -560,7 +561,7 @@ int dma_interrupt_handler(void *arg1, void *arg2)
     int i, interrupts;
     uint32_t ipl;
 
-    ipl = set_ipl(7);		/* do not disturb */
+    ipl = set_ipl(7);       /* do not disturb */
 
     /*
      * Determine which interrupt(s) triggered by AND'ing the
@@ -571,10 +572,11 @@ int dma_interrupt_handler(void *arg1, void *arg2)
     /* Make sure we are here for a reason */
     if (interrupts == 0)
     {
-        dbg("not DMA interrupt!\r\n");
+        err("not DMA interrupt!\r\n");
         return 0;
     }
 
+    dbg("");
     /* Clear the interrupt in the pending register */
     MCF_DMA_DIPR = interrupts;
 
@@ -593,7 +595,7 @@ int dma_interrupt_handler(void *arg1, void *arg2)
 
     set_ipl(ipl);
 
-    return 1;	/* handled */
+    return 1;   /* handled */
 }
 /********************************************************************/
 
@@ -674,7 +676,7 @@ int dma_init(void)
     }
 
     // test
-    dma_memcpy((void *) 0x10000, (void *) 0x03e00000, 0x00100000);	/* copy one megabyte of flash to RAM */
+    dma_memcpy((void *) 0x10000, (void *) 0x03e00000, 0x00100000);  /* copy one megabyte of flash to RAM */
 
     return 0;
 }

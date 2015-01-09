@@ -31,8 +31,8 @@ NATIVECC=gcc
 
 INCLUDE=-Iinclude
 CFLAGS=-mcpu=5474 \
+        -g \
 		-Wall \
-		-g \
 		-fomit-frame-pointer \
 		-ffreestanding \
 		-fleading-underscore \
@@ -41,6 +41,7 @@ CFLAGS=-mcpu=5474 \
 CFLAGS_OPTIMIZED = -mcpu=5474 \
 		-Wall \
 		-O2 \
+        -g \
 		-fomit-frame-pointer \
 		-ffreestanding \
 		-fleading-underscore \

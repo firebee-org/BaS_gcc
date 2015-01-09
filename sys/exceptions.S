@@ -190,7 +190,7 @@ init_vec_loop:
                 lea _get_bas_drivers(pc),a1
                 move.l  a1,0x80(a0)                 // trap #0 exception vector
 
-// MFP non-autovector interrupt handlers. Those are rerouted to their autovector counterparts
+// MFP non-autovector interrupt handlers. Those are just rerouted to their autovector counterparts
 
                 lea     irq1(pc),a1
                 move.l  a1,0x104(a0)
@@ -451,13 +451,13 @@ irq6:           move.w  #0x2700,sr                  // disable interrupt
                 rte
 
 irq6_forward:
-                move.l  0xf0020000,a0               // fetch "MFP interrupt vector from FPGA"
+                move.l  0xf0020000,a0               // fetch "MFP interrupt vector" from FPGA
                 add.l   _rt_vbr,a0                  // add runtime VBR
-                move.l  (a0),8(a6)                  // fetch handler address and put it on "extra space"
+                move.l  (a0),4(a6)                  // fetch handler address and put it on "extra space"
 
                 movem.l (sp),d0-d1/a0-a1
                 unlk    a6
-                move.w  #0x2600,sr                  // set interrupt level
+                move.w  #0x2600,sr                  // set interrupt mask to MFP level
 
                 rts                                 // jump through vector
 
