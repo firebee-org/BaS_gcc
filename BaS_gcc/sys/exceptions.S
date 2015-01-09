@@ -133,7 +133,12 @@
 /*
  * macros
  */
-                .altmacro
+
+/*
+ * used for "forwarding" interrupt handlers. This just clears the "pending interrupt"
+ * flag from the EDGE PORT flag register, set the status register to the appropriate interrupt
+ * mask an jump through the corresponging vector
+ */
                 .macro  irq vector,int_mask,clr_int
                 move.w  #0x2700,sr                  // disable interrupt
                 subq.l  #8,sp
@@ -185,6 +190,28 @@ init_vec_loop:
                 lea _get_bas_drivers(pc),a1
                 move.l  a1,0x80(a0)                 // trap #0 exception vector
 
+// MFP interrupt handlers. Those are rerouted to their autovector counterparts
+
+                lea     irq1(pc),a1
+                move.l  a1,0x104(a0)
+
+                lea     irq2(pc),a1
+                move.l  a1,0x108(a0)
+
+                lea     irq3(pc),a1
+                move.l  a1,0x10c(a0)
+
+                lea     irq4(pc),a1
+                move.l  a1,0x110(a0)
+
+                lea     irq5(pc),a1
+                move.l  a1,0x114(a0)
+
+                lea     irq6(pc),a1
+                move.l  a1,0x118(a0)
+
+                lea     irq7(pc),a1
+                move.l  a1,0x11c(a0)
 #ifdef MACHINE_FIREBEE
 
 // timer vectors (triggers when vbashi gets changed, used for video page copy)
@@ -218,6 +245,7 @@ init_vec_loop:
 
                 move.l  (sp)+,a2            // Restore registers
                 rts
+
 
 /*
  * exception vector routines
@@ -366,49 +394,14 @@ flpoow:
 #endif /* _NOT_USED */
 
 
-#if MACHINE_M5484LITE                               // handlers for M5484LITE
+irq1:           irq     0x64, 1, 0x02               // Level 1 autovector interrupt (unused)
+irq2:           irq     0x68, 2, 0x04               // Level 2 autovector interrupt (horizonatl blank)
+irq3:           irq     0x6c, 3, 0x08               // Level 3 autovector interrupt (unused)
+irq4:           irq     0x70, 4, 0x10               // Level 4 autovector interrupt (vertical blank)
 
-irq5:                                               // irq5 is tied to PCI INTC# and PCI INTD# on the M5484LITE
-                move.w  #0x2700,sr                  // disable interrupts
 
-                lea     -4*4(sp),sp                 // save gcc scratch registers
-                movem.l d0-d1/a0-a1,(sp)
 
-                jsr     _irq5_handler               // call C handler routine
-
-                movem.l (sp),d0-d1/a0-a1            // restore registers
-                lea     4*4(sp),sp
-
-                rte                                 // return from exception
-
-irq5text:
-                .ascii  "IRQ5!"
-                .dc.b   13,10,0
-
-irq6:
-                irq 0x74,5,0x20
-
-irq7:                                               // irq7 is tied to PCI INTA# and PCI INTB# on the M5484LITE
-
-                move.w  #0x2700,sr                  // disable interrupts
-
-                lea     -4*4(sp),sp                 // save gcc scratch registers
-                movem.l d0-d1/a0-a1,(sp)
-
-                jsr     _irq7_handler               // call C handler routine
-
-                movem.l (sp),d0-d1/a0-a1            // restore registers
-                lea     4*4(sp),sp
-
-                rte                                 // return from exception
-
-irq7text:
-                .data
-                .ascii  "IRQ7!"
-                .dc.b   13,10,0
-                .text
-
-#elif MACHINE_FIREBEE                               /* these handlers are only meaningful for the Firebee */
+#if defined(MACHINE_FIREBEE)                        /* these handlers are only meaningful for the Firebee */
 irq5:           move.w  #0x2700,sr                  // disable interrupts
                 subq.l  #4,sp                       // extra space
 
@@ -522,6 +515,48 @@ handler_gpt0:
 
                 unlk    a6
                 rte
+
+#else                                               // handlers for M5484LITE
+
+irq5:                                               // irq5 is tied to PCI INTC# and PCI INTD# on the M5484LITE
+                move.w  #0x2700,sr                  // disable interrupts
+
+                lea     -4*4(sp),sp                 // save gcc scratch registers
+                movem.l d0-d1/a0-a1,(sp)
+
+                jsr     _irq5_handler               // call C handler routine
+
+                movem.l (sp),d0-d1/a0-a1            // restore registers
+                lea     4*4(sp),sp
+
+                rte                                 // return from exception
+
+irq5text:
+                .ascii  "IRQ5!"
+                .dc.b   13,10,0
+
+irq6:
+                irq 0x74,5,0x20
+
+irq7:                                               // irq7 is tied to PCI INTA# and PCI INTB# on the M5484LITE
+
+                move.w  #0x2700,sr                  // disable interrupts
+
+                lea     -4*4(sp),sp                 // save gcc scratch registers
+                movem.l d0-d1/a0-a1,(sp)
+
+                jsr     _irq7_handler               // call C handler routine
+
+                movem.l (sp),d0-d1/a0-a1            // restore registers
+                lea     4*4(sp),sp
+
+                rte                                 // return from exception
+
+irq7text:
+                .data
+                .ascii  "IRQ7!"
+                .dc.b   13,10,0
+                .text
 #endif /* MACHINE_FIREBEE */
 
 /*
