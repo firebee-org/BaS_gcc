@@ -190,7 +190,7 @@ init_vec_loop:
                 lea _get_bas_drivers(pc),a1
                 move.l  a1,0x80(a0)                 // trap #0 exception vector
 
-// MFP interrupt handlers. Those are rerouted to their autovector counterparts
+// MFP non-autovector interrupt handlers. Those are rerouted to their autovector counterparts
 
                 lea     irq1(pc),a1
                 move.l  a1,0x104(a0)
@@ -212,6 +212,8 @@ init_vec_loop:
 
                 lea     irq7(pc),a1
                 move.l  a1,0x11c(a0)
+
+
 #ifdef MACHINE_FIREBEE
 
 // timer vectors (triggers when vbashi gets changed, used for video page copy)
@@ -305,7 +307,7 @@ exception_text:
                 .align  4
 
 reset_vector:
-                move.w  #0x2700,sr                  // disable interrupt
+                move.w  #0x2700,sr                  // disable interrupts
                 move.l  #0x31415926,d0
                 cmp.l   0x426,d0                    // _resvalid: reset vector valid?
                 beq     std_exc_vec                 // yes->
