@@ -556,7 +556,7 @@ void dma_free_channel(int requestor)
 /*
  * This is the catch-all interrupt handler for the mult-channel DMA
  */
-int dma_interrupt_handler(void *arg1, void *arg2)
+bool dma_interrupt_handler(void *arg1, void *arg2)
 {
     int i, interrupts;
     uint32_t ipl;

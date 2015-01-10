@@ -1290,24 +1290,24 @@ static void fec_irq_handler(uint8_t ch)
  * handler for FEC interrupts
  * arg2 is a pointer to the nif in this case
  */
-int fec0_interrupt_handler(void* arg1, void* arg2)
+bool fec0_interrupt_handler(void* arg1, void* arg2)
 {
     (void) arg1;    /* not used */
     (void) arg2;
 
     fec_irq_handler(0);
 
-    return 1;
+    return true;    /* handled */
 }
 
-int fec1_interrupt_handler(void* arg1, void* arg2)
+bool fec1_interrupt_handler(void* arg1, void* arg2)
 {
     (void) arg1;    /* not used */
     (void) arg2;
 
     fec_irq_handler(1);
 
-    return 1;
+    return true;    /* handled */
 }
 
 /*
