@@ -26,10 +26,6 @@
 #include "MCD_dma.h"
 #include "bas_string.h"
 
-#define DMA_INTC_LVL        5
-#define DMA_INTC_PRI        3
-
-
 void *dma_memcpy(void *dst, void *src, size_t n);
 extern int dma_init(void);
 extern int dma_get_channel(int requestor);

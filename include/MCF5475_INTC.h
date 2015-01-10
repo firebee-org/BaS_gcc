@@ -107,7 +107,6 @@
 #define MCF_INTC_LIACK(x)                    (*(volatile uint8_t *)(&_MBAR[0x7E4 + ((x-1)*0x4)]))
 
 
-
 /* Bit definitions and macros for MCF_INTC_IPRH */
 #define MCF_INTC_IPRH_INT32                  (0x1)
 #define MCF_INTC_IPRH_INT33                  (0x2)

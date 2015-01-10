@@ -1117,7 +1117,6 @@ void initialize_hardware(void)
 #if MACHINE_FIREBEE
     init_ac97();
 #endif /* MACHINE_FIREBEE */
-    dma_init();
 
     /* jump into the BaS */
     extern void BaS(void);
