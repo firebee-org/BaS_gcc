@@ -238,7 +238,7 @@ init_vec_loop:
                 move.l  a1,(INT_SOURCE_XLBPCI + 64) * 4(a0)
 
 #ifndef MACHINE_FIREBEE
-// FEC1 not wired on the FireBee (used for FPGA as GPIO), but used on other machines
+// FEC1 not wired on the FireBee (used for FPGA as GPIO), but available on other machines
                 move.l  a1,(INT_SOURCE_FEC1 + 64) * 4(a0)
 #endif
 
@@ -430,15 +430,18 @@ irq5_forward:   move.l  0x74,a0                     // fetch OS irq5 vector
                 move.w  #0x2500,sr                  // set interrupt level
                 rts                                 // jump through vector
 
-
+/*
+ * irq6 needs special treatment since - because the Coldfire only supports autovector interrupts
+ * - the exception vector is provided by the simulated MFP from the FPGA
+ */
 irq6:           move.w  #0x2700,sr                  // disable interrupt
                 subq.l  #4,sp                       // extra space
 
                 link    a6,#-4 * 4                  // save gcc scratch registers
                 movem.l d0-d1/a0-a1,(sp)
 
-                move.l  4(a6),-(sp)                 // format status word
-                move.l  8(a6),-(sp)                 // pc at exception
+                move.l  8(a6),-(sp)                 // format status word
+                move.l  12(a6),-(sp)                // pc at exception
                 jsr     _irq6_handler               // call C handler
                 lea     8(sp),sp                    // fix stack
 
@@ -563,25 +566,53 @@ irq7text:
 
 /*
  * low-level interrupt service routine for routines registered with
- * isr_register_handler()
+ * isr_register_handler(int vector). If the higlevel routine (isr_execute_handler())
+ * returns != 0, the call is forwarded to the OS (through its own vector base).
  */
                 .global _lowlevel_isr_handler
                 .extern _isr_execute_handler
 
 
+/*
+ * stack format (after link instruction) is like this:
+ *
+ * +12      program counter (return address)
+ * +8       format_status
+ * +4       save area for rts (if we need to jump through the OS vector)
+ * (a6) ->  saved a6 (from link)
+ * -4
+ * -8
+ * -12
+ * (sp) ->  gcc scratch registers save area
+ */
 _lowlevel_isr_handler:
-                move.w  #0x2700,sr                  // do not disturb
+                subq.l  #4,sp                       // extra space
                 link    a6,#-4 * 4                  // make room for
                 movem.l d0-d1/a0-a1,(sp)            // gcc scratch registers and save them,
-                                                    // other registers will be handled by gcc itself
+                                                    // other registers will be taken care of by gcc itself
 
-                move.w  4(a6),d0                    // fetch vector number from stack
+                move.w  8(a6),d0                    // fetch vector number from stack
                 lsr.l   #2,d0                       // move it in place
                 andi.l  #0xff,d0                    // mask it out
                 move.l  d0,-(sp)                    // push it
                 jsr     _isr_execute_handler        // call the C handler
                 addq.l  #4,sp                       // adjust stack
+                tst.l   d0                          // handled?
+                bne     lowlevel_forward            // no, we forward it to TOS
 
                 movem.l (sp),d0-d1/a0-a1            // restore registers
                 unlk    a6
+                addq.l  #4,sp                       // eliminate extra space
+
                 rte
+
+lowlevel_forward:
+                move.l  8(a6),d0                    // fetch OS irq vector
+                lsr.l   #2,d0                       // move it in place
+                andi.l  #0xff,d0                    // mask out vector number
+                add.l   _rt_vbr,d0                  // add runtime vbr
+                move.l  d0,4(a6)                    // put on stack as return address
+
+                movem.l (sp),d0-d1/a0-a1            // restore registers
+                unlk    a6                          //
+                rts                                 // jump through vector

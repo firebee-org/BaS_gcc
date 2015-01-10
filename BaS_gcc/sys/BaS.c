@@ -186,28 +186,28 @@ void nvram_init(void)
     xprintf("finished\r\n");
 }
 
-#define KBD_ACIA_CONTROL        ((uint8_t *) 0xfffffc00)
-#define MIDI_ACIA_CONTROL       ((uint8_t *) 0xfffffc04)
-#define MFP_INTR_IN_SERVICE_A   ((uint8_t *) 0xfffffa0f)
-#define MFP_INTR_IN_SERVICE_B   ((uint8_t *) 0xfffffa11)
+#define KBD_ACIA_CONTROL        * ((uint8_t *) 0xfffffc00)
+#define MIDI_ACIA_CONTROL       * ((uint8_t *) 0xfffffc04)
+#define MFP_INTR_IN_SERVICE_A   * ((uint8_t *) 0xfffffa0f)
+#define MFP_INTR_IN_SERVICE_B   * ((uint8_t *) 0xfffffa11)
 
 void acia_init()
 {
     xprintf("init ACIA: ");
     /* init ACIA */
-    * KBD_ACIA_CONTROL = 3;     /* master reset */
+    KBD_ACIA_CONTROL = 3;       /* master reset */
     NOP();
 
-    * MIDI_ACIA_CONTROL = 3;    /* master reset */
+    MIDI_ACIA_CONTROL = 3;      /* master reset */
     NOP();
 
-    * KBD_ACIA_CONTROL = 0x96;  /* clock div = 64, 8N1, RTS low, TX int disable, RX int enable */
+    KBD_ACIA_CONTROL = 0x96;    /* clock div = 64, 8N1, RTS low, TX int disable, RX int enable */
     NOP();
 
-    * MFP_INTR_IN_SERVICE_A = -1;
+    MFP_INTR_IN_SERVICE_A = 0xff;
     NOP();
 
-    * MFP_INTR_IN_SERVICE_B = -1;
+    MFP_INTR_IN_SERVICE_B = 0xff;
     NOP();
 
     xprintf("finished\r\n");
@@ -280,7 +280,7 @@ void init_isr(void)
     /*
      * register the FEC interrupt handler
      */
-    if (!isr_register_handler(64 + INT_SOURCE_FEC0, fec0_interrupt_handler, NULL, (void *) &nif1))
+    if (!isr_register_handler(64 + INT_SOURCE_FEC0, 7, 6, fec0_interrupt_handler, NULL, (void *) &nif1))
     {
         err("unable to register isr for FEC0\r\n");
     }
@@ -289,12 +289,10 @@ void init_isr(void)
      * Register the DMA interrupt handler
      */
 
-    if (!isr_register_handler(64 + INT_SOURCE_DMA, dma_interrupt_handler, NULL, NULL))
+    if (!isr_register_handler(64 + INT_SOURCE_DMA, 7, 7, dma_interrupt_handler, NULL, NULL))
     {
         err("Error: Unable to register isr for DMA\r\n");
     }
-
-    dma_irq_enable(7, 7);       /* TODO: need to match the FEC driver's specs in MiNT? */
 
 #ifdef _NOT_USED_
     /*
@@ -355,6 +353,8 @@ void BaS(void)
     xprintf("finished\r\n");
 
     xprintf("copy EmuTOS: ");
+
+    dma_init();
 
     /* copy EMUTOS */
     src = (uint8_t *) EMUTOS;
@@ -441,7 +441,7 @@ void BaS(void)
     xprintf("BaS initialization finished, enable interrupts\r\n");
     init_isr();
     enable_coldfire_interrupts();
-    //init_pci();
+    init_pci();
     // video_init();
 
     /* initialize USB devices */

@@ -665,6 +665,7 @@ void *dma_memcpy(void *dst, void *src, size_t n)
 
 int dma_init(void)
 {
+    int i;
     int res;
 
     dbg("MCD DMA API initialization: ");
@@ -673,6 +674,15 @@ int dma_init(void)
     {
         err("DMA API initialization failed (0x%x)\r\n", res);
         return 0;
+    }
+
+    /*
+     * make sure dma_channel array is properly initialized
+     */
+    for (i = 0; i < NCHANNELS; i++)
+    {
+        dma_channel[i].req = -1;
+        dma_channel[i].handler = NULL;
     }
 
     // test

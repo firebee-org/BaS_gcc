@@ -37,9 +37,6 @@
 #include "dma.h"
 #include "pci.h"
 
-extern void (*rt_vbr[])(void);
-#define VBR rt_vbr
-
 #define IRQ_DEBUG
 #if defined(IRQ_DEBUG)
 #define dbg(format, arg...) do { xprintf("DEBUG %s(): " format, __FUNCTION__, ##arg); } while (0)
@@ -72,6 +69,51 @@ void isr_init(void)
     memset(isrtab, 0, sizeof(isrtab));
 }
 
+bool isr_set_prio_and_level(int int_source, int priority, int level)
+{
+    if (int_source > 8 && int_source <= 62)
+    {
+        /*
+        * preset interrupt control registers with level and priority
+        */
+        MCF_INTC_ICR(int_source) = MCF_INTC_ICR_IP(priority) |
+                                   MCF_INTC_ICR_IL(level);
+    }
+    else if (int_source >= 1 && int_source <= 8)
+    {
+        dbg("interrrupt control register for vector %d is read only!\r\n");
+    }
+    else
+    {
+        err("invalid vector - interrupt control register not set.\r\n");
+        return false;
+    }
+
+    return true;
+}
+
+/*
+ * enable internal int source in DMA controller
+ */
+bool isr_enable_int_source(int int_source)
+{
+    if (int_source < 32 && int_source > 0)
+    {
+        MCF_INTC_IMRL &= ~(1 << int_source);
+    }
+    else if (int_source >= 32 && int_source <= 62)
+    {
+        MCF_INTC_IMRH &= ~(1 << (int_source - 32));
+    }
+    else
+    {
+        err("vector %d does not correspond to an internal interrupt source\r\n");
+        return false;
+    }
+
+    return true;
+}
+
 /*
  * This function places an interrupt handler in the ISR table,
  * thereby registering it so that the low-level handler may call it.
@@ -80,9 +122,10 @@ void isr_init(void)
  * pointer to the device itself, and the second a pointer to a data
  * structure used by the device driver for that particular device.
  */
-int isr_register_handler(int vector, int (*handler)(void *, void *), void *hdev, void *harg)
+bool isr_register_handler(int vector, int level, int priority, int (*handler)(void *, void *), void *hdev, void *harg)
 {
     int index;
+    int int_source;
 
     if ((vector == 0) || (handler == NULL))
     {
@@ -108,12 +151,26 @@ int isr_register_handler(int vector, int (*handler)(void *, void *), void *hdev,
             isrtab[index].hdev = hdev;
             isrtab[index].harg = harg;
 
+            int_source = vector - 64;
+
+            if (!isr_enable_int_source(int_source))
+            {
+                err("failed to enable internal interrupt souce %d in IMRL/IMRH\r\n", int_source);
+                return false;
+            }
+
+            if (!isr_set_prio_and_level(int_source, priority, level))
+            {
+                err("failed to set priority and level for interrupt source %d\r\n", int_source);
+                return false;
+            }
+
             return true;
         }
-        }
-        dbg("no available slots to register handler for vector %d\n\r", vector);
+    }
+    dbg("no available slots to register handler for vector %d\n\r", vector);
 
-        return false;   /* no available slots */
+    return false;   /* no available slots */
 }
 
 void isr_remove_handler(int (*handler)(void *, void *))
@@ -145,24 +202,19 @@ bool isr_execute_handler(int vector)
     int index;
     bool retval = false;
 
-    dbg("vector = 0x%x\r\n", vector);
+    dbg("vector = %d\r\n", vector);
 
     /*
-     * locate an Interrupt Service Routine handler.
+     * locate an interrupt service routine handler.
      */
     for (index = 0; index < MAX_ISR_ENTRY; index++)
     {
         if (isrtab[index].vector == vector)
         {
-            retval = true;
-
-            if (isrtab[index].handler(isrtab[index].hdev, isrtab[index].harg))
-            {
-                return retval;
-            }
+            return isrtab[index].handler(isrtab[index].hdev, isrtab[index].harg);
         }
     }
-    dbg("no isr handler for vector %d found\r\n", vector);
+    err("no isr handler for vector %d found. Spurious?\r\n", vector);
 
     return retval;
 }
