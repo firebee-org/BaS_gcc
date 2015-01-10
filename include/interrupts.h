@@ -147,8 +147,8 @@
 extern void isr_init(void);
 extern bool isr_set_prio_and_level(int int_source, int priority, int level);
 extern bool isr_enable_int_source(int int_source);
-extern bool isr_register_handler(int vector, int level, int priority, int (*handler)(void *, void *), void *hdev, void *harg);
-extern void isr_remove_handler(int (*handler)(void *, void *));
+extern bool isr_register_handler(int vector, int level, int priority, bool (*handler)(void *, void *), void *hdev, void *harg);
+extern void isr_remove_handler(bool (*handler)(void *, void *));
 extern bool isr_execute_handler(int vector);
 extern int pic_interrupt_handler(void *arg1, void *arg2);
 extern int xlbpci_interrupt_handler(void *arg1, void *arg2);

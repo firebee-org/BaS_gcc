@@ -54,7 +54,7 @@
 struct isrentry
 {
     int     vector;
-    int     (*handler)(void *, void *);
+    bool     (*handler)(void *, void *);
     void    *hdev;
     void    *harg;
 };
@@ -122,7 +122,7 @@ bool isr_enable_int_source(int int_source)
  * pointer to the device itself, and the second a pointer to a data
  * structure used by the device driver for that particular device.
  */
-bool isr_register_handler(int vector, int level, int priority, int (*handler)(void *, void *), void *hdev, void *harg)
+bool isr_register_handler(int vector, int level, int priority, bool (*handler)(void *, void *), void *hdev, void *harg)
 {
     int index;
     int int_source;
@@ -173,7 +173,7 @@ bool isr_register_handler(int vector, int level, int priority, int (*handler)(vo
     return false;   /* no available slots */
 }
 
-void isr_remove_handler(int (*handler)(void *, void *))
+void isr_remove_handler(bool (*handler)(void *, void *))
 {
     /*
      * This routine removes from the ISR table all
