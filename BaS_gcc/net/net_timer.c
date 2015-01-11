@@ -38,7 +38,7 @@ static NET_TIMER net_timer[4] =
 };
 
 
-int timer_default_isr(void *not_used, NET_TIMER *t)
+bool timer_default_isr(void *not_used, NET_TIMER *t)
 {
     (void) not_used;
 
@@ -159,7 +159,7 @@ bool timer_init(uint8_t ch, uint8_t lvl, uint8_t pri)
      * Register the timer interrupt handler
      */
     if (!isr_register_handler(TIMER_VECTOR(ch), 3, 0,
-                (int (*)(void *,void *)) timer_default_isr,
+                (bool (*)(void *,void *)) timer_default_isr,
                 NULL,
                 (void *) &net_timer[ch])
        )

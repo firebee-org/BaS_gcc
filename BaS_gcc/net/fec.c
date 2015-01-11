@@ -571,9 +571,9 @@ void fec_rx_start(uint8_t ch, int8_t *rxbd)
      * Start the Rx DMA task
      */
     MCD_startDma(channel,
-            (int8_t *) rxbd,
+            (s8 *) rxbd,
             0,
-            (int8_t *) MCF_FEC_FECRFDR(ch),
+            (s8 *) MCF_FEC_FECRFDR(ch),
             0,
             RX_BUF_SZ,
             0,
@@ -887,9 +887,9 @@ void fec_tx_start(uint8_t ch, int8_t *txbd)
      * Start the Tx DMA task
      */
     MCD_startDma(channel,
-            (int8_t *) txbd,
+            (s8 *) txbd,
             0,
-            (int8_t*) MCF_FEC_FECTFDR(ch),
+            (s8 *) MCF_FEC_FECTFDR(ch),
             0,
             ETH_MTU,
             0,
@@ -1189,7 +1189,7 @@ void fec_irq_disable(uint8_t ch)
  * Parameters:
  * ch       FEC channel
  */
-static void fec_irq_handler(uint8_t ch)
+static bool fec_irq_handler(uint8_t ch)
 {
     uint32_t event, eir;
 
@@ -1284,6 +1284,8 @@ static void fec_irq_handler(uint8_t ch)
         fec_log[ch].hberr++;
         dbg("HBERR\r\n");
     }
+
+    return true;
 }
 
 /*
@@ -1292,22 +1294,26 @@ static void fec_irq_handler(uint8_t ch)
  */
 bool fec0_interrupt_handler(void* arg1, void* arg2)
 {
+    bool res;
+
     (void) arg1;    /* not used */
     (void) arg2;
 
-    fec_irq_handler(0);
+    res = fec_irq_handler(0);
 
-    return true;    /* handled */
+    return res;
 }
 
 bool fec1_interrupt_handler(void* arg1, void* arg2)
 {
+    bool res;
+
     (void) arg1;    /* not used */
     (void) arg2;
 
-    fec_irq_handler(1);
+    res = fec_irq_handler(1);
 
-    return true;    /* handled */
+    return res;
 }
 
 /*

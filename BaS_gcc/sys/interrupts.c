@@ -53,10 +53,10 @@
 
 struct isrentry
 {
-    int     vector;
-    bool     (*handler)(void *, void *);
-    void    *hdev;
-    void    *harg;
+    int vector;
+    bool (*handler)(void *, void *);
+    void *hdev;
+    void *harg;
 };
 
 static struct isrentry isrtab[MAX_ISR_ENTRY];      /* list of interrupt service routines */
@@ -93,7 +93,7 @@ bool isr_set_prio_and_level(int int_source, int priority, int level)
 }
 
 /*
- * enable internal int source in DMA controller
+ * enable internal int source in interrupt controller
  */
 bool isr_enable_int_source(int int_source)
 {
@@ -196,11 +196,14 @@ void isr_remove_handler(bool (*handler)(void *, void *))
 /*
  * This routine searches the ISR table for an entry that matches
  * 'vector'. If one is found, then 'handler' is executed.
+ *
+ * This routine returns either true or false where
+ *  true = interrupt has been handled, return to caller
+ *  false= interrupt has been handled or hasn't, but needs to be forwarded to TOS
  */
 bool isr_execute_handler(int vector)
 {
     int index;
-    bool retval = false;
 
     dbg("vector = %d\r\n", vector);
 
@@ -216,7 +219,7 @@ bool isr_execute_handler(int vector)
     }
     err("no isr handler for vector %d found. Spurious?\r\n", vector);
 
-    return retval;
+    return true;
 }
 
 /*
@@ -225,7 +228,7 @@ bool isr_execute_handler(int vector)
  * Handles PIC requests that come in from PSC3 serial interface. Currently, that
  * is RTC/NVRAM requests only
  */
-int pic_interrupt_handler(void *arg1, void *arg2)
+bool pic_interrupt_handler(void *arg1, void *arg2)
 {
     uint8_t rcv_byte;
 
@@ -245,21 +248,21 @@ int pic_interrupt_handler(void *arg1, void *arg2)
             MCF_PSC3_PSCTB_8BIT = *rtc_data;
         } while (index++ < 64);
     }
-    return 1;
+    return true;
 }
 
-int xlbpci_interrupt_handler(void *arg1, void *arg2)
+bool xlbpci_interrupt_handler(void *arg1, void *arg2)
 {
     dbg("XLB PCI interrupt\r\n");
 
-    return 1;
+    return true;
 }
 
-int pciarb_interrupt_handler(void *arg1, void *arg2)
+bool pciarb_interrupt_handler(void *arg1, void *arg2)
 {
     dbg("PCI ARB interrupt\r\n");
 
-    return 1;
+    return true;
 }
 
 #if defined(MACHINE_FIREBEE)
@@ -267,13 +270,12 @@ int pciarb_interrupt_handler(void *arg1, void *arg2)
  * This gets called from irq5 in exceptions.S
  *
  * IRQ5 are the "FBEE" (PIC, ETH PHY, PCI, DVI monitor sense and DSP) interrupts multiplexed by the FPGA interrupt handler
- *
- * Once we arrive here, the SR has been set to disable interrupts and the gcc scratch registers have been saved
  */
-int irq5_handler(void *arg1, void *arg2)
+bool irq5_handler(void *arg1, void *arg2)
 {
     uint32_t pending_interrupts = FBEE_INTR_PENDING;
 
+    dbg("IRQ5!\r\n");
     if (pending_interrupts & FBEE_INTR_PIC)
     {
         dbg("PIC interrupt\r\n");
@@ -312,13 +314,15 @@ int irq5_handler(void *arg1, void *arg2)
 
     if (pending_interrupts & FBEE_INTR_VSYNC || pending_interrupts & FBEE_INTR_HSYNC)
     {
+        dbg("vsync or hsync interrupt!\r\n");
+        FBEE_INTR_CLEAR = FBEE_INTR_VSYNC | FBEE_INTR_HSYNC;
         /* hsync and vsync should go to TOS unhandled */
-        return 1;
+        return false;
     }
 
     MCF_EPORT_EPFR |= (1 << 5);             /* clear interrupt from edge port */
 
-    return 0;
+    return true;
 }
 
 /*
@@ -364,38 +368,41 @@ bool irq6_acsi_dma_interrupt(void)
 
 bool irq6_handler(uint32_t sf1, uint32_t sf2)
 {
-    bool handled = false;
-
-    // err("IRQ6!\r\n");
-    MCF_EPORT_EPFR |= (1 << 6); /* clear int6 from edge port */
+    //err("IRQ6!\r\n");
 
     if (FALCON_MFP_IPRA || FALCON_MFP_IPRB)
     {
         blink_led();
     }
 
-    return handled;
+    MCF_EPORT_EPFR |= (1 << 6); /* clear int6 from edge port */
+
+    return false;               /* always forward IRQ6 to TOS */
 }
 
 #else /* MACHINE_FIREBEE */
 
-int irq5_handler(void *arg1, void *arg2)
+bool irq5_handler(void *arg1, void *arg2)
 {
-    return 0;
+    MCF_EPORT_EPFR |= (1 << 5); /* clear int5 from edge port */
+
+    return true;
 }
 
 bool irq6_handler(void *arg1, void *arg2)
 {
     err("IRQ6!\r\n");
 
-    return 0;
+    MCF_EPORT_EPFR |= (1 << 6); /* clear int6 from edge port */
+
+    return false;       /* always forward IRQ6 to TOS */
 }
 
 /*
  * This gets called from irq7 in exceptions.S
  * Once we arrive here, the SR has been set to disable interrupts and the gcc scratch registers have been saved
  */
-void irq7_handler(void)
+bool irq7_handler(void)
 {
     int32_t handle;
     int32_t value = 0;
@@ -411,6 +418,9 @@ void irq7_handler(void)
             dbg("interrupt not handled!\r\n");
         }
     }
+    MCF_EPORT_EPFR |= (1 << 7); /* clear int7 from edge port */
+
+    return true;
 }
 #endif /* MACHINE_M548X */
 
@@ -429,12 +439,14 @@ void irq7_handler(void)
  * video RAM starting at 0x60000000) and copies SDRAM contents of that page to the video
  * RAM page.
  */
-void gpt0_interrupt_handler(void)
+bool gpt0_interrupt_handler(void)
 {
     dbg("handler called\n\r");
 
     MCF_GPT0_GMS &= ~1;     /* rearm trigger */
     NOP();
     MCF_GPT0_GMS |= 1;
+
+    return true;
 }
 #endif /* MACHINE_FIREBEE */

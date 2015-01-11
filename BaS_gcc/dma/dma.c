@@ -593,9 +593,9 @@ bool dma_interrupt_handler(void *arg1, void *arg2)
         }
     }
 
-    set_ipl(ipl);
+    //set_ipl(ipl);
 
-    return 1;   /* handled */
+    return true;   /* handled */
 }
 /********************************************************************/
 

@@ -91,7 +91,7 @@ inline uint32_t set_asid(uint32_t value)
     uint32_t ret = rt_asid;
 
     __asm__ __volatile__(
-        "movec		%[value],ASID\n\t"
+        "movec      %[value],ASID\n\t"
         : /* no output */
         : [value] "r" (value)
         :
@@ -113,7 +113,7 @@ inline uint32_t set_acr0(uint32_t value)
     uint32_t ret = rt_acr0;
 
     __asm__ __volatile__(
-        "movec		%[value],ACR0\n\t"
+        "movec      %[value],ACR0\n\t"
         : /* not output */
         : [value] "r" (value)
         :
@@ -133,7 +133,7 @@ inline uint32_t set_acr1(uint32_t value)
     uint32_t ret = rt_acr1;
 
     __asm__ __volatile__(
-        "movec		%[value],ACR1\n\t"
+        "movec      %[value],ACR1\n\t"
         : /* not output */
         : [value] "r" (value)
         :
@@ -154,7 +154,7 @@ inline uint32_t set_acr2(uint32_t value)
     uint32_t ret = rt_acr2;
 
     __asm__ __volatile__(
-        "movec		%[value],ACR2\n\t"
+        "movec      %[value],ACR2\n\t"
         : /* not output */
         : [value] "r" (value)
         :
@@ -174,7 +174,7 @@ inline uint32_t set_acr3(uint32_t value)
     uint32_t ret = rt_acr3;
 
     __asm__ __volatile__(
-        "movec		%[value],ACR3\n\t"
+        "movec      %[value],ACR3\n\t"
         : /* not output */
         : [value] "r" (value)
         :
@@ -190,7 +190,7 @@ inline uint32_t set_mmubar(uint32_t value)
     uint32_t ret = rt_mmubar;
 
     __asm__ __volatile__(
-        "movec		%[value],MMUBAR\n\t"
+        "movec      %[value],MMUBAR\n\t"
         : /* no output */
         : [value] "r" (value)
         : /* no clobber */
@@ -311,22 +311,22 @@ int mmu_map_instruction_page(int32_t virt, uint8_t asid)
     MCF_MMU_MMUAR = (virt & size_mask);
 
     MCF_MMU_MMUTR = (virt & size_mask) |                            /* virtual address */
-        MCF_MMU_MMUTR_ID(asid) |        							/* address space id (ASID) */
-        (page->global ? MCF_MMU_MMUTR_SG : 0) |						/* shared global */
-        MCF_MMU_MMUTR_V;											/* valid */
+        MCF_MMU_MMUTR_ID(asid) |                                    /* address space id (ASID) */
+        (page->global ? MCF_MMU_MMUTR_SG : 0) |                     /* shared global */
+        MCF_MMU_MMUTR_V;                                            /* valid */
 
-    MCF_MMU_MMUDR = (phys & size_mask) |                 			/* physical address */
-        MCF_MMU_MMUDR_SZ(DEFAULT_PAGE_SIZE) |						/* page size */
+    MCF_MMU_MMUDR = (phys & size_mask) |                            /* physical address */
+        MCF_MMU_MMUDR_SZ(DEFAULT_PAGE_SIZE) |                       /* page size */
         MCF_MMU_MMUDR_CM(page->cache_mode) |                        /* cache mode */
         (page->supervisor_protect ? MCF_MMU_MMUDR_SP : 0) |         /* supervisor protect */
-        (page->read ? MCF_MMU_MMUDR_R : 0) |                    	/* read access enable */
+        (page->read ? MCF_MMU_MMUDR_R : 0) |                        /* read access enable */
         (page->write ? MCF_MMU_MMUDR_W : 0) |                       /* write access enable */
         (page->execute ? MCF_MMU_MMUDR_X : 0) |                     /* execute access enable */
         (page->locked ? MCF_MMU_MMUDR_LK : 0);
 
-    MCF_MMU_MMUOR = MCF_MMU_MMUOR_ITLB | 	/* instruction */
-        MCF_MMU_MMUOR_ACC |     			/* access TLB */
-        MCF_MMU_MMUOR_UAA;      			/* update allocation address field */
+    MCF_MMU_MMUOR = MCF_MMU_MMUOR_ITLB |    /* instruction */
+        MCF_MMU_MMUOR_ACC |                 /* access TLB */
+        MCF_MMU_MMUOR_UAA;                  /* update allocation address field */
 
     set_ipl(ipl);
 
@@ -341,7 +341,7 @@ int mmu_map_data_page(int32_t virt, uint8_t asid)
 {
     uint16_t ipl;
     const uint32_t size_mask = ~ (DEFAULT_PAGE_SIZE - 1);       /* pagesize */
-    int page_index = (virt & size_mask) / DEFAULT_PAGE_SIZE;	/* index into page_descriptor array */
+    int page_index = (virt & size_mask) / DEFAULT_PAGE_SIZE;    /* index into page_descriptor array */
     struct page_descriptor *page = &pages[page_index];          /* attributes of page to map */
 
     int32_t phys = lookup_phys(virt);                          /* virtual to physical translation of page */
@@ -365,21 +365,21 @@ int mmu_map_data_page(int32_t virt, uint8_t asid)
     ipl = set_ipl(7);                                               /* do not disturb */
 
     MCF_MMU_MMUTR = (virt & size_mask) |                            /* virtual address */
-        MCF_MMU_MMUTR_ID(asid) |        							/* address space id (ASID) */
-        (page->global ? MCF_MMU_MMUTR_SG : 0) |						/* shared global */
-        MCF_MMU_MMUTR_V;											/* valid */
+        MCF_MMU_MMUTR_ID(asid) |                                    /* address space id (ASID) */
+        (page->global ? MCF_MMU_MMUTR_SG : 0) |                     /* shared global */
+        MCF_MMU_MMUTR_V;                                            /* valid */
 
-    MCF_MMU_MMUDR = (phys & size_mask) |                 			/* physical address */
-        MCF_MMU_MMUDR_SZ(DEFAULT_PAGE_SIZE) |						/* page size */
+    MCF_MMU_MMUDR = (phys & size_mask) |                            /* physical address */
+        MCF_MMU_MMUDR_SZ(DEFAULT_PAGE_SIZE) |                       /* page size */
         MCF_MMU_MMUDR_CM(page->cache_mode) |                        /* cache mode */
         (page->supervisor_protect ? MCF_MMU_MMUDR_SP : 0) |         /* supervisor protect */
-        (page->read ? MCF_MMU_MMUDR_R : 0) |                    	/* read access enable */
+        (page->read ? MCF_MMU_MMUDR_R : 0) |                        /* read access enable */
         (page->write ? MCF_MMU_MMUDR_W : 0) |                       /* write access enable */
         (page->execute ? MCF_MMU_MMUDR_X : 0) |                     /* execute access enable */
         (page->locked ? MCF_MMU_MMUDR_LK : 0);
 
-    MCF_MMU_MMUOR = MCF_MMU_MMUOR_ACC |		/* access TLB, data */
-        MCF_MMU_MMUOR_UAA;					/* update allocation address field */
+    MCF_MMU_MMUOR = MCF_MMU_MMUOR_ACC |     /* access TLB, data */
+        MCF_MMU_MMUOR_UAA;                  /* update allocation address field */
 
     set_ipl(ipl);
     dbg("mapped virt=0x%08x to phys=0x%08x\r\n", virt & size_mask, phys & size_mask);
@@ -433,26 +433,26 @@ int mmu_map_page(int32_t virt, int32_t phys, enum mmu_page_size sz, uint8_t page
 
     ipl = set_ipl(7);       /* do not disturb */
 
-    MCF_MMU_MMUTR = ((int) virt & size_mask) |						/* virtual address */
+    MCF_MMU_MMUTR = ((int) virt & size_mask) |                      /* virtual address */
         MCF_MMU_MMUTR_ID(page_id) |                                 /* address space id (ASID) */
-        (flags->global ? MCF_MMU_MMUTR_SG : 0) |					/* shared global */
-        MCF_MMU_MMUTR_V;											/* valid */
+        (flags->global ? MCF_MMU_MMUTR_SG : 0) |                    /* shared global */
+        MCF_MMU_MMUTR_V;                                            /* valid */
 
-    MCF_MMU_MMUDR = ((int) phys & size_mask) |						/* physical address */
-        MCF_MMU_MMUDR_SZ(sz) |										/* page size */
+    MCF_MMU_MMUDR = ((int) phys & size_mask) |                      /* physical address */
+        MCF_MMU_MMUDR_SZ(sz) |                                      /* page size */
         MCF_MMU_MMUDR_CM(flags->cache_mode) |
         (flags->read ? MCF_MMU_MMUDR_R : 0) |                       /* read access enable */
         (flags->write ? MCF_MMU_MMUDR_W : 0) |                      /* write access enable */
         (flags->execute ? MCF_MMU_MMUDR_X : 0) |                    /* execute access enable */
         (flags->locked ? MCF_MMU_MMUDR_LK : 0);
 
-    MCF_MMU_MMUOR = MCF_MMU_MMUOR_ACC |		/* access TLB, data */
-        MCF_MMU_MMUOR_UAA;					/* update allocation address field */
+    MCF_MMU_MMUOR = MCF_MMU_MMUOR_ACC |     /* access TLB, data */
+        MCF_MMU_MMUOR_UAA;                  /* update allocation address field */
     NOP();
 
-    MCF_MMU_MMUOR = MCF_MMU_MMUOR_ITLB | 	/* instruction */
-        MCF_MMU_MMUOR_ACC |     			/* access TLB */
-        MCF_MMU_MMUOR_UAA;      			/* update allocation address field */
+    MCF_MMU_MMUOR = MCF_MMU_MMUOR_ITLB |    /* instruction */
+        MCF_MMU_MMUOR_ACC |                 /* access TLB */
+        MCF_MMU_MMUOR_UAA;                  /* update allocation address field */
 
     set_ipl(ipl);
 
@@ -521,7 +521,7 @@ void mmu_init(void)
             pages[i].supervisor_protect = 0;
             pages[i].global = 1;
         }
-        pages[i].locked = 0;				/* not locked */
+        pages[i].locked = 0;                /* not locked */
         pages[0].supervisor_protect = 0;    /* protect system vectors */
 
 #elif defined(MACHINE_M5484LITE)
@@ -564,7 +564,7 @@ void mmu_init(void)
             pages[i].supervisor_protect = 0;
             pages[i].global = 1;
         }
-        pages[i].locked = 0;				/* not locked */
+        pages[i].locked = 0;                /* not locked */
         pages[0].supervisor_protect = 0;    /* protect system vectors */
 
 #elif defined(MACHINE_M54455)
@@ -607,33 +607,33 @@ void mmu_init(void)
             pages[i].supervisor_protect = 0;
             pages[i].global = 1;
         }
-        pages[i].locked = 0;				/* not locked */
+        pages[i].locked = 0;                /* not locked */
         pages[0].supervisor_protect = 0;    /* protect system vectors */
 #else
 #error Unknown machine!
 #endif /* MACHINE_FIREBEE */
     }
 
-    set_asid(0);			/* do not use address extension (ASID provides virtual 48 bit addresses */
+    set_asid(0);            /* do not use address extension (ASID provides virtual 48 bit addresses */
 
     /* set data access attributes in ACR0 and ACR1 */
 
     /* map PCI address space */
-    set_acr0(ACR_W(0) |								/* read and write accesses permitted */
-            ACR_SP(1) |								/* supervisor and user mode access permitted */
-            ACR_CM(ACR_CM_CACHE_INH_PRECISE) |		/* cache inhibit, precise */
-            ACR_AMM(0) |							/* control region > 16 MB */
-            ACR_S(ACR_S_SUPERVISOR_MODE) |      	/* match addresses in supervisor mode only */
-            ACR_E(1) |								/* enable ACR */
+    set_acr0(ACR_W(0) |                             /* read and write accesses permitted */
+            ACR_SP(1) |                             /* supervisor and user mode access permitted */
+            ACR_CM(ACR_CM_CACHE_INH_PRECISE) |      /* cache inhibit, precise */
+            ACR_AMM(0) |                            /* control region > 16 MB */
+            ACR_S(ACR_S_SUPERVISOR_MODE) |          /* match addresses in supervisor mode only */
+            ACR_E(1) |                              /* enable ACR */
 #if defined(MACHINE_FIREBEE)
-            ACR_ADMSK(0x7f) |						/* cover 2GB area from 0x80000000 to 0xffffffff */
-            ACR_BA(0x80000000));					/* (equals area from 3 to 4 GB */
+            ACR_ADMSK(0x7f) |                       /* cover 2GB area from 0x80000000 to 0xffffffff */
+            ACR_BA(0x80000000));                    /* (equals area from 3 to 4 GB */
 #elif defined(MACHINE_M5484LITE)
-            ACR_ADMSK(0x7f) |						/* cover 2 GB area from 0x80000000 to 0xffffffff */
+            ACR_ADMSK(0x7f) |                       /* cover 2 GB area from 0x80000000 to 0xffffffff */
             ACR_BA(0x80000000));
 #elif defined(MACHINE_M54455)
             ACR_ADMSK(0x7f) |
-            ACR_BA(0x80000000));					/* FIXME: not determined yet */
+            ACR_BA(0x80000000));                    /* FIXME: not determined yet */
 #else
 #error unknown machine!
 #endif /* MACHINE_FIREBEE */
@@ -680,7 +680,7 @@ void mmu_init(void)
 
     set_acr3(0x0);
 
-    set_mmubar(MMUBAR + 1);		/* set and enable MMUBAR */
+    set_mmubar(MMUBAR + 1);     /* set and enable MMUBAR */
 
     /* create locked TLB entries */
 

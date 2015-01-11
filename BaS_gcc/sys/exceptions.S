@@ -228,22 +228,22 @@ init_vec_loop:
                 move.l  a1,(INT_SOURCE_GPT2 + 64) * 4(a0)
                 move.l  a1,(INT_SOURCE_GPT3 + 64) * 4(a0)
 
-// install lowlevel_isr_handler for the FEC0  interrupt
-                move.l  a1,(INT_SOURCE_FEC0 + 64) * 4(a0)
-
 // install lowlevel_isr_handler for the PSC3 interrupt
                 move.l  a1,(INT_SOURCE_PSC3 + 64) * 4(a0)
 
+// install lowlevel_isr_handler for Coldfire DMA interrupts
+                move.l  a1,(INT_SOURCE_DMA + 64) * 4(a0)
+
 // install lowlevel_isr_handler for the XLBPCI interrupt
                 move.l  a1,(INT_SOURCE_XLBPCI + 64) * 4(a0)
+
+// install lowlevel_isr_handler for the FEC0  interrupt
+                move.l  a1,(INT_SOURCE_FEC0 + 64) * 4(a0)
 
 #ifndef MACHINE_FIREBEE
 // FEC1 not wired on the FireBee (used for FPGA as GPIO), but available on other machines
                 move.l  a1,(INT_SOURCE_FEC1 + 64) * 4(a0)
 #endif
-
-// install lowlevel_isr_handler for Coldfire DMA interrupts
-                move.l  a1,(INT_SOURCE_DMA + 64) * 4(a0)
 
                 move.l  (sp)+,a2            // Restore registers
                 rts
@@ -337,7 +337,7 @@ access:
 bus_error:
                 movem.l (sp),d0-d1/a0-a1            // restore registers
                 unlk    a6
-                bra     std_exc_vec
+                bra     std_exc_vec                 // FIXME: this seems to be bogous...
 
 zero_divide:
                 move.w  #0x2700,sr                  // disable interrupt
@@ -397,14 +397,14 @@ flpoow:
 
 
 irq1:           irq     0x64, 1, 0x02               // Level 1 autovector interrupt (unused)
-irq2:           irq     0x68, 2, 0x04               // Level 2 autovector interrupt (horizonatl blank)
+irq2:           irq     0x68, 2, 0x04               // Level 2 autovector interrupt (horizontal blank)
 irq3:           irq     0x6c, 3, 0x08               // Level 3 autovector interrupt (unused)
 irq4:           irq     0x70, 4, 0x10               // Level 4 autovector interrupt (vertical blank)
 
 
 
 #if defined(MACHINE_FIREBEE)                        /* these handlers are only meaningful for the Firebee */
-irq5:           move.w  #0x2700,sr                  // disable interrupts
+irq5:           //move.w  #0x2700,sr                  // disable interrupts
                 subq.l  #4,sp                       // extra space
 
                 link    a6,#-4 * 4                  // save gcc scratch registers
@@ -412,8 +412,8 @@ irq5:           move.w  #0x2700,sr                  // disable interrupts
 
                 jsr     _irq5_handler               // call C handler routine
 
-                tst.l   d0                          // handled?
-                bne     irq5_forward
+                tst.b   d0                          // handled?
+                beq     irq5_forward
 
                 movem.l (sp),d0-d1/a0-a1            // restore registers
                 unlk    a6
@@ -434,7 +434,7 @@ irq5_forward:   move.l  0x74,a0                     // fetch OS irq5 vector
  * irq6 needs special treatment since - because the Coldfire only supports autovector interrupts
  * - the exception vector is provided by the simulated MFP from the FPGA
  */
-irq6:           move.w  #0x2700,sr                  // disable interrupt
+irq6:           //move.w  #0x2700,sr                  // disable interrupt
                 subq.l  #4,sp                       // extra space
 
                 link    a6,#-4 * 4                  // save gcc scratch registers
@@ -445,8 +445,8 @@ irq6:           move.w  #0x2700,sr                  // disable interrupt
                 jsr     _irq6_handler               // call C handler
                 lea     8(sp),sp                    // fix stack
 
-                tst.l   d0                          // interrupt handled?
-                bne     irq6_forward                // no, forward to TOS
+                tst.b   d0                          // interrupt handled?
+                beq     irq6_forward                // no, forward to TOS
 
                 movem.l (sp),d0-d1/a0-a1            // restore registers
                 unlk    a6
@@ -506,7 +506,7 @@ irq7:
 handler_gpt0:
                 .extern _gpt0_interrupt_handler
 
-                move.w  #0x2700,sr                  // disable interrupts
+                //move.w  #0x2700,sr                  // disable interrupts
                 link    a6,#-4 * 4                  // make room for
                 movem.l d0-d1/a0-a1,(sp)            // gcc scratch registers and save them,
                                                     // other registers will be handled by gcc itself
@@ -524,7 +524,7 @@ handler_gpt0:
 #else                                               // handlers for M5484LITE
 
 irq5:                                               // irq5 is tied to PCI INTC# and PCI INTD# on the M5484LITE
-                move.w  #0x2700,sr                  // disable interrupts
+                //move.w  #0x2700,sr                  // disable interrupts
 
                 lea     -4*4(sp),sp                 // save gcc scratch registers
                 movem.l d0-d1/a0-a1,(sp)
@@ -545,7 +545,7 @@ irq6:
 
 irq7:                                               // irq7 is tied to PCI INTA# and PCI INTB# on the M5484LITE
 
-                move.w  #0x2700,sr                  // disable interrupts
+                //move.w  #0x2700,sr                  // disable interrupts
 
                 lea     -4*4(sp),sp                 // save gcc scratch registers
                 movem.l d0-d1/a0-a1,(sp)
@@ -567,7 +567,7 @@ irq7text:
 /*
  * low-level interrupt service routine for routines registered with
  * isr_register_handler(int vector). If the higlevel routine (isr_execute_handler())
- * returns != 0, the call is forwarded to the OS (through its own vector base).
+ * returns != true, the call is forwarded to the OS (through its own vector base).
  */
                 .global _lowlevel_isr_handler
                 .extern _isr_execute_handler
@@ -597,8 +597,8 @@ _lowlevel_isr_handler:
                 move.l  d0,-(sp)                    // push it
                 jsr     _isr_execute_handler        // call the C handler
                 addq.l  #4,sp                       // adjust stack
-                tst.l   d0                          // handled?
-                bne     lowlevel_forward            // no, we forward it to TOS
+                tst.b   d0                          // handled?
+                beq     lowlevel_forward            // no, forward it to TOS
 
                 movem.l (sp),d0-d1/a0-a1            // restore registers
                 unlk    a6
