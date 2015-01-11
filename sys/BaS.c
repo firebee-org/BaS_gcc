@@ -259,7 +259,6 @@ void disable_coldfire_interrupts()
 #endif /* MACHINE_FIREBEE */
 
     MCF_EPORT_EPIER = 0x0;
-    MCF_EPORT_EPFR = 0x0;
     MCF_INTC_IMRL = 0xfffffffe;
     MCF_INTC_IMRH = 0xffffffff;
 }
@@ -281,7 +280,7 @@ void init_isr(void)
     /*
      * register the FEC interrupt handler
      */
-    if (!isr_register_handler(64 + INT_SOURCE_FEC0, 7, 6, fec0_interrupt_handler, NULL, (void *) &nif1))
+    if (!isr_register_handler(64 + INT_SOURCE_FEC0, 5, 1, fec0_interrupt_handler, NULL, (void *) &nif1))
     {
         err("unable to register isr for FEC0\r\n");
     }
@@ -290,31 +289,36 @@ void init_isr(void)
      * Register the DMA interrupt handler
      */
 
-    if (!isr_register_handler(64 + INT_SOURCE_DMA, 7, 7, dma_interrupt_handler, NULL, NULL))
+    if (!isr_register_handler(64 + INT_SOURCE_DMA, 5, 3, dma_interrupt_handler, NULL, NULL))
     {
-        err("Error: Unable to register isr for DMA\r\n");
+        err("unable to register isr for DMA\r\n");
     }
 
-#ifdef _NOT_USED_
+#ifdef MACHINE_FIREBEE
+    /*
+     * register GPT0 timer interrupt vector
+     */
+    if (!isr_register_handler(64 + INT_SOURCE_GPT0, 5, 2, gpt0_interrupt_handler, NULL, NULL))
+    {
+        err("unable to register isr for GPT0 timer\r\n");
+    }
+
     /*
      * register the PIC interrupt handler
      */
-    if (!isr_register_handler(64 + INT_SOURCE_PSC3, pic_interrupt_handler, NULL, NULL))
+    if (!isr_register_handler(64 + INT_SOURCE_PSC3, 5, 5, pic_interrupt_handler, NULL, NULL))
     {
         err("Error: unable to register ISR for PSC3\r\n");
     }
+#endif /* MACHINE_FIREBEE */
 
     /*
      * register the XLB PCI interrupt handler
      */
-    if (!isr_register_handler(64 + INT_SOURCE_XLBPCI, xlbpci_interrupt_handler, NULL, NULL))
+    if (!isr_register_handler(64 + INT_SOURCE_XLBPCI, 7, 0, xlbpci_interrupt_handler, NULL, NULL))
     {
         err("Error: unable to register isr for XLB PCI interrupts\r\n");
     }
-
-    MCF_INTC_ICR43 = MCF_INTC_ICR_IL(7) |           /* level 7, priority 6 */
-                     MCF_INTC_ICR_IP(6);
-    MCF_INTC_IMRH &= ~MCF_INTC_IMRH_INT_MASK43;     /* enable XLB PCI interrupts in DMA controller */
 
     MCF_XLB_XARB_IMR = MCF_XLB_XARB_IMR_SEAE |      /* slave error acknowledge interrupt */
             MCF_XLB_XARB_IMR_MME |                  /* multiple master at prio 0 interrupt */
@@ -324,19 +328,14 @@ void init_isr(void)
             MCF_XLB_XARB_IMR_TTME |                 /* TBST/TSIZ mismatch interrupt */
             MCF_XLB_XARB_IMR_BAE;                   /* bus activity tenure timeout interrupt */
 
-    if (!isr_register_handler(64 + INT_SOURCE_PCIARB, pciarb_interrupt_handler, NULL, NULL))
+    if (!isr_register_handler(64 + INT_SOURCE_PCIARB, 7, 1, pciarb_interrupt_handler, NULL, NULL))
     {
         err("Error: unable to register isr for PCIARB interrupts\r\n");
 
         return;
     }
-    MCF_INTC_ICR41 = MCF_INTC_ICR_IL(7) |           /* level 5, priority 0 */
-                     MCF_INTC_ICR_IP(5);
-    MCF_INTC_IMRH &= ~MCF_INTC_IMRH_INT_MASK41;     /* enable PCIARB interrupts in DMA controller */
-
     MCF_PCIARB_PACR = MCF_PCIARB_PACR_EXTMINTEN(0x1f) | /* external master broken interrupt */
                       MCF_PCIARB_PACR_INTMINTEN;        /* internal master broken interrupt */
-#endif /* _NOT_USED_ */
 }
 
 void BaS(void)

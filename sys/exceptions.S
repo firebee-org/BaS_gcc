@@ -214,13 +214,6 @@ init_vec_loop:
                 move.l  a1,0x11c(a0)
 
 
-#ifdef MACHINE_FIREBEE
-
-// timer vectors (triggers when vbashi gets changed, used for video page copy)
-                lea     handler_gpt0(pc),a1
-                // GPT0 interrupt source = 62
-                move.l  a1,(INT_SOURCE_GPT0 + 64) * 4(a0)
-#endif /* MACHINE_FIREBEE */
 
 // install lowlevel_isr_handler for the three GPT timers
                 lea     _lowlevel_isr_handler(pc),a1
@@ -244,6 +237,12 @@ init_vec_loop:
 // FEC1 not wired on the FireBee (used for FPGA as GPIO), but available on other machines
                 move.l  a1,(INT_SOURCE_FEC1 + 64) * 4(a0)
 #endif
+
+#ifdef MACHINE_FIREBEE
+
+// timer vectors (triggers when vbashi gets changed, used for video page copy)
+                move.l  a1,(INT_SOURCE_GPT0 + 64) * 4(a0)
+#endif /* MACHINE_FIREBEE */
 
                 move.l  (sp)+,a2            // Restore registers
                 rts
@@ -488,38 +487,6 @@ irq7:
                 move.l  (sp)+,d0                    // restore registers
                 move.l  (sp)+,a0
                 rts                                 // Forward to the Access Error handler
-
-
-/*
- * general purpose timer 0 (GPT0): video change, later also others.
- *
- * GPT0 is used as input trigger. It is connected to the TIN0 signal of
- * the FPGA and triggers everytime vbasehi is written to, i.e.
- * when the video base address gets changed
- */
-
-/*
- * TODO: remove. This interrupt still fires, but doesn't do anything anymore.
- * BaS_gcc handles FPGA RAM as STRAM, so there is no page copy necessary as
- * it was with previous versions.
- */
-handler_gpt0:
-                .extern _gpt0_interrupt_handler
-
-                //move.w  #0x2700,sr                  // disable interrupts
-                link    a6,#-4 * 4                  // make room for
-                movem.l d0-d1/a0-a1,(sp)            // gcc scratch registers and save them,
-                                                    // other registers will be handled by gcc itself
-
-                move.w  4(a6),d0                    // fetch vector number from stack
-                move.l  d0,-(sp)                    // push it
-                jsr     _gpt0_interrupt_handler     // call C handler
-                addq.l  #4,sp                       // adjust stack
-
-                movem.l (sp),d0-d1/a0-a1            // restore registers
-
-                unlk    a6
-                rte
 
 #else                                               // handlers for M5484LITE
 
