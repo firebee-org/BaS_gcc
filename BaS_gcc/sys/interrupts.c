@@ -76,6 +76,8 @@ bool isr_set_prio_and_level(int int_source, int priority, int level)
         /*
         * preset interrupt control registers with level and priority
         */
+        dbg("set MCF_INTC_ICR(%d) to priority %d, level %d\r\n",
+            int_source, priority, level);
         MCF_INTC_ICR(int_source) = MCF_INTC_ICR_IP(priority) |
                                    MCF_INTC_ICR_IL(level);
     }
@@ -97,6 +99,14 @@ bool isr_set_prio_and_level(int int_source, int priority, int level)
  */
 bool isr_enable_int_source(int int_source)
 {
+    dbg("anding int_source %d, MCF_INTC_IMR%c = 0x%08x, now 0x%08x\r\n",
+        int_source,
+        int_source < 32 && int_source > 0 ? 'L' :
+                    int_source >= 32 && int_source <= 62 ? 'H' : 'U',
+        int_source < 32 && int_source > 0 ? ~(1 << int_source) :
+                    int_source >= 32 && int_source <= 62 ? ~(1 << (int_source - 32)) : 0,
+        MCF_INTC_IMRH);
+
     if (int_source < 32 && int_source > 0)
     {
         MCF_INTC_IMRL &= ~(1 << int_source);
@@ -439,7 +449,7 @@ bool irq7_handler(void)
  * video RAM starting at 0x60000000) and copies SDRAM contents of that page to the video
  * RAM page.
  */
-bool gpt0_interrupt_handler(void)
+bool gpt0_interrupt_handler(void *arg0, void *arg1)
 {
     dbg("handler called\n\r");
 
