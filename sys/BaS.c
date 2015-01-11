@@ -237,10 +237,11 @@ void enable_coldfire_interrupts()
     MCF_EPORT_EPIER = 0xfe;                 /* int 1-7 on */
     MCF_EPORT_EPFR = 0xff;                  /* clear all pending interrupts */
     MCF_INTC_IMRL = 0xffffff00;             /* int 1-7 on */
-    MCF_INTC_IMRH = 0xbffffffe;             /* psc3 and timer 0 int on */
+    //MCF_INTC_IMRH = 0xbffffffe;             /* psc3 and timer 0 int on */
+    MCF_INTC_IMRH = 0;
     FBEE_INTR_ENABLE = FBEE_INTR_INT_IRQ7 | /* enable pseudo bus error */
-            FBEE_INTR_INT_MFP_IRQ6 |        /* enable Firebee (PIC, PCI, ETH PHY, DVI, DSP) interrupts */
-            FBEE_INTR_INT_FPGA_IRQ5 |       /* enable MFP interrupts */
+            FBEE_INTR_INT_MFP_IRQ6 |        /* enable MFP interrupts */
+            FBEE_INTR_INT_FPGA_IRQ5 |       /* enable Firebee (PIC, PCI, ETH PHY, DVI, DSP) interrupts */
             FBEE_INTR_INT_VSYNC_IRQ4 |      /* enable vsync interrupts */
             FBEE_INTR_PCI_INTA |            /* enable PCI interrupts */
             FBEE_INTR_PCI_INTB |

@@ -7,253 +7,253 @@
 
 #include "MCD_dma.h"
 
-uint32_t MCD_varTab0[];
-uint32_t MCD_varTab1[];
-uint32_t MCD_varTab2[];
-uint32_t MCD_varTab3[];
-uint32_t MCD_varTab4[];
-uint32_t MCD_varTab5[];
-uint32_t MCD_varTab6[];
-uint32_t MCD_varTab7[];
-uint32_t MCD_varTab8[];
-uint32_t MCD_varTab9[];
-uint32_t MCD_varTab10[];
-uint32_t MCD_varTab11[];
-uint32_t MCD_varTab12[];
-uint32_t MCD_varTab13[];
-uint32_t MCD_varTab14[];
-uint32_t MCD_varTab15[];
+u32 MCD_varTab0[];
+u32 MCD_varTab1[];
+u32 MCD_varTab2[];
+u32 MCD_varTab3[];
+u32 MCD_varTab4[];
+u32 MCD_varTab5[];
+u32 MCD_varTab6[];
+u32 MCD_varTab7[];
+u32 MCD_varTab8[];
+u32 MCD_varTab9[];
+u32 MCD_varTab10[];
+u32 MCD_varTab11[];
+u32 MCD_varTab12[];
+u32 MCD_varTab13[];
+u32 MCD_varTab14[];
+u32 MCD_varTab15[];
 
-uint32_t MCD_funcDescTab0[];
+u32 MCD_funcDescTab0[];
 #ifdef MCD_INCLUDE_EU
-uint32_t MCD_funcDescTab1[];
-uint32_t MCD_funcDescTab2[];
-uint32_t MCD_funcDescTab3[];
-uint32_t MCD_funcDescTab4[];
-uint32_t MCD_funcDescTab5[];
-uint32_t MCD_funcDescTab6[];
-uint32_t MCD_funcDescTab7[];
-uint32_t MCD_funcDescTab8[];
-uint32_t MCD_funcDescTab9[];
-uint32_t MCD_funcDescTab10[];
-uint32_t MCD_funcDescTab11[];
-uint32_t MCD_funcDescTab12[];
-uint32_t MCD_funcDescTab13[];
-uint32_t MCD_funcDescTab14[];
-uint32_t MCD_funcDescTab15[];
+u32 MCD_funcDescTab1[];
+u32 MCD_funcDescTab2[];
+u32 MCD_funcDescTab3[];
+u32 MCD_funcDescTab4[];
+u32 MCD_funcDescTab5[];
+u32 MCD_funcDescTab6[];
+u32 MCD_funcDescTab7[];
+u32 MCD_funcDescTab8[];
+u32 MCD_funcDescTab9[];
+u32 MCD_funcDescTab10[];
+u32 MCD_funcDescTab11[];
+u32 MCD_funcDescTab12[];
+u32 MCD_funcDescTab13[];
+u32 MCD_funcDescTab14[];
+u32 MCD_funcDescTab15[];
 #endif
 
-uint32_t MCD_contextSave0[];
-uint32_t MCD_contextSave1[];
-uint32_t MCD_contextSave2[];
-uint32_t MCD_contextSave3[];
-uint32_t MCD_contextSave4[];
-uint32_t MCD_contextSave5[];
-uint32_t MCD_contextSave6[];
-uint32_t MCD_contextSave7[];
-uint32_t MCD_contextSave8[];
-uint32_t MCD_contextSave9[];
-uint32_t MCD_contextSave10[];
-uint32_t MCD_contextSave11[];
-uint32_t MCD_contextSave12[];
-uint32_t MCD_contextSave13[];
-uint32_t MCD_contextSave14[];
-uint32_t MCD_contextSave15[];
+u32 MCD_contextSave0[];
+u32 MCD_contextSave1[];
+u32 MCD_contextSave2[];
+u32 MCD_contextSave3[];
+u32 MCD_contextSave4[];
+u32 MCD_contextSave5[];
+u32 MCD_contextSave6[];
+u32 MCD_contextSave7[];
+u32 MCD_contextSave8[];
+u32 MCD_contextSave9[];
+u32 MCD_contextSave10[];
+u32 MCD_contextSave11[];
+u32 MCD_contextSave12[];
+u32 MCD_contextSave13[];
+u32 MCD_contextSave14[];
+u32 MCD_contextSave15[];
 
-uint32_t MCD_realTaskTableSrc[] =
+u32 MCD_realTaskTableSrc[] =
 {
     0x00000000,
     0x00000000,
-    (uint32_t)MCD_varTab0,   /* Task 0 Variable Table */
-    (uint32_t)MCD_funcDescTab0,  /* Task 0 Function Descriptor Table & Flags */
+    (u32)MCD_varTab0,   /* Task 0 Variable Table */
+    (u32)MCD_funcDescTab0,  /* Task 0 Function Descriptor Table & Flags */
     0x00000000,
     0x00000000,
-    (uint32_t)MCD_contextSave0,  /* Task 0 context save space */
+    (u32)MCD_contextSave0,  /* Task 0 context save space */
     0x00000000,
     0x00000000,
     0x00000000,
-    (uint32_t)MCD_varTab1,   /* Task 1 Variable Table */
+    (u32)MCD_varTab1,   /* Task 1 Variable Table */
 #ifdef MCD_INCLUDE_EU
-    (uint32_t)MCD_funcDescTab1,  /* Task 1 Function Descriptor Table & Flags */
+    (u32)MCD_funcDescTab1,  /* Task 1 Function Descriptor Table & Flags */
 #else
-    (uint32_t)MCD_funcDescTab0,  /* Task 0 Function Descriptor Table & Flags */
+    (u32)MCD_funcDescTab0,  /* Task 0 Function Descriptor Table & Flags */
 #endif
     0x00000000,
     0x00000000,
-    (uint32_t)MCD_contextSave1,  /* Task 1 context save space */
+    (u32)MCD_contextSave1,  /* Task 1 context save space */
     0x00000000,
     0x00000000,
     0x00000000,
-    (uint32_t)MCD_varTab2,   /* Task 2 Variable Table */
+    (u32)MCD_varTab2,   /* Task 2 Variable Table */
 #ifdef MCD_INCLUDE_EU
-    (uint32_t)MCD_funcDescTab2,  /* Task 2 Function Descriptor Table & Flags */
+    (u32)MCD_funcDescTab2,  /* Task 2 Function Descriptor Table & Flags */
 #else
-    (uint32_t)MCD_funcDescTab0,  /* Task 0 Function Descriptor Table & Flags */
+    (u32)MCD_funcDescTab0,  /* Task 0 Function Descriptor Table & Flags */
 #endif
     0x00000000,
     0x00000000,
-    (uint32_t)MCD_contextSave2,  /* Task 2 context save space */
+    (u32)MCD_contextSave2,  /* Task 2 context save space */
     0x00000000,
     0x00000000,
     0x00000000,
-    (uint32_t)MCD_varTab3,   /* Task 3 Variable Table */
+    (u32)MCD_varTab3,   /* Task 3 Variable Table */
 #ifdef MCD_INCLUDE_EU
-    (uint32_t)MCD_funcDescTab3,  /* Task 3 Function Descriptor Table & Flags */
+    (u32)MCD_funcDescTab3,  /* Task 3 Function Descriptor Table & Flags */
 #else
-    (uint32_t)MCD_funcDescTab0,  /* Task 0 Function Descriptor Table & Flags */
+    (u32)MCD_funcDescTab0,  /* Task 0 Function Descriptor Table & Flags */
 #endif
     0x00000000,
     0x00000000,
-    (uint32_t)MCD_contextSave3,  /* Task 3 context save space */
+    (u32)MCD_contextSave3,  /* Task 3 context save space */
     0x00000000,
     0x00000000,
     0x00000000,
-    (uint32_t)MCD_varTab4,   /* Task 4 Variable Table */
+    (u32)MCD_varTab4,   /* Task 4 Variable Table */
 #ifdef MCD_INCLUDE_EU
-    (uint32_t)MCD_funcDescTab4,  /* Task 4 Function Descriptor Table & Flags */
+    (u32)MCD_funcDescTab4,  /* Task 4 Function Descriptor Table & Flags */
 #else
-    (uint32_t)MCD_funcDescTab0,  /* Task 0 Function Descriptor Table & Flags */
+    (u32)MCD_funcDescTab0,  /* Task 0 Function Descriptor Table & Flags */
 #endif
     0x00000000,
     0x00000000,
-    (uint32_t)MCD_contextSave4,  /* Task 4 context save space */
+    (u32)MCD_contextSave4,  /* Task 4 context save space */
     0x00000000,
     0x00000000,
     0x00000000,
-    (uint32_t)MCD_varTab5,   /* Task 5 Variable Table */
+    (u32)MCD_varTab5,   /* Task 5 Variable Table */
 #ifdef MCD_INCLUDE_EU
-    (uint32_t)MCD_funcDescTab5,  /* Task 5 Function Descriptor Table & Flags */
+    (u32)MCD_funcDescTab5,  /* Task 5 Function Descriptor Table & Flags */
 #else
-    (uint32_t)MCD_funcDescTab0,  /* Task 0 Function Descriptor Table & Flags */
+    (u32)MCD_funcDescTab0,  /* Task 0 Function Descriptor Table & Flags */
 #endif
     0x00000000,
     0x00000000,
-    (uint32_t)MCD_contextSave5,  /* Task 5 context save space */
+    (u32)MCD_contextSave5,  /* Task 5 context save space */
     0x00000000,
     0x00000000,
     0x00000000,
-    (uint32_t)MCD_varTab6,   /* Task 6 Variable Table */
+    (u32)MCD_varTab6,   /* Task 6 Variable Table */
 #ifdef MCD_INCLUDE_EU
-    (uint32_t)MCD_funcDescTab6,  /* Task 6 Function Descriptor Table & Flags */
+    (u32)MCD_funcDescTab6,  /* Task 6 Function Descriptor Table & Flags */
 #else
-    (uint32_t)MCD_funcDescTab0,  /* Task 0 Function Descriptor Table & Flags */
+    (u32)MCD_funcDescTab0,  /* Task 0 Function Descriptor Table & Flags */
 #endif
     0x00000000,
     0x00000000,
-    (uint32_t)MCD_contextSave6,  /* Task 6 context save space */
+    (u32)MCD_contextSave6,  /* Task 6 context save space */
     0x00000000,
     0x00000000,
     0x00000000,
-    (uint32_t)MCD_varTab7,   /* Task 7 Variable Table */
+    (u32)MCD_varTab7,   /* Task 7 Variable Table */
 #ifdef MCD_INCLUDE_EU
-    (uint32_t)MCD_funcDescTab7,  /* Task 7 Function Descriptor Table & Flags */
+    (u32)MCD_funcDescTab7,  /* Task 7 Function Descriptor Table & Flags */
 #else
-    (uint32_t)MCD_funcDescTab0,  /* Task 0 Function Descriptor Table & Flags */
+    (u32)MCD_funcDescTab0,  /* Task 0 Function Descriptor Table & Flags */
 #endif
     0x00000000,
     0x00000000,
-    (uint32_t)MCD_contextSave7,  /* Task 7 context save space */
+    (u32)MCD_contextSave7,  /* Task 7 context save space */
     0x00000000,
     0x00000000,
     0x00000000,
-    (uint32_t)MCD_varTab8,   /* Task 8 Variable Table */
+    (u32)MCD_varTab8,   /* Task 8 Variable Table */
 #ifdef MCD_INCLUDE_EU
-    (uint32_t)MCD_funcDescTab8,  /* Task 8 Function Descriptor Table & Flags */
+    (u32)MCD_funcDescTab8,  /* Task 8 Function Descriptor Table & Flags */
 #else
-    (uint32_t)MCD_funcDescTab0,  /* Task 0 Function Descriptor Table & Flags */
+    (u32)MCD_funcDescTab0,  /* Task 0 Function Descriptor Table & Flags */
 #endif
     0x00000000,
     0x00000000,
-    (uint32_t)MCD_contextSave8,  /* Task 8 context save space */
+    (u32)MCD_contextSave8,  /* Task 8 context save space */
     0x00000000,
     0x00000000,
     0x00000000,
-    (uint32_t)MCD_varTab9,   /* Task 9 Variable Table */
+    (u32)MCD_varTab9,   /* Task 9 Variable Table */
 #ifdef MCD_INCLUDE_EU
-    (uint32_t)MCD_funcDescTab9,  /* Task 9 Function Descriptor Table & Flags */
+    (u32)MCD_funcDescTab9,  /* Task 9 Function Descriptor Table & Flags */
 #else
-    (uint32_t)MCD_funcDescTab0,  /* Task 0 Function Descriptor Table & Flags */
+    (u32)MCD_funcDescTab0,  /* Task 0 Function Descriptor Table & Flags */
 #endif
     0x00000000,
     0x00000000,
-    (uint32_t)MCD_contextSave9,  /* Task 9 context save space */
+    (u32)MCD_contextSave9,  /* Task 9 context save space */
     0x00000000,
     0x00000000,
     0x00000000,
-    (uint32_t)MCD_varTab10,  /* Task 10 Variable Table */
+    (u32)MCD_varTab10,  /* Task 10 Variable Table */
 #ifdef MCD_INCLUDE_EU
-    (uint32_t)MCD_funcDescTab10, /* Task 10 Function Descriptor Table & Flags */
+    (u32)MCD_funcDescTab10, /* Task 10 Function Descriptor Table & Flags */
 #else
-    (uint32_t)MCD_funcDescTab0,  /* Task 0 Function Descriptor Table & Flags */
+    (u32)MCD_funcDescTab0,  /* Task 0 Function Descriptor Table & Flags */
 #endif
     0x00000000,
     0x00000000,
-    (uint32_t)MCD_contextSave10, /* Task 10 context save space */
+    (u32)MCD_contextSave10, /* Task 10 context save space */
     0x00000000,
     0x00000000,
     0x00000000,
-    (uint32_t)MCD_varTab11,  /* Task 11 Variable Table */
+    (u32)MCD_varTab11,  /* Task 11 Variable Table */
 #ifdef MCD_INCLUDE_EU
-    (uint32_t)MCD_funcDescTab11, /* Task 11 Function Descriptor Table & Flags */
+    (u32)MCD_funcDescTab11, /* Task 11 Function Descriptor Table & Flags */
 #else
-    (uint32_t)MCD_funcDescTab0,  /* Task 0 Function Descriptor Table & Flags */
+    (u32)MCD_funcDescTab0,  /* Task 0 Function Descriptor Table & Flags */
 #endif
     0x00000000,
     0x00000000,
-    (uint32_t)MCD_contextSave11, /* Task 11 context save space */
+    (u32)MCD_contextSave11, /* Task 11 context save space */
     0x00000000,
     0x00000000,
     0x00000000,
-    (uint32_t)MCD_varTab12,  /* Task 12 Variable Table */
+    (u32)MCD_varTab12,  /* Task 12 Variable Table */
 #ifdef MCD_INCLUDE_EU
-    (uint32_t)MCD_funcDescTab12, /* Task 12 Function Descriptor Table & Flags */
+    (u32)MCD_funcDescTab12, /* Task 12 Function Descriptor Table & Flags */
 #else
-    (uint32_t)MCD_funcDescTab0,  /* Task 0 Function Descriptor Table & Flags */
+    (u32)MCD_funcDescTab0,  /* Task 0 Function Descriptor Table & Flags */
 #endif
     0x00000000,
     0x00000000,
-    (uint32_t)MCD_contextSave12, /* Task 12 context save space */
+    (u32)MCD_contextSave12, /* Task 12 context save space */
     0x00000000,
     0x00000000,
     0x00000000,
-    (uint32_t)MCD_varTab13,  /* Task 13 Variable Table */
+    (u32)MCD_varTab13,  /* Task 13 Variable Table */
 #ifdef MCD_INCLUDE_EU
-    (uint32_t)MCD_funcDescTab13, /* Task 13 Function Descriptor Table & Flags */
+    (u32)MCD_funcDescTab13, /* Task 13 Function Descriptor Table & Flags */
 #else
-    (uint32_t)MCD_funcDescTab0,  /* Task 0 Function Descriptor Table & Flags */
+    (u32)MCD_funcDescTab0,  /* Task 0 Function Descriptor Table & Flags */
 #endif
     0x00000000,
     0x00000000,
-    (uint32_t)MCD_contextSave13, /* Task 13 context save space */
+    (u32)MCD_contextSave13, /* Task 13 context save space */
     0x00000000,
     0x00000000,
     0x00000000,
-    (uint32_t)MCD_varTab14,  /* Task 14 Variable Table */
+    (u32)MCD_varTab14,  /* Task 14 Variable Table */
 #ifdef MCD_INCLUDE_EU
-    (uint32_t)MCD_funcDescTab14, /* Task 14 Function Descriptor Table & Flags */
+    (u32)MCD_funcDescTab14, /* Task 14 Function Descriptor Table & Flags */
 #else
-    (uint32_t)MCD_funcDescTab0,  /* Task 0 Function Descriptor Table & Flags */
+    (u32)MCD_funcDescTab0,  /* Task 0 Function Descriptor Table & Flags */
 #endif
     0x00000000,
     0x00000000,
-    (uint32_t)MCD_contextSave14, /* Task 14 context save space */
+    (u32)MCD_contextSave14, /* Task 14 context save space */
     0x00000000,
     0x00000000,
     0x00000000,
-    (uint32_t)MCD_varTab15,  /* Task 15 Variable Table */
+    (u32)MCD_varTab15,  /* Task 15 Variable Table */
 #ifdef MCD_INCLUDE_EU
-    (uint32_t)MCD_funcDescTab15, /* Task 15 Function Descriptor Table & Flags */
+    (u32)MCD_funcDescTab15, /* Task 15 Function Descriptor Table & Flags */
 #else
-    (uint32_t)MCD_funcDescTab0,  /* Task 0 Function Descriptor Table & Flags */
+    (u32)MCD_funcDescTab0,  /* Task 0 Function Descriptor Table & Flags */
 #endif
     0x00000000,
     0x00000000,
-    (uint32_t)MCD_contextSave15, /* Task 15 context save space */
+    (u32)MCD_contextSave15, /* Task 15 context save space */
     0x00000000,
 };
 
 
-uint32_t MCD_varTab0[] =
+u32 MCD_varTab0[] =
 {   /* Task 0 Variable Table */
     0x00000000, /* var[0] */
     0x00000000, /* var[1] */
@@ -290,7 +290,7 @@ uint32_t MCD_varTab0[] =
 };
 
 
-uint32_t MCD_varTab1[] =
+u32 MCD_varTab1[] =
 {   /* Task 1 Variable Table */
     0x00000000, /* var[0] */
     0x00000000, /* var[1] */
@@ -326,7 +326,7 @@ uint32_t MCD_varTab1[] =
     0x00000000, /* inc[7] */
 };
 
-uint32_t MCD_varTab2[]=
+u32 MCD_varTab2[]=
 {   /* Task 2 Variable Table */
     0x00000000, /* var[0] */
     0x00000000, /* var[1] */
@@ -362,7 +362,7 @@ uint32_t MCD_varTab2[]=
     0x00000000, /* inc[7] */
 };
 
-uint32_t MCD_varTab3[]=
+u32 MCD_varTab3[]=
 {   /* Task 3 Variable Table */
     0x00000000, /* var[0] */
     0x00000000, /* var[1] */
@@ -398,7 +398,7 @@ uint32_t MCD_varTab3[]=
     0x00000000, /* inc[7] */
 };
 
-uint32_t MCD_varTab4[]=
+u32 MCD_varTab4[]=
 {   /* Task 4 Variable Table */
     0x00000000, /* var[0] */
     0x00000000, /* var[1] */
@@ -434,7 +434,7 @@ uint32_t MCD_varTab4[]=
     0x00000000, /* inc[7] */
 };
 
-uint32_t MCD_varTab5[]=
+u32 MCD_varTab5[]=
 {   /* Task 5 Variable Table */
     0x00000000, /* var[0] */
     0x00000000, /* var[1] */
@@ -470,7 +470,7 @@ uint32_t MCD_varTab5[]=
     0x00000000, /* inc[7] */
 };
 
-uint32_t MCD_varTab6[]=
+u32 MCD_varTab6[]=
 {   /* Task 6 Variable Table */
     0x00000000, /* var[0] */
     0x00000000, /* var[1] */
@@ -506,7 +506,7 @@ uint32_t MCD_varTab6[]=
     0x00000000, /* inc[7] */
 };
 
-uint32_t MCD_varTab7[]=
+u32 MCD_varTab7[]=
 {   /* Task 7 Variable Table */
     0x00000000, /* var[0] */
     0x00000000, /* var[1] */
@@ -542,7 +542,7 @@ uint32_t MCD_varTab7[]=
     0x00000000, /* inc[7] */
 };
 
-uint32_t MCD_varTab8[]=
+u32 MCD_varTab8[]=
 {   /* Task 8 Variable Table */
     0x00000000, /* var[0] */
     0x00000000, /* var[1] */
@@ -578,7 +578,7 @@ uint32_t MCD_varTab8[]=
     0x00000000, /* inc[7] */
 };
 
-uint32_t MCD_varTab9[]=
+u32 MCD_varTab9[]=
 {   /* Task 9 Variable Table */
     0x00000000, /* var[0] */
     0x00000000, /* var[1] */
@@ -614,7 +614,7 @@ uint32_t MCD_varTab9[]=
     0x00000000, /* inc[7] */
 };
 
-uint32_t MCD_varTab10[]=
+u32 MCD_varTab10[]=
 {   /* Task 10 Variable Table */
     0x00000000, /* var[0] */
     0x00000000, /* var[1] */
@@ -650,7 +650,7 @@ uint32_t MCD_varTab10[]=
     0x00000000, /* inc[7] */
 };
 
-uint32_t MCD_varTab11[]=
+u32 MCD_varTab11[]=
 {   /* Task 11 Variable Table */
     0x00000000, /* var[0] */
     0x00000000, /* var[1] */
@@ -686,7 +686,7 @@ uint32_t MCD_varTab11[]=
     0x00000000, /* inc[7] */
 };
 
-uint32_t MCD_varTab12[]=
+u32 MCD_varTab12[]=
 {   /* Task 12 Variable Table */
     0x00000000, /* var[0] */
     0x00000000, /* var[1] */
@@ -722,7 +722,7 @@ uint32_t MCD_varTab12[]=
     0x00000000, /* inc[7] */
 };
 
-uint32_t MCD_varTab13[]=
+u32 MCD_varTab13[]=
 {   /* Task 13 Variable Table */
     0x00000000, /* var[0] */
     0x00000000, /* var[1] */
@@ -758,7 +758,7 @@ uint32_t MCD_varTab13[]=
     0x00000000, /* inc[7] */
 };
 
-uint32_t MCD_varTab14[]=
+u32 MCD_varTab14[]=
 {   /* Task 14 Variable Table */
     0x00000000, /* var[0] */
     0x00000000, /* var[1] */
@@ -794,7 +794,7 @@ uint32_t MCD_varTab14[]=
     0x00000000, /* inc[7] */
 };
 
-uint32_t MCD_varTab15[]=
+u32 MCD_varTab15[]=
 {   /* Task 15 Variable Table */
     0x00000000, /* var[0] */
     0x00000000, /* var[1] */
@@ -830,7 +830,7 @@ uint32_t MCD_varTab15[]=
     0x00000000, /* inc[7] */
 };
 
-uint32_t MCD_funcDescTab0[]=
+u32 MCD_funcDescTab0[]=
 {   /* Task 0 Function Descriptor Table */
     0x00000000,
     0x00000000,
@@ -899,7 +899,7 @@ uint32_t MCD_funcDescTab0[]=
 };
 
 #ifdef MCD_INCLUDE_EU
-uint32_t MCD_funcDescTab1[]=
+u32 MCD_funcDescTab1[]=
 {   /* Task 1 Function Descriptor Table */
     0x00000000,
     0x00000000,
@@ -967,7 +967,7 @@ uint32_t MCD_funcDescTab1[]=
     0x202f2000, /* andCrcRestartBit(), EU# 3 */
 };
 
-uint32_t MCD_funcDescTab2[]=
+u32 MCD_funcDescTab2[]=
 {   /* Task 2 Function Descriptor Table */
     0x00000000,
     0x00000000,
@@ -1035,7 +1035,7 @@ uint32_t MCD_funcDescTab2[]=
     0x202f2000, /* andCrcRestartBit(), EU# 3 */
 };
 
-uint32_t MCD_funcDescTab3[]=
+u32 MCD_funcDescTab3[]=
 {   /* Task 3 Function Descriptor Table */
     0x00000000,
     0x00000000,
@@ -1103,7 +1103,7 @@ uint32_t MCD_funcDescTab3[]=
     0x202f2000, /* andCrcRestartBit(), EU# 3 */
 };
 
-uint32_t MCD_funcDescTab4[]=
+u32 MCD_funcDescTab4[]=
 {   /* Task 4 Function Descriptor Table */
     0x00000000,
     0x00000000,
@@ -1171,7 +1171,7 @@ uint32_t MCD_funcDescTab4[]=
     0x202f2000, /* andCrcRestartBit(), EU# 3 */
 };
 
-uint32_t MCD_funcDescTab5[]=
+u32 MCD_funcDescTab5[]=
 {   /* Task 5 Function Descriptor Table */
     0x00000000,
     0x00000000,
@@ -1239,7 +1239,7 @@ uint32_t MCD_funcDescTab5[]=
     0x202f2000, /* andCrcRestartBit(), EU# 3 */
 };
 
-uint32_t MCD_funcDescTab6[]=
+u32 MCD_funcDescTab6[]=
 {   /* Task 6 Function Descriptor Table */
     0x00000000,
     0x00000000,
@@ -1307,7 +1307,7 @@ uint32_t MCD_funcDescTab6[]=
     0x202f2000, /* andCrcRestartBit(), EU# 3 */
 };
 
-uint32_t MCD_funcDescTab7[]=
+u32 MCD_funcDescTab7[]=
 {   /* Task 7 Function Descriptor Table */
     0x00000000,
     0x00000000,
@@ -1375,7 +1375,7 @@ uint32_t MCD_funcDescTab7[]=
     0x202f2000, /* andCrcRestartBit(), EU# 3 */
 };
 
-uint32_t MCD_funcDescTab8[]=
+u32 MCD_funcDescTab8[]=
 {   /* Task 8 Function Descriptor Table */
     0x00000000,
     0x00000000,
@@ -1443,7 +1443,7 @@ uint32_t MCD_funcDescTab8[]=
     0x202f2000, /* andCrcRestartBit(), EU# 3 */
 };
 
-uint32_t MCD_funcDescTab9[]=
+u32 MCD_funcDescTab9[]=
 {   /* Task 9 Function Descriptor Table */
     0x00000000,
     0x00000000,
@@ -1511,7 +1511,7 @@ uint32_t MCD_funcDescTab9[]=
     0x202f2000, /* andCrcRestartBit(), EU# 3 */
 };
 
-uint32_t MCD_funcDescTab10[]=
+u32 MCD_funcDescTab10[]=
 {   /* Task 10 Function Descriptor Table */
     0x00000000,
     0x00000000,
@@ -1579,7 +1579,7 @@ uint32_t MCD_funcDescTab10[]=
     0x202f2000, /* andCrcRestartBit(), EU# 3 */
 };
 
-uint32_t MCD_funcDescTab11[]=
+u32 MCD_funcDescTab11[]=
 {   /* Task 11 Function Descriptor Table */
     0x00000000,
     0x00000000,
@@ -1647,7 +1647,7 @@ uint32_t MCD_funcDescTab11[]=
     0x202f2000, /* andCrcRestartBit(), EU# 3 */
 };
 
-uint32_t MCD_funcDescTab12[]=
+u32 MCD_funcDescTab12[]=
 {   /* Task 12 Function Descriptor Table */
     0x00000000,
     0x00000000,
@@ -1715,7 +1715,7 @@ uint32_t MCD_funcDescTab12[]=
     0x202f2000, /* andCrcRestartBit(), EU# 3 */
 };
 
-uint32_t MCD_funcDescTab13[]=
+u32 MCD_funcDescTab13[]=
 {   /* Task 13 Function Descriptor Table */
     0x00000000,
     0x00000000,
@@ -1783,7 +1783,7 @@ uint32_t MCD_funcDescTab13[]=
     0x202f2000, /* andCrcRestartBit(), EU# 3 */
 };
 
-uint32_t MCD_funcDescTab14[]=
+u32 MCD_funcDescTab14[]=
 {   /* Task 14 Function Descriptor Table */
     0x00000000,
     0x00000000,
@@ -1851,7 +1851,7 @@ uint32_t MCD_funcDescTab14[]=
     0x202f2000, /* andCrcRestartBit(), EU# 3 */
 };
 
-uint32_t MCD_funcDescTab15[]=
+u32 MCD_funcDescTab15[]=
 {   /* Task 15 Function Descriptor Table */
     0x00000000,
     0x00000000,
@@ -1920,45 +1920,45 @@ uint32_t MCD_funcDescTab15[]=
 };
 #endif /*MCD_INCLUDE_EU*/
 
-uint32_t MCD_contextSave0[128];  /* Task 0 context save space */
-uint32_t MCD_contextSave1[128];  /* Task 1 context save space */
-uint32_t MCD_contextSave2[128];  /* Task 2 context save space */
-uint32_t MCD_contextSave3[128];  /* Task 3 context save space */
-uint32_t MCD_contextSave4[128];  /* Task 4 context save space */
-uint32_t MCD_contextSave5[128];  /* Task 5 context save space */
-uint32_t MCD_contextSave6[128];  /* Task 6 context save space */
-uint32_t MCD_contextSave7[128];  /* Task 7 context save space */
-uint32_t MCD_contextSave8[128];  /* Task 8 context save space */
-uint32_t MCD_contextSave9[128];  /* Task 9 context save space */
-uint32_t MCD_contextSave10[128]; /* Task 10 context save space */
-uint32_t MCD_contextSave11[128]; /* Task 11 context save space */
-uint32_t MCD_contextSave12[128]; /* Task 12 context save space */
-uint32_t MCD_contextSave13[128]; /* Task 13 context save space */
-uint32_t MCD_contextSave14[128]; /* Task 14 context save space */
-uint32_t MCD_contextSave15[128]; /* Task 15 context save space */
+u32 MCD_contextSave0[128];  /* Task 0 context save space */
+u32 MCD_contextSave1[128];  /* Task 1 context save space */
+u32 MCD_contextSave2[128];  /* Task 2 context save space */
+u32 MCD_contextSave3[128];  /* Task 3 context save space */
+u32 MCD_contextSave4[128];  /* Task 4 context save space */
+u32 MCD_contextSave5[128];  /* Task 5 context save space */
+u32 MCD_contextSave6[128];  /* Task 6 context save space */
+u32 MCD_contextSave7[128];  /* Task 7 context save space */
+u32 MCD_contextSave8[128];  /* Task 8 context save space */
+u32 MCD_contextSave9[128];  /* Task 9 context save space */
+u32 MCD_contextSave10[128]; /* Task 10 context save space */
+u32 MCD_contextSave11[128]; /* Task 11 context save space */
+u32 MCD_contextSave12[128]; /* Task 12 context save space */
+u32 MCD_contextSave13[128]; /* Task 13 context save space */
+u32 MCD_contextSave14[128]; /* Task 14 context save space */
+u32 MCD_contextSave15[128]; /* Task 15 context save space */
 
 
-uint32_t MCD_ChainNoEu_TDT[];
-uint32_t MCD_SingleNoEu_TDT[];
+u32 MCD_ChainNoEu_TDT[];
+u32 MCD_SingleNoEu_TDT[];
 #ifdef MCD_INCLUDE_EU
-uint32_t MCD_ChainEu_TDT[];
-uint32_t MCD_SingleEu_TDT[];
+u32 MCD_ChainEu_TDT[];
+u32 MCD_SingleEu_TDT[];
 #endif
-uint32_t MCD_ENetRcv_TDT[];
-uint32_t MCD_ENetXmit_TDT[];
+u32 MCD_ENetRcv_TDT[];
+u32 MCD_ENetXmit_TDT[];
 
-uint32_t MCD_modelTaskTableSrc[]=
+u32 MCD_modelTaskTableSrc[]=
 {
-    (uint32_t)MCD_ChainNoEu_TDT,
-    (uint32_t)&((uint8_t*)MCD_ChainNoEu_TDT)[0x0000016c],
+    (u32)MCD_ChainNoEu_TDT,
+    (u32)&((u8*)MCD_ChainNoEu_TDT)[0x0000016c],
     0x00000000,
     0x00000000,
     0x00000000,
     0x00000000,
     0x00000000,
     0x00000000,
-    (uint32_t)MCD_SingleNoEu_TDT,
-    (uint32_t)&((uint8_t*)MCD_SingleNoEu_TDT)[0x000000d4],
+    (u32)MCD_SingleNoEu_TDT,
+    (u32)&((u8*)MCD_SingleNoEu_TDT)[0x000000d4],
     0x00000000,
     0x00000000,
     0x00000000,
@@ -1966,16 +1966,16 @@ uint32_t MCD_modelTaskTableSrc[]=
     0x00000000,
     0x00000000,
 #ifdef MCD_INCLUDE_EU
-    (uint32_t)MCD_ChainEu_TDT,
-    (uint32_t)&((uint8_t*)MCD_ChainEu_TDT)[0x000001b4],
+    (u32)MCD_ChainEu_TDT,
+    (u32)&((u8*)MCD_ChainEu_TDT)[0x000001b4],
     0x00000000,
     0x00000000,
     0x00000000,
     0x00000000,
     0x00000000,
     0x00000000,
-    (uint32_t)MCD_SingleEu_TDT,
-    (uint32_t)&((uint8_t*)MCD_SingleEu_TDT)[0x00000124],
+    (u32)MCD_SingleEu_TDT,
+    (u32)&((u8*)MCD_SingleEu_TDT)[0x00000124],
     0x00000000,
     0x00000000,
     0x00000000,
@@ -1983,16 +1983,16 @@ uint32_t MCD_modelTaskTableSrc[]=
     0x00000000,
     0x00000000,
 #endif    
-    (uint32_t)MCD_ENetRcv_TDT,
-    (uint32_t)&((uint8_t*)MCD_ENetRcv_TDT)[0x0000009c],
+    (u32)MCD_ENetRcv_TDT,
+    (u32)&((u8*)MCD_ENetRcv_TDT)[0x0000009c],
     0x00000000,
     0x00000000,
     0x00000000,
     0x00000000,
     0x00000000,
     0x00000000,
-    (uint32_t)MCD_ENetXmit_TDT,
-    (uint32_t)&((uint8_t*)MCD_ENetXmit_TDT)[0x000000d0],
+    (u32)MCD_ENetXmit_TDT,
+    (u32)&((u8*)MCD_ENetXmit_TDT)[0x000000d0],
     0x00000000,
     0x00000000,
     0x00000000,
@@ -2000,7 +2000,7 @@ uint32_t MCD_modelTaskTableSrc[]=
     0x00000000,
     0x00000000,
 };
-uint32_t MCD_ChainNoEu_TDT[]=
+u32 MCD_ChainNoEu_TDT[]=
 {
     0x80004000, /* 0000(:370):  LCDEXT: idx0 = 0x00000000; ; */
     0x8118801b, /* 0004(:370):  LCD: idx1 = var2; idx1 once var0; idx1 += inc3 */
@@ -2095,7 +2095,7 @@ uint32_t MCD_ChainNoEu_TDT[]=
     0x000001f8, /* 0168(:0):      NOP */
     0x000001f8, /* 016C(:0):    NOP */
 };
-uint32_t MCD_SingleNoEu_TDT[]=
+u32 MCD_SingleNoEu_TDT[]=
 {
     0x8198001b, /* 0000(:657):  LCD: idx0 = var3; idx0 once var0; idx0 += inc3 */
     0x7000000d, /* 0004(:658):    DRD2A: EU0=0 EU1=0 EU2=0 EU3=13 EXT MORE init=0 WS=0 RS=0 */
@@ -2153,7 +2153,7 @@ uint32_t MCD_SingleNoEu_TDT[]=
     0x040001f8, /* 00D4(:713):    DRD1A: FN=0 INT init=0 WS=0 RS=0 */
 };
 #ifdef MCD_INCLUDE_EU
-uint32_t MCD_ChainEu_TDT[]=
+u32 MCD_ChainEu_TDT[]=
 {
     0x80004000, /* 0000(:947):  LCDEXT: idx0 = 0x00000000; ; */
     0x8198801b, /* 0004(:947):  LCD: idx1 = var3; idx1 once var0; idx1 += inc3 */
@@ -2266,7 +2266,7 @@ uint32_t MCD_ChainEu_TDT[]=
     0x000001f8, /* 01B0(:0):      NOP */
     0x000001f8, /* 01B4(:0):    NOP */
 };
-uint32_t MCD_SingleEu_TDT[]=
+u32 MCD_SingleEu_TDT[]=
 {
     0x8218001b, /* 0000(:1248):  LCD: idx0 = var4; idx0 once var0; idx0 += inc3 */
     0x7000000d, /* 0004(:1249):    DRD2A: EU0=0 EU1=0 EU2=0 EU3=13 EXT MORE init=0 WS=0 RS=0 */
@@ -2344,7 +2344,7 @@ uint32_t MCD_SingleEu_TDT[]=
     0x040001f8, /* 0124(:1316):    DRD1A: FN=0 INT init=0 WS=0 RS=0 */
 };
 #endif
-uint32_t MCD_ENetRcv_TDT[]=
+u32 MCD_ENetRcv_TDT[]=
 {
     0x80004000, /* 0000(:1389):  LCDEXT: idx0 = 0x00000000; ; */
     0x81988000, /* 0004(:1389):  LCD: idx1 = var3; idx1 once var0; idx1 += inc0 */
@@ -2387,7 +2387,7 @@ uint32_t MCD_ENetRcv_TDT[]=
     0x040001f8, /* 0098(:1441):      DRD1A: FN=0 INT init=0 WS=0 RS=0 */
     0x000001f8, /* 009C(:0):    NOP */
 };
-uint32_t MCD_ENetXmit_TDT[]=
+u32 MCD_ENetXmit_TDT[]=
 {
     0x80004000, /* 0000(:1516):  LCDEXT: idx0 = 0x00000000; ; */
     0x81988000, /* 0004(:1516):  LCD: idx1 = var3; idx1 once var0; idx1 += inc0 */

@@ -133,15 +133,6 @@
 #define FALCON_MFP_IMRA     *((volatile uint8_t *) 0xfffffa13)
 #define FALCON_MFP_IMRB     *((volatile uint8_t *) 0xfffffa15)
 
-#ifdef _NOT_USED_
-#define vbasehi     * ((volatile uint8_t *) 0xffff8201)
-#define vbasemid    * ((volatile uint8_t *) 0xffff8203)
-#define vbaselow    * ((volatile uint8_t *) 0xffff820d)
-
-#define vwrap       * ((volatile uint16_t *) 0xffff8210)
-#define vde         * ((volatile uint16_t *) 0xffff82aa)
-#define vdb         * ((volatile uint16_t *) 0xffff82a8)
-#endif /* _NOT_USED_ */
 #endif /* MACHINE_FIREBEE */
 
 extern void isr_init(void);
@@ -150,8 +141,8 @@ extern bool isr_enable_int_source(int int_source);
 extern bool isr_register_handler(int vector, int level, int priority, bool (*handler)(void *, void *), void *hdev, void *harg);
 extern void isr_remove_handler(bool (*handler)(void *, void *));
 extern bool isr_execute_handler(int vector);
-extern int pic_interrupt_handler(void *arg1, void *arg2);
-extern int xlbpci_interrupt_handler(void *arg1, void *arg2);
-extern int pciarb_interrupt_handler(void *arg1, void *arg2);
-extern int irq5_handler(void *arg1, void *arg2);
+extern bool pic_interrupt_handler(void *arg1, void *arg2);
+extern bool xlbpci_interrupt_handler(void *arg1, void *arg2);
+extern bool pciarb_interrupt_handler(void *arg1, void *arg2);
+extern bool irq5_handler(void *arg1, void *arg2);
 #endif /* _INTERRUPTS_H_ */
