@@ -28,6 +28,8 @@
 #ifndef _I2C_H
 #define _I2C_H
 
+#include "bas_types.h"
+
 /* --- General options ------------------------------------------------	*/
 
 struct i2c_msg;
@@ -81,5 +83,14 @@ struct i2c_msg
     unsigned short len;     /* msg length				*/
     unsigned char *buf;     /* pointer to msg data			*/
 };
+
+extern void i2c_init(void);
+extern void i2c_set_frequency(int hz);
+extern int i2c_read(int address, char *data, int lengt, bool repeated);
+extern int i2c_read_byte(int ack);
+extern int i2c_write(int address, const char *data, int length, bool repeated);
+extern int i2c_write_byte(int data);
+extern void i2c_start(void);
+extern void i2c_stop(void);
 
 #endif /* _I2C_H */
