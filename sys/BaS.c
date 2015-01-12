@@ -440,7 +440,10 @@ void BaS(void)
 
     xprintf("BaS initialization finished, enable interrupts\r\n");
     init_isr();
+
     enable_coldfire_interrupts();
+    dma_irq_enable();
+
     init_pci();
     // video_init();
 

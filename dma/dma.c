@@ -79,27 +79,16 @@ static struct dma_channel dma_channel[NCHANNELS] =
 /*
  * Enable all DMA interrupts
  *
- * Parameters:
- *  pri     Interrupt Priority
- *  lvl     Interrupt Level
  */
-void dma_irq_enable(uint8_t lvl, uint8_t pri)
+void dma_irq_enable(void)
 {
-    /* Setup the DMA ICR (#48) */
-    MCF_INTC_ICR48 = MCF_INTC_ICR_IP(pri) |
-                     MCF_INTC_ICR_IL(lvl);
-    dbg("DMA irq assigned level %d, priority %d\r\n", lvl, pri);
-
     /* Unmask all task interrupts */
     MCF_DMA_DIMR = 0;
 
     /* Clear the interrupt pending register */
     MCF_DMA_DIPR = 0;
 
-    /* Unmask the DMA interrupt in the interrupt controller */
-    MCF_INTC_IMRH &= ~MCF_INTC_IMRH_INT_MASK48;
-
-    dbg("DMA task interrupts unmasked, pending interrupts cleared, interrupt controller active\r\n");
+    dbg("DMA task interrupts unmasked.\r\n");
 }
 
 /*
