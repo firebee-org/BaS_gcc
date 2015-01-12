@@ -263,8 +263,29 @@ bool pic_interrupt_handler(void *arg1, void *arg2)
 
 bool xlbpci_interrupt_handler(void *arg1, void *arg2)
 {
+    uint32_t reason;
+
     dbg("XLB PCI interrupt\r\n");
 
+    reason = MCF_PCI_PCIISR;
+
+    if (reason & MCF_PCI_PCIISR_RE)
+    {
+        err("Retry error. Retry terminated or max retries reached. Cleared\r\n");
+        MCF_PCI_PCIISR |= MCF_PCI_PCIISR_RE;
+    }
+
+    if (reason & MCF_PCI_PCIISR_IA)
+    {
+        err("Initiator abort. No target answered in time. Cleared.\r\n");
+        MCF_PCI_PCIISR |= MCF_PCI_PCIISR_IA;
+    }
+
+    if (reason & MCF_PCI_PCIISR_TA)
+    {
+        err("Target abort. Cleared.\r\n");
+        MCF_PCI_PCIISR |= MCF_PCI_PCIISR_TA;
+    }
     return true;
 }
 

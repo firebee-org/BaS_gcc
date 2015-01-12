@@ -321,12 +321,12 @@ void init_isr(void)
     }
 
     MCF_XLB_XARB_IMR = MCF_XLB_XARB_IMR_SEAE |      /* slave error acknowledge interrupt */
-            MCF_XLB_XARB_IMR_MME |                  /* multiple master at prio 0 interrupt */
-            MCF_XLB_XARB_IMR_TTAE |                 /* TT address only interrupt */
-            MCF_XLB_XARB_IMR_TTRE |                 /* TT reserved interrupt enable */
-            MCF_XLB_XARB_IMR_ECWE |                 /* external control word interrupt */
-            MCF_XLB_XARB_IMR_TTME |                 /* TBST/TSIZ mismatch interrupt */
-            MCF_XLB_XARB_IMR_BAE;                   /* bus activity tenure timeout interrupt */
+                       MCF_XLB_XARB_IMR_MME |       /* multiple master at prio 0 interrupt */
+                       MCF_XLB_XARB_IMR_TTAE |      /* TT address only interrupt */
+                       MCF_XLB_XARB_IMR_TTRE |      /* TT reserved interrupt enable */
+                       MCF_XLB_XARB_IMR_ECWE |      /* external control word interrupt */
+                       MCF_XLB_XARB_IMR_TTME |      /* TBST/TSIZ mismatch interrupt */
+                       MCF_XLB_XARB_IMR_BAE;        /* bus activity tenure timeout interrupt */
 
     if (!isr_register_handler(64 + INT_SOURCE_PCIARB, 7, 1, pciarb_interrupt_handler, NULL, NULL))
     {
