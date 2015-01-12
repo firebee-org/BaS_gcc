@@ -39,7 +39,7 @@
 #error "unknown machine!"
 #endif /* MACHINE_FIREBEE */
 
-#define DBG_DMA
+//#define DBG_DMA
 #ifdef DBG_DMA
 #define dbg(format, arg...) do { xprintf("DEBUG: %s(): " format, __FUNCTION__, ##arg); } while (0)
 #else

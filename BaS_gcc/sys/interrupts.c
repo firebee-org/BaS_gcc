@@ -37,7 +37,7 @@
 #include "dma.h"
 #include "pci.h"
 
-#define IRQ_DEBUG
+//#define IRQ_DEBUG
 #if defined(IRQ_DEBUG)
 #define dbg(format, arg...) do { xprintf("DEBUG %s(): " format, __FUNCTION__, ##arg); } while (0)
 #else
@@ -243,7 +243,7 @@ bool pic_interrupt_handler(void *arg1, void *arg2)
     uint8_t rcv_byte;
 
     rcv_byte = MCF_PSC3_PSCRB_8BIT;
-    if (rcv_byte == 2)  // PIC requests RTC data
+    if (rcv_byte == 2)                  /* PIC requests RTC data */
     {
         uint8_t *rtc_reg = (uint8_t *) 0xffff8961;
         uint8_t *rtc_data = (uint8_t *) 0xffff8963;
@@ -271,21 +271,22 @@ bool xlbpci_interrupt_handler(void *arg1, void *arg2)
 
     if (reason & MCF_PCI_PCIISR_RE)
     {
-        err("Retry error. Retry terminated or max retries reached. Cleared\r\n");
+        dbg("Retry error. Retry terminated or max retries reached. Cleared\r\n");
         MCF_PCI_PCIISR |= MCF_PCI_PCIISR_RE;
     }
 
     if (reason & MCF_PCI_PCIISR_IA)
     {
-        err("Initiator abort. No target answered in time. Cleared.\r\n");
+        dbg("Initiator abort. No target answered in time. Cleared.\r\n");
         MCF_PCI_PCIISR |= MCF_PCI_PCIISR_IA;
     }
 
     if (reason & MCF_PCI_PCIISR_TA)
     {
-        err("Target abort. Cleared.\r\n");
+        dbg("Target abort. Cleared.\r\n");
         MCF_PCI_PCIISR |= MCF_PCI_PCIISR_TA;
     }
+
     return true;
 }
 
@@ -330,7 +331,7 @@ bool irq5_handler(void *arg1, void *arg2)
         pending_interrupts & FBEE_INTR_PCI_INTC ||
         pending_interrupts & FBEE_INTR_PCI_INTD)
     {
-        dbg("PCI interrupt\r\n");
+        dbg("PCI interrupt IRQ5\r\n");
         FBEE_INTR_CLEAR = FBEE_INTR_PCI_INTA |
                           FBEE_INTR_PCI_INTB |
                           FBEE_INTR_PCI_INTC |
