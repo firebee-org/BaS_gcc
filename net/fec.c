@@ -32,7 +32,7 @@
 #error Unknown machine!
 #endif
 
-#define DBG_FEC
+//#define DBG_FEC
 #ifdef DBG_FEC
 #define dbg(format, arg...) do { xprintf("DEBUG: %s(): " format, __FUNCTION__, ##arg); } while (0)
 #else
