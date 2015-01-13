@@ -155,7 +155,7 @@ void init_pll(void)
     xprintf("FPGA PLL initialization: ");
 
     wait_pll();
-    * (volatile uint16_t *) (pll_base + 0x48) = 27;	/* loopfilter  r */
+    * (volatile uint16_t *) (pll_base + 0x48) = 27;     /* loopfilter  r */
 
     wait_pll();
     * (volatile uint16_t *) (pll_base + 0x08) = 1;		/* charge pump 1 */
