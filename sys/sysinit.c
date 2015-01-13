@@ -560,6 +560,7 @@ void init_video_ddr(void) {
     _VRAM = 0x00060000; /* auto refresh */
     NOP();
 
+    /* FIXME: what's this? */
     _VRAM = 0000070022; /* load MR dll on */
     NOP();
 
