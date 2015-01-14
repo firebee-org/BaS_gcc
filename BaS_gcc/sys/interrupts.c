@@ -224,7 +224,8 @@ bool isr_execute_handler(int vector)
     {
         if (isrtab[index].vector == vector)
         {
-            return isrtab[index].handler(isrtab[index].hdev, isrtab[index].harg);
+            isrtab[index].handler(isrtab[index].hdev, isrtab[index].harg);
+            return true;
         }
     }
     err("no isr handler for vector %d found. Spurious?\r\n", vector);
