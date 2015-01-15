@@ -10,7 +10,7 @@ void i2c_set_frequency(int hz)
 {
 }
 
-int i2c_read(int address, char *data, int lengt, bool repeated)
+int i2c_read(int address, char *data, int length, bool repeated)
 {
     return 0;
 }
