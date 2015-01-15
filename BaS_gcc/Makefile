@@ -1,4 +1,4 @@
-# # Makefile for Firebee BaS
+# Makefile for Firebee BaS
 #
 # This Makefile is meant for cross compiling the BaS with Vincent Riviere's cross compilers.
 # If you want to compile native on an Atari (you will need at least GCC 4.6.3), set
@@ -9,7 +9,7 @@
 
 # can be either "Y" or "N" (without quotes). "Y" for using the m68k-elf-, "N" for using the m68k-atari-mint
 # toolchain
-COMPILE_ELF=N
+COMPILE_ELF=Y
 
 ifeq (Y,$(COMPILE_ELF))
 TCPREFIX=m68k-elf-
@@ -41,7 +41,7 @@ CFLAGS=-mcpu=5474 \
 CFLAGS_OPTIMIZED = -mcpu=5474 \
 		-Wall \
 		-O2 \
-        -g \
+		-g \
 		-fomit-frame-pointer \
 		-ffreestanding \
 		-fleading-underscore \
