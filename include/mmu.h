@@ -97,10 +97,10 @@ enum mmu_page_size
 extern long video_tlb;
 extern long video_sbt;
 
-struct page_descriptor;
+struct mmu_page_descriptor;
 
 extern void mmu_init(void);
-extern int mmu_map_page(int32_t virt, int32_t phys, enum mmu_page_size sz, uint8_t page_id, const struct page_descriptor *flags);
+extern int mmu_map_page(int32_t virt, int32_t phys, enum mmu_page_size sz, uint8_t page_id, const struct mmu_page_descriptor *flags);
 
 /*
  * API functions for the BaS driver interface
