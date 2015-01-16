@@ -264,7 +264,7 @@ static inline int32_t lookup_phys(int32_t virt)
     return -1;
 }
 
-struct page_descriptor
+struct mmu_page_descriptor
 {
     uint8_t cache_mode          : 2;
     uint8_t supervisor_protect  : 1;
@@ -279,16 +279,16 @@ struct page_descriptor
  * page descriptors. Size depending on DEFAULT_PAGE_SIZE, either 1M (resulting in 512
  * bytes size) or 8k pages (64k descriptor array size)
  */
-static struct page_descriptor pages[SDRAM_SIZE / DEFAULT_PAGE_SIZE];
+static struct mmu_page_descriptor pages[SDRAM_SIZE / DEFAULT_PAGE_SIZE];
 
 
 int mmu_map_instruction_page(int32_t virt, uint8_t asid)
 {
     const uint32_t size_mask = ~ (DEFAULT_PAGE_SIZE - 1);       /* pagesize */
     int page_index = (virt & size_mask) / DEFAULT_PAGE_SIZE;    /* index into page_descriptor array */
-    struct page_descriptor *page = &pages[page_index];          /* attributes of page to map */
+    struct mmu_page_descriptor *page = &pages[page_index];      /* attributes of page to map */
     int ipl;
-    int32_t phys = lookup_phys(virt);                          /* virtual to physical translation of page */
+    int32_t phys = lookup_phys(virt);                           /* virtual to physical translation of page */
 
     if (phys == -1)
     {
@@ -342,9 +342,9 @@ int mmu_map_data_page(int32_t virt, uint8_t asid)
     uint16_t ipl;
     const uint32_t size_mask = ~ (DEFAULT_PAGE_SIZE - 1);       /* pagesize */
     int page_index = (virt & size_mask) / DEFAULT_PAGE_SIZE;    /* index into page_descriptor array */
-    struct page_descriptor *page = &pages[page_index];          /* attributes of page to map */
+    struct mmu_page_descriptor *page = &pages[page_index];      /* attributes of page to map */
 
-    int32_t phys = lookup_phys(virt);                          /* virtual to physical translation of page */
+    int32_t phys = lookup_phys(virt);                           /* virtual to physical translation of page */
 
     if (phys == -1)
     {
@@ -399,7 +399,7 @@ int mmu_map_data_page(int32_t virt, uint8_t asid)
  * per instruction as a minimum, more for performance. Thus locked pages (that can't be touched by the
  * LRU algorithm) should be used sparsingly.
  */
-int mmu_map_page(int32_t virt, int32_t phys, enum mmu_page_size sz, uint8_t page_id, const struct page_descriptor *flags)
+int mmu_map_page(int32_t virt, int32_t phys, enum mmu_page_size sz, uint8_t page_id, const struct mmu_page_descriptor *flags)
 {
     int size_mask;
     int ipl;
@@ -465,7 +465,7 @@ void mmu_init(void)
 {
     extern uint8_t _MMUBAR[];
     uint32_t MMUBAR = (uint32_t) &_MMUBAR[0];
-    struct page_descriptor flags;
+    struct mmu_page_descriptor flags;
     int i;
 
     /*
@@ -477,7 +477,7 @@ void mmu_init(void)
     /*
      * prelaminary initialization of page descriptor 0 (root) table
      */
-    for (i = 0; i < sizeof(pages) / sizeof(struct page_descriptor); i++)
+    for (i = 0; i < sizeof(pages) / sizeof(struct mmu_page_descriptor); i++)
     {
         uint32_t addr = i * DEFAULT_PAGE_SIZE;
 
@@ -820,7 +820,7 @@ uint32_t mmutr_miss(uint32_t mmu_sr, uint32_t fault_address, uint32_t pc,
             }
             break;
 
-        /* else issue an bus error */
+        /* else issue a bus error */
         default:
             dbg("bus error\r\n");
             return 1;       /* signal bus error to caller */
@@ -862,7 +862,7 @@ int32_t mmu_map_data_page_locked(uint32_t virt, uint32_t size, int asid)
 {
     const uint32_t size_mask = ~ (DEFAULT_PAGE_SIZE - 1);       /* pagesize */
     int page_index = (virt & size_mask) / DEFAULT_PAGE_SIZE;    /* index into page_descriptor array */
-    struct page_descriptor *page = &pages[page_index];          /* attributes of page to map */
+    struct mmu_page_descriptor *page = &pages[page_index];          /* attributes of page to map */
     int i = 0;
 
     while (page_index * DEFAULT_PAGE_SIZE < virt + size)
@@ -895,7 +895,7 @@ int32_t mmu_unlock_data_page(uint32_t address, uint32_t size, int asid)
     int curr_asid;
     const uint32_t size_mask = ~ (DEFAULT_PAGE_SIZE - 1);
     int page_index = (address & size_mask) / DEFAULT_PAGE_SIZE;     /* index into page descriptor array */
-    struct page_descriptor *page = &pages[page_index];
+    struct mmu_page_descriptor *page = &pages[page_index];
 
     curr_asid = set_asid(asid);         /* set asid to the one to search for */
 
