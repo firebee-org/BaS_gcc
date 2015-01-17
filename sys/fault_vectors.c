@@ -158,6 +158,14 @@ void fault_handler(uint32_t pc, uint32_t format_status)
     }
     xprintf(")\r\n");
     xprintf("sr=%4x\r\n", sr);
+
+    __asm__ __volatile__(
+        " move.w    0x2700,d0       \r\n"       // disable interrupts
+        " move.w    d0,sr           \r\n"
+        " halt                      \r\n"       // stop processor
+        : /* no output */
+        : /* no input */
+        : "memory");
 }
 
 void __attribute__((interrupt)) handler(void)
