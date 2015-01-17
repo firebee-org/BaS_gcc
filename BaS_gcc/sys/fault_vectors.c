@@ -98,7 +98,7 @@ void fault_handler(uint32_t pc, uint32_t format_status)
     }
     xprintf(")\r\n");
 
-    xprintf("vector = %02x (", vector);
+    xprintf("vector = %d (", vector);
     switch (vector)
     {
     case 2:
