@@ -450,12 +450,12 @@ void init_fbcs()
     MCF_FBCS4_CSMR = 0;
 
     MCF_FBCS5_CSAR = MCF_FBCS_CSAR_BA(0x60000000);
-    MCF_FBCS5_CSCR = MCF_FBCS_CSCR_PS_16    /* CPLD access */
-        | MCF_FBCS_CSCR_WS(32)
-        | MCF_FBCS_CSCR_ASET(1)
-        | MCF_FBCS_CSCR_AA;
-    MCF_FBCS5_CSMR = MCF_FBCS_CSMR_BAM_256M
-        | MCF_FBCS_CSMR_V;
+    MCF_FBCS5_CSCR = MCF_FBCS_CSCR_PS_16 |              /* CPLD access */
+                     MCF_FBCS_CSCR_WS(32) |
+                     MCF_FBCS_CSCR_ASET(1) |
+                     MCF_FBCS_CSCR_AA;
+    MCF_FBCS5_CSMR = MCF_FBCS_CSMR_BAM_1G |
+                     MCF_FBCS_CSMR_V;
 #endif /* MACHINE_FIREBEE */
 
 
