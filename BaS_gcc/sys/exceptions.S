@@ -259,7 +259,7 @@ _std_exc_vec:
                 movem.l d0/a5,(sp)                  // save registers
                 move.w  8(sp),d0                    // fetch vector
                 and.l   #0x3fc,d0                   // mask out vector number
-
+#define DBG_EXC
 #ifdef DBG_EXC
                 // printout vector number of exception
 
@@ -270,7 +270,7 @@ _std_exc_vec:
                 cmp.l   #33,d0
                 beq     noprint
                 cmp.l   #34,d0
-                beq n   oprint
+                beq     noprint
                 cmp.l   #45,d0
                 beq     noprint
                 cmp.l   #46,d0
@@ -490,22 +490,31 @@ irq7:
 
 #else                                               // handlers for M5484LITE
 
-irq5:                                               // irq5 is tied to PCI INTC# and PCI INTD# on the M5484LITE
-                //move.w  #0x2700,sr                  // disable interrupts
+irq5:           //move.w  #0x2700,sr                  // disable interrupts
+                subq.l  #4,sp                       // extra space
 
-                lea     -4*4(sp),sp                 // save gcc scratch registers
+                link    a6,#-4 * 4                  // save gcc scratch registers
                 movem.l d0-d1/a0-a1,(sp)
 
                 jsr     _irq5_handler               // call C handler routine
 
+                tst.b   d0                          // handled?
+                beq     irq5_forward
+
                 movem.l (sp),d0-d1/a0-a1            // restore registers
-                lea     4*4(sp),sp
+                unlk    a6
+                addq.l  #4,sp
 
                 rte                                 // return from exception
 
-irq5text:
-                .ascii  "IRQ5!"
-                .dc.b   13,10,0
+irq5_forward:   move.l  0x74,a0                     // fetch OS irq5 vector
+                add.l   _rt_vbr,a0                  // add runtime vbr
+                move.l  a0,4(a6)                    // put on stack
+
+                movem.l (sp),d0-d1/a0-a1            // restore registers
+                unlk    a6                          //
+                move.w  #0x2500,sr                  // set interrupt level
+                rts                                 // jump through vector
 
 irq6:
                 irq 0x74,5,0x20
