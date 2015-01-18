@@ -243,7 +243,7 @@ void __attribute__((interrupt)) get_bas_drivers(void)
         "		move.l	#%[drivers],d0			\n\t"	// return driver struct in d0
         "		addq.l	#4,sp					\n\t"	// adjust stack
         "       move.l  (sp)+,a0                \n\t"   // restore register
-        :	                            /* no output */
+        :                                   /* no output */
         :	[drivers] "o" (bas_drivers)		/* input */
         :									/* clobber */
     );
