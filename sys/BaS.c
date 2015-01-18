@@ -270,6 +270,15 @@ NIF nif1;
 NIF nif2;
 #endif
 
+bool spurious_interrupt_handler(void *arg1, void *arg2)
+{
+    dbg("IMRH=%lx, IMRL=%lx\r\n", MCF_INTC_IMRH, MCF_INTC_IMRL);
+    dbg("IPRH=%lx, IPRL=%lx\r\n", MCF_INTC_IPRH, MCF_INTC_IPRL);
+    dbg("IRLR=%x\r\n", MCF_INTC_IRLR);
+
+    return true;
+}
+
 /*
  * initialize the interrupt handler tables to dispatch interrupt requests from Coldfire devices
  */
@@ -278,11 +287,19 @@ void init_isr(void)
     isr_init();     /* need to call that explicitely, otherwise isr table might be full */
 
     /*
+     * register spurious interrupt handler
+     */
+    if (!isr_register_handler(24, 6, 6, spurious_interrupt_handler, NULL, NULL))
+    {
+        dbg("unable to register spurious interrupt handler\r\n");
+    }
+
+    /*
      * register the FEC interrupt handler
      */
     if (!isr_register_handler(64 + INT_SOURCE_FEC0, 5, 1, fec0_interrupt_handler, NULL, (void *) &nif1))
     {
-        err("unable to register isr for FEC0\r\n");
+        dbg("unable to register isr for FEC0\r\n");
     }
 
     /*
@@ -291,7 +308,7 @@ void init_isr(void)
 
     if (!isr_register_handler(64 + INT_SOURCE_DMA, 5, 3, dma_interrupt_handler, NULL, NULL))
     {
-        err("unable to register isr for DMA\r\n");
+        dbg("unable to register isr for DMA\r\n");
     }
 
 #ifdef MACHINE_FIREBEE
@@ -300,7 +317,7 @@ void init_isr(void)
      */
     if (!isr_register_handler(64 + INT_SOURCE_GPT0, 5, 2, gpt0_interrupt_handler, NULL, NULL))
     {
-        err("unable to register isr for GPT0 timer\r\n");
+        dbg("unable to register isr for GPT0 timer\r\n");
     }
 
     /*
@@ -308,7 +325,7 @@ void init_isr(void)
      */
     if (!isr_register_handler(64 + INT_SOURCE_PSC3, 5, 5, pic_interrupt_handler, NULL, NULL))
     {
-        err("Error: unable to register ISR for PSC3\r\n");
+        dbg("Error: unable to register ISR for PSC3\r\n");
     }
 #endif /* MACHINE_FIREBEE */
 
@@ -317,7 +334,7 @@ void init_isr(void)
      */
     if (!isr_register_handler(64 + INT_SOURCE_XLBPCI, 7, 0, xlbpci_interrupt_handler, NULL, NULL))
     {
-        err("Error: unable to register isr for XLB PCI interrupts\r\n");
+        dbg("Error: unable to register isr for XLB PCI interrupts\r\n");
     }
 
     MCF_XLB_XARB_IMR = MCF_XLB_XARB_IMR_SEAE |      /* slave error acknowledge interrupt */
@@ -330,7 +347,7 @@ void init_isr(void)
 
     if (!isr_register_handler(64 + INT_SOURCE_PCIARB, 7, 1, pciarb_interrupt_handler, NULL, NULL))
     {
-        err("Error: unable to register isr for PCIARB interrupts\r\n");
+        dbg("Error: unable to register isr for PCIARB interrupts\r\n");
 
         return;
     }
@@ -442,7 +459,10 @@ void BaS(void)
     init_isr();
 
     enable_coldfire_interrupts();
+    MCF_INTC_IMRH = 0;
+    MCF_INTC_IMRL = 0;
     dma_irq_enable();
+    fec_irq_enable(0, 5, 1);
 
     init_pci();
     // video_init();
