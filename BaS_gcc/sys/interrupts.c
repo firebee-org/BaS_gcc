@@ -117,7 +117,7 @@ bool isr_enable_int_source(int int_source)
     }
     else
     {
-        err("vector %d does not correspond to an internal interrupt source\r\n");
+        dbg("vector %d does not correspond to an internal interrupt source\r\n");
         return false;
     }
 
@@ -165,13 +165,13 @@ bool isr_register_handler(int vector, int level, int priority, bool (*handler)(v
 
             if (!isr_enable_int_source(int_source))
             {
-                err("failed to enable internal interrupt souce %d in IMRL/IMRH\r\n", int_source);
+                dbg("failed to enable internal interrupt souce %d in IMRL/IMRH\r\n", int_source);
                 return false;
             }
 
             if (!isr_set_prio_and_level(int_source, priority, level))
             {
-                err("failed to set priority and level for interrupt source %d\r\n", int_source);
+                dbg("failed to set priority and level for interrupt source %d\r\n", int_source);
                 return false;
             }
 
