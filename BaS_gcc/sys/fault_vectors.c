@@ -52,109 +52,134 @@ void fault_handler(uint32_t pc, uint32_t format_status)
     xprintf("fault_status: %x (", fault_status);
     switch (fault_status)
     {
-    case 0:
-        xprintf("not an access or address error nor an interrupted debug service routine");
-        break;
-    case 1:
-    case 3:
-    case 11:
-        xprintf("reserved");
-        break;
-    case 2:
-        xprintf("interrupt during a debug service routine for faults other than access errors");
-        break;
-    case 4:
-        xprintf("error (for example, protection fault) on instruction fetch");
-        break;
-    case 5:
-        xprintf("TLB miss on opword or instruction fetch");
-        break;
-    case 6:
-        xprintf("TLB miss on extension word of instruction fetch");
-        break;
-    case 7:
-        xprintf("IFP access error while executing in emulator mode");
-        break;
-    case 8:
-        xprintf("error on data write");
-        break;
-    case 9:
-        xprintf("error on attempted write to write-protected space");
-        break;
-    case 10:
-        xprintf("TLB miss on data write");
-        break;
-    case 12:
-        xprintf("error on data read");
-        break;
-    case 13:
-        xprintf("attempted read, read-modify-write of protected space");
-        break;
-    case 14:
-        xprintf("TLB miss on data read or read-modify-write");
-        break;
-    case 15:
-        xprintf("OEP access error while executing in emulator mode");
+        case 0:
+            xprintf("not an access or address error nor an interrupted debug service routine");
+            break;
+
+        case 1:
+        case 3:
+        case 11:
+            xprintf("reserved");
+            break;
+
+        case 2:
+            xprintf("interrupt during a debug service routine for faults other than access errors");
+            break;
+
+        case 4:
+            xprintf("error (for example, protection fault) on instruction fetch");
+            break;
+
+        case 5:
+            xprintf("TLB miss on opword or instruction fetch");
+            break;
+
+        case 6:
+            xprintf("TLB miss on extension word of instruction fetch");
+            break;
+
+        case 7:
+            xprintf("IFP access error while executing in emulator mode");
+            break;
+
+        case 8:
+            xprintf("error on data write");
+            break;
+
+        case 9:
+            xprintf("error on attempted write to write-protected space");
+            break;
+
+        case 10:
+            xprintf("TLB miss on data write");
+            break;
+
+        case 12:
+            xprintf("error on data read");
+            break;
+
+        case 13:
+            xprintf("attempted read, read-modify-write of protected space");
+            break;
+
+        case 14:
+            xprintf("TLB miss on data read or read-modify-write");
+            break;
+
+        case 15:
+            xprintf("OEP access error while executing in emulator mode");
     }
     xprintf(")\r\n");
 
     xprintf("vector = %d (", vector);
     switch (vector)
     {
-    case 2:
-        xprintf("access error");
-        break;
-    case 3:
-        xprintf("address error");
-        break;
-    case 4:
-        xprintf("illegal instruction");
-        break;
-    case 5:
-        xprintf("divide by zero");
-        break;
-    case 8:
-        xprintf("privilege violation");
-        break;
-    case 9:
-        xprintf("trace");
-        break;
-    case 10:
-        xprintf("unimplemented line-a opcode");
-        break;
-    case 11:
-        xprintf("unimplemented line-f opcode");
-        break;
-    case 12:
-        xprintf("non-PC breakpoint debug interrupt");
-        break;
-    case 13:
-        xprintf("PC breakpoint debug interrupt");
-        break;
-    case 14:
-        xprintf("format error");
-        break;
-    case 24:
-        xprintf("spurious interrupt");
-        break;
-    default:
-        if ( ((vector >= 6) && (vector <= 7)) ||
-             ((vector >= 16) && (vector <= 23)))
-        {
-            xprintf("reserved");
-        }
-        else if ((vector >= 25) && (vector <= 31))
-        {
-            xprintf("level %d autovectored interrupt", fault_status - 24);
-        }
-        else if ((vector >= 32) && (vector <= 47))
-        {
-            xprintf("trap #%d", vector - 32);
-        }
-        else
-        {
-            xprintf("unknown vector\r\n");
-        }
+        case 2:
+            xprintf("access error");
+            break;
+
+        case 3:
+            xprintf("address error");
+            break;
+
+        case 4:
+            xprintf("illegal instruction");
+            break;
+
+        case 5:
+            xprintf("divide by zero");
+            break;
+
+        case 8:
+            xprintf("privilege violation");
+            break;
+
+        case 9:
+            xprintf("trace");
+            break;
+
+        case 10:
+            xprintf("unimplemented line-a opcode");
+            break;
+
+        case 11:
+            xprintf("unimplemented line-f opcode");
+            break;
+
+        case 12:
+            xprintf("non-PC breakpoint debug interrupt");
+            break;
+
+        case 13:
+            xprintf("PC breakpoint debug interrupt");
+            break;
+
+        case 14:
+            xprintf("format error");
+            break;
+
+        case 24:
+            xprintf("spurious interrupt");
+            break;
+
+        default:
+            if ( ((vector >= 6) && (vector <= 7)) ||
+                 ((vector >= 16) && (vector <= 23)))
+            {
+                xprintf("reserved");
+            }
+            else if ((vector >= 25) && (vector <= 31))
+            {
+                xprintf("level %d autovectored interrupt", fault_status - 24);
+            }
+            else if ((vector >= 32) && (vector <= 47))
+            {
+                xprintf("trap #%d", vector - 32);
+            }
+            else
+            {
+                xprintf("unknown vector\r\n");
+            }
     }
     xprintf(")\r\n");
     xprintf("sr=%4x\r\n", sr);

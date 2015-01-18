@@ -763,8 +763,7 @@ void mmu_init(void)
 }
 
 
-uint32_t mmutr_miss(uint32_t mmu_sr, uint32_t fault_address, uint32_t pc,
-                uint32_t format_status)
+uint32_t mmutr_miss(uint32_t mmu_sr, uint32_t fault_address, uint32_t pc, uint32_t format_status)
 {
     uint32_t fault = format_status & 0xc030000;
 
