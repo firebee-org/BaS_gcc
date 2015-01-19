@@ -345,14 +345,6 @@ bool irq5_handler(void *arg1, void *arg2)
         FBEE_INTR_CLEAR = FBEE_INTR_DSP;
     }
 
-    if (pending_interrupts & FBEE_INTR_VSYNC || pending_interrupts & FBEE_INTR_HSYNC)
-    {
-        dbg("vsync or hsync interrupt!\r\n");
-        FBEE_INTR_CLEAR = FBEE_INTR_VSYNC | FBEE_INTR_HSYNC;
-        /* hsync and vsync should go to TOS unhandled */
-        return false;
-    }
-
     MCF_EPORT_EPFR |= (1 << 5);             /* clear interrupt from edge port */
 
     return true;
