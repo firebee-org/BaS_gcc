@@ -461,7 +461,7 @@ void init_fbcs()
     MCF_FBCS5_CSAR = MCF_FBCS_CSAR_BA(0x60000000);
     MCF_FBCS5_CSCR = MCF_FBCS_CSCR_PS_16 |              /* CPLD access 16 bit wide */
                      MCF_FBCS_CSCR_WS(32) |             /* 32 wait states */
-                     MCF_FBCS_CSCR_ASET(1) |            /* chip select on rising clock edge */
+                     MCF_FBCS_CSCR_ASET(1) |            /* chip select on second rising clock edge */
                      MCF_FBCS_CSCR_AA;                  /* auto acknowledge */
     MCF_FBCS5_CSMR = MCF_FBCS_CSMR_BAM_256M |           /* maps 0x60000000 to 0x68000000 */
                      MCF_FBCS_CSMR_V;
