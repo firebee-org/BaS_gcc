@@ -124,6 +124,19 @@ static struct pci_bios_interface pci_interface =
     .phys_to_virt = wrapper_phys_to_virt,
 };
 
+static struct pci_native_driver_interface pci_native_interface =
+{
+    .pci_read_config_longword = pci_read_config_longword,
+    .pci_read_config_word = pci_read_config_longword,
+    .pci_read_config_byte = pci_read_config_byte,
+    .pci_write_config_longword = pci_write_config_longword,
+    .pci_write_config_word = pci_write_config_word,
+    .pci_write_config_byte = pci_write_config_byte,
+    .pci_hook_interrupt = pci_hook_interrupt,
+    .pci_unhook_interrupt = pci_unhook_interrupt,
+    .pci_get_resource = pci_get_resource,
+};
+
 /*
  * driver interface struct for the BaS framebuffer video driver
  */
@@ -186,6 +199,14 @@ static struct generic_interface interfaces[] =
         .version = 0,
         .revision = 1,
         .interface.mmu = &mmu_interface,
+    },
+    {
+        .type = PCI_NATIVE_DRIVER,
+        .name = "PCI_N",
+        .description = "BaS PCI native",
+        .version = 0,
+        .revision = 1,
+        .interface.pci_native = &pci_native_interface,
     },
     /* insert new drivers here */
 

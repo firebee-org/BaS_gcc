@@ -38,6 +38,7 @@ enum driver_type
     VIDEO_DRIVER,
     PCI_DRIVER,
     MMU_DRIVER,
+    PCI_NATIVE_DRIVER,
     END_OF_DRIVERS = 0xffffffff,        /* marks end of driver list */
 };
 
@@ -270,6 +271,21 @@ struct mmu_driver_interface
     uint32_t (*report_pagesize)(void);
 };
 
+struct pci_native_driver_interface
+{
+    uint32_t (*pci_read_config_longword)(int32_t handle, int offset);
+    uint16_t (*pci_read_config_word)(int32_t handle, int offset);
+    uint8_t (*pci_read_config_byte)(int32_t handle, int offset);
+
+    int32_t (*pci_write_config_longword)(int32_t handle, int offset, uint32_t value);
+    int32_t (*pci_write_config_word)(int32_t handle, int offset, uint16_t value);
+    int32_t (*pci_write_config_byte)(int32_t handle, int offset, uint8_t value);
+    int32_t (*pci_hook_interrupt)(int32_t handle, void *handler, void *parameter);
+    int32_t (*pci_unhook_interrupt)(int32_t handle);
+
+    struct pci_rd (*pci_get_resource)(int32_t handle);
+};
+
 union interface
 {
     struct generic_driver_interface *gdi;
@@ -278,6 +294,7 @@ union interface
     struct framebuffer_driver_interface *fb;
     struct pci_bios_interface *pci;
     struct mmu_driver_interface *mmu;
+    struct pci_native_driver_interface *pci_native;
 };
 
 struct generic_interface

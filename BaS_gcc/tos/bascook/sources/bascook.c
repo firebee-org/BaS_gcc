@@ -10,13 +10,13 @@ struct driver_table *get_bas_drivers(void)
     struct driver_table *ret = NULL;
 
     __asm__ __volatile__(
-        "			bra.s	 do_trap			\n\t"
-        "			.dc.l	0x5f424153			\n\t"	// '_BAS'
-        "do_trap:	trap	#0					\n\t"
-        "			move.l	d0,%[ret]			\n\t"
-        :	[ret] "=m" (ret)	/* output */
-        :						/* no inputs */
-        :						/* clobbered */
+        "           bra.s    do_trap            \n\t"
+        "           .dc.l   0x5f424153          \n\t"   // '_BAS'
+        "do_trap:   trap    #0                  \n\t"
+        "           move.l  d0,%[ret]           \n\t"
+        :   [ret] "=m" (ret)    /* output */
+        :                       /* no inputs */
+        :                       /* clobbered */
     );
 
     return ret;
@@ -31,7 +31,7 @@ struct driver_table *get_bas_drivers(void)
 static void __attribute__((interrupt)) my_own_trap0_handler(void)
 {
     __asm__ __volatile__(
-        "		clr.l		d0				\n\t"		// return 0 to indicate not supported
+        "       clr.l       d0              \n\t"       // return 0 to indicate not supported
         :
         :
         :
@@ -85,20 +85,22 @@ void setcookie(uint32_t cookie, uint32_t value)
         printf("cannot set cookie, cookie jar is full!\r\n");
 }
 
-#define COOKIE_DMAC	0x444d4143L /* FireTOS DMA API */
+#define COOKIE_DMAC 0x444d4143L /* FireTOS DMA API */
+#define COOKIE_BAS_ 0x4241535fL /* BAS_ cookie (points to driver table struct */
 
 static char *dt_to_str(enum driver_type dt)
 {
     switch (dt)
     {
-        case BLOCKDEV_DRIVER: return "generic block device driver";
-        case CHARDEV_DRIVER:  return "generic character device driver";
-        case VIDEO_DRIVER:    return "video/framebuffer driver";
-        case XHDI_DRIVER:     return "XHDI compatible hard disk driver";
-        case MCD_DRIVER:	  return "multichannel DMA driver";
-        case PCI_DRIVER:	  return "PCI interface driver";
-        case MMU_DRIVER:	  return "MMU lock/unlock pages driver";
-        default:              return "unknown driver type";
+        case BLOCKDEV_DRIVER:   return "generic block device driver";
+        case CHARDEV_DRIVER:    return "generic character device driver";
+        case VIDEO_DRIVER:      return "video/framebuffer driver";
+        case XHDI_DRIVER:       return "XHDI compatible hard disk driver";
+        case MCD_DRIVER:        return "multichannel DMA driver";
+        case PCI_DRIVER:        return "PCI interface driver";
+        case MMU_DRIVER:        return "MMU lock/unlock pages driver";
+        case PCI_NATIVE_DRIVER: return "PCI interface native driver";
+        default:                return "unknown driver type";
     }
 }
 
@@ -112,16 +114,17 @@ int main(int argc, char *argv[])
 
     (void) Cconws("retrieve BaS driver interface\r\n");
 
-    ssp = (void *) Super(0L);								/* go to supervisor mode, we are doing dirty tricks */
+    ssp = (void *) Super(0L);                               /* go to supervisor mode, we are doing dirty tricks */
     sig = * (long *)((*sysbase) + 0x2c);
+
     /*
      * first check if we are on EmuTOS, FireTOS want's to do everything itself
      */
     if (sig == 0x45544f53)
     {
-        old_vector = Setexc(0x20, my_own_trap0_handler);		/* set our own temporarily */
-        dt = get_bas_drivers();									/* trap #0 */
-        (void) Setexc(0x20, old_vector);						/* restore original vector */
+        old_vector = Setexc(0x20, my_own_trap0_handler);        /* set our own temporarily */
+        dt = get_bas_drivers();                                 /* trap #0 */
+        (void) Setexc(0x20, old_vector);                        /* restore original vector */
 
         if (dt)
         {
@@ -144,6 +147,12 @@ int main(int argc, char *argv[])
                 }
                 ifc++;
             }
+
+            /*
+             * set cookie to be able to find the driver table later on
+             */
+            setcookie(COOKIE_BAS_, (uint32_t) dt);
+            printf("BAS_ cookie set to %p\r\n", dt);
         }
         else
         {
@@ -157,7 +166,7 @@ int main(int argc, char *argv[])
     }
     Super(ssp);
 
-    while (Cconis()) Cconin();	/* eat keys */
+    while (Cconis()) Cconin();  /* eat keys */
 
     return 0;
 }
