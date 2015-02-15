@@ -409,7 +409,7 @@ irq4:           irq     0x70, 4, 0x10               // Level 4 autovector interr
 
 
 #if defined(MACHINE_FIREBEE)                        /* these handlers are only meaningful for the Firebee */
-irq5:           //move.w  #0x2700,sr                  // disable interrupts
+irq5:           //move.w  #0x2700,sr                // disable interrupts
 		subq.l  #4,sp                       // extra space
 
 		link    a6,#-4 * 4                  // save gcc scratch registers
