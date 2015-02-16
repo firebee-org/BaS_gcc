@@ -93,15 +93,7 @@ SECTIONS
                 OBJDIR/fbmodedb.o(.text)
                 OBJDIR/offscreen.o(.text)
 
-                OBJDIR/x86decode.o(.text)
-                OBJDIR/x86ops.o(.text)
-                OBJDIR/x86ops2.o(.text)
-                OBJDIR/x86fpu.o(.text)
-                OBJDIR/x86sys.o(.text)
-                OBJDIR/x86biosemu.o(.text)
-                OBJDIR/x86debug.o(.text)
-                OBJDIR/x86prim_ops.o(.text)
-                OBJDIR/x86pcibios.o(.text)
+                OBJDIR/x86emu.o(.text)
 
                 OBJDIR/radeon_base.o(.text)
                 OBJDIR/radeon_accel.o(.text)

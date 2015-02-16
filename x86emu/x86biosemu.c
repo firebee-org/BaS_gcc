@@ -1,5 +1,4 @@
 #define RINFO_ONLY
-#include "x86debug.h"
 #include "radeonfb.h"
 #include "bas_printf.h"
 #include "bas_string.h"
