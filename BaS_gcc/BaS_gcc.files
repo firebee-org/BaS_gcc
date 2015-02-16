@@ -198,3 +198,6 @@ util/wait.c
 bas.lk.in
 i2c/i2c.c
 Makefile
+x86emu/x86biosemu.c
+x86emu/x86emu.c
+x86emu/x86pcibios.c

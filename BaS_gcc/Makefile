@@ -131,15 +131,7 @@ CSRCS= \
 	radeon_monitor.c \
 	fnt_st_8x16.c \
 	\
-	x86decode.c \
-	x86sys.c \
-	x86debug.c \
-	x86prim_ops.c \
-	x86ops.c \
-	x86ops2.c \
-	x86fpu.c \
-	x86biosemu.c \
-	x86pcibios.c \
+	x86emu.c \
 	\
 	basflash.c \
 	basflash_start.c

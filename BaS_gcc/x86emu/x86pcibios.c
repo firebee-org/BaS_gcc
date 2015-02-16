@@ -2,7 +2,6 @@
 #include "pci.h"
 #include "x86emu.h"
 #include "x86pcibios.h"
-#include "x86debug.h"
 
 extern unsigned short offset_port;
 
