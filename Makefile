@@ -29,6 +29,7 @@ AR=$(TCPREFIX)ar
 RANLIB=$(TCPREFIX)ranlib
 NATIVECC=gcc
 
+LDLIBS=-L/usr/lib/gcc/m68k-elf/4.9.2/m5475 -lgcc
 INCLUDE=-Iinclude
 CFLAGS=-mcpu=5474 \
         -g \
@@ -140,6 +141,7 @@ CSRCS= \
 ASRCS= \
 	startcf.S \
 	printf_helper.S \
+	libgcc_helper.S \
 	exceptions.S \
 	xhdi_vec.S \
 	pci_wrappers.S
@@ -255,7 +257,7 @@ define EX_TEMPLATE
 $(1)_MAPFILE=$(1)/$$(basename $$(FLASH_EXEC)).map
 $(1)/$$(FLASH_EXEC): $(1)/$(LIBBAS) $(LDCSRC)
 	$(CPP) $(INCLUDE) -DOBJDIR=$(1)/objs -P -DFORMAT_ELF=$(FORMAT_ELF) -D$$(MACHINE) $(LDCSRC) -o $(1)/$$(LDCFILE)
-	$(LD) --oformat $$(FORMAT) -Map $$($(1)_MAPFILE) --cref -T $(1)/$$(LDCFILE) -o $$@
+	$(LD) --oformat $$(FORMAT) -Map $$($(1)_MAPFILE) --cref -T $(1)/$$(LDCFILE) $(LDLIBS) -o $$@
 ifeq ($(COMPILE_ELF),Y)
 	$(OBJCOPY) -O srec $$@ $$(basename $$@).s19
 else
@@ -266,7 +268,7 @@ endif
 $(1)_MAPFILE_RAM=$(1)/$$(basename $$(RAM_EXEC)).map
 $(1)/$$(RAM_EXEC): $(1)/$(LIBBAS) $(LDCSRC)
 	$(CPP) $(INCLUDE) -DCOMPILE_RAM -DOBJDIR=$(1)/objs -P -DFORMAT_ELF=$(FORMAT_ELF) -D$$(MACHINE) $(LDCSRC) -o $(1)/$$(LDRFILE)
-	$(LD) $(LDFLAGS) --oformat $$(FORMAT) -Map $$($(1)_MAPFILE_RAM) --cref -T $(1)/$$(LDRFILE) -o $$@
+	$(LD) $(LDFLAGS) --oformat $$(FORMAT) -Map $$($(1)_MAPFILE_RAM) --cref -T $(1)/$$(LDRFILE) $(LDLIBS) -o $$@
 ifeq ($(COMPILE_ELF),Y)
 	$(OBJCOPY) -O srec $$@ $$(basename $$@).s19
 else
@@ -277,7 +279,7 @@ endif
 $(1)_MAPFILE_BFL=$(1)/$$(basename $$(BASFLASH_EXEC)).map
 $(1)/$$(BASFLASH_EXEC): $(1)/objs/basflash.o $(1)/objs/basflash_start.o $(1)/$(LIBBAS) $(LDCBFL)
 	$(CPP) $(INCLUDE) -P -DOBJDIR=$(1)/objs -DFORMAT_ELF=$(FORMAT_ELF) -D$$(MACHINE) $(LDCBSRC) -o $(1)/$$(LDCBFS)
-	$(LD) --oformat $$(FORMAT) -Map $$($(1)_MAPFILE_BFL) --cref -T $(1)/$$(LDCFILE) -L$(1) -lbas -o $$@
+	$(LD) --oformat $$(FORMAT) -Map $$($(1)_MAPFILE_BFL) --cref -T $(1)/$$(LDCFILE) -L$(1) -lbas $(LDLIBS) -o $$@
 ifeq ($(COMPILE_ELF),Y)
 	$(OBJCOPY) -O srec $$@ $$(basename $$@).s19
 else
