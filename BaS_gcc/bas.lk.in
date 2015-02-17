@@ -79,6 +79,7 @@ SECTIONS
                 OBJDIR/s19reader.o(.text)
                 OBJDIR/bas_printf.o(.text)
                 OBJDIR/bas_string.o(.text)
+                OBJDIR/libgcc_helper.o(.text)
                 OBJDIR/printf_helper.o(.text)
                 OBJDIR/cache.o(.text)
                 OBJDIR/dma.o(.text)
@@ -118,6 +119,7 @@ SECTIONS
 #endif /* COMPILE_RAM */
 
 #if (FORMAT_ELF == 1)
+                *(.eh_frame)
                 *(.rodata)
                 *(.rodata.*)
 #endif
@@ -153,8 +155,6 @@ SECTIONS
         /*
          * Global memory map
          */
-
-        ___muldi3 = __muldi3;
 
         /* SDRAM Initialization */
         ___SDRAM                = SDRAM_START;

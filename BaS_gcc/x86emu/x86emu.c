@@ -169,6 +169,7 @@ static void	push_long (struct X86EMU *, uint32_t w);
 static uint16_t	pop_word (struct X86EMU *);
 static uint32_t	pop_long (struct X86EMU *);
 
+
 /****************************************************************************
 REMARKS:
 Handles any pending asychronous interrupts.
@@ -7819,6 +7820,8 @@ idiv_word(struct X86EMU *emu, uint16_t s)
 	emu->x86.R_AX = (uint16_t) div;
 	emu->x86.R_DX = (uint16_t) mod;
 }
+
+
 /****************************************************************************
 REMARKS:
 Implements the IDIV instruction and side effects.

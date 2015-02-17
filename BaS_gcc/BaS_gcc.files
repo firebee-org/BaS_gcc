@@ -201,3 +201,4 @@ Makefile
 x86emu/x86biosemu.c
 x86emu/x86emu.c
 x86emu/x86pcibios.c
+util/libgcc_helper.S
