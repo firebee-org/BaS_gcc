@@ -229,8 +229,10 @@ SECTIONS
         __SUP_SP                = __RAMBAR1 + __RAMBAR1_SIZE - 4;
 
     /*
-     * this flag (if 1) indicates that FPGA configuration has been loaded through JTAG
-     * and shouldn't be overwritten on boot
+     * FPGA_JTAG_LOADED (if 1) indicates that FPGA configuration has been loaded through JTAG
+     * and shouldn't be overwritten on boot. For this to work (and not let us be faked
+     * by a random uninitialised value), __FPGA_JTAG_VALID is used as a "magic value" and must be
+     * 0xaffeaffe to make this work.
      */
     __FPGA_JTAG_LOADED      = __RAMBAR1;
     __FPGA_JTAG_VALID       = __RAMBAR1 + 4;
@@ -255,6 +257,3 @@ SECTIONS
     _video_sbt = __RAMBAR0 + 0x83C;
     _rt_mbar   = __RAMBAR0 + 0x844;     /* (c)0f */
 }
-
-SEARCH_DIR(/usr/lib/gcc/m68k-elf/4.6.4/m5475/)
-INPUT(-lgcc)
