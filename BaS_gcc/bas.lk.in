@@ -123,6 +123,7 @@ SECTIONS
 #endif
         } > bas_rom
 
+
 #if (TARGET_ADDRESS == BOOTFLASH_BASE_ADDRESS)
         /*
          * put BaS .data and .bss segments to flash, but relocate it to RAM after initialize_hardware() ran
@@ -152,6 +153,8 @@ SECTIONS
         /*
          * Global memory map
          */
+
+        ___muldi3 = __muldi3;
 
         /* SDRAM Initialization */
         ___SDRAM                = SDRAM_START;
@@ -231,27 +234,27 @@ SECTIONS
      */
     __FPGA_JTAG_LOADED      = __RAMBAR1;
     __FPGA_JTAG_VALID       = __RAMBAR1 + 4;
+
     /* system variables */
-
-        /* system variables */
-
-        /* RAMBAR0 0 to 0x7FF -> exception vectors */
-        _rt_mod    = __RAMBAR0 + 0x800;
-        _rt_ssp    = __RAMBAR0 + 0x804;
-        _rt_usp    = __RAMBAR0 + 0x808;
-        _rt_vbr    = __RAMBAR0 + 0x80C;     /* (8)01 */
-        _rt_cacr   = __RAMBAR0 + 0x810;     /* 002 */
-        _rt_asid   = __RAMBAR0 + 0x814;     /* 003 */
-        _rt_acr0   = __RAMBAR0 + 0x818;     /* 004 */
-        _rt_acr1   = __RAMBAR0 + 0x81c;     /* 005 */
-        _rt_acr2   = __RAMBAR0 + 0x820;     /* 006 */
-        _rt_acr3   = __RAMBAR0 + 0x824;     /* 007 */
-        _rt_mmubar = __RAMBAR0 + 0x828;     /* 008 */
-        _rt_sr     = __RAMBAR0 + 0x82c;
-        _d0_save   = __RAMBAR0 + 0x830;
-        _a7_save   = __RAMBAR0 + 0x834;
-        _video_tlb = __RAMBAR0 + 0x838;
-        _video_sbt = __RAMBAR0 + 0x83C;
-        _rt_mbar   = __RAMBAR0 + 0x844;     /* (c)0f */
-
+    /* RAMBAR0 0 to 0x7FF -> exception vectors */
+    _rt_mod    = __RAMBAR0 + 0x800;
+    _rt_ssp    = __RAMBAR0 + 0x804;
+    _rt_usp    = __RAMBAR0 + 0x808;
+    _rt_vbr    = __RAMBAR0 + 0x80C;     /* (8)01 */
+    _rt_cacr   = __RAMBAR0 + 0x810;     /* 002 */
+    _rt_asid   = __RAMBAR0 + 0x814;     /* 003 */
+    _rt_acr0   = __RAMBAR0 + 0x818;     /* 004 */
+    _rt_acr1   = __RAMBAR0 + 0x81c;     /* 005 */
+    _rt_acr2   = __RAMBAR0 + 0x820;     /* 006 */
+    _rt_acr3   = __RAMBAR0 + 0x824;     /* 007 */
+    _rt_mmubar = __RAMBAR0 + 0x828;     /* 008 */
+    _rt_sr     = __RAMBAR0 + 0x82c;
+    _d0_save   = __RAMBAR0 + 0x830;
+    _a7_save   = __RAMBAR0 + 0x834;
+    _video_tlb = __RAMBAR0 + 0x838;
+    _video_sbt = __RAMBAR0 + 0x83C;
+    _rt_mbar   = __RAMBAR0 + 0x844;     /* (c)0f */
 }
+
+SEARCH_DIR(/usr/lib/gcc/m68k-elf/4.6.4/m5475/)
+INPUT(-lgcc)
