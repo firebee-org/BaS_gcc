@@ -79,7 +79,9 @@ SECTIONS
                 OBJDIR/s19reader.o(.text)
                 OBJDIR/bas_printf.o(.text)
                 OBJDIR/bas_string.o(.text)
+#if (FORMAT_ELF == 1)
                 OBJDIR/libgcc_helper.o(.text)
+#endif
                 OBJDIR/printf_helper.o(.text)
                 OBJDIR/cache.o(.text)
                 OBJDIR/dma.o(.text)
