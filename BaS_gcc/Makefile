@@ -29,7 +29,12 @@ AR=$(TCPREFIX)ar
 RANLIB=$(TCPREFIX)ranlib
 NATIVECC=gcc
 
+ifeq (Y,$(COMPILE_ELF))
 LDLIBS=-L/usr/lib/gcc/m68k-elf/4.9.2/m5475 -lgcc
+else
+LDLIBS=-L/usr/lib/gcc/m68k-atari-mint/4.6.4/m5475 -lgcc
+endif
+
 INCLUDE=-Iinclude
 CFLAGS=-mcpu=5474 \
         -g \
@@ -141,10 +146,13 @@ CSRCS= \
 ASRCS= \
 	startcf.S \
 	printf_helper.S \
-	libgcc_helper.S \
 	exceptions.S \
 	xhdi_vec.S \
 	pci_wrappers.S
+
+ifeq (Y,$(COMPILE_ELF))			# needed for __ vs ___ kludge
+	ASRCS += libgcc_helper.S
+endif
 
 SRCS=$(ASRCS) $(CSRCS)
 COBJS=$(patsubst %.c,%.o,$(CSRCS))
