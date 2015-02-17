@@ -111,7 +111,7 @@ struct X86EMU_regs {
 	uint8_t			__pad[3];
 };
 
-typedef uint32_t label_t;
+typedef uint32_t jmp_buf[18];
 
 struct X86EMU
 {
@@ -120,7 +120,7 @@ struct X86EMU
     void            *sys_private;
     struct          X86EMU_regs	x86;
 
-    label_t         exec_state;
+    jmp_buf         exec_state;
 
     uint64_t        cur_cycles;
 
