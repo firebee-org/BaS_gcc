@@ -66,17 +66,3 @@ _rom_entry:
 		/* initialize any hardware specific issues */
 		bra    _initialize_hardware
 
-#ifdef _NOT_USED_
-		.globl	___muldi3
-		.extern __muldi3
-___muldi3:	jmp	__muldi3
-		.globl	___divdi3
-		.extern	__divdi3
-___divdi3:	jmp	__divdi3
-		.globl	___moddi3
-		.extern	__moddi3
-___moddi3:	jmp	__moddi3
-		.globl	___modsi3
-		.extern __modsi3
-___modsi3:	jmp	__modsi3
-#endif /* _NOT_USED_ */
