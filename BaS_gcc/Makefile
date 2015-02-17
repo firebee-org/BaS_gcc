@@ -30,7 +30,7 @@ RANLIB=$(TCPREFIX)ranlib
 NATIVECC=gcc
 
 ifeq (Y,$(COMPILE_ELF))
-LDLIBS=-L/usr/lib/gcc/m68k-elf/4.9.2/m5475 -lgcc
+LDLIBS=-L/usr/lib/gcc/m68k-elf/4.6.4/m5475 -lgcc
 else
 LDLIBS=-L/usr/lib/gcc/m68k-atari-mint/4.6.4/m5475 -lgcc
 endif

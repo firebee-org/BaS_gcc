@@ -5,6 +5,7 @@
 #include "util.h"
 #include "driver_mem.h"
 #include "x86emu.h"
+#include "x86emu_regs.h"
 #include "pci.h"
 #include "pci_ids.h"
 
@@ -86,21 +87,22 @@ uint32_t getIntVect(int num)
 }
 
 /* FixME: There is already a push_word() in the emulator */
-void pushw(uint16_t val)
+void pushw(struct X86EMU *emu, uint16_t val)
 {
-	X86_ESP -= 2;
-	MEM_WW(((uint32_t) X86_SS << 4) + X86_SP, val);
+    emu->x86.R_ESP -= 2;
+    MEM_WW(((uint32_t) emu->x86.R_SS << 4) + emu->x86.R_SP, val);
 }
 
-int run_bios_int(int num)
+int run_bios_int(struct X86EMU *emu, int num)
 {
 	uint32_t eflags;
-	eflags = X86_EFLAGS;
-	pushw(eflags);
-	pushw(X86_CS);
-	pushw(X86_IP);
-	X86_CS = MEM_RW((num << 2) + 2);
-	X86_IP = MEM_RW(num << 2);
+    eflags = emu->x86.R_EFLG;
+    pushw(emu, eflags);
+    pushw(emu, emu->x86.R_CS);
+    pushw(emu, emu->x86.R_IP);
+    emu->x86.R_CS = MEM_RW((num << 2) + 2);
+    emu->x86.R_IP = MEM_RW(num << 2);
+
 	return 1;
 }
 
@@ -207,7 +209,7 @@ void outl(uint32_t val, uint16_t port)
 
 /* Interrupt multiplexer */
 
-void do_int(int num)
+void do_int(struct X86EMU *emu, int num)
 {
 	int ret = 0;
 
@@ -246,7 +248,7 @@ void do_int(int num)
 		break;
 	}
 	if (!ret)
-		ret = run_bios_int(num);
+        ret = run_bios_int(emu, num);
 }
 
 static int setup_system_bios(void *base_addr)
@@ -352,9 +354,9 @@ void run_bios(struct radeonfb_info *rinfo)
 	X86EMU_setMemBase((void *) biosmem, SIZE_EMU);
 
 	for (i = 0; i < 256; i++)
-		intFuncs[i] = do_int;
+        emu._X86EMU_intrTab[i] = do_int;
 
-	X86EMU_setupIntrFuncs(intFuncs);
+    X86EMU_setupIntrFuncs(emu._X86EMU_intrTab);
 	{
 		char *date = "01/01/99";
 		for (i = 0; date[i]; i++)
@@ -371,30 +373,30 @@ void run_bios(struct radeonfb_info *rinfo)
 //	setup_int_vect();
 
 	/* cpu setup */
-	X86_AX = devfn ? devfn : 0xff;
-	X86_DX = 0x80;
-	X86_EIP = initialip;
-	X86_CS = initialcs;
+    emu.x86.R_AX = devfn ? devfn : 0xff;
+    emu.x86.R_DX = 0x80;
+    emu.x86.R_EIP = initialip;
+    emu.x86.R_CS = initialcs;
 
 	/* Initialize stack and data segment */
-	X86_SS = initialcs;
-	X86_SP = 0xfffe;
-	X86_DS = 0x0040;
-	X86_ES = 0x0000;
+    emu.x86.R_SS = initialcs;
+    emu.x86.R_SP = 0xfffe;
+    emu.x86.R_DS = 0x0040;
+    emu.x86.R_ES = 0x0000;
 
 	/*
 	 * We need a sane way to return from bios
 	 * execution. A hlt instruction and a pointer
 	 * to it, both kept on the stack, will do.
 	 */
-	pushw(0xf4f4);    /* hlt; hlt */
+    pushw(&emu, 0xf4f4);    /* hlt; hlt */
 
 //	pushw(0x10cd);    /* int #0x10 */
 //	pushw(0x0013);    /* 320 x 200 x 256 colors */
 // //	pushw(0x000F);    /* 640 x 350 x mono */
 //	pushw(0xb890);    /* nop, mov ax,#0x13 */
-	pushw(X86_SS);
-	pushw(X86_SP + 2);
+    pushw(&emu, emu.x86.R_SS);
+    pushw(&emu, emu.x86.R_SP + 2);
 #ifdef DBG_X86EMU
 	X86EMU_trace_on();
 	X86EMU_set_debug(DEBUG_DECODE_F | DEBUG_TRACE_F);
@@ -402,7 +404,7 @@ void run_bios(struct radeonfb_info *rinfo)
 
 	dbg("%s: X86EMU entering emulator\r\n", __FUNCTION__);
 	//*vblsem = 0;
-	X86EMU_exec();
+    X86EMU_exec(&emu);
 	//*vblsem = 1;
 	dbg("%s: X86EMU halted\r\n", __FUNCTION__);
 //	biosfn_set_video_mode(0x13); /* 320 x 200 x 256 colors */
