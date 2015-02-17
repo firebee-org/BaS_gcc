@@ -24,6 +24,14 @@
 #define SYS_BIOS                0xF0000
 #define SIZE_EMU               0x100000
 
+#define DBG_BIOSEMU
+#ifdef DBG_BIOSEMU
+#define dbg(format, arg...) do { xprintf("DEBUG (%s()): " format, __FUNCTION__, ##arg);} while(0)
+#else
+#define dbg(format, arg...) do {;} while (0)
+#endif /* DBG_BIOSEMU */
+#define err(format, arg...) do { xprintf("ERROR (%s()): " format, __FUNCTION__, ##arg); } while(0)
+
 typedef struct
 {
 	long ident;
@@ -68,10 +76,8 @@ static uint32_t offset_io;
 static uint32_t config_address_reg;
 
 extern int x86_pcibios_emulator();
-extern COOKIE *get_cookie(long id);
-extern short restart, os_magic;
 
-X86EMU_sysEnv _X86EMU_env;
+//X86EMU_sysEnv _X86EMU_env;
 
 /* general software interrupt handler */
 uint32_t getIntVect(int num)
@@ -270,7 +276,10 @@ void run_bios(struct radeonfb_info *rinfo)
 	unsigned short initialcs;
 	unsigned short initialip;
 	unsigned short devfn = (unsigned short) rinfo->handle;
-	X86EMU_intrFuncs intFuncs[256];
+
+    struct X86EMU emu;
+
+    X86EMU_init_default(&emu);
 
 	if ((rinfo->mmio_base == NULL) || (rinfo->io_base == NULL))
 	{
