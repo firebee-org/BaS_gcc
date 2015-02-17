@@ -42,6 +42,7 @@ SECTIONS
 #endif /* MACHINE_FIREBEE */
                 OBJDIR/wait.o(.text)
                 OBJDIR/exceptions.o(.text)
+                OBJDIR/setjmp.o(.text)
                 OBJDIR/driver_vec.o(.text)
                 OBJDIR/interrupts.o(.text)
                 OBJDIR/mmu.o(.text)
@@ -97,6 +98,7 @@ SECTIONS
                 OBJDIR/offscreen.o(.text)
 
                 OBJDIR/x86emu.o(.text)
+                OBJDIR/x86emu_util.o(.text)
 
                 OBJDIR/radeon_base.o(.text)
                 OBJDIR/radeon_accel.o(.text)

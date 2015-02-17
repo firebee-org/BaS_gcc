@@ -202,3 +202,7 @@ x86emu/x86biosemu.c
 x86emu/x86emu.c
 x86emu/x86pcibios.c
 util/libgcc_helper.S
+util/setjmp.c
+util/setjmp.S
+include/x86emu_regs.h
+x86emu/x86emu_util.c

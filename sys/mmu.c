@@ -79,7 +79,7 @@
 #else
 #define dbg(format, arg...) do {;} while (0)
 #endif /* DBG_MMU */
-#define err(format, arg...) do { xprintf("ERROR (%s()): " format, __FUNCTION__, ##arg); } while(0);
+#define err(format, arg...) do { xprintf("ERROR (%s()): " format, __FUNCTION__, ##arg); } while(0)
 
 /*
  * set ASID register
