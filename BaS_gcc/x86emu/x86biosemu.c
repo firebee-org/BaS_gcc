@@ -274,8 +274,7 @@ void run_bios(struct radeonfb_info *rinfo)
 
 	if ((rinfo->mmio_base == NULL) || (rinfo->io_base == NULL))
 	{
-		dbg("%s: rinfo->mmio_base = %p, rinfo->io_base = %p\r\n",
-				__FUNCTION__, rinfo->mmio_base, rinfo->io_base);
+        dbg("rinfo->mmio_base = %p, rinfo->io_base = %p\r\n", rinfo->mmio_base, rinfo->io_base);
 		return;
 	}
 

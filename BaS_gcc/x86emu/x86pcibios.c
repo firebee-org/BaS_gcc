@@ -2,161 +2,173 @@
 #include "pci.h"
 #include "x86emu.h"
 #include "x86pcibios.h"
-
+#include "x86emu_regs.h"
+#include "bas_printf.h"
 extern unsigned short offset_port;
 
-int x86_pcibios_emulator()
+#define DBG_PCIBIOS
+#ifdef DBG_PCIBIOS
+#define dbg(format, arg...) do { xprintf("DEBUG (%s()): " format, __FUNCTION__, ##arg);} while(0)
+#else
+#define dbg(format, arg...) do {;} while (0)
+#endif /* DBG_PCIBIOS */
+#define err(format, arg...) do { xprintf("ERROR (%s()): " format, __FUNCTION__, ##arg); } while(0);
+
+
+int x86_pcibios_handler(struct X86EMU *emu)
 {
 	int ret = 0;
 	unsigned long dev;
 
-	switch (X86_AX)
+    switch (emu->x86.R_AX)
 	{
 		case PCI_BIOS_PRESENT:
-			dbg("%s: PCI_BIOS_PRESENT\r\n", __FUNCTION__);
-			X86_AH	= 0x00;			/* no config space/special cycle support */
-			X86_AL	= 0x01;			/* config mechanism 1 */
-			X86_EDX = 'P' | 'C' << 8 | 'I' << 16 | ' ' << 24;
-			X86_EBX = 0x0210;		/* Version 2.10 */
-			X86_ECX = 0xFF00;		/* FixME: Max bus number */
-			X86_EFLAGS &= ~FB_CF;	/* clear carry flag */
+            dbg("PCI_BIOS_PRESENT\r\n");
+            emu->x86.R_AH	= 0x00;			/* no config space/special cycle support */
+            emu->x86.R_AL	= 0x01;			/* config mechanism 1 */
+            emu->x86.R_EDX = 'P' | 'C' << 8 | 'I' << 16 | ' ' << 24;
+            emu->x86.R_EBX = 0x0210;		/* Version 2.10 */
+            emu->x86.R_ECX = 0xFF00;		/* FixME: Max bus number */
+            emu->x86.R_EFLG &= ~FB_CF;      /* clear carry flag */
 			ret = 1;
 			break;
 
 		case FIND_PCI_DEVICE:
-			dbg("%s: FIND_PCI_DEVICE vendor = %04x, device = %04x\r\n", __FUNCTION__, X86_DX, X86_CX);
-			dev = pci_find_device((unsigned long) X86_DX, ((unsigned long) X86_CX), 0);
+            dbg("FIND_PCI_DEVICE vendor = %04x, device = %04x\r\n", emu->x86.R_DX, emu->x86.R_CX);
+            dev = pci_find_device((unsigned long) emu->x86.R_DX, ((unsigned long) emu->x86.R_CX), 0);
 
 			if (dev != 0)
 			{
-				dbg("%s:  ... OK\r\n", __FUNCTION__);		
-				X86_BH = PCI_BUS_FROM_HANDLE(dev);
+                dbg("dev = %d\r\n", dev);
+                emu->x86.R_BH = PCI_BUS_FROM_HANDLE(dev);
 				//X86_BH = (char)(dev >> 16) / PCI_MAX_FUNCTION); // dev->bus->secondary;
-				X86_BL = PCI_DEVICE_FROM_HANDLE(dev) << 3 | PCI_FUNCTION_FROM_HANDLE(dev);
+                emu->x86.R_BL = PCI_DEVICE_FROM_HANDLE(dev) << 3 | PCI_FUNCTION_FROM_HANDLE(dev);
 				//X86_BL = (char)dev; // dev->path.u.pci.devfn;
-				X86_AH = SUCCESSFUL;
-				X86_EFLAGS &= ~FB_CF;	/* clear carry flag */
+                emu->x86.R_AH = SUCCESSFUL;
+                emu->x86.R_EFLG &= ~FB_CF;	/* clear carry flag */
 				ret = 1;
-			} else {
-				dbg("%s: ... error\r\n", __FUNCTION__);		
-				X86_AH = DEVICE_NOT_FOUND;
-				X86_EFLAGS |= FB_CF;	/* set carry flag */
+            }
+            else
+            {
+                dbg("device not found\r\n");
+                emu->x86.R_AH = DEVICE_NOT_FOUND;
+                emu->x86.R_EFLG |= FB_CF;	/* set carry flag */
 				ret = 0;
 			}
 			break;
 
 		case FIND_PCI_CLASS_CODE:
 			/* FixME: support SI != 0 */
-			dbg("%s: FIND_PCI_CLASS_CODE %x\r\n", __FUNCTION__, X86_ECX);
-			dev = pci_find_classcode(X86_ECX, 0);
+            dbg("FIND_PCI_CLASS_CODE %x", emu->x86.R_ECX);
+            dev = pci_find_classcode(emu->x86.R_ECX, 0);
 			if (dev != 0) {
-				dbg("%s: ... OK\r\n", __FUNCTION__);		
-				X86_BH = PCI_BUS_FROM_HANDLE(dev);
-				X86_BL = PCI_DEVICE_FROM_HANDLE(dev) << 3 | PCI_FUNCTION_FROM_HANDLE(dev);
-				X86_AH = SUCCESSFUL;
-				X86_EFLAGS &= ~FB_CF;	/* clear carry flag */
+                dbg(" ...OK\r\n");
+                emu->x86.R_BH = PCI_BUS_FROM_HANDLE(dev);
+                emu->x86.R_BL = PCI_DEVICE_FROM_HANDLE(dev) << 3 | PCI_FUNCTION_FROM_HANDLE(dev);
+                emu->x86.R_AH = SUCCESSFUL;
+                emu->x86.R_EFLG &= ~FB_CF;	/* clear carry flag */
 				ret = 1;
 			}
 			else
 			{
-				dbg("%s: ... error\r\n", __FUNCTION__);		
-				X86_AH = DEVICE_NOT_FOUND;
-				X86_EFLAGS |= FB_CF;	/* set carry flag */
+                dbg(" ... error\r\n");
+                emu->x86.R_AH = DEVICE_NOT_FOUND;
+                emu->x86.R_EFLG |= FB_CF;	/* set carry flag */
 				ret = 0;
 			}
 			break;
 
 		case READ_CONFIG_BYTE:
 			// bus, devfn
-			dbg("%s: READ_CONFIG_BYTE bus = %x, devfn = %x, reg = %x\r\n", __FUNCTION__, X86_BH, X86_BL, X86_DI);
-			dev = PCI_HANDLE(X86_BH, X86_BL >> 3, X86_BL & 3); 
-			X86_CL = pci_read_config_byte(dev, X86_DI);
-			dbg("%s: value = %x\r\n", __FUNCTION__, X86_CL);
-			X86_AH = SUCCESSFUL;
-			X86_EFLAGS &= ~FB_CF;	/* clear carry flag */
+            dbg("READ_CONFIG_BYTE bus = %x, devfn = %x, reg = %x\r\n", emu->x86.R_BH, emu->x86.R_BL, emu->x86.R_DI);
+            dev = PCI_HANDLE(emu->x86.R_BH, emu->x86.R_BL >> 3, emu->x86.R_BL & 3);
+            emu->x86.R_CL = pci_read_config_byte(dev, emu->x86.R_DI);
+            dbg("value = %x\r\n", emu->x86.R_CL);
+            emu->x86.R_AH = SUCCESSFUL;
+            emu->x86.R_EFLG &= ~FB_CF;	/* clear carry flag */
 			ret = 1;
 			break;
 
 		case READ_CONFIG_WORD:
 			// bus, devfn
-			dbg("%s: READ_CONFIG_WORD bus = %x, devfn = %x, reg = %x\r\n", __FUNCTION__, X86_BH, X86_BL, X86_DI);
-			dev = PCI_HANDLE(X86_BH, X86_BL >> 3, X86_BL & 3); 
-			if(X86_DI == PCIBAR1)
-				X86_CX = offset_port + 1;
+            dbg("READ_CONFIG_WORD bus = %x, devfn = %x, reg = %x\r\n", emu->x86.R_BH, emu->x86.R_BL, emu->x86.R_DI);
+            dev = PCI_HANDLE(emu->x86.R_BH, emu->x86.R_BL >> 3, emu->x86.R_BL & 3);
+            if (emu->x86.R_DI == PCIBAR1)
+                emu->x86.R_CX = offset_port + 1;
 			else
-				X86_CX = pci_read_config_word(dev, X86_DI);
-			dbg("%s: value = %x\r\n", __FUNCTION__, X86_CX);
-			X86_AH = SUCCESSFUL;
-			X86_EFLAGS &= ~FB_CF;	/* clear carry flag */
+                emu->x86.R_CX = pci_read_config_word(dev, emu->x86.R_DI);
+            dbg("value = %x\r\n", emu->x86.R_CX);
+            emu->x86.R_AH = SUCCESSFUL;
+            emu->x86.R_EFLG &= ~FB_CF;	/* clear carry flag */
 			ret = 1;
 			break;
 
 		case READ_CONFIG_DWORD:
 			// bus, devfn
-			dbg("%s: READ_CONFIG_DWORD bus = %x, devfn = %x, reg = %x\r\n", __FUNCTION__, X86_BH, X86_BL, X86_DI);
-			dev = PCI_HANDLE(X86_BH, X86_BL >> 3, X86_BL & 3); 
-			if (X86_DI == PCIBAR1)
-				X86_CX = (unsigned long) offset_port + 1;
+            dbg("READ_CONFIG_DWORD bus = %x, devfn = %x, reg = %x\r\n", emu->x86.R_BH, emu->x86.R_BL, emu->x86.R_DI);
+            dev = PCI_HANDLE(emu->x86.R_BH, emu->x86.R_BL >> 3, emu->x86.R_BL & 3);
+            if (emu->x86.R_DI == PCIBAR1)
+                emu->x86.R_CX = (unsigned long) offset_port + 1;
 			else
-				X86_ECX = pci_read_config_longword(dev, X86_DI);
-			dbg("%s: value = %x\r\n", __FUNCTION__, X86_ECX);
-			X86_AH = SUCCESSFUL;
-			X86_EFLAGS &= ~FB_CF;	/* clear carry flag */
+                emu->x86.R_ECX = pci_read_config_longword(dev, emu->x86.R_DI);
+            dbg("value = %x\r\n", emu->x86.R_ECX);
+            emu->x86.R_AH = SUCCESSFUL;
+            emu->x86.R_EFLG &= ~FB_CF;	/* clear carry flag */
 			ret = 1;
 			break;
 
 		case WRITE_CONFIG_BYTE:
 			// bus, devfn
-			dbg("%s: READ_CONFIG_BYTE bus = %x, devfn = %x, reg = %x, value = %x\r\n", __FUNCTION__,
-						X86_BH, X86_BL, X86_DI, X86_CL);
-			dev = PCI_HANDLE(X86_BH, X86_BL >> 3, X86_BL & 3); 
-			pci_write_config_byte(dev, X86_DI, X86_CL);
-			X86_AH = SUCCESSFUL;
-			X86_EFLAGS &= ~FB_CF;	/* clear carry flag */
+            dbg("READ_CONFIG_BYTE bus = %x, devfn = %x, reg = %x, value = %x\r\n",
+                        emu->x86.R_BH, emu->x86.R_BL, emu->x86.R_DI, emu->x86.R_CL);
+            dev = PCI_HANDLE(emu->x86.R_BH, emu->x86.R_BL >> 3, emu->x86.R_BL & 3);
+            pci_write_config_byte(dev, emu->x86.R_DI, emu->x86.R_CL);
+            emu->x86.R_AH = SUCCESSFUL;
+            emu->x86.R_EFLG &= ~FB_CF;	/* clear carry flag */
 			ret = 1;
 			break;
 
 		case WRITE_CONFIG_WORD:
 			// bus, devfn
-			dev = PCI_HANDLE(X86_BH, X86_BL >> 3, X86_BL & 3); 
-			dbg("%s: WRITE_CONFIG_WORD bus = %x, devfn = %x, reg = %x, value = %x\r\n", X86_BH, X86_BL, X86_DI, X86_CX);
-			if (X86_DI == PCIBAR1)
+            dev = PCI_HANDLE(emu->x86.R_BH, emu->x86.R_BL >> 3, emu->x86.R_BL & 3);
+            dbg("WRITE_CONFIG_WORD bus = %x, devfn = %x, reg = %x, value = %x\r\n", emu->x86.R_BH, emu->x86.R_BL, emu->x86.R_DI, emu->x86.R_CX);
+            if (emu->x86.R_DI == PCIBAR1)
 			{
-				offset_port = X86_CX;
-				X86_AH = SUCCESSFUL;
-				X86_EFLAGS &= ~FB_CF;	/* clear carry flag */
+                offset_port = emu->x86.R_CX;
+                emu->x86.R_AH = SUCCESSFUL;
+                emu->x86.R_EFLG &= ~FB_CF;	/* clear carry flag */
 				ret = 1;
 				break;
 			}
-			pci_write_config_word(dev, X86_DI, X86_CX);
-			X86_AH = SUCCESSFUL;
-			X86_EFLAGS &= ~FB_CF;	/* clear carry flag */
+            pci_write_config_word(dev, emu->x86.R_DI, emu->x86.R_CX);
+            emu->x86.R_AH = SUCCESSFUL;
+            emu->x86.R_EFLG &= ~FB_CF;	/* clear carry flag */
 			ret = 1;
 			break;
 
 		case WRITE_CONFIG_DWORD:
 			// bus, devfn
-			dev = PCI_HANDLE(X86_BH, X86_BL >> 3, X86_BL & 3); 
-			dbg("%s: WRITE_CONFIG_DWORD bus = %x, devfn = %x, value = %x\r\n", __FUNCTION__,
-					X86_BH, X86_BL, X86_DI, X86_ECX);
-			if (X86_DI == PCIBAR1)
+            dev = PCI_HANDLE(emu->x86.R_BH, emu->x86.R_BL >> 3, emu->x86.R_BL & 3);
+            dbg("WRITE_CONFIG_DWORD bus = %x, devfn = %x, value = %x\r\n",
+                    emu->x86.R_BH, emu->x86.R_BL, emu->x86.R_DI, emu->x86.R_ECX);
+            if (emu->x86.R_DI == PCIBAR1)
 			{
-				offset_port = (unsigned short) X86_ECX & 0xFFFC;
-				X86_AH = SUCCESSFUL;
-				X86_EFLAGS &= ~FB_CF;	/* clear carry flag */
+                offset_port = (unsigned short) emu->x86.R_ECX & 0xFFFC;
+                emu->x86.R_AH = SUCCESSFUL;
+                emu->x86.R_EFLG &= ~FB_CF;	/* clear carry flag */
 				ret = 1;
 				break;
 			}
-			pci_write_config_longword(dev, X86_DI, X86_ECX);
-			X86_AH = SUCCESSFUL;
-			X86_EFLAGS &= ~FB_CF;	/* clear carry flag */
+            pci_write_config_longword(dev, emu->x86.R_DI, emu->x86.R_ECX);
+            emu->x86.R_AH = SUCCESSFUL;
+            emu->x86.R_EFLG &= ~FB_CF;	/* clear carry flag */
 			ret = 1;
 			break;
 
 		default:
-			dbg("%s: PCI_BIOS FUNC_NOT_SUPPORTED\r\n", __FUNCTION__);
-			X86_AH = FUNC_NOT_SUPPORTED;
-			X86_EFLAGS |= FB_CF; 
+            dbg("PCI_BIOS FUNC_NOT_SUPPORTED\r\n");
+            emu->x86.R_AH = FUNC_NOT_SUPPORTED;
+            emu->x86.R_EFLG |= FB_CF;
 			break;
 	}
 

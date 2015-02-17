@@ -138,6 +138,9 @@ CSRCS= \
 	fnt_st_8x16.c \
 	\
 	x86emu.c \
+	x86pcibios.c \
+	x86biosemu.c \
+	x86emu_util.c \
 	\
 	basflash.c \
 	basflash_start.c
@@ -147,6 +150,7 @@ ASRCS= \
 	startcf.S \
 	printf_helper.S \
 	exceptions.S \
+	setjmp.S \
 	xhdi_vec.S \
 	pci_wrappers.S
 

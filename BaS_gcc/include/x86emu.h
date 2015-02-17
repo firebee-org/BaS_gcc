@@ -106,43 +106,44 @@ struct X86EMU_regs {
 	 *  Halted                  1 bits
 	 */
 	uint32_t		mode;
-	volatile int		intr;   /* mask of pending interrupts */
+    volatile int	intr;   /* mask of pending interrupts */
 	uint8_t			intno;
 	uint8_t			__pad[3];
 };
 
 typedef uint32_t label_t;
 
-struct X86EMU {
-	char			*mem_base;
-	size_t			mem_size;
-	void        		*sys_private;
-	struct X86EMU_regs	x86;
+struct X86EMU
+{
+    char            *mem_base;
+    size_t          mem_size;
+    void            *sys_private;
+    struct          X86EMU_regs	x86;
 
-	label_t		exec_state;
+    label_t         exec_state;
 
-	uint64_t	cur_cycles;
+    uint64_t        cur_cycles;
 
 	unsigned int	cur_mod:2;
 	unsigned int	cur_rl:3;
 	unsigned int	cur_rh:3;
-	uint32_t	cur_offset;
+    uint32_t        cur_offset;
 
-	uint8_t  	(*emu_rdb)(struct X86EMU *, uint32_t addr);
-	uint16_t 	(*emu_rdw)(struct X86EMU *, uint32_t addr);
-	uint32_t 	(*emu_rdl)(struct X86EMU *, uint32_t addr);
-	void		(*emu_wrb)(struct X86EMU *, uint32_t addr,uint8_t val);
-	void		(*emu_wrw)(struct X86EMU *, uint32_t addr, uint16_t val);
-	void		(*emu_wrl)(struct X86EMU *, uint32_t addr, uint32_t val);
+    uint8_t         (*emu_rdb)(struct X86EMU *, uint32_t addr);
+    uint16_t        (*emu_rdw)(struct X86EMU *, uint32_t addr);
+    uint32_t        (*emu_rdl)(struct X86EMU *, uint32_t addr);
+    void            (*emu_wrb)(struct X86EMU *, uint32_t addr,uint8_t val);
+    void            (*emu_wrw)(struct X86EMU *, uint32_t addr, uint16_t val);
+    void            (*emu_wrl)(struct X86EMU *, uint32_t addr, uint32_t val);
 
-	uint8_t  	(*emu_inb)(struct X86EMU *, uint16_t addr);
-	uint16_t 	(*emu_inw)(struct X86EMU *, uint16_t addr);
-	uint32_t 	(*emu_inl)(struct X86EMU *, uint16_t addr);
-	void		(*emu_outb)(struct X86EMU *, uint16_t addr, uint8_t val);
-	void		(*emu_outw)(struct X86EMU *, uint16_t addr, uint16_t val);
-	void		(*emu_outl)(struct X86EMU *, uint16_t addr, uint32_t val);
+    uint8_t         (*emu_inb)(struct X86EMU *, uint16_t addr);
+    uint16_t        (*emu_inw)(struct X86EMU *, uint16_t addr);
+    uint32_t        (*emu_inl)(struct X86EMU *, uint16_t addr);
+    void            (*emu_outb)(struct X86EMU *, uint16_t addr, uint8_t val);
+    void            (*emu_outw)(struct X86EMU *, uint16_t addr, uint16_t val);
+    void            (*emu_outl)(struct X86EMU *, uint16_t addr, uint32_t val);
 
-	void 		(*_X86EMU_intrTab[256])(struct X86EMU *, int);
+    void            (*_X86EMU_intrTab[256])(struct X86EMU *, int);
 };
 
 
