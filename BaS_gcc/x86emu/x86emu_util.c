@@ -34,6 +34,39 @@
 #include "x86emu.h"
 #include "x86emu_regs.h"
 
+
+static __inline uint16_t le16dec(const void *buf)
+{
+    const uint8_t *p = (uint8_t *) buf;
+
+    return ((p[1] << 8) | p[0]);
+}
+
+static __inline uint32_t le32dec(const void *buf)
+{
+    const uint8_t *p = (uint8_t *) buf;
+
+    return ((p[3] << 24) | (p[2] << 16) | (p[1] << 8) | p[0]);
+}
+
+static __inline void le16enc(void *buf, uint16_t u)
+{
+    uint8_t *p = buf;
+
+    p[0] = u & 0xff;
+    p[1] = ((unsigned) u >> 8) & 0xff;
+}
+
+static __inline void le32enc(void *buf, uint32_t u)
+{
+    uint8_t *p = buf;
+
+    p[0] = u & 0xff;
+    p[1] = (u >> 8) & 0xff;
+    p[2] = (u >> 16) & 0xff;
+    p[3] = (u >> 24) & 0xff;
+}
+
 /****************************************************************************
 PARAMETERS:
 addr	- Emulator memory address to read
