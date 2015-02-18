@@ -217,7 +217,7 @@ define CC_TEMPLATE
 #$(1)/objs/x86ops.o:		CFLAGS=$(CFLAGS_OPTIMIZED)
 #$(1)/objs/x86ops2.o:	CFLAGS=$(CFLAGS_OPTIMIZED)
 #$(1)/objs/x86fpu.o:		CFLAGS=$(CFLAGS_OPTIMIZED)
-#$(1)/objs/x86biosemu.o:	CFLAGS=$(CFLAGS_OPTIMIZED)
+$(1)/objs/x86biosemu.o:	CFLAGS=$(CFLAGS_OPTIMIZED)
 #$(1)/objs/x86pcibios.o:	CFLAGS=$(CFLAGS_OPTIMIZED)
 
 $(1)/objs/%.o:%.c

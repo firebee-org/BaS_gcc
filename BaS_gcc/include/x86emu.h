@@ -35,7 +35,7 @@
 #define __X86EMU_X86EMU_H
 
 #include "bas_types.h"
-
+#include "setjmp.h"
 
 /*
  * General EAX, EBX, ECX, EDX type registers.  Note that for
@@ -110,8 +110,6 @@ struct X86EMU_regs {
 	uint8_t			intno;
 	uint8_t			__pad[3];
 };
-
-typedef uint32_t jmp_buf[18];
 
 struct X86EMU
 {

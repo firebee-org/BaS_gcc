@@ -12,13 +12,13 @@
 #define USE_SDRAM
 #define DIRECT_ACCESS
 
-#define MEM_WB(where, what) wrb(where, what)
-#define MEM_WW(where, what) wrw(where, what)
-#define MEM_WL(where, what) wrl(where, what)
+#define MEM_WB(where, what) emu->emu_wrb(emu, where, what)
+#define MEM_WW(where, what) emu->emu_wrw(emu, where, what)
+#define MEM_WL(where, what) emu->emu_wrl(emu, where, what)
 
-#define MEM_RB(where) rdb(where)
-#define MEM_RW(where) rdw(where)
-#define MEM_RL(where) rdl(where)
+#define MEM_RB(where) emu->emu_rdb(emu, where)
+#define MEM_RW(where) emu->emu_rdw(emu, where)
+#define MEM_RL(where) emu->emu_rdl(emu, where)
 
 #define PCI_VGA_RAM_IMAGE_START 0xC0000
 #define PCI_RAM_IMAGE_START     0xD0000
@@ -81,7 +81,7 @@ extern int x86_pcibios_emulator();
 //X86EMU_sysEnv _X86EMU_env;
 
 /* general software interrupt handler */
-uint32_t getIntVect(int num)
+uint32_t getIntVect(struct X86EMU *emu, int num)
 {
 	return MEM_RW(num << 2) + (MEM_RW((num << 2) + 2) << 4);
 }
@@ -219,9 +219,9 @@ void do_int(struct X86EMU *emu, int num)
 	case 0x10:
 	case 0x42:
 	case 0x6D:
-		if (getIntVect(num) == 0x0000)
+        if (getIntVect(emu, num) == 0x0000)
 			dbg("uninitialised int vector\r\n");
-		if (getIntVect(num) == 0xFF065)
+        if (getIntVect(emu, num) == 0xFF065)
 		{
 			//ret = int42_handler();
 			ret = 1;
@@ -360,9 +360,9 @@ void run_bios(struct radeonfb_info *rinfo)
 	{
 		char *date = "01/01/99";
 		for (i = 0; date[i]; i++)
-			wrb(0xffff5 + i, date[i]);
-		wrb(0xffff7, '/');
-		wrb(0xffffa, '/');
+            emu.emu_wrb(&emu, 0xffff5 + i, date[i]);
+        emu.emu_wrb(&emu, 0xffff7, '/');
+        emu.emu_wrb(&emu, 0xffffa, '/');
 	}
 	{
     	/* FixME: move PIT init to its own file */

@@ -34,6 +34,7 @@
 #include <stdbool.h>
 #include <x86emu.h>
 #include <x86emu_regs.h>
+#include "setjmp.h"
 
 static void 	x86emu_intr_raise (struct X86EMU *, uint8_t type);
 
@@ -174,12 +175,14 @@ static uint32_t	pop_long (struct X86EMU *);
 REMARKS:
 Handles any pending asychronous interrupts.
 ****************************************************************************/
-static void
-x86emu_intr_dispatch(struct X86EMU *emu, uint8_t intno)
+static void x86emu_intr_dispatch(struct X86EMU *emu, uint8_t intno)
 {
-	if (emu->_X86EMU_intrTab[intno]) {
+    if (emu->_X86EMU_intrTab[intno])
+    {
 		(*emu->_X86EMU_intrTab[intno]) (emu, intno);
-	} else {
+    }
+    else
+    {
 		push_word(emu, (uint16_t) emu->x86.R_FLG);
 		CLEAR_FLAG(F_IF);
 		CLEAR_FLAG(F_TF);
@@ -190,17 +193,18 @@ x86emu_intr_dispatch(struct X86EMU *emu, uint8_t intno)
 	}
 }
 
-static void 
-x86emu_intr_handle(struct X86EMU *emu)
+static void x86emu_intr_handle(struct X86EMU *emu)
 {
 	uint8_t intno;
 
-	if (emu->x86.intr & INTR_SYNCH) {
+    if (emu->x86.intr & INTR_SYNCH)
+    {
 		intno = emu->x86.intno;
 		emu->x86.intr = 0;
 		x86emu_intr_dispatch(emu, intno);
 	}
 }
+
 /****************************************************************************
 PARAMETERS:
 intrnum - Interrupt number to raise
@@ -209,8 +213,7 @@ REMARKS:
 Raise the specified interrupt to be handled before the execution of the
 next instruction.
 ****************************************************************************/
-void 
-x86emu_intr_raise(struct X86EMU *emu, uint8_t intrnum)
+void x86emu_intr_raise(struct X86EMU *emu, uint8_t intrnum)
 {
 	emu->x86.intno = intrnum;
 	emu->x86.intr |= INTR_SYNCH;
@@ -221,20 +224,12 @@ Main execution loop for the emulator. We return from here when the system
 halts, which is normally caused by a stack fault when we return from the
 original real mode call.
 ****************************************************************************/
-void 
-X86EMU_exec(struct X86EMU *emu)
+void X86EMU_exec(struct X86EMU *emu)
 {
 	emu->x86.intr = 0;
 
-#ifdef _NOT_USED_
-#ifdef _KERNEL
-	if (setjmp(&emu->exec_state))
+    if (setjmp(emu->exec_state))
 		return;
-#else
-	if (setjmp(emu->exec_state))
-		return;
-#endif
-#endif /* _NOT_USED_ */
 
 	for (;;) {
 		if (emu->x86.intr) {
