@@ -99,6 +99,7 @@ SECTIONS
 
                 OBJDIR/x86emu.o(.text)
                 OBJDIR/x86emu_util.o(.text)
+                OBJDIR/x86pcibios.o(.text)
                 OBJDIR/x86biosemu.o(.text)
 
                 OBJDIR/radeon_base.o(.text)
