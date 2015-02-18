@@ -77,13 +77,15 @@ Byte value read from emulator memory.
 REMARKS:
 Reads a byte value from the emulator memory.
 ****************************************************************************/
-static uint8_t
-rdb(struct X86EMU *emu, uint32_t addr)
+static uint8_t rdb(struct X86EMU *emu, uint32_t addr)
 {
 	if (addr > emu->mem_size - 1)
+    {
 		X86EMU_halt_sys(emu);
+    }
 	return emu->mem_base[addr];
 }
+
 /****************************************************************************
 PARAMETERS:
 addr	- Emulator memory address to read
@@ -94,13 +96,15 @@ Word value read from emulator memory.
 REMARKS:
 Reads a word value from the emulator memory.
 ****************************************************************************/
-static uint16_t
-rdw(struct X86EMU *emu, uint32_t addr)
+static uint16_t rdw(struct X86EMU *emu, uint32_t addr)
 {
 	if (addr > emu->mem_size - 2)
+    {
 		X86EMU_halt_sys(emu);
+    }
 	return le16dec(emu->mem_base + addr);
 }
+
 /****************************************************************************
 PARAMETERS:
 addr	- Emulator memory address to read
@@ -110,13 +114,15 @@ Long value read from emulator memory.
 REMARKS:
 Reads a long value from the emulator memory.
 ****************************************************************************/
-static uint32_t
-rdl(struct X86EMU *emu, uint32_t addr)
+static uint32_t rdl(struct X86EMU *emu, uint32_t addr)
 {
 	if (addr > emu->mem_size - 4)
+    {
 		X86EMU_halt_sys(emu);
+    }
 	return le32dec(emu->mem_base + addr);
 }
+
 /****************************************************************************
 PARAMETERS:
 addr	- Emulator memory address to read
@@ -125,13 +131,15 @@ val		- Value to store
 REMARKS:
 Writes a byte value to emulator memory.
 ****************************************************************************/
-static void
-wrb(struct X86EMU *emu, uint32_t addr, uint8_t val)
+static void wrb(struct X86EMU *emu, uint32_t addr, uint8_t val)
 {
 	if (addr > emu->mem_size - 1)
+    {
 		X86EMU_halt_sys(emu);
+    }
 	emu->mem_base[addr] = val;
 }
+
 /****************************************************************************
 PARAMETERS:
 addr	- Emulator memory address to read
@@ -140,11 +148,12 @@ val		- Value to store
 REMARKS:
 Writes a word value to emulator memory.
 ****************************************************************************/
-static void
-wrw(struct X86EMU *emu, uint32_t addr, uint16_t val)
+static void wrw(struct X86EMU *emu, uint32_t addr, uint16_t val)
 {
 	if (addr > emu->mem_size - 2)
+    {
 		X86EMU_halt_sys(emu);
+    }
 	le16enc(emu->mem_base + addr, val);
 }
 /****************************************************************************
@@ -155,18 +164,18 @@ val		- Value to store
 REMARKS:
 Writes a long value to emulator memory.
 ****************************************************************************/
-static void
-wrl(struct X86EMU *emu, uint32_t addr, uint32_t val)
+static void wrl(struct X86EMU *emu, uint32_t addr, uint32_t val)
 {
 	if (addr > emu->mem_size - 4)
+    {
 		X86EMU_halt_sys(emu);
+    }
 	le32enc(emu->mem_base + addr, val);
 }
 
 /*----------------------------- Setup -------------------------------------*/
 
-void
-X86EMU_init_default(struct X86EMU *emu)
+void X86EMU_init_default(struct X86EMU *emu)
 {
 	int i;
 
@@ -178,5 +187,7 @@ X86EMU_init_default(struct X86EMU *emu)
 	emu->emu_wrl = wrl;
 
 	for (i = 0; i < 256; i++)
+    {
 		emu->_X86EMU_intrTab[i] = NULL;
+    }
 }
