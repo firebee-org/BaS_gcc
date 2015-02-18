@@ -237,7 +237,7 @@ void do_int(struct X86EMU *emu, int num)
 		ret = 0;
 		break;
 	case 0x1A:
-		ret = x86_pcibios_emulator();
+        ret = x86_pcibios_handler(emu);
 		ret = 1;
 		break;
 	case 0xe6:
@@ -351,12 +351,17 @@ void run_bios(struct radeonfb_info *rinfo)
 	initialcs = (addr & 0xF0000) >> 4;
 	initialip = (addr + 3) & 0xFFFF;	
 
-	X86EMU_setMemBase((void *) biosmem, SIZE_EMU);
+    /*
+     * set emulator memory
+     */
+    emu.mem_base = (void *) biosmem;
+    emu.mem_size = SIZE_EMU;
 
 	for (i = 0; i < 256; i++)
+    {
         emu._X86EMU_intrTab[i] = do_int;
+    }
 
-    X86EMU_setupIntrFuncs(emu._X86EMU_intrTab);
 	{
 		char *date = "01/01/99";
 		for (i = 0; date[i]; i++)
