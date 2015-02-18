@@ -206,3 +206,4 @@ util/setjmp.c
 util/setjmp.S
 include/x86emu_regs.h
 x86emu/x86emu_util.c
+include/setjmp.h
