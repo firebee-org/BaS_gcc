@@ -1,6 +1,7 @@
 #include "mmu.h"
 #include "acia.h"
 #include "exceptions.h"
+#include "pci.h"
 
 #if defined(MACHINE_FIREBEE)
 #include "firebee.h"
@@ -626,15 +627,13 @@ void mmu_init(void)
             ACR_BA(0x80000000));                    /* (equals area from 3 to 4 GB */
 #elif defined(MACHINE_M5484LITE)
             ACR_ADMSK(0x7f) |                       /* cover 2 GB area from 0x80000000 to 0xffffffff */
-            ACR_BA(0x80000000));
+            ACR_BA(PCI_MEMORY_OFFSET));
 #elif defined(MACHINE_M54455)
             ACR_ADMSK(0x7f) |
             ACR_BA(0x80000000));                    /* FIXME: not determined yet */
 #else
 #error unknown machine!
 #endif /* MACHINE_FIREBEE */
-
-    // set_acr1(0x601fc000);
 
     /* data access attributes for BaS in flash */
 

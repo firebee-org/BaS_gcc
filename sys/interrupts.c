@@ -37,7 +37,7 @@
 #include "dma.h"
 #include "pci.h"
 
-//#define IRQ_DEBUG
+// #define IRQ_DEBUG
 #if defined(IRQ_DEBUG)
 #define dbg(format, arg...) do { xprintf("DEBUG %s(): " format, __FUNCTION__, ##arg); } while (0)
 #else

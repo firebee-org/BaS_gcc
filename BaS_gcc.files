@@ -207,3 +207,12 @@ util/setjmp.S
 include/x86emu_regs.h
 x86emu/x86emu_util.c
 include/setjmp.h
+video/video.c
+video/fbmem.c
+video/fbmodedb.c
+video/fbmon.c
+video/fnt_st_8x16.c
+video/offscreen.c
+video/vdi_fill.c
+video/videl.c
+video/video.c

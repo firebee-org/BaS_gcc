@@ -425,7 +425,7 @@ void init_fbcs()
 
     MCF_FBCS2_CSAR = MCF_FBCS_CSAR_BA(0xF0000000);      /* Firebee new I/O address range */
     MCF_FBCS2_CSCR = MCF_FBCS_CSCR_PS_32                /* 32BIT PORT */
-        | MCF_FBCS_CSCR_WS(8)                           /* DEFAULT 4WS */
+        | MCF_FBCS_CSCR_WS(4)                           /* DEFAULT 4WS */
         | MCF_FBCS_CSCR_AA;                             /* AA */
     MCF_FBCS2_CSMR = (MCF_FBCS_CSMR_BAM_128M            /* F000'0000-F7FF'FFFF */
               | MCF_FBCS_CSMR_V);

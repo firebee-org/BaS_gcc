@@ -33,7 +33,7 @@
 #include "interrupts.h"
 #include "wait.h"
 
-//#define DEBUG_PCI
+#define DEBUG_PCI
 #ifdef DEBUG_PCI
 #define dbg(format, arg...) do { xprintf("DEBUG: %s(): " format, __FUNCTION__, ##arg); } while (0)
 #else
@@ -333,7 +333,7 @@ uint32_t pci_read_config_longword(int32_t handle, int offset)
     /* finish PCI configuration access special cycle (allow regular PCI accesses) */
     MCF_PCI_PCICAR &= ~MCF_PCI_PCICAR_E;
 
-    pci_check_status();
+    //pci_check_status();
 
     return value;
 }
@@ -592,6 +592,11 @@ int32_t pci_find_classcode(uint32_t classcode, int index)
             if (value != 0xffffffff)    /* device found */
             {
                 value = pci_read_config_longword(handle, PCICCR);
+
+                dbg("classcode to search for=%x\r\n", classcode);
+                dbg("PCI_CLASSCODE found=%x\r\n", PCI_CLASS_CODE(value));
+                dbg("PCI_SUBCLASS found=%x\r\n", PCI_SUBCLASS(value));
+                dbg("PCI_PROG_IF found=%x\r\n", PCI_PROG_IF(value));
 
                 if ((classcode & (1 << 26) ? ((PCI_CLASS_CODE(value) == (classcode & 0xff))) : true) &&
                     (classcode & (1 << 25) ? ((PCI_SUBCLASS(value) == ((classcode & 0xff00) >> 8))) : true) &&
@@ -930,7 +935,7 @@ static void pci_device_config(uint16_t bus, uint16_t device, uint16_t function)
 
                 /* fill resource descriptor */
                 rd->next = sizeof(struct pci_rd);
-                rd->flags = 0 | FLG_32BIT | FLG_16BIT | FLG_8BIT | 2; /* little endian, lane swapped */
+                rd->flags = 0 | FLG_32BIT | FLG_16BIT | FLG_8BIT | ORD_INTEL_LS; /* little endian, lane swapped */
                 rd->start = address;
                 rd->length = size;
                 rd->offset = 0;
@@ -1222,15 +1227,21 @@ void init_pci(void)
 
     /* Configure Initiator Windows */
 
-    /* initiator window 0 base / translation adress register */
-    MCF_PCI_PCIIW0BTAR = (PCI_MEMORY_OFFSET | (((PCI_MEMORY_SIZE - 1) >> 8) & 0xffff0000))
-                          | ((PCI_MEMORY_OFFSET >> 16) & 0xff00);
+    /*
+     * initiator window 0 base / translation adress register
+     * used for PCI memory access
+     */
+    MCF_PCI_PCIIW0BTAR = (PCI_MEMORY_OFFSET + ((PCI_MEMORY_SIZE - 1) >> 8))
+                          + (PCI_MEMORY_OFFSET >> 16);
 
     NOP();
     dbg("PCIIW0BTAR=0x%08x\r\n", MCF_PCI_PCIIW0BTAR);
 
-    /* initiator window 1 base / translation adress register */
-    MCF_PCI_PCIIW1BTAR = (PCI_IO_OFFSET | ((PCI_IO_SIZE - 1) >> 8)) & 0xffff0000;
+    /*
+     * initiator window 1 base / translation adress register
+     * used for PCI I/O access
+     */
+    MCF_PCI_PCIIW1BTAR = (PCI_IO_OFFSET + ((PCI_IO_SIZE - 1) >> 8)) & 0xffff0000;
     NOP();
     /* initiator window 2 base / translation address register */
     MCF_PCI_PCIIW2BTAR = 0L;   /* not used */
@@ -1241,6 +1252,7 @@ void init_pci(void)
                     MCF_PCI_PCIIWCR_WINCTRL0_E |
                     MCF_PCI_PCIIWCR_WINCTRL1_E;
     NOP();
+
     /*
      * Initialize target control register.
      * Used when an external bus master accesses the Coldfire PCI as target

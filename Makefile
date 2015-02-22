@@ -47,6 +47,9 @@ CFLAGS=-mcpu=5474 \
 CFLAGS_OPTIMIZED = -mcpu=5474 \
 		-Wall \
 		-O2 \
+        -ffixed-a3 \
+        -ffixed-a4 \
+        -ffixed-a5 \
 		-g \
 		-fomit-frame-pointer \
 		-ffreestanding \
