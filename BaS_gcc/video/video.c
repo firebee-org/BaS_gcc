@@ -7,12 +7,13 @@
 #include "fb.h"
 #include "radeonfb.h"
 
-//#define DBG_VIDEO
+#define DBG_VIDEO
 #ifdef DBG_VIDEO
-#define dbg(format, arg...) do { xprintf("DEBUG: " format, ##arg); } while (0)
+#define dbg(format, arg...) do { xprintf("DEBUG (%s()): " format, __FUNCTION__, ##arg);} while(0)
 #else
-#define dbg(format, arg...) do { ; } while (0)
+#define dbg(format, arg...) do {;} while (0)
 #endif /* DBG_VIDEO */
+#define err(format, arg...) do { xprintf("ERROR (%s()): " format, __FUNCTION__, ##arg); } while(0)
 
 #ifdef _USE_VIDEL_
 #define MON_ALL     -1  /* code used in VMODE_ENTRY for match on mode only */
@@ -206,9 +207,9 @@ int16_t current_video_mode;
 
 static void setphys(int32_t addr,int checkaddr)
 {
-	*(volatile uint8_t *) VIDEOBASE_ADDR_HI = ((uint32_t) addr) >> 16;
-	*(volatile uint8_t *) VIDEOBASE_ADDR_MID = ((uint32_t) addr) >> 8;
-	*(volatile uint8_t *) VIDEOBASE_ADDR_LOW = ((uint32_t) addr);
+    *(volatile uint8_t *) VIDEOBASE_ADDR_HI = ((uint32_t) addr) >> 16;
+    *(volatile uint8_t *) VIDEOBASE_ADDR_MID = ((uint32_t) addr) >> 8;
+    *(volatile uint8_t *) VIDEOBASE_ADDR_LOW = ((uint32_t) addr);
 }
 
 /*
@@ -219,57 +220,57 @@ static void setphys(int32_t addr,int checkaddr)
 
 void videl_screen_init(void)
 {
-	uint32_t screen_start;
-	uint16_t boot_resolution = FALCON_DEFAULT_BOOT;
-	int16_t monitor_type, sync_mode;
-	int16_t rez = 0;   /* avoid 'may be uninitialized' warning */
+    uint32_t screen_start;
+    uint16_t boot_resolution = FALCON_DEFAULT_BOOT;
+    int16_t monitor_type, sync_mode;
+    int16_t rez = 0;   /* avoid 'may be uninitialized' warning */
 
-	/* Initialize the interrupt handlers.
-	 * It is important to do this first because the initialization code below
-	 * may call vsync(), which temporarily enables the interrupts. */
+    /* Initialize the interrupt handlers.
+     * It is important to do this first because the initialization code below
+     * may call vsync(), which temporarily enables the interrupts. */
 
-	/* TODO: VEC_HBL = int_hbl; */
-	/* TODO: VEC_VBL = int_vbl; */
+    /* TODO: VEC_HBL = int_hbl; */
+    /* TODO: VEC_VBL = int_vbl; */
 
 /*
  * first, see what we're connected to, and set the
  * resolution / video mode appropriately
  */
-	monitor_type = MON_COLOR;
-	xprintf("monitor_type = %d\r\n", monitor_type);
+    monitor_type = MON_COLOR;
+    xprintf("monitor_type = %d\r\n", monitor_type);
 
-	/* reset VIDEL on boot-up */
-	/* first set the physbase to a safe memory */
-	setphys(0xd00000, 0);
+    /* reset VIDEL on boot-up */
+    /* first set the physbase to a safe memory */
+    setphys(0xd00000, 0);
 
-	if (!lookup_videl_mode(boot_resolution, monitor_type)) { /* mode isn't in table */
-	    xprintf("Invalid video mode 0x%04x changed to 0x%04x\r\n",
-	            boot_resolution, FALCON_DEFAULT_BOOT);
-	    boot_resolution = FALCON_DEFAULT_BOOT;  /* so pick one that is */
-	}
+    if (!lookup_videl_mode(boot_resolution, monitor_type)) { /* mode isn't in table */
+        xprintf("Invalid video mode 0x%04x changed to 0x%04x\r\n",
+                boot_resolution, FALCON_DEFAULT_BOOT);
+        boot_resolution = FALCON_DEFAULT_BOOT;  /* so pick one that is */
+    }
 
-	if (!VALID_VDI_BPP(boot_resolution)) {      /* mustn't confuse VDI */
-	    xprintf("VDI doesn't support video mode 0x%04x, changed to 0x%04x\r\n",
-	            boot_resolution, FALCON_DEFAULT_BOOT);
-	    boot_resolution = FALCON_DEFAULT_BOOT;  /* so use default */
-	}
+    if (!VALID_VDI_BPP(boot_resolution)) {      /* mustn't confuse VDI */
+        xprintf("VDI doesn't support video mode 0x%04x, changed to 0x%04x\r\n",
+                boot_resolution, FALCON_DEFAULT_BOOT);
+        boot_resolution = FALCON_DEFAULT_BOOT;  /* so use default */
+    }
 
-	vsetmode(boot_resolution);
-	rez = FALCON_REZ;   /* fake value indicates Falcon/Videl */
-	sync_mode = (boot_resolution & VIDEL_PAL) ? 0x02 : 0x00;
-	*(volatile uint8_t *) SYNCMODE = sync_mode;
+    vsetmode(boot_resolution);
+    rez = FALCON_REZ;   /* fake value indicates Falcon/Videl */
+    sync_mode = (boot_resolution & VIDEL_PAL) ? 0x02 : 0x00;
+    *(volatile uint8_t *) SYNCMODE = sync_mode;
 
-	/*
-	 * next, set up the palette(s)
-	 */
-	initialise_palette_registers(rez, boot_resolution);
-	/* FIXME: sshiftmod = rez; */
+    /*
+     * next, set up the palette(s)
+     */
+    initialise_palette_registers(rez, boot_resolution);
+    /* FIXME: sshiftmod = rez; */
 
-	/* videoram is placed just below the phystop */
-	screen_start = 0xd00000;
+    /* videoram is placed just below the phystop */
+    screen_start = 0xd00000;
 
-	/* correct physical address */
-	setphys(screen_start, 1);
+    /* correct physical address */
+    setphys(screen_start, 1);
 }
 
 #endif /* _USE_VIDEL_ */
@@ -280,20 +281,20 @@ struct fb_info *info_fb = &fb;
 const char monitor_layout[1024] = "CRT,CRT";
 int16_t ignore_edid;
 
-struct mode_option resolution = 
+struct mode_option resolution =
 {
-	.used = 0,
-	.width = 640,
-	.height = 480,
-	.bpp = 8,
-	.freq = 60,
-	.flags = 0
+    .used = 0,
+    .width = 640,
+    .height = 480,
+    .bpp = 8,
+    .freq = 60,
+    .flags = 0
 };
 int16_t force_measure_pll;
 
 void install_vbl_timer(void *func, int remove)
 {
-	dbg("%s: not implemented\r\n", __FUNCTION__);
+    dbg("not implemented\r\n");
 }
 
 /*
@@ -301,58 +302,63 @@ void install_vbl_timer(void *func, int remove)
  */
 void video_init(void)
 {
-	/*
-	 * detect PCI video card
-	 */
-	
-	int index = 0;
-	int32_t handle;
-	struct pci_device_id *board;
-	int32_t id;
-	bool radeon_found = false;
-	
-	dbg("%s\r\n", __FUNCTION__);
-	do
-	{
-		/*
-		 * scan PCI bus for graphics cards
-		 */
-		handle = pci_find_classcode(PCI_BASE_CLASS_DISPLAY | PCI_FIND_BASE_CLASS, index);
-		if (handle > 0)		/* found a display device */
-		{
-			dbg("%s: handle = 0x%x\r\n", __FUNCTION__, handle);
+    /*
+     * detect PCI video card
+     */
 
-			id = swpl(pci_read_config_longword(handle, PCIIDR));		/* get vendor + device id */
-			dbg("%s: PCIIDR=0x%x\r\n", __FUNCTION__, id);
+    int index = 0;
+    int32_t handle;
+    struct pci_device_id *board;
+    int32_t id;
+    bool radeon_found = false;
 
-			board = &radeonfb_pci_table[0];
+    dbg("\r\n");
 
-			do
-			{
-				/* check it against elements of table */
-				dbg("%s: check %x %x against %08x\r\n", __FUNCTION__, board->device, board->vendor, id);
-				if ((board->device == (id >> 16)) && (board->vendor == (id & 0xffff)))
-				{
-					radeon_found = true;
+    /* FIXME: we currently just return here because the PCI configuration of ATI cards does not (yet) work */
+    return;
 
-					dbg("%s: matched\r\n", __FUNCTION__);
-					if (radeonfb_pci_register(handle, board) >= 0)
-					{
-						xprintf("RADEON video card found and registered\r\n");
-					}
-					else
-					{
-						dbg("%s: failed to register RADEON PCI video card\r\n", __FUNCTION__);
-					}
-					return;
-				}
-				board++;
-			} while (board->vendor);
-		}
-		index++;
-	} while (handle > 0);
-	xprintf("%s: RADEON video card %sfound and %sregistered\r\n", __FUNCTION__,
-					(radeon_found ? "" : "not "), (radeon_found ? "" : "not "));
+    do
+    {
+        /*
+         * scan PCI bus for graphics cards
+         */
+        handle = pci_find_classcode(PCI_BASE_CLASS_DISPLAY | PCI_FIND_BASE_CLASS, index);
+        dbg("handle=%d\r\n", handle);
+        if (handle > 0)     /* found a display device */
+        {
+            dbg("handle = 0x%x\r\n", handle);
+
+            id = swpl(pci_read_config_longword(handle, PCIIDR));        /* get vendor + device id */
+            dbg("PCIIDR=0x%x\r\n", id);
+
+            board = &radeonfb_pci_table[0];
+
+            do
+            {
+                /* check it against elements of table */
+                dbg("check %x %x against %08x\r\n", board->device, board->vendor, id);
+                if ((board->device == (id >> 16)) && (board->vendor == (id & 0xffff)))
+                {
+                    radeon_found = true;
+
+                    dbg("matched\r\n");
+                    if (radeonfb_pci_register(handle, board) >= 0)
+                    {
+                        xprintf("RADEON video card found and registered\r\n");
+                    }
+                    else
+                    {
+                        dbg("failed to register RADEON PCI video card\r\n");
+                    }
+                    return;
+                }
+                board++;
+            } while (board->vendor);
+        }
+        index++;
+    } while (handle > 0);
+    xprintf("%s: RADEON video card %sfound and %sregistered\r\n", __FUNCTION__,
+                    (radeon_found ? "" : "not "), (radeon_found ? "" : "not "));
 }
 
 
