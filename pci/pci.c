@@ -82,8 +82,6 @@ static int32_t handles[NUM_CARDS];
 /* holds the card's resource descriptors; filled in pci_device_config() */
 static struct pci_rd resource_descriptors[NUM_CARDS][NUM_RESOURCES];
 
-typedef int (*pci_interrupt_handler)(int param);
-
 /*
  * holds the interrupt handler addresses (see pci_hook_interrupt()
  * and pci_unhook_interrupt()) of the PCI cards
