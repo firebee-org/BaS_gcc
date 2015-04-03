@@ -54,7 +54,7 @@ sleep 10
 #flash-plugin 0x1000 0xf000 flash29.plugin
 # notify flashlib that we have flash at address 0xE0000000, length 0x7FFFFF, plugin is flash29
 flash 0xE0000000
-flash-plugin 0x1000 0xf000 flashintelc3.plugin
+#flash-plugin 0x1000 0xf000 flashintelc3.plugin
 
 # Erase flash from 0xE0000000 to 0xE00FFFFF (reserved space for bas)
 #

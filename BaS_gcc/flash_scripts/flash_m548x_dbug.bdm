@@ -10,20 +10,20 @@ wait
 write-ctrl 0x0801 0x00000000
 dump-register VBR
 
-# Turn on MBAR at 0xFF00_0000
-write-ctrl 0x0C0F 0xFF000000
+# Turn on MBAR at 0x1000_0000
+write-ctrl 0x0C0F 0x10000000
 dump-register MBAR
 
-# Turn on RAMBAR0 at address FF10_0000 
-write-ctrl 0x0C04 0xFF100007
+# Turn on RAMBAR0 at address 2000_0000 
+write-ctrl 0x0C04 0x20000007
 
 # Turn on RAMBAR1 at address FF10_1000 (disabled - not mapped by bdm currently)
-write-ctrl 0x0C05 0xFF101001
+write-ctrl 0x0C05 0x20001001
 
 #
-# Init CS0 (BootFLASH @ E000_0000 - E03F_FFFF 4Mbytes)
-write 0xFF000500 0xE0000000 4
-write 0xFF000508 0x00041180 4
+# Init CS0 (BootFLASH @ FF80_0000 - FFBF_FFFF 4Mbytes)
+write 0xFF000500 0xFF800000 4
+write 0xFF000508 0x00100D80 4
 write 0xFF000504 0x003F0001 4
 
 # SDRAM Initialization @ 0000_0000 - 03FF_FFFF 64 Mbytes
@@ -52,27 +52,26 @@ sleep 10
 # This seems to be related to large flash buffers and PC-relative adressing of the plugin
 #flash-plugin 0x1000 0xf000 flash29.plugin
 # notify flashlib that we have flash at address 0xE0000000, length 0x7FFFFF, plugin is flash29
-flash 0xE0000000
-flash-plugin 0x1000 0xf000 flashintelc3.plugin
+flash 0xFF800000
+#flash-plugin 0x1000 0xf000 flashintelc3.plugin
 
-# Erase flash from 0xE0000000 to 0xE00FFFFF (reserved space for bas)
-#
-# Caution: sector offset numbers need to be the ones from the x16 address range
-# column and they vary in size - needs to be exactly as in the data sheet (p. 9)
+# Erase flash from 0xFF800000 to 0xFFBFFFFF (reserved space for bas)
 #
 # contrary to documentation, it seems we need to erase-wait after each sector
 
-#erase 0xE0000000 0x0
-#erase 0xE0002000 0x0
-#erase 0xE0000000 0x00004000
-#erase 0xE0000000 0x00005000
-#erase 0xE0000000 0x00006000
-#erase 0xE0000000 0x00007000
-#erase 0xE0000000 0x00008000
-#erase 0xE0000000 0x00009000
-#erase 0xE0000000 0x0000a000
-#erase 0xE0000000 0x0000b000
-#erase-wait 0xe0000000
-#blank-chk 0xE0000000 0x0
-load -v m5484lite_dbug_flash.elf
+erase 0xFF800000 0
+erase 0xFF800000 1
+erase 0xFF800000 2
+erase 0xFF800000 3
+erase 0xFF800000 4
+erase 0xFF800000 5
+erase 0xFF800000 6
+erase 0xFF800000 7
+erase 0xFF800000 8
+erase 0xFF800000 9
+erase 0xFF800000 10
+erase 0xFF800000 11
+erase 0xFF800000 12
+erase 0xFF800000 13
+load -v m548xlite_dbug_flash.elf
 wait

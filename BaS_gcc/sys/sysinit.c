@@ -939,8 +939,6 @@ void clear_bss_segment(void)
 
 void initialize_hardware(void)
 {
-    bool coldboot = true;
-
     /* Test for FireTOS switch: DIP switch #5 up */
 #ifdef MACHINE_FIREBEE
     if (!(DIP_SWITCH & (1 << 6))) {
@@ -1056,7 +1054,7 @@ void initialize_hardware(void)
 
     init_slt();
     init_fbcs();
-    coldboot = init_ddram();
+    init_ddram();
 
 #if defined(MACHINE_M5484LITE)
     xprintf("Fire Engine Control register:          %02x\r\n", * (uint8_t *) 0x61000000);
@@ -1117,8 +1115,6 @@ void initialize_hardware(void)
     }
 
 #if MACHINE_FIREBEE
-    if (coldboot) /* does not work with BDM */
-        ;
     fpga_configured = init_fpga();
 
     init_pll();

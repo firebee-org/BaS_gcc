@@ -127,7 +127,7 @@ static struct pci_bios_interface pci_interface =
 static struct pci_native_driver_interface pci_native_interface =
 {
     .pci_read_config_longword = pci_read_config_longword,
-    .pci_read_config_word = pci_read_config_longword,
+    .pci_read_config_word = pci_read_config_word,
     .pci_read_config_byte = pci_read_config_byte,
     .pci_write_config_longword = pci_write_config_longword,
     .pci_write_config_word = pci_write_config_word,

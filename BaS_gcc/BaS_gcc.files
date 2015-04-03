@@ -216,3 +216,4 @@ video/offscreen.c
 video/vdi_fill.c
 video/videl.c
 video/video.c
+tos/jtagwait/Makefile

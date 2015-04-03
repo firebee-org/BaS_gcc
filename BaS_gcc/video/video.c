@@ -315,7 +315,7 @@ void video_init(void)
     dbg("\r\n");
 
     /* FIXME: we currently just return here because the PCI configuration of ATI cards does not (yet) work */
-    return;
+    //return;
 
     do
     {

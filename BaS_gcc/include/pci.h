@@ -22,12 +22,12 @@
  */
 
 #include <bas_types.h>
-#include "util.h" 	/* for swpX() */
+#include "util.h"   /* for swpX() */
 
-#define	 PCI_MEMORY_OFFSET	(0x80000000)
-#define	 PCI_MEMORY_SIZE	(0x40000000)	/* 1 GByte PCI memory window */
-#define	 PCI_IO_OFFSET		(0xD0000000)
-#define	 PCI_IO_SIZE		(0x10000000)	/* 128 MByte PCI I/O window */
+#define  PCI_MEMORY_OFFSET  0x80000000
+#define  PCI_MEMORY_SIZE    0x40000000  /* 1 GByte PCI memory window */
+#define  PCI_IO_OFFSET      0xD0000000
+#define  PCI_IO_SIZE        0x10000000  /* 128 MByte PCI I/O window */
 
 /*
  * Note: the byte offsets are in little endian format, so you can't use them
@@ -81,32 +81,32 @@
 /*
  * bit definitions for PCICSR lower half (Command Register)
  */
-#define	PCICSR_IO			(1 << 0)	/* if set: device responds to I/O space accesses */
-#define	PCICSR_MEMORY		(1 << 1)	/* if set: device responds to memory space accesses */
-#define PCICSR_MASTER		(1 << 2)	/* if set: device is master */
-#define PCICSR_SPECIAL		(1 << 3)	/* if set: device reacts on special cycles */
-#define PCICSR_MEMWI		(1 << 4)	/* if set: device deals with memory write and invalidate */
-#define	PCICSR_VGA_SNOOP	(1 << 5)	/* if set: capable of palette snoop */
-#define PCICSR_PERR			(1 << 6)	/* if set: reacts to parity errors */
-#define PCICSR_STEPPING		(1 << 7)	/* if set: stepping enabled */
-#define PCICSR_SERR			(1 << 8)	/* if set: SERR pin enabled */
-#define PCICSR_FAST_BTOB_E	(1 << 9)	/* if set: fast back-to-back enabled */
+#define PCICSR_IO           (1 << 0)    /* if set: device responds to I/O space accesses */
+#define PCICSR_MEMORY       (1 << 1)    /* if set: device responds to memory space accesses */
+#define PCICSR_MASTER       (1 << 2)    /* if set: device is master */
+#define PCICSR_SPECIAL      (1 << 3)    /* if set: device reacts on special cycles */
+#define PCICSR_MEMWI        (1 << 4)    /* if set: device deals with memory write and invalidate */
+#define PCICSR_VGA_SNOOP    (1 << 5)    /* if set: capable of palette snoop */
+#define PCICSR_PERR         (1 << 6)    /* if set: reacts to parity errors */
+#define PCICSR_STEPPING     (1 << 7)    /* if set: stepping enabled */
+#define PCICSR_SERR         (1 << 8)    /* if set: SERR pin enabled */
+#define PCICSR_FAST_BTOB_E  (1 << 9)    /* if set: fast back-to-back enabled */
 #define PCICSR_INT_DISABLE  (1 << 10)   /* if set: disable interrupts from this device */
 /*
  * bit definitions for PCICSR upper half (Status Register)
  */
 #define PCICSR_INTERRUPT    (1 << 3)    /* device requested interrupt */
 #define PCICSR_CAPABILITIES (1 << 4)    /* if set, capabilities pointer is valid */
-#define PCICSR_66MHZ		(1 << 5)	/* 66 MHz capable */
-#define PCICSR_UDF			(1 << 6)	/* UDF supported */
-#define PCICSR_FAST_BTOB	(1 << 7)	/* Fast back-to-back enabled */
-#define PCICSR_DPARITY_ERROR	(1 << 8)	/* data parity error detected */
+#define PCICSR_66MHZ        (1 << 5)    /* 66 MHz capable */
+#define PCICSR_UDF          (1 << 6)    /* UDF supported */
+#define PCICSR_FAST_BTOB    (1 << 7)    /* Fast back-to-back enabled */
+#define PCICSR_DPARITY_ERROR    (1 << 8)    /* data parity error detected */
 
-#define PCICSR_T_ABORT_S	(1 << 11)	/* target abort signaled */
-#define PCICSR_T_ABORT_R	(1 << 12)	/* target abort received */
-#define PCICSR_M_ABORT_R	(1 << 13)	/* master abort received */
-#define PCICSR_S_ERROR_S	(1 << 14)	/* system error signaled */
-#define PCICSR_PARITY_ERR	(1 << 15)	/* data parity error */
+#define PCICSR_T_ABORT_S    (1 << 11)   /* target abort signaled */
+#define PCICSR_T_ABORT_R    (1 << 12)   /* target abort received */
+#define PCICSR_M_ABORT_R    (1 << 13)   /* master abort received */
+#define PCICSR_S_ERROR_S    (1 << 14)   /* system error signaled */
+#define PCICSR_PARITY_ERR   (1 << 15)   /* data parity error */
 
 /* Header type 1 (PCI-to-PCI bridges) */
 #define PCI_PRIMARY_BUS        0x18  /* Primary bus number */
@@ -134,7 +134,7 @@ struct pci_rd          /* structure of resource descriptor    */
     unsigned long length;              /* length of resource                  */
     unsigned long offset;              /* offset PCI to phys. CPU Address     */
     unsigned long dmaoffset;           /* offset for DMA-transfers            */
-} __attribute__ ((packed));
+};
 
 typedef struct                       /* structure of address conversion     */
 {
@@ -186,43 +186,43 @@ typedef struct                       /* structure of address conversion     */
 /* PCI configuration space macros */
 
 /* register 0x00 macros */
-#define PCI_VENDOR_ID(i)	swpw((uint16_t)(((i) & 0xffff0000) >> 16))
-#define PCI_DEVICE_ID(i)	swpw((uint16_t) ((i) & 0xffff))
+#define PCI_VENDOR_ID(i)    swpw((uint16_t)(((i) & 0xffff0000) >> 16))
+#define PCI_DEVICE_ID(i)    swpw((uint16_t) ((i) & 0xffff))
 
 /* register 0x04 macros */
-#define PCI_STATUS(i)		((i) & 0xffff)
-#define PCI_COMMAND(i)		(((i) >> 16) & 0xffff)
+#define PCI_STATUS(i)       ((i) & 0xffff)
+#define PCI_COMMAND(i)      (((i) >> 16) & 0xffff)
 
 /* register 0x08 macros */
-#define PCI_CLASS_CODE(i)	((swpl((i)) & 0xff000000) >> 24)
-#define PCI_SUBCLASS(i)		((swpl((i)) & 0xffff0000) >> 16)
-#define PCI_PROG_IF(i)		((swpl((i)) & 0x0000ff00) >> 8)
-#define PCI_REVISION_ID(i)	((swpl((i)) & 0x000000ff))
+#define PCI_CLASS_CODE(i)   ((swpl((i)) & 0xff000000) >> 24)
+#define PCI_SUBCLASS(i)     ((swpl((i)) & 0xffff0000) >> 16)
+#define PCI_PROG_IF(i)      ((swpl((i)) & 0x0000ff00) >> 8)
+#define PCI_REVISION_ID(i)  ((swpl((i)) & 0x000000ff))
 
 /* register 0x0c macros */
-#define PCI_BIST(i)			((swpl((i)) & 0xff000000) >> 24)
-#define PCI_HEADER_TYPE(i)	((swpl((i)) & 0x00ff0000) >> 16)
-#define PCI_LAT_TIMER(i)	((swpl((i)) & 0x0000ff00) >> 8)
-#define PCI_CACHELINE_SIZE(i)	((swpl((i)) & 0x000000ff))
+#define PCI_BIST(i)         ((swpl((i)) & 0xff000000) >> 24)
+#define PCI_HEADER_TYPE(i)  ((swpl((i)) & 0x00ff0000) >> 16)
+#define PCI_LAT_TIMER(i)    ((swpl((i)) & 0x0000ff00) >> 8)
+#define PCI_CACHELINE_SIZE(i)   ((swpl((i)) & 0x000000ff))
 
 /* register 0x2c macros */
-#define PCI_SUBSYS_ID(i)	(((i) & 0xffff0000) >> 16)
-#define PCI_SUBSYS_VID(i)	(((i) & 0xffff))
+#define PCI_SUBSYS_ID(i)    (((i) & 0xffff0000) >> 16)
+#define PCI_SUBSYS_VID(i)   (((i) & 0xffff))
 
 /* register 0x34 macros */
-#define PCI_CAPABILITIES(i)	((i) & 0xff)
+#define PCI_CAPABILITIES(i) ((i) & 0xff)
 
 /* register 0x3c macros */
-#define PCI_MAX_LATENCY(i)	(((i) & 0xff000000) >> 24)
-#define PCI_MIN_GRANT(i)	(((i) & 0xff0000) >> 16)
-#define PCI_INTERRUPT_PIN(i)	(((i) & 0xff00) >> 8)
-#define PCI_INTERRUPT_LINE(i)	(((i)) & 0xff)
+#define PCI_MAX_LATENCY(i)  (((i) & 0xff000000) >> 24)
+#define PCI_MIN_GRANT(i)    (((i) & 0xff0000) >> 16)
+#define PCI_INTERRUPT_PIN(i)    (((i) & 0xff00) >> 8)
+#define PCI_INTERRUPT_LINE(i)   (((i)) & 0xff)
 
-#define IS_PCI_MEM_BAR(i)	((i) & 1) == 0
-#define IS_PCI_IO_BAR(i)	((i) & 1) == 1
-#define PCI_MEMBAR_TYPE(i)	(((i) & 0x6) >> 1)
-#define PCI_IOBAR_ADR(i)	(((i) & 0xfffffffc))
-#define PCI_MEMBAR_ADR(i)	(((i) & 0xfffffff0))
+#define IS_PCI_MEM_BAR(i)   ((i) & 1) == 0
+#define IS_PCI_IO_BAR(i)    ((i) & 1) == 1
+#define PCI_MEMBAR_TYPE(i)  (((i) & 0x6) >> 1)
+#define PCI_IOBAR_ADR(i)    (((i) & 0xfffffffc))
+#define PCI_MEMBAR_ADR(i)   (((i) & 0xfffffff0))
 
 extern void init_eport(void);
 extern void init_xlbus_arbiter(void);
@@ -238,9 +238,9 @@ extern int32_t pci_call_interrupt_chain(int32_t handle, int32_t data);
 /*
  * match bits for pci_find_classcode()
  */
-#define PCI_FIND_BASE_CLASS		(1 << 26)
-#define PCI_FIND_SUB_CLASS		(1 << 25)
-#define PCI_FIND_PROG_IF		(1 << 24)
+#define PCI_FIND_BASE_CLASS     (1 << 26)
+#define PCI_FIND_SUB_CLASS      (1 << 25)
+#define PCI_FIND_PROG_IF        (1 << 24)
 
 extern uint32_t pci_read_config_longword(int32_t handle, int offset);
 extern uint16_t pci_read_config_word(int32_t handle, int offset);
@@ -340,14 +340,14 @@ extern int32_t wrapper_bus_to_virt(int32_t handle, uint32_t address, PCI_CONV_AD
 extern int32_t wrapper_virt_to_phys(uint32_t address, PCI_CONV_ADR *pointer);
 extern int32_t wrapper_phys_to_virt(uint32_t address, PCI_CONV_ADR *pointer);
 
-#define PCI_MK_CONF_ADDR(bus, device, function)	(MCF_PCI_PCICAR_E | \
+#define PCI_MK_CONF_ADDR(bus, device, function) (MCF_PCI_PCICAR_E | \
                                                 ((bus) << 16) | \
                                                 ((device << 8) | \
                                                 (function))
 
-#define PCI_HANDLE(bus, slot, function)	(0 | ((bus & 0xff) << 10 | (slot & 0x1f) << 3 | (function & 7)))
-#define PCI_BUS_FROM_HANDLE(h)				(((h) & 0xff00) >> 10)
-#define PCI_DEVICE_FROM_HANDLE(h)			(((h) & 0xf8) >> 3)
-#define PCI_FUNCTION_FROM_HANDLE(h)			(((h) & 0x7))
+#define PCI_HANDLE(bus, slot, function) (0 | ((bus & 0xff) << 10 | (slot & 0x1f) << 3 | (function & 7)))
+#define PCI_BUS_FROM_HANDLE(h)              (((h) & 0xff00) >> 10)
+#define PCI_DEVICE_FROM_HANDLE(h)           (((h) & 0xf8) >> 3)
+#define PCI_FUNCTION_FROM_HANDLE(h)         (((h) & 0x7))
 
 #endif /* _PCI_H_ */

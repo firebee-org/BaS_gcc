@@ -50,8 +50,8 @@ extern uint8_t _FPGA_CONFIG_SIZE[];
  * been loaded through the onboard JTAG interface.
  * init_fpga() will honour this and not overwrite config.
  */
-extern bool _FPGA_JTAG_LOADED;
-extern int32_t _FPGA_JTAG_VALID;
+extern uint32_t _FPGA_JTAG_LOADED;
+extern uint32_t _FPGA_JTAG_VALID;
 #define VALID_JTAG 0xaffeaffe
 
 void config_gpio_for_fpga_config(void)
@@ -94,10 +94,10 @@ bool init_fpga(void)
     volatile int32_t time, start, end;
     int i;
 
-    dbg("FPGA load config\r\n(_FPGA_JTAG_LOADED = %x, _FPGA_JTAG_VALID = %x)...\r\n", _FPGA_JTAG_LOADED, _FPGA_JTAG_VALID);
-    if (_FPGA_JTAG_LOADED == true && _FPGA_JTAG_VALID == VALID_JTAG)
+    xprintf("FPGA load config...\r\n");
+    if (_FPGA_JTAG_LOADED == 1 && _FPGA_JTAG_VALID == VALID_JTAG)
     {
-        dbg("detected _FPGA_JTAG_LOADED flag. Not overwriting FPGA config.\r\n");
+        xprintf("detected _FPGA_JTAG_LOADED flag. FPGA config skipped.\r\n");
 
         /* reset the flag so that next boot will load config again from flash */
         _FPGA_JTAG_LOADED = 0;

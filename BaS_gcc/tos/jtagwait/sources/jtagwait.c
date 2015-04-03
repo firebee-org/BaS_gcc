@@ -7,8 +7,8 @@
 #include "MCF5475.h"
 #include "driver_vec.h"
 
-extern long _FPGA_JTAG_LOADED;
-extern long _FPGA_JTAG_VALID;
+extern uint32_t _FPGA_JTAG_LOADED;
+extern uint32_t _FPGA_JTAG_VALID;
 
 #define VALID_JTAG  0xaffeaffe
 
@@ -22,7 +22,6 @@ extern long _FPGA_JTAG_VALID;
 #define NOP() __asm__ __volatile__("nop\n\t" : : : "memory")
 
 long bas_start = 0xe0000000;
-volatile uint32_t *_VRAM = (uint32_t *) 0x60000000;
 
 
 void wait_for_jtag(void)
@@ -66,15 +65,16 @@ void wait_for_jtag(void)
     while ((MCF_GPIO_PPDSDR_FEC1L & FPGA_CONF_DONE));       /* wait for JTAG config load started */
 
     xprintf("waiting for JTAG configuration to finish\r\n");
-    while (!(MCF_GPIO_PPDSDR_FEC1L & FPGA_CONF_DONE));     /* wait for JTAG config load finished */
+    while (!(MCF_GPIO_PPDSDR_FEC1L & FPGA_CONF_DONE));      /* wait for JTAG config load finished */
 
     xprintf("JTAG configuration finished.\r\n");
-    _FPGA_JTAG_LOADED = 1;                              /* indicate jtag loaded FPGA config to BaS */
-    _FPGA_JTAG_VALID = VALID_JTAG;                      /* set magic word to indicate _FPGA_JTAG_LOADED is valid */
+    _FPGA_JTAG_LOADED = 1;                                  /* indicate jtag loaded FPGA config to BaS */
+    _FPGA_JTAG_VALID = VALID_JTAG;                          /* set magic word to indicate _FPGA_JTAG_LOADED is valid */
 
     /* wait */
     xprintf("wait a little to let things settle...\r\n");
     for (i = 0; i < 100000; i++);
+    xprintf("reset and restart...");
 
     __asm__ __volatile__(
         "       jmp     (%[bas_start])\n\t"
@@ -87,7 +87,7 @@ void wait_for_jtag(void)
 int main(int argc, char *argv[])
 {
     printf("\033E\r\nFPGA JTAG configuration support\r\n");
-    printf("<C> 2014 M. Froeschle\r\n");
+    printf("\a9 2014 M. Fr\f6schle\r\n");
 
     printf("You may now savely load a new FPGA configuration through the JTAG interface\r\n"
            "and your Firebee will reboot once finished using that new configuration.\r\n");
