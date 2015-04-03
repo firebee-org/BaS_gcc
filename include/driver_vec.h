@@ -283,7 +283,7 @@ struct pci_native_driver_interface
     int32_t (*pci_hook_interrupt)(int32_t handle, void *handler, void *parameter);
     int32_t (*pci_unhook_interrupt)(int32_t handle);
 
-    struct pci_rd (*pci_get_resource)(int32_t handle);
+    struct pci_rd * (*pci_get_resource)(int32_t handle);
 };
 
 union interface
