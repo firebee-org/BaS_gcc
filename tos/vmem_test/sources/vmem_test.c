@@ -26,42 +26,12 @@ int i;
 
 void do_tests(void)
 {
-    /* read out shifter registers */
-    uint8_t * _vmem_hi = (uint8_t *) 0xff8201;
-    uint8_t * _vmem_mid = (uint8_t *) 0xff8203;
-    uint8_t * _vmem_lo = (uint8_t *) 0xff820d;
+    uint32_t version;
 
-    xprintf("vmem_hi = %x\r\n", *_vmem_hi);
-    xprintf("vmem_mid = %x\r\n", *_vmem_mid);
-    xprintf("vmem_lo = %x\r\n", *_vmem_lo);
+    xprintf("try to read Configware version (only works on later configs)\r\n");
+    version = * (uint32_t *) 0xffffffff;
 
-    /* try to write to them */
-
-    xprintf("trying to write to _vbas_ad\r\n");
-
-    *_vmem_hi = 0xd0;
-    *_vmem_mid = 0x00;
-    *_vmem_lo = 0x00;
-
-    xprintf("read back values\r\n");
-
-    xprintf("vmem_hi = %x\r\n", *_vmem_hi);
-    xprintf("vmem_mid = %x\r\n", *_vmem_mid);
-    xprintf("vmem_lo = %x\r\n", *_vmem_lo);
-
-    xprintf("read Firebee clut\r\n");
-
-    hexdump((uint8_t *) 0xf0000000, 0x400);
-
-    xprintf("set Firebee clut\r\n");
-
-    long i;
-    for (i = 0; i < 0x400; i++)
-    {
-        * (unsigned char *) (0xf0000000 + i) = (uint8_t) i;
-    }
-
-    hexdump((uint8_t *) 0xf0000000, 0x400);
+    xprintf("version = 0x%lx\r\n", version);
 
     xprintf("try to access Firebee FPGA memory\r\n");
 
@@ -93,109 +63,7 @@ void do_tests(void)
     xprintf("finished (took %f seconds).\r\n", time / 1000.0);
 }
 
-/*
- * INIT VIDEO DDR RAM
- */
 
-void init_video_ddr(void)
-{
-    xprintf("init video RAM: ");
-
-    * (volatile uint16_t *) 0xf0000400 = 0xb;	/* set cke = 1, cs=1, config = 1 */
-    NOP();
-
-    _VRAM[0] = 0x00050400;	/* IPALL */
-    NOP();
-
-    _VRAM[0] = 0x00072000;	/* load EMR pll on */
-    NOP();
-
-    _VRAM[0] = 0x00070122;	/* load MR: reset pll, cl=2, burst=4lw */
-    NOP();
-
-    _VRAM[0] = 0x00050400;	/* IPALL */
-    NOP();
-
-    _VRAM[0] = 0x00060000;	/* auto refresh */
-    NOP();
-
-    _VRAM[0] = 0x00060000;	/* auto refresh */
-    NOP();
-
-    _VRAM[0] = 0000070022;	/* load MR dll on */
-    NOP();
-
-    * (uint32_t *) 0xf0000400 = 0x01070002; /* fifo on, refresh on, ddrcs und cke on, video dac on */
-
-    // vram control register cannot be read
-#ifdef _NOT_USED_
-    xprintf("read out the Firebee vram control register to verify correct settings: %lx\r\n", * (uint32_t *) 0xf0000400);
-    if (* (uint32_t *) 0xf0000400 != 0x01070002)
-    {
-        xprintf("initializing firebee video RAM DDR controller failed.\r\nINFO: infinite loop. Press reset.\r\n");
-        while (1);
-    }
-#endif /* _NOT_USED_ */
-    xprintf("finished\r\n");
-}
-
-void wait_pll(void)
-{
-    int32_t trgt = MCF_SLT0_SCNT - 100000;
-    do
-    {
-        ;
-    } while ((* (volatile int16_t *) 0xf0000800 < 0) && MCF_SLT0_SCNT > trgt);
-}
-
-static volatile uint8_t *pll_base = (volatile uint8_t *) 0xf0000600;
-
-void init_pll(void)
-{
-    xprintf("FPGA PLL initialization: ");
-
-    wait_pll();
-    * (volatile uint16_t *) (pll_base + 0x48) = 27;     /* loopfilter  r */
-
-    wait_pll();
-    * (volatile uint16_t *) (pll_base + 0x08) = 1;		/* charge pump 1 */
-
-    wait_pll();
-    * (volatile uint16_t *) (pll_base + 0x00) = 12;		/* N counter high = 12 */
-
-    wait_pll();
-    * (volatile uint16_t *) (pll_base + 0x40) = 12;		/* N counter low = 12 */
-
-    wait_pll();
-    * (volatile uint16_t *) (pll_base + 0x114) = 1;		/* ck1 bypass */
-
-    wait_pll();
-    * (volatile uint16_t *) (pll_base + 0x118) = 1;		/* ck2 bypass */
-
-    wait_pll();
-    * (volatile uint16_t *) (pll_base + 0x11c) = 1;		/* ck3 bypass */
-
-    wait_pll();
-    * (volatile uint16_t *) (pll_base + 0x10) = 1;		/* ck0 high  = 1 */
-
-    wait_pll();
-    * (volatile uint16_t *) (pll_base + 0x50) = 1;		/* ck0 low = 1 */
-
-    wait_pll();
-    * (volatile uint16_t *) (pll_base + 0x144) = 1;		/* M odd division */
-
-    wait_pll();
-    * (volatile uint16_t *) (pll_base + 0x44) = 1;		/* M low = 1 */
-
-    wait_pll();
-    * (volatile uint16_t *) (pll_base + 0x04) = 145;	/* M high = 145 = 146 MHz */
-
-    wait_pll();
-
-    * (volatile uint8_t *) 0xf0000800 = 0;				/* set */
-
-    xprintf("finished\r\n");
-}
 
 void wait_for_jtag(void)
 {
@@ -246,12 +114,6 @@ void wait_for_jtag(void)
     xprintf("wait a little to let things settle...\r\n");
     for (i = 0; i < 100000L; i++);
 
-    /* initialize FPGA PLL's */
-    init_pll();
-
-    /* initialize DDR RAM controller */
-    init_video_ddr();
-
     xprintf("disable caches\r\n");
     __asm__ __volatile(
                 "move.l     #0x01000000,d0      \r\n"
@@ -273,7 +135,8 @@ void wait_for_jtag(void)
 int main(int argc, char *argv[])
 {
     printf("\033E\r\nFPGA JTAG configuration support\r\n");
-    printf("<C> 2014 M. Froeschle\r\n");
+    printf("test FPGA DDR RAM controller\r\n");
+    printf("<C> 2014 M. F\f6schle\r\n");
 
     printf("You may now savely load a new FPGA configuration through the JTAG interface\r\n"
            "and your Firebee will reboot once finished using that new configuration.\r\n");

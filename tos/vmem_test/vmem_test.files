@@ -1,3 +1,7 @@
 include/driver_vec.h
 sources/jtagwait.c
 Makefile
+sources/bas_printf.c
+sources/bas_string.c
+sources/printf_helper.S
+sources/vmem_test.c

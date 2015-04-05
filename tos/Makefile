@@ -5,11 +5,11 @@
 tos: jtagwait bascook vmem_test
 
 jtagwait:
-	(cd $@; make)
+	make -C $@
 
 bascook:
-	(cd $@; make)
+	make -C $@
 
 vmem_test:
-	(cd $@; make)
+	make -C $@
 
