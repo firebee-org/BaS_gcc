@@ -83,8 +83,8 @@ extern int16_t vsetmode(int16_t mode);
 extern int16_t vmontype(void);
 extern int16_t vsetsync(int16_t external);
 extern int32_t vgetsize(int16_t mode);
-extern int16_t vsetrgb(int16_t index,int16_t count,int32_t *rgb);
-extern int16_t vgetrgb(int16_t index,int16_t count,int32_t *rgb);
+extern int16_t vsetrgb(int16_t index,int16_t count, uint32_t *rgb);
+extern int16_t vgetrgb(int16_t index,int16_t count, uint32_t *rgb);
 
 /* misc routines */
 extern int16_t get_videl_mode(void);
