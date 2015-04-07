@@ -94,8 +94,8 @@ static const int32_t videl_dflt_palette[] = {
     0x44210000, 0x44110000, FRGB_WHITE, FRGB_BLACK
 };
 
-int32_t falcon_shadow_palette[256];   /* real Falcon does this, used by vectors.S */
-static int16_t ste_shadow_palette[16];
+uint32_t falcon_shadow_palette[256];   /* real Falcon does this, used by vectors.S */
+static uint16_t ste_shadow_palette[16];
 
 #define MON_ALL     -1  /* code used in VMODE_ENTRY for match on mode only */
 
@@ -262,13 +262,12 @@ static const VMODE_ENTRY nonvga_init_table[] = {
 
 void set_palette(uint16_t *colorptr)
 {
-	int i;
 	uint16_t *palette_regs = (uint16_t *) 0xffff9800;
 
 	do
 	{
 		*palette_regs++ = *colorptr++;
-	} while (palette_regs < 0xffff9600 + 16 * 2);
+    } while (palette_regs < (uint16_t *) 0xffff9600 + 16);
 }
 
 /*
@@ -628,7 +627,7 @@ int32_t vgetsize(int16_t mode)
  */
 #define falc2ste(a) ((((a) >> 1) & 0x08) | (((a) >> 5) & 0x07))
 
-static void convert2ste(int16_t *ste,int32_t *falcon)
+static void convert2ste(uint16_t *ste, uint32_t *falcon)
 {
     union
     {
@@ -676,9 +675,9 @@ static int use_ste_palette(int16_t videomode)
  * address | 0x01      load first 16 Falcon palette regs from address
  *       0 | 0x01      load 256 Falcon palette regs from falcon_shadow_palette[]
  */
-int16_t vsetrgb(int16_t index,int16_t count, int32_t *rgb)
+int16_t vsetrgb(int16_t index, int16_t count, uint32_t *rgb)
 {
-    int32_t *shadow, *source;
+    uint32_t *shadow, *source;
     union
     {
         int32_t l;
@@ -721,7 +720,7 @@ int16_t vsetrgb(int16_t index,int16_t count, int32_t *rgb)
         return 0; /* OK */
     }
 
-    colorptr = (limit == 256) ? (int16_t *) 0x01L : (int16_t *) ((int32_t) falcon_shadow_palette|0x01L);
+    colorptr = (limit == 256) ? (uint16_t *) 0x01L : (uint16_t *) ((uint32_t) falcon_shadow_palette|0x01L);
 
 	set_palette(colorptr);
     return 0; /* OK */
@@ -730,9 +729,9 @@ int16_t vsetrgb(int16_t index,int16_t count, int32_t *rgb)
 /*
  * get palette registers
  */
-int16_t vgetrgb(int16_t index,int16_t count,int32_t *rgb)
+int16_t vgetrgb(int16_t index, int16_t count, uint32_t *rgb)
 {
-    int32_t *shadow;
+    uint32_t *shadow;
     union
     {
         int32_t l;
