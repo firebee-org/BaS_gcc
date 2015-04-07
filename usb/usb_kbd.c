@@ -617,6 +617,7 @@ static int usb_kbd_translate(unsigned char scancode, unsigned char modifier, int
 
     int type = USA;
 
+    (void) type; /* TODO: just for now - avoid compiler warning */
     dbg("USB KBD scancode: 0x%02x, modifier:0x%02x, pressed: %d\r\n", scancode, modifier, pressed);
     flags.b.force_alt_shift = 0;
 
