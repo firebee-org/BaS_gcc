@@ -124,7 +124,7 @@ bool init_fpga(void)
      * excerpt from an Altera configuration manual:
      *
      * The low-to-high transition of nCONFIG on the FPGA begins the configuration cycle. The
-     * configuration cycle consists of 3 stages�reset, configuration, and initialization.
+     * configuration cycle consists of 3 stages: reset, configuration, and initialization.
      * While nCONFIG is low, the device is in reset. When the device comes out of reset,
      * nCONFIG must be at a logic high level in order for the device to release the open-drain
      * nSTATUS pin. After nSTATUS is released, it is pulled high by a pull-up resistor and the FPGA
