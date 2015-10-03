@@ -46,8 +46,6 @@
 #else
 #error "unknown machine"
 #endif /* MACHINE_M5484LITE */
-
-#
 #include "dma.h"
 #include "mod_devicetable.h"
 #include "pci_ids.h"
@@ -70,7 +68,7 @@ extern volatile long _VRAM; /* start address of video ram from linker script */
  * BYT3 = 7.576ns/tick = 132.00MHz offset 3
  * count down!!! 132MHz!!!
  */
-void init_slt(void)
+static void init_slt(void)
 {
     xprintf("slice timer initialization: ");
     MCF_SLT0_STCNT = 0xffffffff;
@@ -81,7 +79,7 @@ void init_slt(void)
 /*
  * init GPIO general purpose I/O module
  */
-void init_gpio(void)
+static void init_gpio(void)
 {
     /*
      * pad register P.S.:FBCTL and FBCS set correctly at reset
@@ -214,7 +212,7 @@ void init_gpio(void)
 /*
  * init serial
  */
-void init_serial(void)
+static void init_serial(void)
 {
     /* PSC0: SER1 */
     MCF_PSC0_PSCSICR = 0;       /* PSC control register: select UART mode */
@@ -276,7 +274,7 @@ void init_serial(void)
 /********************************************************************/
 /* Initialize DDR DIMMs on the EVB board */
 /********************************************************************/
-bool init_ddram(void)
+static bool init_ddram(void)
 {
     xprintf("SDRAM controller initialization: ");
 
@@ -401,43 +399,46 @@ bool init_ddram(void)
 /*
  * initialize FlexBus chip select registers
  */
-void init_fbcs()
+static void init_fbcs()
 {
     xprintf("FlexBus chip select registers initialization: ");
 
     /* Flash */
     MCF_FBCS0_CSAR = MCF_FBCS_CSAR_BA(BOOTFLASH_BASE_ADDRESS);    /* flash base address */
     MCF_FBCS0_CSCR = MCF_FBCS_CSCR_PS_16 |              /* 16 bit word access */
-            MCF_FBCS_CSCR_WS(6)|                        /* 6 Waitstates */
-            MCF_FBCS_CSCR_AA |
-            MCF_FBCS_CSCR_ASET(1) |
+            MCF_FBCS_CSCR_WS(8)|                        /* 6 wait states */
+            MCF_FBCS_CSCR_AA |                          /* auto /TA acknowledge */
+            MCF_FBCS_CSCR_ASET(1) |                     /* assert chip select on second rising edge after address assertion */
             MCF_FBCS_CSCR_RDAH(1);                      /* chip errata SECF077 */
     MCF_FBCS0_CSMR = BOOTFLASH_BAM |
             MCF_FBCS_CSMR_V;                            /* enable */
 
 
 #if defined(MACHINE_FIREBEE) /* FBC setup for FireBee */
-    MCF_FBCS1_CSAR = MCF_FBCS_CSAR_BA(0xFFF00000);      /* ATARI I/O ADRESS */
+    MCF_FBCS1_CSAR = MCF_FBCS_CSAR_BA(0xFFF00000);      /* ATARI I/O address range */
     MCF_FBCS1_CSCR = MCF_FBCS_CSCR_PS_16                /* 16BIT PORT */
-        | MCF_FBCS_CSCR_WS(8)                           /* DEFAULT 8WS */
-        | MCF_FBCS_CSCR_AA;                             /* AA */
+        | MCF_FBCS_CSCR_WS(32)                           /* 8 wait states */
+        | MCF_FBCS_CSCR_AA;                             /* auto /TA acknowledge */
     MCF_FBCS1_CSMR = MCF_FBCS_CSMR_BAM_1M | MCF_FBCS_CSMR_V;
 
     MCF_FBCS2_CSAR = MCF_FBCS_CSAR_BA(0xF0000000);      /* Firebee new I/O address range */
     MCF_FBCS2_CSCR = MCF_FBCS_CSCR_PS_32                /* 32BIT PORT */
-        | MCF_FBCS_CSCR_WS(4)                           /* DEFAULT 4WS */
-        | MCF_FBCS_CSCR_AA;                             /* AA */
+        | MCF_FBCS_CSCR_WS(32)                           /* 4 wait states */
+        | MCF_FBCS_CSCR_AA;                             /* auto /TA acknowledge */
     MCF_FBCS2_CSMR = (MCF_FBCS_CSMR_BAM_128M            /* F000'0000-F7FF'FFFF */
               | MCF_FBCS_CSMR_V);
 
     MCF_FBCS3_CSAR = MCF_FBCS_CSAR_BA(0xF8000000);      /* Firebee new I/O address range */
-    MCF_FBCS3_CSCR = MCF_FBCS_CSCR_PS_16                /* 16BIT PORT */
-        | MCF_FBCS_CSCR_AA; // AA
+    MCF_FBCS3_CSCR = MCF_FBCS_CSCR_PS_16                /* 16 bit port */
+        | MCF_FBCS_CSCR_WS(32)                          /* 0 wait states */
+        | MCF_FBCS_CSCR_AA;                             /* auto /TA acknowledge */
     MCF_FBCS3_CSMR = (MCF_FBCS_CSMR_BAM_64M             /* F800'0000-FBFF'FFFF */
               | MCF_FBCS_CSMR_V);
 
     MCF_FBCS4_CSAR = MCF_FBCS_CSAR_BA(0x40000000);      /* video ram area, FB_CS3 not used, decoded on FPGA */
-    MCF_FBCS4_CSCR = MCF_FBCS_CSCR_PS_32                /* 32BIT PORT */
+    MCF_FBCS4_CSCR = MCF_FBCS_CSCR_PS_32                /* 32 bit port */
+        | MCF_FBCS_CSCR_WS(32)                          /* 0 wait states */
+        | MCF_FBCS_CSCR_AA                              /* /TA auto acknowledge */
         | MCF_FBCS_CSCR_BSTR                            /* burst read enable */
         | MCF_FBCS_CSCR_BSTW;                           /* burst write enable */
     MCF_FBCS4_CSMR = MCF_FBCS_CSMR_BAM_1G               /* 4000'0000-7FFF'FFFF */
@@ -470,7 +471,8 @@ void init_fbcs()
     xprintf("finished\r\n");
 }
 
-void wait_pll(void)
+#ifdef MACHINE_FIREBEE
+static void wait_pll(void)
 {
     int32_t trgt = MCF_SLT0_SCNT - 100000;
     do
@@ -481,12 +483,12 @@ void wait_pll(void)
 
 static volatile uint8_t *pll_base = (volatile uint8_t *) 0xf0000600;
 
-void init_pll(void)
+static void init_pll(void)
 {
     xprintf("FPGA PLL initialization: ");
 
     wait_pll();
-    * (volatile uint16_t *) (pll_base + 0x48) = 27; /* loopfilter  r */
+    * (volatile uint16_t *) (pll_base + 0x48) = 27;     /* loopfilter  r */
 
     wait_pll();
     * (volatile uint16_t *) (pll_base + 0x08) = 1;      /* charge pump 1 */
@@ -528,13 +530,10 @@ void init_pll(void)
     xprintf("finished\r\n");
 }
 
-
-
 /*
  * INIT VIDEO DDR RAM
  */
-
-void init_video_ddr(void) {
+static void init_video_ddr(void) {
     xprintf("init video RAM: ");
 
     * (volatile uint16_t *) 0xf0000400 = 0xb;   /* set cke = 1, cs=1, config = 1 */
@@ -563,10 +562,11 @@ void init_video_ddr(void) {
     NOP();
 
     * (uint32_t *) 0xf0000400 = 0x01070002; /* fifo on, refresh on, ddrcs und cke on, video dac on */
+//    * (uint32_t *) 0xf0000400 = 0x0107820b; /* fifo on, refresh on, ddrcs und cke on, video dac on */
 
     xprintf("finished\r\n");
 }
-
+#endif /* MACHINE_FIREBEE */
 
 /*
  * probe for NEC compatible USB host controller and install if found
@@ -635,6 +635,8 @@ void init_usb(void)
     xprintf("finished (found %d USB controller(s))\r\n", usb_found);
 }
 
+#ifdef MACHINE_FIREBEE
+
 static bool i2c_transfer_finished(void)
 {
     if (MCF_I2C_I2SR & MCF_I2C_I2SR_IIF)
@@ -657,7 +659,7 @@ static bool i2c_bus_free(void)
 /*
  * TFP410 (DVI) on
  */
-void dvi_on(void)
+static void dvi_on(void)
 {
     uint8_t receivedByte;
     uint8_t dummyByte;          /* only used for a dummy read */
@@ -806,7 +808,7 @@ try_again:
 /*
  * AC97
  */
-void init_ac97(void)
+static void init_ac97(void)
 {
     // PSC2: AC97 ----------
     int i;
@@ -900,6 +902,7 @@ livo:
     MCF_PSC2_PSCTB_AC97 = 0x00000000;   //last data
     xprintf(" finished\r\n");
 }
+#endif /* MACHINE_FIREBEE */
 
 /* Symbols from the linker script */
 
@@ -927,14 +930,14 @@ extern uint8_t _BAS_RESIDENT_TEXT[];
 extern uint8_t _BAS_RESIDENT_TEXT_SIZE[];
 #define BAS_RESIDENT_TEXT_SIZE ((uint32_t) _BAS_RESIDENT_TEXT_SIZE)
 
-void clear_bss_segment(void)
+static void clear_bss_segment(void)
 {
     extern uint8_t _BAS_BSS_START[];
     uint8_t * BAS_BSS_START = &_BAS_BSS_START[0];
     extern uint8_t _BAS_BSS_END[];
     uint8_t *BAS_BSS_END = &_BAS_BSS_END[0];
 
-    bzero(BAS_BSS_START, BAS_BSS_END - BAS_BSS_START - 1);
+    bzero(BAS_BSS_START, BAS_BSS_END - BAS_BSS_START + 1);
 }
 
 void initialize_hardware(void)
@@ -1120,13 +1123,9 @@ void initialize_hardware(void)
     init_pll();
     init_video_ddr();
     dvi_on();
-
-#endif /* MACHINE_FIREBEE */
-    driver_mem_init();
-
-#if MACHINE_FIREBEE
     init_ac97();
 #endif /* MACHINE_FIREBEE */
+    driver_mem_init();
 
     /* jump into the BaS */
     extern void BaS(void);

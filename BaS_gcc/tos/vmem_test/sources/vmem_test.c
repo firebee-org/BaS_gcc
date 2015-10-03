@@ -24,6 +24,100 @@ extern volatile uint32_t _VRAM[];
 volatile int32_t time, start, end;
 int i;
 
+static void wait_pll(void)
+{
+    int32_t trgt = MCF_SLT0_SCNT - 100000;
+    do
+    {
+        ;
+    } while ((* (volatile int16_t *) 0xf0000800 < 0) && MCF_SLT0_SCNT > trgt);
+}
+
+static volatile uint8_t *pll_base = (volatile uint8_t *) 0xf0000600;
+
+static void init_pll(void)
+{
+    xprintf("FPGA PLL initialization: ");
+
+    wait_pll();
+    * (volatile uint16_t *) (pll_base + 0x48) = 27;     /* loopfilter  r */
+
+    wait_pll();
+    * (volatile uint16_t *) (pll_base + 0x08) = 1;      /* charge pump 1 */
+
+    wait_pll();
+    * (volatile uint16_t *) (pll_base + 0x00) = 12;     /* N counter high = 12 */
+
+    wait_pll();
+    * (volatile uint16_t *) (pll_base + 0x40) = 12;     /* N counter low = 12 */
+
+    wait_pll();
+    * (volatile uint16_t *) (pll_base + 0x114) = 1;     /* ck1 bypass */
+
+    wait_pll();
+    * (volatile uint16_t *) (pll_base + 0x118) = 1;     /* ck2 bypass */
+
+    wait_pll();
+    * (volatile uint16_t *) (pll_base + 0x11c) = 1;     /* ck3 bypass */
+
+    wait_pll();
+    * (volatile uint16_t *) (pll_base + 0x10) = 1;      /* ck0 high  = 1 */
+
+    wait_pll();
+    * (volatile uint16_t *) (pll_base + 0x50) = 1;      /* ck0 low = 1 */
+
+    wait_pll();
+    * (volatile uint16_t *) (pll_base + 0x144) = 1;     /* M odd division */
+
+    wait_pll();
+    * (volatile uint16_t *) (pll_base + 0x44) = 1;      /* M low = 1 */
+
+    wait_pll();
+    * (volatile uint16_t *) (pll_base + 0x04) = 145;    /* M high = 145 = 146 MHz */
+
+    wait_pll();
+
+    * (volatile uint8_t *) 0xf0000800 = 0;              /* set */
+
+    xprintf("finished\r\n");
+}
+
+/*
+ * INIT VIDEO DDR RAM
+ */
+static void init_video_ddr(void) {
+    xprintf("init video RAM: ");
+
+    * (volatile uint16_t *) 0xf0000400 = 0xb;   /* set cke = 1, cs=1, config = 1 */
+    NOP();
+
+    _VRAM[0] = 0x00050400; /* IPALL */
+    NOP();
+
+    _VRAM[0] = 0x00072000; /* load EMR pll on */
+    NOP();
+
+    _VRAM[0] = 0x00070122; /* load MR: reset pll, cl=2, burst=4lw */
+    NOP();
+
+    _VRAM[0] = 0x00050400; /* IPALL */
+    NOP();
+
+    _VRAM[0] = 0x00060000; /* auto refresh */
+    NOP();
+
+    _VRAM[0] = 0x00060000; /* auto refresh */
+    NOP();
+
+    /* FIXME: what's this? */
+    _VRAM[0] = 0000070022; /* load MR dll on */
+    NOP();
+
+    * (uint32_t *) 0xf0000400 = 0x01070002; /* fifo on, refresh on, ddrcs und cke on, video dac on */
+
+    xprintf("finished\r\n");
+}
+
 void do_tests(void)
 {
     uint32_t version;
@@ -121,6 +215,13 @@ void wait_for_jtag(void)
                 : /* no output */
                 : /* no input */
                 : "d0", "memory");
+
+    xprintf("init FPGA PLLs\r\n");
+    init_pll();
+
+    xprintf("init video DDR RAM\r\n");
+    init_video_ddr();
+
     /* begin of tests */
     do_tests();
 

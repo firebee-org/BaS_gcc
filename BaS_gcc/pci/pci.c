@@ -33,7 +33,7 @@
 #include "interrupts.h"
 #include "wait.h"
 
-//#define DEBUG_PCI
+// #define DEBUG_PCI
 #ifdef DEBUG_PCI
 #define dbg(format, arg...) do { xprintf("DEBUG: %s(): " format, __FUNCTION__, ##arg); } while (0)
 #else
@@ -132,7 +132,7 @@ static inline __attribute__((aligned(16))) void chip_errata_135(void)
         "       tpf.l   #0x0            \n\t"
         "       tpf.l   #0x0            \n\t"
         "       tpf.l   #0x0            \n\t"
-        ::: "memory");
+        ::: "d0", "memory");
 }
 
 static inline void chip_errata_055(int32_t handle)
@@ -242,7 +242,7 @@ static char *device_class(int classcode)
             return pci_classes[i].description;
         }
     }
-    return "not found";
+    return "unknown device class";
 }
 
 /*
@@ -298,11 +298,6 @@ static int pci_check_status(void)
 
         ret = 1;
     }
-
-    if (!ret)
-    {
-        dbg("no error\r\n");
-    }
     return ret;
 }
 
@@ -331,7 +326,7 @@ uint32_t pci_read_config_longword(int32_t handle, int offset)
     /* finish PCI configuration access special cycle (allow regular PCI accesses) */
     MCF_PCI_PCICAR &= ~MCF_PCI_PCICAR_E;
 
-    //pci_check_status();
+    pci_check_status();
 
     return value;
 }
@@ -544,7 +539,7 @@ int32_t pci_find_device(uint16_t device_id, uint16_t vendor_id, int index)
                         if (value != 0xffffffff)    /* device found */
                         {
                             if (vendor_id == 0xffff ||
-                                (PCI_VENDOR_ID(value) == vendor_id && PCI_DEVICE_ID(value) == device_id))
+                                ((PCI_VENDOR_ID(value) == vendor_id) && (PCI_DEVICE_ID(value) == device_id)))
                             {
                                 if (n == index)
                                 {
@@ -648,7 +643,7 @@ int32_t pci_hook_interrupt(int32_t handle, void *handler, void *parameter)
 {
     int i;
 
-    pci_interrupt_handler h = handler;
+    // pci_interrupt_handler h = handler;
 
     /*
      * find empty slot
@@ -1072,6 +1067,7 @@ void pci_scan(void)
         uint32_t value;
 
         value = pci_read_config_longword(handle, PCIIDR);
+
         xprintf(" %02x | %02x | %02x |%04x|%04x|%04x| %s (0x%02x)\r\n",
                 PCI_BUS_FROM_HANDLE(handle),
                 PCI_DEVICE_FROM_HANDLE(handle),
@@ -1083,6 +1079,7 @@ void pci_scan(void)
 
         /* save handle to index value so that we'll be able to later find our resources */
         handles[index] = handle;
+
         if (PCI_VENDOR_ID(value) != 0x1057 && PCI_DEVICE_ID(value) != 0x5806) /* do not configure bridge */
         {
             /* configure memory and I/O for card */
@@ -1116,6 +1113,7 @@ void init_eport(void)
             MCF_EPORT_EPPAR_EPPA3(MCF_EPORT_EPPAR_FALLING) |
             MCF_EPORT_EPPAR_EPPA2(MCF_EPORT_EPPAR_FALLING) |
             MCF_EPORT_EPPAR_EPPA1(MCF_EPORT_EPPAR_FALLING);
+
     MCF_EPORT_EPDDR = 0;    /* clear data direction register. All pins as input */
     MCF_EPORT_EPFR = -1;    /* clear all EPORT interrupt flags */
     MCF_EPORT_EPIER = 0xfe; /* enable all EPORT interrupts (for now) */
@@ -1172,7 +1170,7 @@ void init_pci(void)
     init_eport();
     init_xlbus_arbiter();
 
-    MCF_PCI_PCIGSCR = 1;    /* reset PCI */
+    MCF_PCI_PCIGSCR = -1;
 
     /*
      * setup the PCI arbiter
@@ -1198,11 +1196,11 @@ void init_pci(void)
     MCF_PAD_PAR_PCIBR = 0x3ff;
 #endif /* MACHINE_FIREBEE */
 
-    MCF_PCI_PCISCR =  MCF_PCI_PCISCR_M | /* memory access control enabled */
-        MCF_PCI_PCISCR_B |      /* bus master enabled */
-        MCF_PCI_PCISCR_M |      /* mem access enable */
-        MCF_PCI_PCISCR_MA |     /* clear master abort error */
-        MCF_PCI_PCISCR_MW;      /* memory write and invalidate enabled */
+    MCF_PCI_PCISCR =  MCF_PCI_PCISCR_M |    /* memory access control enabled */
+        MCF_PCI_PCISCR_B |                  /* bus master enabled */
+        MCF_PCI_PCISCR_M |                  /* mem access enable */
+        MCF_PCI_PCISCR_MA |                 /* clear master abort error */
+        MCF_PCI_PCISCR_MW;                  /* memory write and invalidate enabled */
 
 
     /* Setup burst parameters */
