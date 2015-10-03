@@ -179,8 +179,8 @@ void nvram_init(void)
     for (i = 0; i < 64; i++)
     {
         uint8_t data = read_pic_byte();
-        *(volatile uint8_t*)0xffff8961 = i;
-        *(volatile uint8_t*)0xffff8963 = data;
+        * (volatile uint8_t*) 0xffff8961 = i;
+        * (volatile uint8_t*) 0xffff8963 = data;
     }
 
     xprintf("finished\r\n");
@@ -232,7 +232,6 @@ void enable_coldfire_interrupts()
             MCF_GPT_GMS_TMS(1);             /* route GPT0 interrupt on interrupt controller */
     MCF_INTC_ICR62 = MCF_INTC_ICR_IL(7) |
                      MCF_INTC_ICR_IP(6);    /* interrupt level 7, interrupt priority 7 */
-
 
     MCF_EPORT_EPIER = 0xfe;                 /* int 1-7 on */
     MCF_EPORT_EPFR = 0xff;                  /* clear all pending interrupts */
