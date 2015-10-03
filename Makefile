@@ -3,6 +3,7 @@
 # This Makefile is meant for cross compiling the BaS with Vincent Riviere's cross compilers.
 # If you want to compile native on an Atari (you will need at least GCC 4.6.3), set
 # TCPREFIX to be empty.
+#
 # If you want to compile with the m68k-elf- toolchain, set TCPREFIX accordingly. Requires an extra
 # installation, but allows source level debugging over BDM with a recent gdb (tested with 7.5),
 # the m68k BDM tools from sourceforge (http://bdm.sourceforge.net) and a BDM pod (TBLCF and P&E tested).
