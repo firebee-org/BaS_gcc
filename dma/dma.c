@@ -646,8 +646,8 @@ void *dma_memcpy(void *dst, void *src, size_t n)
 #ifdef DBG_DMA
     end = MCF_SLT0_SCNT;
     time = (start - end) / (SYSCLK / 1000) / 1000;
-#endif /* DBG_DMA */
     dbg("took %d ms (%f Mbytes/second)\r\n", time, n / (float) time / 1000.0);
+#endif /* DBG_DMA */
 
     return dst;
 }

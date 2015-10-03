@@ -37,25 +37,19 @@ endif
 
 INCLUDE=-Iinclude
 CFLAGS=-mcpu=5474 \
-        -g \
-		-Wall \
-		-fomit-frame-pointer \
-		-ffreestanding \
-		-fleading-underscore \
-		-mno-strict-align \
-		-Wa,--register-prefix-optional
+	-Wall \
+	-fomit-frame-pointer \
+	-ffreestanding \
+	-fleading-underscore \
+	-Wa,--register-prefix-optional
 CFLAGS_OPTIMIZED = -mcpu=5474 \
 		-Wall \
 		-O2 \
-        -ffixed-a3 \
-        -ffixed-a4 \
-        -ffixed-a5 \
-		-g \
 		-fomit-frame-pointer \
 		-ffreestanding \
 		-fleading-underscore \
 		-Wa,--register-prefix-optional
-LDFLAGS=-g
+LDFLAGS=
 
 TRGTDIRS= ./firebee ./m5484lite ./m54455
 OBJDIRS=$(patsubst %, %/objs,$(TRGTDIRS))
@@ -94,7 +88,7 @@ CSRCS= \
 	s19reader.c \
 	flash.c \
 	dma.c \
-        i2c.c \
+	i2c.c \
 	xhdi_sd.c \
 	xhdi_interface.c \
 	pci.c \
@@ -211,17 +205,6 @@ define CC_TEMPLATE
 #else
 	#MACHINE=MACHINE_M5484LITE
 #endif
-
-# always optimize x86 emulator objects
-#$(1)/objs/x86decode.o:	CFLAGS=$(CFLAGS_OPTIMIZED)
-#$(1)/objs/x86sys.o:		CFLAGS=$(CFLAGS_OPTIMIZED)
-#$(1)/objs/x86debug.o:	CFLAGS=$(CFLAGS_OPTIMIZED)
-#$(1)/objs/x86prim_ops.o:CFLAGS=$(CFLAGS_OPTIMIZED)
-#$(1)/objs/x86ops.o:		CFLAGS=$(CFLAGS_OPTIMIZED)
-#$(1)/objs/x86ops2.o:	CFLAGS=$(CFLAGS_OPTIMIZED)
-#$(1)/objs/x86fpu.o:		CFLAGS=$(CFLAGS_OPTIMIZED)
-$(1)/objs/x86biosemu.o:	CFLAGS=$(CFLAGS_OPTIMIZED)
-#$(1)/objs/x86pcibios.o:	CFLAGS=$(CFLAGS_OPTIMIZED)
 
 $(1)/objs/%.o:%.c
 	$(CC) $$(CFLAGS) -D$$(MACHINE) $(INCLUDE) -c $$< -o $$@

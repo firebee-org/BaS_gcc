@@ -6,11 +6,11 @@
 
 		.equ	MCF_MMU_MMUCR, __MMUBAR + 0
 
-		.global _rom_header
-		.global _rom_entry
+		.globl	_rom_header
+		.globl	_rom_entry
 
 		.extern	_initialize_hardware
-		.extern _rt_mbar
+		.extern	_rt_mbar
 
 /* ROM header */
 _rom_header:
@@ -26,7 +26,7 @@ _rom_header:
 /* ROM entry point */
 _rom_entry:
 		/* disable interrupts */
-		move.w #0x2700,SR
+		move.w #0x2700,sr
 
 		/* Initialize MBAR */
 		move.l	#__MBAR,d0

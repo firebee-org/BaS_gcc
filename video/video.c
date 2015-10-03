@@ -243,13 +243,15 @@ void videl_screen_init(void)
     /* first set the physbase to a safe memory */
     setphys(0xd00000, 0);
 
-    if (!lookup_videl_mode(boot_resolution, monitor_type)) { /* mode isn't in table */
+    if (!lookup_videl_mode(boot_resolution, monitor_type)) /* mode isn't in table */
+    {
         xprintf("Invalid video mode 0x%04x changed to 0x%04x\r\n",
                 boot_resolution, FALCON_DEFAULT_BOOT);
         boot_resolution = FALCON_DEFAULT_BOOT;  /* so pick one that is */
     }
 
-    if (!VALID_VDI_BPP(boot_resolution)) {      /* mustn't confuse VDI */
+    if (!VALID_VDI_BPP(boot_resolution))      /* mustn't confuse VDI */
+    {
         xprintf("VDI doesn't support video mode 0x%04x, changed to 0x%04x\r\n",
                 boot_resolution, FALCON_DEFAULT_BOOT);
         boot_resolution = FALCON_DEFAULT_BOOT;  /* so use default */
