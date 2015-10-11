@@ -27,7 +27,8 @@
 
 uint16_t *colorptr;
 
-static const int32_t videl_dflt_palette[] = {
+static const int32_t videl_dflt_palette[] =
+{
     FRGB_WHITE, FRGB_RED, FRGB_GREEN, FRGB_YELLOW,
     FRGB_BLUE, FRGB_MAGENTA, FRGB_CYAN, FRGB_LTGRAY,
     FRGB_GRAY, FRGB_LTRED, FRGB_LTGREEN, FRGB_LTYELLOW,
@@ -104,7 +105,8 @@ static uint16_t ste_shadow_palette[16];
  * note:
  *  . 256-colour and Truecolor modes are not currently supported by the VDI
  */
-static const VMODE_ENTRY vga_init_table[] = {
+static const VMODE_ENTRY vga_init_table[] =
+{
     /* the entries in this table are for VGA/NTSC (i.e. VGA 60Hz) and VGA/PAL
      * (i.e. VGA 50Hz).  in *this* table, each entry applies to four video modes:
      * mode, mode|VIDEL_VERTICAL, mode|VIDEL_PAL, mode|VIDEL_VERTICAL|VIDEL_PAL
@@ -123,7 +125,8 @@ static const VMODE_ENTRY vga_init_table[] = {
     { -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }
 };
 
-static const VMODE_ENTRY nonvga_init_table[] = {
+static const VMODE_ENTRY nonvga_init_table[] =
+{
     /* the remaining entries are for TV+NTSC, TV+PAL, TV+NTSC+overscan, TV+PAL+overscan */
     { 0x0001, MON_ALL,  0x003e, 0x0030, 0x0008, 0x0239, 0x0012, 0x0034, 0x020d, 0x0201, 0x0016, 0x004d, 0x01dd, 0x0207 },
     { 0x0002, MON_ALL,  0x00fe, 0x00c9, 0x0027, 0x000c, 0x006d, 0x00d8, 0x020d, 0x0201, 0x0016, 0x004d, 0x01dd, 0x0207 },
@@ -262,11 +265,11 @@ static const VMODE_ENTRY nonvga_init_table[] = {
 
 void set_palette(uint16_t *colorptr)
 {
-	uint16_t *palette_regs = (uint16_t *) 0xffff9800;
+    uint16_t *palette_regs = (uint16_t *) 0xffff9800;
 
-	do
-	{
-		*palette_regs++ = *colorptr++;
+    do
+    {
+        *palette_regs++ = *colorptr++;
     } while (palette_regs < (uint16_t *) 0xffff9600 + 16);
 }
 
@@ -698,7 +701,8 @@ int16_t vsetrgb(int16_t index, int16_t count, uint32_t *rgb)
      */
     shadow = falcon_shadow_palette + index;
     source = rgb;
-    while (count--) {
+    while (count--)
+    {
         u.l = *source++;
         u.b[0] = u.b[1];                 /* shift R & G */
         u.b[1] = u.b[2];
@@ -712,7 +716,8 @@ int16_t vsetrgb(int16_t index, int16_t count, uint32_t *rgb)
      * request the VBL interrupt handler to update the STe palette
      * registers rather than the Falcon registers
      */
-    if (use_ste_palette(vsetmode(-1))) {
+    if (use_ste_palette(vsetmode(-1)))
+    {
         convert2ste(ste_shadow_palette, falcon_shadow_palette);
         colorptr = ste_shadow_palette;
 
@@ -722,7 +727,7 @@ int16_t vsetrgb(int16_t index, int16_t count, uint32_t *rgb)
 
     colorptr = (limit == 256) ? (uint16_t *) 0x01L : (uint16_t *) ((uint32_t) falcon_shadow_palette|0x01L);
 
-	set_palette(colorptr);
+    set_palette(colorptr);
     return 0; /* OK */
 }
 
@@ -767,7 +772,7 @@ int16_t vgetrgb(int16_t index, int16_t count, uint32_t *rgb)
  */
 int16_t vfixmode(int16_t mode)
 {
-	int16_t monitor, currentmode;
+    int16_t monitor, currentmode;
 
     monitor = vmontype();
     if (monitor == MON_MONO)
@@ -779,11 +784,13 @@ int16_t vfixmode(int16_t mode)
     else mode &= ~VIDEL_PAL;
 
     /* handle VGA monitor */
-    if (monitor == MON_VGA) {
+    if (monitor == MON_VGA)
+    {
         mode &= ~VIDEL_OVERSCAN;    /* turn off overscan (not used with VGA) */
         if (!(mode & VIDEL_VGA))            /* if mode doesn't have VGA set, */
             mode ^= (VIDEL_VERTICAL | VIDEL_VGA);   /* set it & flip vertical */
-        if (mode & VIDEL_COMPAT) {
+        if (mode & VIDEL_COMPAT)
+        {
             if ((mode&VIDEL_BPPMASK) == VIDEL_1BPP)
                 mode &= ~VIDEL_VERTICAL;    /* clear vertical for ST high */
             else mode |= VIDEL_VERTICAL;    /* set it for ST medium, low  */
@@ -794,7 +801,8 @@ int16_t vfixmode(int16_t mode)
     /* handle RGB or TV */
     if (mode & VIDEL_VGA)                       /* if mode has VGA set, */
         mode ^= (VIDEL_VERTICAL | VIDEL_VGA);   /* clear it & flip vertical */
-    if (mode & VIDEL_COMPAT) {
+    if (mode & VIDEL_COMPAT)
+    {
         if ((mode & VIDEL_BPPMASK) == VIDEL_1BPP)
             mode |= VIDEL_VERTICAL;         /* set vertical for ST high */
         else mode &= ~VIDEL_VERTICAL;       /* clear it for ST medium, low  */
@@ -840,13 +848,15 @@ void initialise_falcon_palette(int16_t mode)
     for (i = 0; i < 256; i++)
         falcon_shadow_palette[i] = videl_dflt_palette[i];
 
-    switch(mode&VIDEL_BPPMASK) {
-    case VIDEL_1BPP:        /* 2-colour mode */
-        falcon_shadow_palette[1] = falcon_shadow_palette[15];
-        break;
-    case VIDEL_2BPP:        /* 4-colour mode */
-        falcon_shadow_palette[3] = falcon_shadow_palette[15];
-        break;
+    switch(mode&VIDEL_BPPMASK)
+    {
+        case VIDEL_1BPP:        /* 2-colour mode */
+            falcon_shadow_palette[1] = falcon_shadow_palette[15];
+            break;
+
+        case VIDEL_2BPP:        /* 4-colour mode */
+            falcon_shadow_palette[3] = falcon_shadow_palette[15];
+            break;
     }
 
     /* a 'feature' of the Falcon hardware: if we're in a mode with less
@@ -865,7 +875,8 @@ void initialise_falcon_palette(int16_t mode)
     /*
      * if appropriate, set up the STe shadow & real palette registers
      */
-    if (use_ste_palette(mode)) {
+    if (use_ste_palette(mode))
+    {
         convert2ste(ste_shadow_palette, falcon_shadow_palette);
         for (i = 0; i < 16; i++)
             col_regs[i] = ste_shadow_palette[i];

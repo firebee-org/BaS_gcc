@@ -1,2 +1,3 @@
 include
 tos/jtagwait/include
+/usr/m68k-atari-mint/include
