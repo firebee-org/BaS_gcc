@@ -137,9 +137,9 @@ bool isr_register_handler(int vector, int level, int priority, bool (*handler)(v
     int index;
     int int_source;
 
-    if ((vector == 0) || (handler == NULL))
+    if ((vector <= 0) || (handler == NULL))
     {
-        dbg("illegal vector or handler!\r\n");
+        dbg("illegal vector or handler (vector=%x, handler=%p)!\r\n", vector, handler);
 
         return false;
     }
@@ -163,18 +163,20 @@ bool isr_register_handler(int vector, int level, int priority, bool (*handler)(v
 
             int_source = vector - 64;
 
-            if (!isr_enable_int_source(int_source))
+            if (int_source >= 0)
             {
-                dbg("failed to enable internal interrupt souce %d in IMRL/IMRH\r\n", int_source);
-                return false;
-            }
+                if (!isr_enable_int_source(int_source))
+                {
+                    dbg("failed to enable internal interrupt souce %d in IMRL/IMRH\r\n", int_source);
+                    return false;
+                }
 
-            if (!isr_set_prio_and_level(int_source, priority, level))
-            {
-                dbg("failed to set priority and level for interrupt source %d\r\n", int_source);
-                return false;
+                if (!isr_set_prio_and_level(int_source, priority, level))
+                {
+                    dbg("failed to set priority and level for interrupt source %d\r\n", int_source);
+                    return false;
+                }
             }
-
             return true;
         }
     }
@@ -242,6 +244,8 @@ bool isr_execute_handler(int vector)
 bool pic_interrupt_handler(void *arg1, void *arg2)
 {
     uint8_t rcv_byte;
+
+    dbg("PIC interrupt\r\n");
 
     rcv_byte = MCF_PSC3_PSCRB_8BIT;
     if (rcv_byte == 2)                  /* PIC requests RTC data */
