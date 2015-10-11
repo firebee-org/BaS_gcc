@@ -40,20 +40,20 @@
  * and finally ended up with this. Not nice, put paid (and working).
  *
  */
-#define SREC_TYPE(a) 		(a)[0]							/* type of record */
-#define SREC_COUNT(a) 		(a)[1]							/* length of valid bytes to follow */
-#define SREC_ADDR16(a) 		(256 * (a)[2] + (a)[3])			/* 2 byte address field */
-#define SREC_ADDR24(a)		(0x10000 * (a)[2] + 0x100 *  \
-                            (a)[3] + (a)[4])				/* 3 byte address field */
+#define SREC_TYPE(a)        (a)[0]                          /* type of record */
+#define SREC_COUNT(a)       (a)[1]                          /* length of valid bytes to follow */
+#define SREC_ADDR16(a)      (256 * (a)[2] + (a)[3])         /* 2 byte address field */
+#define SREC_ADDR24(a)      (0x10000 * (a)[2] + 0x100 *  \
+    (a)[3] + (a)[4])                                        /* 3 byte address field */
 #define SREC_ADDR32(a) 		(0x1000000 * a[2] + 0x10000 * \
-                            a[3] + 0x100 * (a)[4] + (a)[5])	/* 4 byte address field */
-#define SREC_DATA16(a)		((uint8_t *)&((a)[4]))			/* address of first byte of data in a record */
-#define SREC_DATA24(a)		((uint8_t *)&((a)[5]))			/* address of first data byte in 24 bit record */
-#define SREC_DATA32(a)		((uint8_t *)&((a)[6]))			/* adress of first byte of a record with 32 bit address field */
-#define SREC_DATA16_SIZE(a)	(SREC_COUNT((a)) - 3)			/* length of the data[] array without the checksum field */
-#define SREC_DATA24_SIZE(a)	(SREC_COUNT((a)) - 4)			/* length of the data[] array without the checksum field */
-#define SREC_DATA32_SIZE(a)	(SREC_COUNT((a)) - 5)			/* length of the data[] array without the checksum field */
-#define SREC_CHECKSUM(a)	(a)[SREC_COUNT(a) + 2 - 1]		/* record's checksum (two's complement of the sum of all bytes) */
+    (a)[3] + 0x100 * (a)[4] + (a)[5])   /* 4 byte address field */
+#define SREC_DATA16(a)      ((uint8_t *)&((a)[4]))          /* address of first byte of data in a record */
+#define SREC_DATA24(a)      ((uint8_t *)&((a)[5]))          /* address of first data byte in 24 bit record */
+#define SREC_DATA32(a)      ((uint8_t *)&((a)[6]))          /* adress of first byte of a record with 32 bit address field */
+#define SREC_DATA16_SIZE(a)	(SREC_COUNT((a)) - 3)           /* length of the data[] array without the checksum field */
+#define SREC_DATA24_SIZE(a)	(SREC_COUNT((a)) - 4)           /* length of the data[] array without the checksum field */
+#define SREC_DATA32_SIZE(a)	(SREC_COUNT((a)) - 5)           /* length of the data[] array without the checksum field */
+#define SREC_CHECKSUM(a)    (a)[SREC_COUNT(a) + 2 - 1]      /* record's checksum (two's complement of the sum of all bytes) */
 
 /*
  * convert a single hex character into byte
@@ -118,26 +118,26 @@ void print_record(uint8_t *arr)
     switch (SREC_TYPE(arr))
     {
         case 0:
-        {
-            xprintf("type 0x%x ", SREC_TYPE(arr));
-            xprintf("count 0x%x ", SREC_COUNT(arr));
-            xprintf("addr 0x%x ", SREC_ADDR16(arr));
-            xprintf("module %11.11s ", SREC_DATA16(arr));
-            xprintf("chk 0x%x 0x%x\r\n", SREC_CHECKSUM(arr), checksum(arr));
-        }
-        break;
+            {
+                xprintf("type 0x%x ", SREC_TYPE(arr));
+                xprintf("count 0x%x ", SREC_COUNT(arr));
+                xprintf("addr 0x%x ", SREC_ADDR16(arr));
+                xprintf("module %11.11s ", SREC_DATA16(arr));
+                xprintf("chk 0x%x 0x%x\r\n", SREC_CHECKSUM(arr), checksum(arr));
+            }
+            break;
 
         case 3:
         case 7:
-        {
-            xprintf("type 0x%x ", SREC_TYPE(arr));
-            xprintf("count 0x%x ", SREC_COUNT(arr));
-            xprintf("addr 0x%x ", SREC_ADDR32(arr));
-            xprintf("data %02x,%02x,%02x,%02x,... ",
-                    SREC_DATA32(arr)[0], SREC_DATA32(arr)[1], SREC_DATA32(arr)[3], SREC_DATA32(arr)[4]);
-            xprintf("chk 0x%x 0x%x\r\n", SREC_CHECKSUM(arr), checksum(arr));
-        }
-        break;
+            {
+                xprintf("type 0x%x ", SREC_TYPE(arr));
+                xprintf("count 0x%x ", SREC_COUNT(arr));
+                xprintf("addr 0x%x ", SREC_ADDR32(arr));
+                xprintf("data %02x,%02x,%02x,%02x,... ",
+                        SREC_DATA32(arr)[0], SREC_DATA32(arr)[1], SREC_DATA32(arr)[3], SREC_DATA32(arr)[4]);
+                xprintf("chk 0x%x 0x%x\r\n", SREC_CHECKSUM(arr), checksum(arr));
+            }
+            break;
 
         default:
             xprintf("unsupported report type %d in print_record\r\n", arr[0]);
@@ -220,66 +220,66 @@ err_t read_srecords(char *filename, void **start_address, uint32_t *actual_lengt
 
                 switch (vector[0])
                 {
-                case 0:	/* block header */
-                    found_block_header = true;
-                    if (found_block_data || found_block_end)
-                    {
-                        xprintf("S7 or S3 record found before S0: S-records corrupt?\r\n");
+                    case 0:	/* block header */
+                        found_block_header = true;
+                        if (found_block_data || found_block_end)
+                        {
+                            xprintf("S7 or S3 record found before S0: S-records corrupt?\r\n");
+                            ret = FAIL;
+                        }
+
+                        break;
+
+                    case 2: /* three byte address field data record */
+                        if (!found_block_header || found_block_end)
+                        {
+                            xprintf("S3 record found before S0 or after S7: S-records corrupt?\r\n");
+                            ret = FAIL;
+                        }
+                        ret = callback((uint8_t *) SREC_ADDR24(vector), SREC_DATA24(vector), SREC_DATA24_SIZE(vector));
+                        data_records++;
+                        break;
+
+                    case 3: /* four byte address field data record */
+                        if (!found_block_header || found_block_end)
+                        {
+                            xprintf("S3 record found before S0 or after S7: S-records corrupt?\r\n");
+                            ret = FAIL;
+                        }
+                        ret = callback((uint8_t *) SREC_ADDR32(vector), SREC_DATA32(vector), SREC_DATA32_SIZE(vector));
+                        data_records++;
+                        break;
+
+                    case 7: /* four byte address field end record */
+                        if (!found_block_header || found_block_end)
+                        {
+                            xprintf("S7 record found before S0 or after S7: S-records corrupt?\r\n");
+                        }
+                        else
+                        {
+                            // xprintf("S7 record (end) found after %d valid data blocks\r\n", data_records);
+                            *start_address = (void *) SREC_ADDR32(vector);
+                        }
+                        break;
+
+                    case 8: /* three byte address field end record */
+                        if (!found_block_header || found_block_end)
+                        {
+                            xprintf("S8 record found before S0 or after S8: S-records corrupt?\r\n");
+                        }
+                        else
+                        {
+                            // xprintf("S7 record (end) found after %d valid data blocks\r\n", data_records);
+                            *start_address = (void *) SREC_ADDR24(vector);
+                        }
+                        break;
+
+                    default:
+                        xprintf("unsupported record type (%d) found in line %d\r\n", vector[0], lineno);
+                        xprintf("offending line: \r\n");
+                        xprintf("%s\r\n", line);
                         ret = FAIL;
-                    }
-
-                    break;
-
-                case 2: /* three byte address field data record */
-                    if (!found_block_header || found_block_end)
-                    {
-                        xprintf("S3 record found before S0 or after S7: S-records corrupt?\r\n");
-                        ret = FAIL;
-                    }
-                    ret = callback((uint8_t *) SREC_ADDR24(vector), SREC_DATA24(vector), SREC_DATA24_SIZE(vector));
-                    data_records++;
-                    break;
-
-                case 3: /* four byte address field data record */
-                    if (!found_block_header || found_block_end)
-                    {
-                        xprintf("S3 record found before S0 or after S7: S-records corrupt?\r\n");
-                        ret = FAIL;
-                    }
-                    ret = callback((uint8_t *) SREC_ADDR32(vector), SREC_DATA32(vector), SREC_DATA32_SIZE(vector));
-                    data_records++;
-                    break;
-
-                case 7: /* four byte address field end record */
-                    if (!found_block_header || found_block_end)
-                    {
-                        xprintf("S7 record found before S0 or after S7: S-records corrupt?\r\n");
-                    }
-                    else
-                    {
-                        // xprintf("S7 record (end) found after %d valid data blocks\r\n", data_records);
-                        *start_address = (void *) SREC_ADDR32(vector);
-                    }
-                    break;
-
-                case 8: /* three byte address field end record */
-                    if (!found_block_header || found_block_end)
-                    {
-                        xprintf("S8 record found before S0 or after S8: S-records corrupt?\r\n");
-                    }
-                    else
-                    {
-                        // xprintf("S7 record (end) found after %d valid data blocks\r\n", data_records);
-                        *start_address = (void *) SREC_ADDR24(vector);
-                    }
-                    break;
-
-                default:
-                    xprintf("unsupported record type (%d) found in line %d\r\n", vector[0], lineno);
-                    xprintf("offending line: \r\n");
-                    xprintf("%s\r\n", line);
-                    ret = FAIL;
-                    break;
+                        break;
                 }
             }
             else
