@@ -37,7 +37,7 @@
 #include "dma.h"
 #include "pci.h"
 
-// #define IRQ_DEBUG
+//#define IRQ_DEBUG
 #if defined(IRQ_DEBUG)
 #define dbg(format, arg...) do { xprintf("DEBUG %s(): " format, __FUNCTION__, ##arg); } while (0)
 #else
@@ -336,6 +336,12 @@ bool irq5_handler(void *arg1, void *arg2)
         pending_interrupts & FBEE_INTR_PCI_INTC ||
         pending_interrupts & FBEE_INTR_PCI_INTD)
     {
+        int handle;
+
+        if ((handle = pci_get_interrupt_cause() != -1))
+        {
+            pci_call_interrupt_chain(handle, 0L);
+        }
         dbg("PCI interrupt IRQ5\r\n");
         FBEE_INTR_CLEAR = FBEE_INTR_PCI_INTA |
                           FBEE_INTR_PCI_INTB |
