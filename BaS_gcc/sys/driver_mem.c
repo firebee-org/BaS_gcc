@@ -27,12 +27,13 @@
 #error "unknown machine!"
 #endif
 
-#define DBG_DM
+//#define DBG_DM
 #ifdef	DBG_DM
-#define	dbg(fmt, args...)	xprintf(fmt, ##args)
+#define dbg(format, arg...) do { xprintf("DEBUG: %s(): " format, __FUNCTION__, ##arg); } while (0)
 #else
-#define dbg(fmt, args...)
+#define dbg(format, arg...) do { ; } while (0)
 #endif
+#define err(format, arg...) do { xprintf("ERROR: %s(): " format, __FUNCTION__, ##arg); } while (0)
 
 extern long offscren_reserved(void);
 
