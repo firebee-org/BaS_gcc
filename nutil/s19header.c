@@ -42,9 +42,9 @@
 #define SREC_COUNT(a) 		(a)[1]							/* length of valid bytes to follow */
 #define SREC_ADDR16(a) 		(256 * (a)[2] + (a)[3])			/* 2 byte address field */
 #define SREC_ADDR24(a)		(0x10000 * (a)[2] + 0x100 *  \
-							(a)[3] + (a)[4])				/* 3 byte address field */
+    (a)[3] + (a)[4])				/* 3 byte address field */
 #define SREC_ADDR32(a) 		(0x1000000 * a[2] + 0x10000 * \
-							a[3] + 0x100 * (a)[4] + (a)[5])	/* 4 byte address field */
+    a[3] + 0x100 * (a)[4] + (a)[5])	/* 4 byte address field */
 #define SREC_DATA16(a)		((uint8_t *)&((a)[4]))			/* address of first byte of data in a record */
 #define SREC_DATA24(a)		((uint8_t *)&((a)[5]))			/* address of first data byte in 24 bit record */
 #define SREC_DATA32(a)		((uint8_t *)&((a)[6]))			/* adress of first byte of a record with 32 bit address field */
@@ -67,13 +67,13 @@
  */
 static uint8_t nibble_to_byte(uint8_t nibble)
 {
-	if ((nibble >= '0') && (nibble <= '9'))
-		return nibble - '0';
-	else if ((nibble >= 'A' && nibble <= 'F'))
-		return 10 + nibble - 'A';
-	else if ((nibble >= 'a' && nibble <= 'f'))
-		return 10 + nibble - 'a';
-	return 0;
+    if ((nibble >= '0') && (nibble <= '9'))
+        return nibble - '0';
+    else if ((nibble >= 'A' && nibble <= 'F'))
+        return 10 + nibble - 'A';
+    else if ((nibble >= 'a' && nibble <= 'f'))
+        return 10 + nibble - 'a';
+    return 0;
 }
 
 /*
@@ -81,7 +81,7 @@ static uint8_t nibble_to_byte(uint8_t nibble)
  */
 static uint8_t hex_to_byte(uint8_t hex[2])
 {
-	return 16 * (nibble_to_byte(hex[0])) + (nibble_to_byte(hex[1]));
+    return 16 * (nibble_to_byte(hex[0])) + (nibble_to_byte(hex[1]));
 }
 
 #ifdef _NOT_USED_
@@ -90,7 +90,7 @@ static uint8_t hex_to_byte(uint8_t hex[2])
  */
 static uint16_t hex_to_word(uint8_t hex[4])
 {
-	return 256 * hex_to_byte(&hex[0]) + hex_to_byte(&hex[2]);
+    return 256 * hex_to_byte(&hex[0]) + hex_to_byte(&hex[2]);
 }
 
 /*
@@ -98,7 +98,7 @@ static uint16_t hex_to_word(uint8_t hex[4])
  */
 static uint32_t hex_to_long(uint8_t hex[8])
 {
-	return 65536 * hex_to_word(&hex[0]) + hex_to_word(&hex[4]);
+    return 65536 * hex_to_word(&hex[0]) + hex_to_word(&hex[4]);
 }
 #endif /* _NOT_USED_ */
 
@@ -109,46 +109,46 @@ static uint32_t hex_to_long(uint8_t hex[8])
  */
 static uint8_t checksum(uint8_t arr[])
 {
-	int i;
-	uint8_t checksum = SREC_COUNT(arr);
+    int i;
+    uint8_t checksum = SREC_COUNT(arr);
 
-	for (i = 0; i < SREC_COUNT(arr) - 1; i++)
-	{
-		checksum += arr[i + 2];
-	}
-	return ~checksum;
+    for (i = 0; i < SREC_COUNT(arr) - 1; i++)
+    {
+        checksum += arr[i + 2];
+    }
+    return ~checksum;
 }
 
 void print_record(uint8_t *arr)
 {
-	switch (SREC_TYPE(arr))
-	{
-		case 0:
-		{
-			printf("type 0x%x ", SREC_TYPE(arr));
-			printf("count 0x%x ", SREC_COUNT(arr));
-			printf("addr 0x%x ", SREC_ADDR16(arr));
-			printf("module %11.11s ", SREC_DATA16(arr));
-			printf("chk 0x%x 0x%x\r\n", SREC_CHECKSUM(arr), checksum(arr));
-		}
-		break;
+    switch (SREC_TYPE(arr))
+    {
+        case 0:
+            {
+                printf("type 0x%x ", SREC_TYPE(arr));
+                printf("count 0x%x ", SREC_COUNT(arr));
+                printf("addr 0x%x ", SREC_ADDR16(arr));
+                printf("module %11.11s ", SREC_DATA16(arr));
+                printf("chk 0x%x 0x%x\r\n", SREC_CHECKSUM(arr), checksum(arr));
+            }
+            break;
 
-		case 3:
-		case 7:
-		{
-			printf("type 0x%x ", SREC_TYPE(arr));
-			printf("count 0x%x ", SREC_COUNT(arr));
-			printf("addr 0x%x ", SREC_ADDR32(arr));
-			printf("data %02x,%02x,%02x,%02x,... ",
-					SREC_DATA32(arr)[0], SREC_DATA32(arr)[1], SREC_DATA32(arr)[3], SREC_DATA32(arr)[4]);
-			printf("chk 0x%x 0x%x\r\n", SREC_CHECKSUM(arr), checksum(arr));
-		}
-		break;
+        case 3:
+        case 7:
+            {
+                printf("type 0x%x ", SREC_TYPE(arr));
+                printf("count 0x%x ", SREC_COUNT(arr));
+                printf("addr 0x%x ", SREC_ADDR32(arr));
+                printf("data %02x,%02x,%02x,%02x,... ",
+                       SREC_DATA32(arr)[0], SREC_DATA32(arr)[1], SREC_DATA32(arr)[3], SREC_DATA32(arr)[4]);
+                printf("chk 0x%x 0x%x\r\n", SREC_CHECKSUM(arr), checksum(arr));
+            }
+            break;
 
-		default:
-			printf("unsupported report type %d in print_record\r\n", arr[0]);
-			break;
-	}
+        default:
+            printf("unsupported report type %d in print_record\r\n", arr[0]);
+            break;
+    }
 }
 
 /*
@@ -156,26 +156,26 @@ void print_record(uint8_t *arr)
  */
 static void line_to_vector(uint8_t *buff, uint8_t *vector)
 {
-	int i;
-	int length;
-	uint8_t *vp = vector;
+    int i;
+    int length;
+    uint8_t *vp = vector;
 
-	length = hex_to_byte(buff + 2);
+    length = hex_to_byte(buff + 2);
 
-	buff++;
-	*vp++ = nibble_to_byte(*buff); /* record type. Only one single nibble */
-	buff++;
+    buff++;
+    *vp++ = nibble_to_byte(*buff); /* record type. Only one single nibble */
+    buff++;
 
-	for (i = 0; i <= length; i++)
-	{
-		*vp++ = hex_to_byte(buff);
-		buff += 2;
-	}
+    for (i = 0; i <= length; i++)
+    {
+        *vp++ = hex_to_byte(buff);
+        buff += 2;
+    }
 }
 
 static void vector_to_line(uint8_t *vector, uint8_t *buff)
 {
-	sprintf(buff, "S");
+    sprintf(buff, "S");
 }
 
 /*
@@ -199,157 +199,157 @@ static void vector_to_line(uint8_t *vector, uint8_t *buff)
  */
 int main(int argc, char *argv[])
 {
-	int fres;
-	int set;
-	char *filename = NULL;
-	FILE *file;
-	int ret = OK;
-	int i;
+    int fres;
+    int set;
+    char *filename = NULL;
+    FILE *file;
+    int ret = OK;
+    int i;
 
 
-	for (i = 1; i < argc; i++)
-	{
-		if (argv[i][0] == '-')
-		{
-			/* option */
-			if (strcmp(argv[i], "-s") == 0)
-			{
-				set = 1;
-			}
-		}
-		else
-		{
-			filename = argv[i];
-		}
-	}
+    for (i = 1; i < argc; i++)
+    {
+        if (argv[i][0] == '-')
+        {
+            /* option */
+            if (strcmp(argv[i], "-s") == 0)
+            {
+                set = 1;
+            }
+        }
+        else
+        {
+            filename = argv[i];
+        }
+    }
 
-	if (filename == NULL)
-	{
-		fprintf(stderr, "no filename given\n");
-		exit(1);
-	}
+    if (filename == NULL)
+    {
+        fprintf(stderr, "no filename given\n");
+        exit(1);
+    }
 
-	if ((file = fopen(filename, "r")) != NULL)
-	{
-		uint8_t line[80];
-		int lineno = 0;
-		int data_records = 0;
-		bool found_block_header = false;
-		bool found_block_end = false;
-		bool found_block_data = false;
+    if ((file = fopen(filename, "r")) != NULL)
+    {
+        uint8_t line[80];
+        int lineno = 0;
+        int data_records = 0;
+        bool found_block_header = false;
+        bool found_block_end = false;
+        bool found_block_data = false;
 
-		while (ret == OK && (uint8_t *) fgets((char *) line, sizeof(line), file) != NULL)
-		{
-			lineno++;
-			uint8_t vector[80];
-			char str[255];
-			int length;
+        while (ret == OK && (uint8_t *) fgets((char *) line, sizeof(line), file) != NULL)
+        {
+            lineno++;
+            uint8_t vector[80];
+            char str[255];
+            int length;
 
 
 
-			line_to_vector(line, vector);	/* vector now contains the decoded contents of line, from line[1] on */
+            line_to_vector(line, vector);	/* vector now contains the decoded contents of line, from line[1] on */
 
-			if (line[0] == 'S')
-			{
-				char header[256];
+            if (line[0] == 'S')
+            {
+                char header[256];
 
-				if (SREC_CHECKSUM(vector) != checksum(vector))
-				{
-					printf("invalid checksum 0x%x (should be 0x%x) in line %d\r\n",
-							SREC_CHECKSUM(vector), checksum(vector), lineno);
-					ret = FAIL;
-				}
+                if (SREC_CHECKSUM(vector) != checksum(vector))
+                {
+                    printf("invalid checksum 0x%x (should be 0x%x) in line %d\r\n",
+                           SREC_CHECKSUM(vector), checksum(vector), lineno);
+                    ret = FAIL;
+                }
 
-				switch (vector[0])
-				{
-				case 0:	/* block header */
-					found_block_header = true;
-					if (found_block_data || found_block_end)
-					{
-						printf("S7 or S3 record found before S0: S-records corrupt?\r\n");
-						ret = FAIL;
-					}
-					printf("address: 0x%04x\n", SREC_ADDR16(vector));
-					printf("length of record: %d\n", SREC_COUNT(vector));
-					length = SREC_DATA16_SIZE(vector) - (SREC_DATA16(vector) - vector);
-					printf("length: %d\n", length);
-					strncpy(str, SREC_DATA16(vector), length);
-					str[length] = '\0';
-					printf("Name: %s\n", str);
-					printf("version: %d, revision %d\n",
-									* (unsigned short *)((char *) SREC_DATA16(vector) + length),
-									* (unsigned short *)((char *) SREC_DATA16(vector) + length + 1));
-					print_record(vector);
+                switch (vector[0])
+                {
+                    case 0:	/* block header */
+                        found_block_header = true;
+                        if (found_block_data || found_block_end)
+                        {
+                            printf("S7 or S3 record found before S0: S-records corrupt?\r\n");
+                            ret = FAIL;
+                        }
+                        printf("address: 0x%04x\n", SREC_ADDR16(vector));
+                        printf("length of record: %d\n", SREC_COUNT(vector));
+                        length = SREC_DATA16_SIZE(vector) - (SREC_DATA16(vector) - vector);
+                        printf("length: %d\n", length);
+                        strncpy(str, SREC_DATA16(vector), length);
+                        str[length] = '\0';
+                        printf("Name: %s\n", str);
+                        printf("version: %d, revision %d\n",
+                               * (unsigned short *)((char *) SREC_DATA16(vector) + length),
+                               * (unsigned short *)((char *) SREC_DATA16(vector) + length + 1));
+                        print_record(vector);
 
-					break;
+                        break;
 
-				case 2: /* three byte address field data record */
-					if (!found_block_header || found_block_end)
-					{
-						printf("S3 record found before S0 or after S7: S-records corrupt?\r\n");
-						ret = FAIL;
-					}
-					// ret = callback((uint8_t *) SREC_ADDR24(vector), SREC_DATA24(vector), SREC_DATA24_SIZE(vector));
-					data_records++;
-					break;
+                    case 2: /* three byte address field data record */
+                        if (!found_block_header || found_block_end)
+                        {
+                            printf("S3 record found before S0 or after S7: S-records corrupt?\r\n");
+                            ret = FAIL;
+                        }
+                        // ret = callback((uint8_t *) SREC_ADDR24(vector), SREC_DATA24(vector), SREC_DATA24_SIZE(vector));
+                        data_records++;
+                        break;
 
-				case 3: /* four byte address field data record */
-					if (!found_block_header || found_block_end)
-					{
-						printf("S3 record found before S0 or after S7: S-records corrupt?\r\n");
-						ret = FAIL;
-					}
-					// ret = callback((uint8_t *) SREC_ADDR32(vector), SREC_DATA32(vector), SREC_DATA32_SIZE(vector));
-					data_records++;
-					break;
+                    case 3: /* four byte address field data record */
+                        if (!found_block_header || found_block_end)
+                        {
+                            printf("S3 record found before S0 or after S7: S-records corrupt?\r\n");
+                            ret = FAIL;
+                        }
+                        // ret = callback((uint8_t *) SREC_ADDR32(vector), SREC_DATA32(vector), SREC_DATA32_SIZE(vector));
+                        data_records++;
+                        break;
 
-				case 7: /* four byte address field end record */
-					if (!found_block_header || found_block_end)
-					{
-						printf("S7 record found before S0 or after S7: S-records corrupt?\r\n");
-					}
-					else
-					{
-						// printf("S7 record (end) found after %d valid data blocks\r\n", data_records);
-						//*start_address = (void *) SREC_ADDR32(vector);
-					}
-					break;
+                    case 7: /* four byte address field end record */
+                        if (!found_block_header || found_block_end)
+                        {
+                            printf("S7 record found before S0 or after S7: S-records corrupt?\r\n");
+                        }
+                        else
+                        {
+                            // printf("S7 record (end) found after %d valid data blocks\r\n", data_records);
+                            //*start_address = (void *) SREC_ADDR32(vector);
+                        }
+                        break;
 
-				case 8: /* three byte address field end record */
-					if (!found_block_header || found_block_end)
-					{
-						printf("S8 record found before S0 or after S8: S-records corrupt?\r\n");
-					}
-					else
-					{
-						// printf("S7 record (end) found after %d valid data blocks\r\n", data_records);
-						//*start_address = (void *) SREC_ADDR24(vector);
-					}
-					break;
+                    case 8: /* three byte address field end record */
+                        if (!found_block_header || found_block_end)
+                        {
+                            printf("S8 record found before S0 or after S8: S-records corrupt?\r\n");
+                        }
+                        else
+                        {
+                            // printf("S7 record (end) found after %d valid data blocks\r\n", data_records);
+                            //*start_address = (void *) SREC_ADDR24(vector);
+                        }
+                        break;
 
-				default:
-					printf("unsupported record type (%d) found in line %d\r\n", vector[0], lineno);
-					printf("offending line: \r\n");
-					printf("%s\r\n", line);
-					ret = FAIL;
-					break;
-				}
-			}
-			else
-			{
-				printf("illegal character ('%c') found on line %d: S-records corrupt?\r\n", line[0], lineno);
-				ret = FAIL;
-				break;
-			}
-		}
-		fclose(file);
-	}
-	else
-	{
-		printf("could not open file %s\r\n", filename);
-		ret = FILE_OPEN;
-	}
-	return ret;
+                    default:
+                        printf("unsupported record type (%d) found in line %d\r\n", vector[0], lineno);
+                        printf("offending line: \r\n");
+                        printf("%s\r\n", line);
+                        ret = FAIL;
+                        break;
+                }
+            }
+            else
+            {
+                printf("illegal character ('%c') found on line %d: S-records corrupt?\r\n", line[0], lineno);
+                ret = FAIL;
+                break;
+            }
+        }
+        fclose(file);
+    }
+    else
+    {
+        printf("could not open file %s\r\n", filename);
+        ret = FILE_OPEN;
+    }
+    return ret;
 }
 
 /*
@@ -357,9 +357,9 @@ int main(int argc, char *argv[])
  */
 static err_t simulate()
 {
-	err_t ret = OK;
+    err_t ret = OK;
 
-	return ret;
+    return ret;
 }
 
 
@@ -368,15 +368,15 @@ static err_t simulate()
  */
 static err_t verify(uint8_t *dst, uint8_t *src, uint32_t length)
 {
-	uint8_t *end = src + length;
+    uint8_t *end = src + length;
 
-	do
-	{
-		if (*src++ != *dst++)
-			return FAIL;
-	} while (src < end);
+    do
+    {
+        if (*src++ != *dst++)
+            return FAIL;
+    } while (src < end);
 
-	return OK;
+    return OK;
 }
 
 void srec_execute(char *flasher_filename)
