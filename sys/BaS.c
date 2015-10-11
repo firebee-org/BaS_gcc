@@ -232,24 +232,30 @@ void enable_coldfire_interrupts()
             MCF_GPT_GMS_TMS(1);             /* route GPT0 interrupt on interrupt controller */
     MCF_INTC_ICR62 = MCF_INTC_ICR_IL(7) |
                      MCF_INTC_ICR_IP(6);    /* interrupt level 7, interrupt priority 7 */
-
-    MCF_EPORT_EPIER = 0xfe;                 /* int 1-7 on */
-    MCF_EPORT_EPFR = 0xff;                  /* clear all pending interrupts */
-    MCF_INTC_IMRL = 0xffffff00;             /* int 1-7 on */
-    //MCF_INTC_IMRH = 0xbffffffe;           /* psc3 and timer 0 int on */
-    MCF_INTC_IMRH = 0;
-    FBEE_INTR_ENABLE = FBEE_INTR_INT_IRQ7 | /* enable pseudo bus error */
-            FBEE_INTR_INT_MFP_IRQ6 |        /* enable MFP interrupts */
-            FBEE_INTR_INT_FPGA_IRQ5 |       /* enable Firebee (PIC, PCI, ETH PHY, DVI, DSP) interrupts */
-            FBEE_INTR_INT_VSYNC_IRQ4 //|      /* enable vsync interrupts */
-            //FBEE_INTR_PCI_INTA |            /* enable PCI interrupts */
-            //FBEE_INTR_PCI_INTB |
-            //FBEE_INTR_PCI_INTC |
-            //FBEE_INTR_PCI_INTD;
-            ;
+    MCF_INTC_IMRH = 0xbffffffe;             /* psc3 and timer 0 int on */
 #endif
 
     xprintf("finished\r\n");
+}
+
+void enable_pci_interrupts()
+{
+    dbg("enable PCI interrupts\r\n");
+    MCF_EPORT_EPIER = 0xfe;                 /* int 1-7 on */
+    MCF_EPORT_EPFR = 0xff;                  /* clear all pending interrupts */
+    MCF_INTC_IMRL = 0xffffff00;             /* int 1-7 on */
+    MCF_INTC_IMRH = 0;
+#if defined(MACHINE_FIREBEE)
+    FBEE_INTR_ENABLE = FBEE_INTR_INT_IRQ7 | /* enable pseudo bus error */
+            FBEE_INTR_INT_MFP_IRQ6 |        /* enable MFP interrupts */
+            FBEE_INTR_INT_FPGA_IRQ5 |       /* enable Firebee (PIC, PCI, ETH PHY, DVI, DSP) interrupts */
+            FBEE_INTR_INT_VSYNC_IRQ4 |      /* enable vsync interrupts */
+            FBEE_INTR_PCI_INTA |            /* enable PCI interrupts */
+            FBEE_INTR_PCI_INTB |
+            FBEE_INTR_PCI_INTC |
+            FBEE_INTR_PCI_INTD;
+            ;
+#endif
 }
 
 void disable_coldfire_interrupts()
@@ -465,10 +471,11 @@ void BaS(void)
     fec_irq_enable(0, 5, 1);
 
     init_pci();
+    enable_pci_interrupts();
     video_init();
 
     /* initialize USB devices */
-    //init_usb();
+    init_usb();
 
     set_ipl(7);     /* disable interrupts */
 
