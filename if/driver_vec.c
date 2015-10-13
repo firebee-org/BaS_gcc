@@ -236,36 +236,41 @@ void remove_handler(void)
     *trap_0_vector = (uint32_t) std_exc_vec;
 }
 
+/*
+ * trap #0 entry point
+ *
+ * this is used to retrieve the driver table that gets exposed to the OS by BaS
+ */
 void __attribute__((interrupt)) get_bas_drivers(void)
 {
     __asm__ __volatile(
         /*
          * sp should now point to the next instruction after the trap
          * The trap itself is 2 bytes, the four bytes before that must
-         * read '_BAS' or we are not meant by this call
+         * read '_BAS', otherwise we are not meant by this call
          */
-        "		move.l	a0,-(sp)				\n\t"	// save registers
+        "       move.l  a0,-(sp)                \n\t"   // save registers
         "       move.l  d0,-(sp)                \n\t"
-        "		move.l	12(sp),a0         		\n\t"	// get return address
+        "       move.l  12(sp),a0               \n\t"   // get return address
         "       move.l  -6(a0),d0               \n\t"   //
-        "		cmp.l	#0x5f424153,d0			\n\t"	// is it '_BAS'?
-        "		beq		fetch_drivers			\n\t"	// yes
+        "       cmp.l   #0x5f424153,d0          \n\t"   // is it '_BAS'?
+        "       beq     fetch_drivers           \n\t"   // yes
         /*
          * This seems indeed a "normal" trap #0. Better pass control to "normal" trap #0 processing
          * If trap #0 isn't set to something sensible, we'll probably crash here, but this must be
          * prevented on the caller side.
          */
-        "		move.l	(sp)+,d0				\n\t"	// restore registers
-        "		move.l	(sp)+,a0				\n\t"
-        "		move.l	0x80,-(sp)				\n\t"	// fetch vector
-        "		rts								\n\t"	// and jump through it
+        "       move.l  (sp)+,d0                \n\t"   // restore registers
+        "       move.l  (sp)+,a0                \n\t"
+        "       move.l  0x80,-(sp)              \n\t"   // fetch vector
+        "       rts                             \n\t"   // and jump through it
 
-        "fetch_drivers:							\n\t"
-        "		move.l	#%[drivers],d0			\n\t"	// return driver struct in d0
-        "		addq.l	#4,sp					\n\t"	// adjust stack
+        "fetch_drivers:                         \n\t"
+        "       move.l	#%[drivers],d0          \n\t"   // return driver struct in d0
+        "       addq.l	#4,sp                   \n\t"   // adjust stack
         "       move.l  (sp)+,a0                \n\t"   // restore register
         :                                   /* no output */
-        :	[drivers] "o" (bas_drivers)		/* input */
-        :									/* clobber */
+        :   [drivers] "o" (bas_drivers)     /* input */
+        :                                   /* clobber */
     );
 }
