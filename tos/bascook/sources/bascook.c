@@ -28,7 +28,7 @@ struct driver_table *get_bas_drivers(void)
  * exposure call.
  * If we get here, we have a BaS version that doesn't support the trap 0 interface
  */
-static void __attribute__((interrupt)) my_own_trap0_handler(void)
+static void __attribute__((interrupt)) trap0_catcher(void)
 {
     __asm__ __volatile__(
         "       clr.l       d0              \n\t"       // return 0 to indicate not supported
@@ -104,17 +104,13 @@ static char *dt_to_str(enum driver_type dt)
     }
 }
 
-int main(int argc, char *argv[])
+static void set_driver_cookies(void)
 {
     struct driver_table *dt;
-    void *ssp;
     void *old_vector;
     char **sysbase = (char **) 0x4f2;
     uint32_t sig;
 
-    (void) Cconws("retrieve BaS driver interface\r\n");
-
-    ssp = (void *) Super(0L);                               /* go to supervisor mode, we are doing dirty tricks */
     sig = * (long *)((*sysbase) + 0x2c);
 
     /*
@@ -122,7 +118,7 @@ int main(int argc, char *argv[])
      */
     if (sig == 0x45544f53)
     {
-        old_vector = Setexc(0x20, my_own_trap0_handler);        /* set our own temporarily */
+        old_vector = Setexc(0x20, trap0_catcher);               /* set our own temporarily */
         dt = get_bas_drivers();                                 /* trap #0 */
         (void) Setexc(0x20, old_vector);                        /* restore original vector */
 
@@ -164,7 +160,13 @@ int main(int argc, char *argv[])
         printf("not running on EmuTOS,\r\n(signature 0x%04x instead of 0x%04x\r\n",
                (uint32_t) sig, 0x45544f53);
     }
-    Super(ssp);
+}
+
+int main(int argc, char *argv[])
+{
+    (void) Cconws("retrieve BaS driver interface\r\n");
+
+    Supexec(set_driver_cookies);
 
     while (Cconis()) Cconin();  /* eat keys */
 
