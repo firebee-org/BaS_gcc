@@ -10,7 +10,7 @@ struct driver_table *get_bas_drivers(void)
     struct driver_table *ret = NULL;
 
     __asm__ __volatile__(
-        "           bra.s    do_trap            \n\t"
+        "           bra.s   do_trap             \n\t"
         "           .dc.l   0x5f424153          \n\t"   // '_BAS'
         "do_trap:   trap    #0                  \n\t"
         "           move.l  d0,%[ret]           \n\t"
@@ -85,7 +85,7 @@ void setcookie(uint32_t cookie, uint32_t value)
         printf("cannot set cookie, cookie jar is full!\r\n");
 }
 
-#define COOKIE_DMAC 0x444d4143L /* FireTOS DMA API */
+#define COOKIE_DMAC 0x444d4143L /* FireTOS DMA API cookie ("DMAC") */
 #define COOKIE_BAS_ 0x4241535fL /* BAS_ cookie (points to driver table struct */
 
 static char *dt_to_str(enum driver_type dt)
