@@ -115,6 +115,7 @@ static void init_video_ddr(void) {
 
     * (uint32_t *) 0xf0000400 = 0x01070002; /* fifo on, refresh on, ddrcs und cke on, video dac on */
 
+    xprintf("sys_ctr = 0x%08x\r\n", * (uint32_t *) 0xf0000400);
     xprintf("finished\r\n");
 }
 
@@ -122,10 +123,18 @@ void do_tests(void)
 {
     uint32_t version;
 
+    xprintf("initialize Firebee video PLL\r\n");
+    init_pll();
+    xprintf("finished\r\n");
+
+    xprintf("initialize video ddr memory\r\n");
+    init_video_ddr();
+    xprintf("finished\r\n");
+
     xprintf("try to read Configware version (only works on later configs)\r\n");
     version = * (uint32_t *) 0xffffffff;
 
-    xprintf("version = 0x%lx\r\n", version);
+    xprintf("version = 0x%08lx\r\n", version);
 
     xprintf("try to access Firebee FPGA memory\r\n");
 
