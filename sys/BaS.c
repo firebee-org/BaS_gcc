@@ -375,10 +375,11 @@ void BaS(void)
     mmu_init();
     xprintf("finished\r\n");
 
-    xprintf("copy EmuTOS: ");
-
+    xprintf("initialize Coldfire DMA: ");
     dma_init();
+    xprintf("finished\r\n");
 
+    xprintf("copy EmuTOS: ");
     /* copy EMUTOS */
     src = (uint8_t *) EMUTOS;
     dma_memcpy(dst, src, EMUTOS_SIZE);
