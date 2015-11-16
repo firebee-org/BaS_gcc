@@ -178,7 +178,7 @@ ver:
 	touch include/version.h
 .PHONY: tos
 tos:
-	(cd tos; make)
+	(cd tos; $(MAKE))
 
 .PHONY: clean
 clean:
