@@ -317,7 +317,7 @@ void init_isr(void)
         dbg("unable to register isr for DMA\r\n");
     }
 
-#ifdef MACHINE_FIREBEE
+#if defined(MACHINE_FIREBEE)
     /*
      * register GPT0 timer interrupt vector
      */
@@ -397,7 +397,7 @@ void BaS(void)
     NOP();                                      /* force pipeline sync */
     xprintf("finished\r\n");
 
-#ifdef MACHINE_FIREBEE
+#if defined(MACHINE_FIREBEE)
     xprintf("IDE reset: ");
     /* IDE reset */
     * (volatile uint8_t *) (0xffff8802 - 2) = 14;
