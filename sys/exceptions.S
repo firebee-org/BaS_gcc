@@ -21,9 +21,9 @@
  */
 
 #include "startcf.h"
-#if MACHINE_FIREBEE
+#if defined(MACHINE_FIREBEE)
 #include "firebee.h"
-#elif MACHINE_M5484LITE
+#elif defined(MACHINE_M5484LITE)
 #include "m5484l.h"
 #endif /* MACHINE_FIREBEE */
 
@@ -446,8 +446,8 @@ irq6:		move.w	#0x2700,sr                  // disable interrupt
 
         move.l	8(a6),-(sp)                     // format status word
         move.l	12(a6),-(sp)                    // pc at exception
-        jsr	_irq6_handler                       // call C handler
-        lea	8(sp),sp                            // fix stack
+        jsr     _irq6_handler                   // call C handler
+        lea     8(sp),sp                        // fix stack
 
         tst.b	d0                              // interrupt handled?
         beq	irq6_forward                        // no, forward to TOS

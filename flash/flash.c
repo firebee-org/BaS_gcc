@@ -1,9 +1,9 @@
 #include <stddef.h>
 #include "bas_types.h"
 
-#if MACHINE_FIREBEE
+#if defined(MACHINE_FIREBEE)
 #include "firebee.h"
-#elif MACHINE_M5484LITE
+#elif defined(MACHINE_M5484LITE)
 #include "m5484l.h"
 #endif /* MACHINE_FIREBEE */
 

@@ -1104,9 +1104,9 @@ void init_eport(void)
     /* configure IRQ1-7 pins on EPORT falling edge triggered */
     MCF_EPORT_EPPAR = MCF_EPORT_EPPAR_EPPA7(MCF_EPORT_EPPAR_FALLING) |
             MCF_EPORT_EPPAR_EPPA6(MCF_EPORT_EPPAR_FALLING) |
-#if MACHINE_FIREBEE     /* irq5 level triggered on FireBee */
+#if defined(MACHINE_FIREBEE)     /* irq5 level triggered on FireBee */
             MCF_EPORT_EPPAR_EPPA5(MCF_EPORT_EPPAR_LEVEL) |
-#elif MACHINE_M5484LITE
+#elif defined(MACHINE_M5484LITE)
             MCF_EPORT_EPPAR_EPPA5(MCF_EPORT_EPPAR_FALLING) |
 #endif /* MACHINE_FIREBEE */
             MCF_EPORT_EPPAR_EPPA4(MCF_EPORT_EPPAR_FALLING) |
