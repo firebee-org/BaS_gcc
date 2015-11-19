@@ -229,6 +229,8 @@ static struct virt_to_phys translation[] =
     { 0x00000000, 0x00e00000, 0x00000000 },     /* map first 14 MByte to first 14 Mb of SD ram */
     { 0x00e00000, 0x00100000, 0x00000000 },     /* map TOS to SDRAM */
     { 0x01000000, 0x04000000, 0x00000000 },     /* map rest of ram virt = phys */
+    { 0x60000000, 0x10000000, 0x00000000 },     /* map CPLD CF card I/O area */
+
 };
 #elif defined(MACHINE_M54455)
 /* FIXME: this is not determined yet! */
@@ -526,15 +528,17 @@ void mmu_init(void)
         if (addr >= 0x60000000UL && addr < 0x70000000UL)        /* Compact Flash on the m5484lite */
         {
             pages[i].cache_mode = CACHE_NOCACHE_PRECISE;
-            pages[i].supervisor_protect = 0;
+            pages[i].execute = 0;
             pages[i].read = 1;
             pages[i].write = 1;
-            pages[i].execute = 1;
+            pages[i].execute = 0;
             pages[i].global = 1;
+            pages[i].supervisor_protect = 1;
         }
         else if (addr >= 0x0UL && addr < 0x00e00000UL)          /* ST-RAM, potential video memory */
         {
             pages[i].cache_mode = CACHE_WRITETHROUGH;
+            pages[i].execute = 1;
             pages[i].supervisor_protect = 0;
             pages[i].read = 1;
             pages[i].write = 1;
@@ -690,6 +694,23 @@ void mmu_init(void)
     /* 0x00000000 - 0x00100000 (first MB of physical memory) locked virt = phys */
     mmu_map_page(0x0, 0x0, MMU_PAGE_SIZE_1M, 0, &flags);
 
+#ifdef _NOT_USED_
+#if defined(MACHINE_FIREBEE)
+    /*
+     * 0x00d00000 - 0x00e00000 (last megabyte of ST RAM = Falcon video memory) locked ID = 6
+     * mapped to physical address 0x60d0'0000 (FPGA video memory)
+     * video RAM: read write execute normal write true
+     */
+    flags.cache_mode = CACHE_WRITETHROUGH;
+    flags.supervisor_protect = 0;
+    flags.read = 1;
+    flags.write = 1;
+    flags.execute = 1;
+    flags.locked = true;
+    mmu_map_page(0x00d00000, 0x60d00000, MMU_PAGE_SIZE_1M, SCA_PAGE_ID, &flags);
+#endif /* MACHINE_FIREBEE */
+#endif
+
     /*
      * Make the TOS (in SDRAM) read-only
      * This maps virtual 0x00e0'0000 - 0x00ef'ffff to the same virtual address
@@ -714,17 +735,6 @@ void mmu_init(void)
     flags.execute = 0;
     flags.locked = 1;
     mmu_map_page(0x00f00000, 0xfff00000, MMU_PAGE_SIZE_1M, 0, &flags);
-#elif defined(MACHINE_M5484LITE)
-    /*
-     * Map m5484LITE CPLD access
-     */
-    flags.cache_mode = CACHE_NOCACHE_PRECISE;
-    flags.supervisor_protect = 1;
-    flags.read = 1;
-    flags.write = 1;
-    flags.execute = 0;
-    flags.locked = 1;
-    mmu_map_page(0x6a000000, 0x6a000000, MMU_PAGE_SIZE_1M, 0, &flags);
 #endif /* MACHINE_FIREBEE */
 
     /*
@@ -753,11 +763,12 @@ void mmu_init(void)
 }
 
 
-uint32_t mmutr_miss(uint32_t mmu_sr, uint32_t fault_address, uint32_t pc, uint32_t format_status)
+uint32_t mmutr_miss(uint32_t mmu_sr, uint32_t fault_address, uint32_t pc,
+                uint32_t format_status)
 {
     uint32_t fault = format_status & 0xc030000;
 
-    //dbg("MMU TLB MISS accessing 0x%08x\r\nFS = 0x%08x\r\nPC = 0x%08x\r\n", fault_address, format_status, pc);
+    dbg("MMU TLB MISS accessing 0x%08x\r\nFS = 0x%08x\r\nPC = 0x%08x\r\n", fault_address, format_status, pc);
     // flush_and_invalidate_caches();
 
     switch (fault)

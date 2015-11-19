@@ -406,52 +406,43 @@ void init_fbcs()
     xprintf("FlexBus chip select registers initialization: ");
 
     /* Flash */
-    MCF_FBCS0_CSAR = MCF_FBCS_CSAR_BA(BOOTFLASH_BASE_ADDRESS);    /* flash base address */
-    MCF_FBCS0_CSCR = MCF_FBCS_CSCR_PS_16 |              /* 16 bit word access */
+    MCF_FBCS0_CSAR = BOOTFLASH_BASE_ADDRESS;    /* flash base address */
+    MCF_FBCS0_CSCR = MCF_FBCS_CSCR_PS_16 |      /* 16 bit word access */
             MCF_FBCS_CSCR_WS(6)|                        /* 6 Waitstates */
             MCF_FBCS_CSCR_AA |
             MCF_FBCS_CSCR_ASET(1) |
-            MCF_FBCS_CSCR_RDAH(1);                      /* chip errata SECF077 */
+            MCF_FBCS_CSCR_RDAH(1);              /* chip errata SECF077 */
     MCF_FBCS0_CSMR = BOOTFLASH_BAM |
             MCF_FBCS_CSMR_V;                            /* enable */
 
 
-#if defined(MACHINE_FIREBEE) /* FBC setup for FireBee */
-    MCF_FBCS1_CSAR = MCF_FBCS_CSAR_BA(0xFFF00000);      /* ATARI I/O ADRESS */
+#if MACHINE_FIREBEE /* FBC setup for FireBee */
+    MCF_FBCS1_CSAR = 0xFFF00000;                        /* ATARI I/O ADRESS */
     MCF_FBCS1_CSCR = MCF_FBCS_CSCR_PS_16                /* 16BIT PORT */
         | MCF_FBCS_CSCR_WS(8)                           /* DEFAULT 8WS */
         | MCF_FBCS_CSCR_AA;                             /* AA */
     MCF_FBCS1_CSMR = MCF_FBCS_CSMR_BAM_1M | MCF_FBCS_CSMR_V;
 
-    MCF_FBCS2_CSAR = MCF_FBCS_CSAR_BA(0xF0000000);      /* Firebee new I/O address range */
+    MCF_FBCS2_CSAR = 0xF0000000;                        /* Firebee new I/O address range */
     MCF_FBCS2_CSCR = MCF_FBCS_CSCR_PS_32                /* 32BIT PORT */
         | MCF_FBCS_CSCR_WS(8)                           /* DEFAULT 4WS */
         | MCF_FBCS_CSCR_AA;                             /* AA */
     MCF_FBCS2_CSMR = (MCF_FBCS_CSMR_BAM_128M            /* F000'0000-F7FF'FFFF */
               | MCF_FBCS_CSMR_V);
 
-    MCF_FBCS3_CSAR = MCF_FBCS_CSAR_BA(0xF8000000);      /* Firebee new I/O address range */
+    MCF_FBCS3_CSAR = 0xF8000000;                        /* Firebee new I/O address range */
     MCF_FBCS3_CSCR = MCF_FBCS_CSCR_PS_16                /* 16BIT PORT */
         | MCF_FBCS_CSCR_AA; // AA
     MCF_FBCS3_CSMR = (MCF_FBCS_CSMR_BAM_64M             /* F800'0000-FBFF'FFFF */
               | MCF_FBCS_CSMR_V);
 
-    MCF_FBCS4_CSAR = MCF_FBCS_CSAR_BA(0x40000000);      /* video ram area, FB_CS3 not used, decoded on FPGA */
+    MCF_FBCS4_CSAR = 0x40000000;                        /* video ram area, FB_CS3 not used, decoded on FPGA */
     MCF_FBCS4_CSCR = MCF_FBCS_CSCR_PS_32                /* 32BIT PORT */
         | MCF_FBCS_CSCR_BSTR                            /* burst read enable */
         | MCF_FBCS_CSCR_BSTW;                           /* burst write enable */
     MCF_FBCS4_CSMR = MCF_FBCS_CSMR_BAM_1G               /* 4000'0000-7FFF'FFFF */
               | MCF_FBCS_CSMR_V;
-
-    /* disable FBCS5 on Firebee */
-    MCF_FBCS5_CSAR = 0x0;
-    MCF_FBCS5_CSCR = MCF_FBCS_CSCR_PS_8
-        | MCF_FBCS_CSCR_BSTR
-        | MCF_FBCS_CSCR_BSTW
-        | MCF_FBCS_CSCR_RDAH(1);                /* chip errata SECF077 */
-    MCF_FBCS5_CSMR = MCF_FBCS_CSMR_BAM_1G;
-        //| MCF_FBCS_CSMR_V;
-#elif defined(MACHINE_M5484LITE)
+#elif MACHINE_M5484LITE
     /* disable other FBCS for now */
     MCF_FBCS1_CSMR = 0;
     MCF_FBCS2_CSMR = 0;
@@ -459,13 +450,24 @@ void init_fbcs()
     MCF_FBCS4_CSMR = 0;
 
     MCF_FBCS5_CSAR = MCF_FBCS_CSAR_BA(0x60000000);
-    MCF_FBCS5_CSCR = MCF_FBCS_CSCR_PS_16 |              /* CPLD access 16 bit wide */
-                     MCF_FBCS_CSCR_WS(32) |             /* 32 wait states */
-                     MCF_FBCS_CSCR_ASET(1) |            /* chip select on rising clock edge */
-                     MCF_FBCS_CSCR_AA;                  /* auto acknowledge */
-    MCF_FBCS5_CSMR = MCF_FBCS_CSMR_BAM_256M |           /* maps 0x60000000 to 0x68000000 */
-                     MCF_FBCS_CSMR_V;
+    MCF_FBCS5_CSCR = MCF_FBCS_CSCR_PS_16    /* CPLD access */
+        | MCF_FBCS_CSCR_WS(32)
+        | MCF_FBCS_CSCR_ASET(1)
+        | MCF_FBCS_CSCR_AA;
+    MCF_FBCS5_CSMR = MCF_FBCS_CSMR_BAM_256M
+        | MCF_FBCS_CSMR_V;
 #endif /* MACHINE_FIREBEE */
+
+
+#ifndef MACHINE_M5484LITE
+    MCF_FBCS5_CSAR = 0x0;
+    MCF_FBCS5_CSCR = MCF_FBCS_CSCR_PS_8
+        | MCF_FBCS_CSCR_BSTR
+        | MCF_FBCS_CSCR_BSTW
+        | MCF_FBCS_CSCR_RDAH(1);                /* chip errata SECF077 */
+    MCF_FBCS5_CSMR = MCF_FBCS_CSMR_BAM_1G;
+        //| MCF_FBCS_CSMR_V;
+#endif /* MACHINE_M5484LITE */
 
     xprintf("finished\r\n");
 }
@@ -1045,33 +1047,18 @@ void initialize_hardware(void)
             break;
     }
 
+    /* make sure MMU is disabled */
+    MCF_MMU_MMUCR = 0;  /* MMU off */
+    NOP();              /* force pipeline sync */
+
     /*
      * Determine the processor revision
      */
     xprintf(" (revision %d)\r\n", ((MCF_SIU_JTAGID & MCF_SIU_JTAGID_REV) >> 28));
 
-    /* make sure MMU is disabled */
-    MCF_MMU_MMUCR = 0;  /* MMU off */
-    NOP();              /* force pipeline sync */
-
     init_slt();
     init_fbcs();
     coldboot = init_ddram();
-
-#if defined(MACHINE_M5484LITE)
-    xprintf("Fire Engine Control register:          %02x\r\n", * (uint8_t *) 0x61000000);
-    xprintf("Fire Engine interrupt register:        %02x\r\n", * (uint8_t *) 0x62000000);
-    xprintf("Fire Engine interrupt mask register:   %02x\r\n", * (uint8_t *) 0x63000000);
-    xprintf("Fire Engine power management register: %02x\r\n", * (uint8_t *) 0x64000000);
-    xprintf("Fire Engine EEPROM SPI register:       %02x\r\n", * (uint8_t *) 0x65000000);
-    xprintf("Fire Engine Flash register:            %02x\r\n", * (uint8_t *) 0x66000000);
-    xprintf("Fire Engine CPLD revision register:    %02x\r\n", * (uint8_t *) 0x67000000);
-    xprintf("Fire Engine Hardware revision register:%02x\r\n", * (uint8_t *) 0x68000000);
-
-    xprintf("write control register 0x%02x\r\n", 1 << 7);
-    * (uint8_t *) 0x61000000 = 1 << 7;
-    xprintf("Fire Engine Control register:          %02x\r\n", * (uint8_t *) 0x61000000);
-#endif /* MACHINE_M5484LITE */
 
     /*
      * install (preliminary) exception vectors

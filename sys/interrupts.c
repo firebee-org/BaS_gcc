@@ -117,7 +117,7 @@ bool isr_enable_int_source(int int_source)
     }
     else
     {
-        dbg("vector %d does not correspond to an internal interrupt source\r\n");
+        err("vector %d does not correspond to an internal interrupt source\r\n");
         return false;
     }
 
@@ -165,13 +165,13 @@ bool isr_register_handler(int vector, int level, int priority, bool (*handler)(v
 
             if (!isr_enable_int_source(int_source))
             {
-                dbg("failed to enable internal interrupt souce %d in IMRL/IMRH\r\n", int_source);
+                err("failed to enable internal interrupt souce %d in IMRL/IMRH\r\n", int_source);
                 return false;
             }
 
             if (!isr_set_prio_and_level(int_source, priority, level))
             {
-                dbg("failed to set priority and level for interrupt source %d\r\n", int_source);
+                err("failed to set priority and level for interrupt source %d\r\n", int_source);
                 return false;
             }
 
@@ -343,6 +343,14 @@ bool irq5_handler(void *arg1, void *arg2)
     {
         dbg("DSP interrupt\r\n");
         FBEE_INTR_CLEAR = FBEE_INTR_DSP;
+    }
+
+    if (pending_interrupts & FBEE_INTR_VSYNC || pending_interrupts & FBEE_INTR_HSYNC)
+    {
+        dbg("vsync or hsync interrupt!\r\n");
+        FBEE_INTR_CLEAR = FBEE_INTR_VSYNC | FBEE_INTR_HSYNC;
+        /* hsync and vsync should go to TOS unhandled */
+        return false;
     }
 
     MCF_EPORT_EPFR |= (1 << 5);             /* clear interrupt from edge port */

@@ -195,13 +195,13 @@ void acia_init()
 {
     xprintf("init ACIA: ");
     /* init ACIA */
-    KBD_ACIA_CONTROL = 3;                   /* master reset */
+    KBD_ACIA_CONTROL = 3;       /* master reset */
     NOP();
 
-    MIDI_ACIA_CONTROL = 3;                  /* master reset */
+    MIDI_ACIA_CONTROL = 3;      /* master reset */
     NOP();
 
-    KBD_ACIA_CONTROL = 0x96;                /* clock div = 64, 8N1, RTS low, TX int disable, RX int enable */
+    KBD_ACIA_CONTROL = 0x96;    /* clock div = 64, 8N1, RTS low, TX int disable, RX int enable */
     NOP();
 
     MFP_INTR_IN_SERVICE_A = 0xff;
@@ -217,7 +217,7 @@ void enable_coldfire_interrupts()
 {
     xprintf("enable interrupts: ");
 #if defined(MACHINE_FIREBEE)
-    FBEE_INTR_CONTROL = 0L;                 /* disable all interrupts */
+    FBEE_INTR_CONTROL = 0L;                /* disable all interrupts */
 #endif /* MACHINE_FIREBEE */
 
     MCF_EPORT_EPPAR = 0xaaa8;               /* all interrupts on falling edge */
@@ -237,7 +237,7 @@ void enable_coldfire_interrupts()
     MCF_EPORT_EPIER = 0xfe;                 /* int 1-7 on */
     MCF_EPORT_EPFR = 0xff;                  /* clear all pending interrupts */
     MCF_INTC_IMRL = 0xffffff00;             /* int 1-7 on */
-    //MCF_INTC_IMRH = 0xbffffffe;           /* psc3 and timer 0 int on */
+    //MCF_INTC_IMRH = 0xbffffffe;             /* psc3 and timer 0 int on */
     MCF_INTC_IMRH = 0;
     FBEE_INTR_ENABLE = FBEE_INTR_INT_IRQ7 | /* enable pseudo bus error */
             FBEE_INTR_INT_MFP_IRQ6 |        /* enable MFP interrupts */
@@ -255,7 +255,7 @@ void enable_coldfire_interrupts()
 void disable_coldfire_interrupts()
 {
 #if defined(MACHINE_FIREBEE)
-    FBEE_INTR_ENABLE = 0;                   /* disable all interrupts */
+    FBEE_INTR_ENABLE = 0;      /* disable all interrupts */
 #endif /* MACHINE_FIREBEE */
 
     MCF_EPORT_EPIER = 0x0;
@@ -270,36 +270,19 @@ NIF nif1;
 NIF nif2;
 #endif
 
-bool spurious_interrupt_handler(void *arg1, void *arg2)
-{
-    dbg("IMRH=%lx, IMRL=%lx\r\n", MCF_INTC_IMRH, MCF_INTC_IMRL);
-    dbg("IPRH=%lx, IPRL=%lx\r\n", MCF_INTC_IPRH, MCF_INTC_IPRL);
-    dbg("IRLR=%x\r\n", MCF_INTC_IRLR);
-
-    return true;
-}
-
 /*
  * initialize the interrupt handler tables to dispatch interrupt requests from Coldfire devices
  */
 void init_isr(void)
 {
-    isr_init();                             /* need to call that explicitely, otherwise isr table might be full */
-
-    /*
-     * register spurious interrupt handler
-     */
-    if (!isr_register_handler(24, 6, 6, spurious_interrupt_handler, NULL, NULL))
-    {
-        dbg("unable to register spurious interrupt handler\r\n");
-    }
+    isr_init();     /* need to call that explicitely, otherwise isr table might be full */
 
     /*
      * register the FEC interrupt handler
      */
     if (!isr_register_handler(64 + INT_SOURCE_FEC0, 5, 1, fec0_interrupt_handler, NULL, (void *) &nif1))
     {
-        dbg("unable to register isr for FEC0\r\n");
+        err("unable to register isr for FEC0\r\n");
     }
 
     /*
@@ -308,7 +291,7 @@ void init_isr(void)
 
     if (!isr_register_handler(64 + INT_SOURCE_DMA, 5, 3, dma_interrupt_handler, NULL, NULL))
     {
-        dbg("unable to register isr for DMA\r\n");
+        err("unable to register isr for DMA\r\n");
     }
 
 #ifdef MACHINE_FIREBEE
@@ -317,7 +300,7 @@ void init_isr(void)
      */
     if (!isr_register_handler(64 + INT_SOURCE_GPT0, 5, 2, gpt0_interrupt_handler, NULL, NULL))
     {
-        dbg("unable to register isr for GPT0 timer\r\n");
+        err("unable to register isr for GPT0 timer\r\n");
     }
 
     /*
@@ -325,7 +308,7 @@ void init_isr(void)
      */
     if (!isr_register_handler(64 + INT_SOURCE_PSC3, 5, 5, pic_interrupt_handler, NULL, NULL))
     {
-        dbg("Error: unable to register ISR for PSC3\r\n");
+        err("Error: unable to register ISR for PSC3\r\n");
     }
 #endif /* MACHINE_FIREBEE */
 
@@ -334,20 +317,20 @@ void init_isr(void)
      */
     if (!isr_register_handler(64 + INT_SOURCE_XLBPCI, 7, 0, xlbpci_interrupt_handler, NULL, NULL))
     {
-        dbg("Error: unable to register isr for XLB PCI interrupts\r\n");
+        err("Error: unable to register isr for XLB PCI interrupts\r\n");
     }
 
-    MCF_XLB_XARB_IMR = MCF_XLB_XARB_IMR_SEAE |          /* slave error acknowledge interrupt */
-                       MCF_XLB_XARB_IMR_MME |           /* multiple master at prio 0 interrupt */
-                       MCF_XLB_XARB_IMR_TTAE |          /* TT address only interrupt */
-                       MCF_XLB_XARB_IMR_TTRE |          /* TT reserved interrupt enable */
-                       MCF_XLB_XARB_IMR_ECWE |          /* external control word interrupt */
-                       MCF_XLB_XARB_IMR_TTME |          /* TBST/TSIZ mismatch interrupt */
-                       MCF_XLB_XARB_IMR_BAE;            /* bus activity tenure timeout interrupt */
+    MCF_XLB_XARB_IMR = MCF_XLB_XARB_IMR_SEAE |      /* slave error acknowledge interrupt */
+                       MCF_XLB_XARB_IMR_MME |       /* multiple master at prio 0 interrupt */
+                       MCF_XLB_XARB_IMR_TTAE |      /* TT address only interrupt */
+                       MCF_XLB_XARB_IMR_TTRE |      /* TT reserved interrupt enable */
+                       MCF_XLB_XARB_IMR_ECWE |      /* external control word interrupt */
+                       MCF_XLB_XARB_IMR_TTME |      /* TBST/TSIZ mismatch interrupt */
+                       MCF_XLB_XARB_IMR_BAE;        /* bus activity tenure timeout interrupt */
 
     if (!isr_register_handler(64 + INT_SOURCE_PCIARB, 7, 1, pciarb_interrupt_handler, NULL, NULL))
     {
-        dbg("Error: unable to register isr for PCIARB interrupts\r\n");
+        err("Error: unable to register isr for PCIARB interrupts\r\n");
 
         return;
     }
@@ -390,7 +373,7 @@ void BaS(void)
     NOP();                                      /* force pipeline sync */
     xprintf("finished\r\n");
 
-#ifdef MACHINE_FIREBEE
+    #ifdef MACHINE_FIREBEE
     xprintf("IDE reset: ");
     /* IDE reset */
     * (volatile uint8_t *) (0xffff8802 - 2) = 14;
@@ -459,10 +442,7 @@ void BaS(void)
     init_isr();
 
     enable_coldfire_interrupts();
-    MCF_INTC_IMRH = 0;
-    MCF_INTC_IMRL = 0;
     dma_irq_enable();
-    fec_irq_enable(0, 5, 1);
 
     init_pci();
     // video_init();
