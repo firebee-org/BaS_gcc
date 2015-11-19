@@ -126,13 +126,13 @@ static void init_gpio(void)
      * /PCIBG1 used as /PCIBG1
      * /PCIBG0 used as /PCIBG0
      */
-#if MACHINE_FIREBEE
+#if defined(MACHINE_FIREBEE)
     MCF_PAD_PAR_PCIBG = MCF_PAD_PAR_PCIBG_PAR_PCIBG4_TBST |
             MCF_PAD_PAR_PCIBG_PAR_PCIBG3_GPIO |
             MCF_PAD_PAR_PCIBG_PAR_PCIBG2_PCIBG2 |
             MCF_PAD_PAR_PCIBG_PAR_PCIBG1_PCIBG1 |
             MCF_PAD_PAR_PCIBG_PAR_PCIBG0_PCIBG0;
-#elif MACHINE_M5484LITE
+#elif defined(MACHINE_M5484LITE)
     MCF_PAD_PAR_PCIBG = MCF_PAD_PAR_PCIBG_PAR_PCIBG4_PCIBG4 |
             MCF_PAD_PAR_PCIBG_PAR_PCIBG3_PCIBG3 |
             MCF_PAD_PAR_PCIBG_PAR_PCIBG2_PCIBG2 |
@@ -218,10 +218,10 @@ static void init_serial(void)
     MCF_PSC0_PSCSICR = 0;       /* PSC control register: select UART mode */
     MCF_PSC0_PSCCSR = 0xDD;     /* use TX and RX baud rate from PSC timer */
     MCF_PSC0_PSCCTUR = 0x00;    /* =\ */
-#ifdef MACHINE_FIREBEE
+#if defined(MACHINE_FIREBEE)
     MCF_PSC0_PSCCTLR = 36;      /* divide sys_clk by 36 => BAUD RATE = 115200 bps */
 #endif
-#ifdef MACHINE_M5484LITE
+#if defined(MACHINE_M5484LITE)
     MCF_PSC0_PSCCTLR = 27;      /* LITE board has 100 MHz sys_clk only */
 #endif
     MCF_PSC0_PSCCR = 0x20;      /* reset receiver and RxFIFO */
@@ -242,7 +242,7 @@ static void init_serial(void)
     MCF_PSC0_PSCOPSET = 0x01;
     MCF_PSC0_PSCCR = 0x05;
 
-#ifdef MACHINE_FIREBEE  /* PSC3 is not connected to anything on the LITE board */
+#if defined(MACHINE_FIREBEE)  /* PSC3 is not connected to anything on the LITE board */
     /* PSC3: PIC */
     MCF_PSC3_PSCSICR = 0;   // UART
     MCF_PSC3_PSCCSR = 0xDD;
@@ -296,7 +296,7 @@ static bool init_ddram(void)
          */
         MCF_SDRAMC_SDRAMDS = 0x000002AA;/* SDRAMDS configuration */
 
-#if MACHINE_FIREBEE
+#if defined(MACHINE_FIREBEE)
         MCF_SDRAMC_CS0CFG = 0x0000001A; /* SDRAM CS0 configuration (128Mbytes 0000_0000 - 07FF_FFFF) */
         MCF_SDRAMC_CS1CFG = 0x0800001A; /* SDRAM CS1 configuration (128Mbytes 0800_0000 - 0FFF_FFFF) */
         MCF_SDRAMC_CS2CFG = 0x1000001A; /* SDRAM CS2 configuration (128Mbytes 1000_0000 - 07FF_FFFF) */
@@ -339,7 +339,7 @@ static bool init_ddram(void)
         MCF_SDRAMC_SDMR = 0x008D0000;   /* SDMR (write to LMR) */
         MCF_SDRAMC_SDCR = 0x710D0F00;   /* SDCR (lock SDMR and enable refresh) */
 
-#elif MACHINE_M5484LITE
+#elif defined(MACHINE_M5484LITE)
         MCF_SDRAMC_CS0CFG = 0x00000019; /* SDRAM CS0 configuration (64 Mbytes 0000_0000 - 03FF_FFFF) */
         MCF_SDRAMC_CS1CFG = 0x00000000; /* SDRAM CS1 configuration - off */
         MCF_SDRAMC_CS2CFG = 0x00000000; /* SDRAM CS2 configuration - off */
@@ -635,7 +635,7 @@ void init_usb(void)
     xprintf("finished (found %d USB controller(s))\r\n", usb_found);
 }
 
-#ifdef MACHINE_FIREBEE
+#if defined(MACHINE_FIREBEE)
 
 static bool i2c_transfer_finished(void)
 {
@@ -943,7 +943,7 @@ static void clear_bss_segment(void)
 void initialize_hardware(void)
 {
     /* Test for FireTOS switch: DIP switch #5 up */
-#ifdef MACHINE_FIREBEE
+#if defined(MACHINE_FIREBEE)
     if (!(DIP_SWITCH & (1 << 6))) {
         /* Minimal hardware initialization */
         init_gpio();
@@ -976,7 +976,7 @@ void initialize_hardware(void)
 
     xprintf("\n\n");
     xprintf("%s BASIS system (BaS) v %d.%d (%s, %s)\r\n\r\n",
-#if MACHINE_FIREBEE
+#if defined(MACHINE_FIREBEE)
     "Firebee"
 #elif MACHINE_M5484LITE
     "m5484 LITEKIT"
@@ -1117,7 +1117,7 @@ void initialize_hardware(void)
 
     }
 
-#if MACHINE_FIREBEE
+#if defined(MACHINE_FIREBEE)
     fpga_configured = init_fpga();
 
     init_pll();
