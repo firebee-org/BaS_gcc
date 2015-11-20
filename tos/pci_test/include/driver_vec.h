@@ -25,6 +25,8 @@
 #ifndef _DRIVER_VEC_H_
 #define _DRIVER_VEC_H_
 
+#include "pci.h"
+
 enum driver_type
 {
     BLOCKDEV_DRIVER,
@@ -205,7 +207,6 @@ struct framebuffer_driver_interface
     struct fb_info **framebuffer_info;  /* pointer to an fb_info struct (defined in include/fb.h) */
 };
 
-typedef void *PCI_CONV_ADR;
 
 struct pci_bios_interface
 {
@@ -280,7 +281,8 @@ struct pci_native_driver_interface
     int32_t (*pci_write_config_byte)(int32_t handle, int offset, uint8_t value);
     int32_t (*pci_hook_interrupt)(int32_t handle, void *handler, void *parameter);
     int32_t (*pci_unhook_interrupt)(int32_t handle);
-
+    int32_t (*pci_find_device)(uint16_t device_id, uint16_t vendor_id, int index);
+    int32_t (*pci_find_classcode)(uint32_t classcode, int index);
     struct pci_rd * (*pci_get_resource)(int32_t handle);
 };
 

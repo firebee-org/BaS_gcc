@@ -6,6 +6,7 @@
 #include "bas_printf.h"
 #include "MCF5475.h"
 #include "driver_vec.h"
+#include "pci.h"
 
 #define NOP() __asm__ __volatile__("nop\n\t" : : : "memory")
 
@@ -13,6 +14,8 @@
 
 volatile int32_t time, start, end;
 int i;
+
+#define swpw(a) ((a) >> 8 | (a) << 8)
 
 void do_tests(struct pci_native_driver_interface *pci)
 {
@@ -24,7 +27,35 @@ void do_tests(struct pci_native_driver_interface *pci)
     end = MCF_SLT0_SCNT;
     time = (start - end) / (SYSCLK / 1000) / 1000;
 
-    xprintf("finished (took %f seconds).\r\n", time / 1000.0);
+    printf("iterate over PCI devices\r\n");
+
+    int16_t handle;
+    int16_t index = 0;
+
+    printf("\r\nPCI bus scan...\r\n\r\n");
+    printf(" Bus| Dev|Func|Vndr|D-ID|Hndl|\r\n");
+    printf("----+----+----+----+----+----+\r\n");
+
+    handle = (*pci->pci_find_device)(0x0, 0xFFFF, index);
+
+    while (handle > 0)
+    {
+        uint32_t value;
+
+        value = (*pci->pci_read_config_longword)(handle, PCIIDR);
+
+        printf(" %02x | %02x | %02x |%04x|%04x|%04x| (0x%02x)\r\n",
+               (char) PCI_BUS_FROM_HANDLE(handle),
+               (char) PCI_DEVICE_FROM_HANDLE(handle),
+               (char) PCI_FUNCTION_FROM_HANDLE(handle),
+               (short) PCI_VENDOR_ID(value), (short) PCI_DEVICE_ID(value),
+               (unsigned char) handle,
+               (char) (*pci->pci_read_config_byte)(handle, PCICCR));
+
+        handle = (*pci->pci_find_device)(0x0, 0xFFFF, ++index);
+    }
+    printf("\r\n...finished\r\n");
+    printf("finished (took %f seconds).\r\n", time / 1000.0);
 }
 
 struct driver_table *get_bas_drivers(void)
@@ -79,6 +110,7 @@ void pci_test(void)
                 pci_driver = ifc[i].interface.pci_native;
                 pci_driver_interface = &ifc[i];
                 printf("PCI native driver interface v%d.%02d found\r\n", pci_driver_interface->version, pci_driver_interface->revision);
+                printf("replaced old with newer driver version\r\n");
             }
         }
     } while (ifc[++i].type != END_OF_DRIVERS);
