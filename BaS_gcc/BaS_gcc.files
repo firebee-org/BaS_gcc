@@ -608,3 +608,4 @@ tos/pci_test/include/MCF5475_SRAM.h
 tos/pci_test/include/MCF5475_USB.h
 tos/pci_test/include/MCF5475_XLB.h
 tos/pci_test/include/MCF5475.h
+tos/pci_test/include/pci.h

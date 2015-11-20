@@ -1,5 +1,6 @@
 include
 tos/jtagwait/include
+tos/pci_test/include
 /usr/m68k-atari-mint/include
 dma
 m54455
