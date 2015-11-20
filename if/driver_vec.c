@@ -268,7 +268,7 @@ void __attribute__((interrupt)) get_bas_drivers(void)
 {
     __asm__ __volatile(
         /*
-         * sp should now point to the next instruction after the trap
+         * (sp) should now point to the next instruction after the trap
          * The trap itself is 2 bytes, the four bytes before that must
          * read '_BAS', otherwise we are not meant by this call
          */
