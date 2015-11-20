@@ -584,49 +584,46 @@ void init_usb(void)
 
     do
     {
-        handle = pci_find_device(0x0000, 0xffff, index++);
+        handle = pci_find_classcode(PCI_CLASS_SERIAL_USB | (1 << 25) | (1 << 26), index++);
         if (handle > 0)
         {
-            uint32_t id = 0;
-            uint32_t class = 0;
+            long id;
+            long class;
 
+            xprintf("serial USB found at bus=0x%x, dev=0x%x, fnc=0x%x (0x%x)\r\n",
+                    PCI_BUS_FROM_HANDLE(handle),
+                    PCI_DEVICE_FROM_HANDLE(handle),
+                    PCI_FUNCTION_FROM_HANDLE(handle),
+                    handle);
             id = pci_read_config_longword(handle, PCIIDR);
             class = pci_read_config_longword(handle, PCIREV);
 
-            if (PCI_CLASS_CODE(class) == PCI_CLASS_SERIAL_USB)
+            if (PCI_SUBCLASS(class) == PCI_CLASS_SERIAL_USB_EHCI)
             {
-                xprintf("serial USB found at bus=0x%x, dev=0x%x, fnc=0x%x (0x%x)\r\n",
-                        PCI_BUS_FROM_HANDLE(handle),
-                        PCI_DEVICE_FROM_HANDLE(handle),
-                        PCI_FUNCTION_FROM_HANDLE(handle),
-                        handle);
-                if (PCI_SUBCLASS(class) == PCI_CLASS_SERIAL_USB_EHCI)
+                board = ehci_usb_pci_table;
+                while (board->vendor)
                 {
-                    board = ehci_usb_pci_table;
-                    while (board->vendor)
+                    if ((board->vendor == PCI_VENDOR_ID(id)) && board->device == PCI_DEVICE_ID(id))
                     {
-                        if ((board->vendor == PCI_VENDOR_ID(id)) && board->device == PCI_DEVICE_ID(id))
+                        if (usb_init(handle, board) >= 0)
                         {
-                            if (usb_init(handle, board) >= 0)
-                            {
-                                usb_found++;
-                            }
+                            usb_found++;
                         }
-                        board++;
                     }
+                    board++;
                 }
-                if (PCI_SUBCLASS(class) == PCI_CLASS_SERIAL_USB_OHCI)
+            }
+            if (PCI_SUBCLASS(class) == PCI_CLASS_SERIAL_USB_OHCI)
+            {
+                board = ohci_usb_pci_table;
+                while (board->vendor)
                 {
-                    board = ohci_usb_pci_table;
-                    while (board->vendor)
+                    if ((board->vendor == PCI_VENDOR_ID(id)) && board->device == PCI_DEVICE_ID(id))
                     {
-                        if ((board->vendor == PCI_VENDOR_ID(id)) && board->device == PCI_DEVICE_ID(id))
-                        {
-                            if (usb_init(handle, board) >= 0)
-                                usb_found++;
-                        }
-                        board++;
+                        if (usb_init(handle, board) >= 0)
+                            usb_found++;
                     }
+                    board++;
                 }
             }
         }

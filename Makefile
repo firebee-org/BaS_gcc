@@ -216,12 +216,6 @@ firebee/basflash.$(EXE): CFLAGS += -mcpu=5474
 # generate pattern rules for different object files
 #
 define CC_TEMPLATE
-#ifeq (firebee,$(1))
-	#MACHINE=MACHINE_FIREBEE
-#else
-	#MACHINE=MACHINE_M5484LITE
-#endif
-
 $(1)/objs/%.o:%.c
 	$(CC) $$(CFLAGS) -D$$(MACHINE) $(INCLUDE) -c $$< -o $$@
 
