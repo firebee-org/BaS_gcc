@@ -58,9 +58,28 @@ void do_tests(struct pci_native_driver_interface *pci)
     printf("finished (took %f seconds).\r\n", time / 1000.0);
 }
 
+/*
+ * temporarily replace the trap 0 handler with this so we can avoid
+ * getting caught by BaS versions that don't understand the driver interface
+ * exposure call.
+ * If we get here, we have a BaS version that doesn't support the trap 0 interface
+ */
+static void __attribute__((interrupt)) trap0_catcher(void)
+{
+    __asm__ __volatile__(
+        "       clr.l       d0              \n\t"       // return 0 to indicate not supported
+        :
+        :
+        :
+    );
+}
+
 struct driver_table *get_bas_drivers(void)
 {
     struct driver_table *ret = NULL;
+    void *old_vector;
+
+    old_vector = Setexc(0x20, trap0_catcher);               /* set our own temporarily */
 
     __asm__ __volatile__(
         "           bra.s   do_trap             \n\t"
@@ -71,6 +90,7 @@ struct driver_table *get_bas_drivers(void)
         :                       /* no inputs */
         :                       /* clobbered */
     );
+    (void) Setexc(0x20, old_vector);                        /* restore original vector */
 
     return ret;
 }
@@ -83,7 +103,17 @@ void pci_test(void)
     struct pci_native_driver_interface *pci_driver = NULL;
 
     bas_drivers = get_bas_drivers();
-    printf("BaS version: %ld.%02ld\r\n", (long) bas_drivers->bas_version, (long) bas_drivers->bas_revision);
+    if (bas_drivers != NULL && bas_drivers != -1L)
+    {
+        printf("BaS driver vector: %p\r\n", bas_drivers);
+        printf("BaS version: %ld.%02ld\r\n", (long) bas_drivers->bas_version, (long) bas_drivers->bas_revision);
+    }
+    else
+    {
+        printf("BaS driver retrieval not supported\r\n");
+        printf("(old BaS version or FireTOS?)\r\n");
+        exit(1);
+    }
 
     ifc = bas_drivers->interfaces;
 
