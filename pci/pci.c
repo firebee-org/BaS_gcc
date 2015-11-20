@@ -173,6 +173,7 @@ int32_t pci_get_interrupt_cause(void)
     /*
      * loop through all PCI devices...
      */
+    dbg("");
     while ((handle = *hdl++) != -1)
     {
         uint16_t command_register = swpw(pci_read_config_word(handle, PCICR));
@@ -196,6 +197,7 @@ int32_t pci_call_interrupt_chain(int32_t handle, int32_t data)
 {
     int i;
 
+    dbg("");
     for (i = 0; i < MAX_INTERRUPTS; i++)
     {
         if (interrupts[i].handle == handle)
