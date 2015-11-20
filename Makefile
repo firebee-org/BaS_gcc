@@ -37,8 +37,7 @@ LDLIBS=-lgcc
 endif
 
 INCLUDE=-Iinclude
-CFLAGS=-mcpu=5474 \
-	-Wall \
+CFLAGS=	-Wall \
 	-fomit-frame-pointer \
 	-ffreestanding \
 	-fleading-underscore \
@@ -192,12 +191,26 @@ clean:
 m5484lite/bas.$(EXE): MACHINE=MACHINE_M5484LITE
 m54455/bas.$(EXE): MACHINE=MACHINE_M54455
 firebee/bas.$(EXE): MACHINE=MACHINE_FIREBEE
+
 m5484lite/ram.$(EXE): MACHINE=MACHINE_M5484LITE
 m54455/ram.$(EXE): MACHINE=MACHINE_M54455
 firebee/ram.$(EXE): MACHINE=MACHINE_FIREBEE
+
 m5484lite/basflash.$(EXE): MACHINE=MACHINE_M5484LITE
 m54455/basflash.$(EXE): MACHINE=MACHINE_M54455
 firebee/basflash.$(EXE): MACHINE=MACHINE_FIREBEE
+
+m5484lite/bas.$(EXE): CFLAGS += -mcpu=5484
+m54455/bas.$(EXE): CFLAGS += -mcpu=54455 -msoft-float
+firebee/bas.$(EXE): CFLAGS += -mcpu=5474
+
+m5484lite/ram.$(EXE): CFLAGS += -mcpu=5484
+m54455/ram.$(EXE): CFLAGS += -mcpu=54455 -msoft-float
+firebee/ram.$(EXE): CFLAGS += -mcpu=5474
+
+m5484lite/basflash.$(EXE): CFLAGS += -mcpu=5484
+m54455/basflash.$(EXE): CFLAGS += -mcpu=54455 -msoft-float
+firebee/basflash.$(EXE): CFLAGS += -mcpu=5474
 
 #
 # generate pattern rules for different object files
