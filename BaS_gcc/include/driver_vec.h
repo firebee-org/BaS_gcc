@@ -39,7 +39,7 @@ enum driver_type
     PCI_DRIVER,
     MMU_DRIVER,
     PCI_NATIVE_DRIVER,
-    END_OF_DRIVERS = 0xffffffff,        /* marks end of driver list */
+    END_OF_DRIVERS = 0xffffffffL,        /* marks end of driver list */
 };
 
 struct generic_driver_interface

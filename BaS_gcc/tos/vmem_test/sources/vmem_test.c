@@ -232,7 +232,8 @@ void wait_for_jtag(void)
     init_video_ddr();
 
     /* begin of tests */
-    do_tests();
+
+    while (1) do_tests();
 
     xprintf("wait a little to let things settle...\r\n");
     for (i = 0; i < 100000L; i++);

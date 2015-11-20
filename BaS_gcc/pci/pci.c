@@ -33,7 +33,7 @@
 #include "interrupts.h"
 #include "wait.h"
 
-// #define DEBUG_PCI
+#define DEBUG_PCI
 #ifdef DEBUG_PCI
 #define dbg(format, arg...) do { xprintf("DEBUG: %s(): " format, __FUNCTION__, ##arg); } while (0)
 #else
@@ -392,6 +392,9 @@ uint8_t pci_read_config_byte(int32_t handle, int offset)
 int32_t pci_write_config_longword(int32_t handle, int offset, uint32_t value)
 {
     /* initiate PCI configuration access to device */
+
+    dbg("initiate configuration access\r\n");
+
     MCF_PCI_PCICAR = MCF_PCI_PCICAR_E |             /* enable configuration access special cycle */
         MCF_PCI_PCICAR_BUSNUM(PCI_BUS_FROM_HANDLE(handle)) |
         MCF_PCI_PCICAR_DEVNUM(PCI_DEVICE_FROM_HANDLE(handle)) |     /* device number, devices 0 - 9 are reserved */
@@ -400,11 +403,15 @@ int32_t pci_write_config_longword(int32_t handle, int offset, uint32_t value)
 
     NOP();
 
+    dbg("access device\r\n");
     * (volatile uint32_t *) PCI_IO_OFFSET = value;  /* access device */
+
+    dbg("chip errata\r\n");
     chip_errata_135();
 
     NOP();
 
+    dbg("finish config space access cycle\r\n");
     /* finish configuration space access cycle */
     MCF_PCI_PCICAR &= ~MCF_PCI_PCICAR_E;
 
@@ -562,6 +569,7 @@ int32_t pci_find_device(uint16_t device_id, uint16_t vendor_id, int index)
  * pci_find_classcode(uint32_t classcode, int index)
  *
  * Find the index'th pci device with a specific classcode. Bits 0-23 describe this classcode.
+ *
  * Bits 24 - 26 describe what needs to match: 24: prog interface, 25: PCI subclass, 26: PCI base class.
  * If no bits are set, there is a match for each device.
  */
@@ -581,6 +589,7 @@ int32_t pci_find_classcode(uint32_t classcode, int index)
             uint8_t htr;
 
             handle = PCI_HANDLE(bus, device, 0);
+            dbg("check handle %d\r\n", handle);
 
             value = pci_read_config_longword(handle, PCIIDR);
 
@@ -1041,10 +1050,11 @@ static void pci_bridge_config(uint16_t bus, uint16_t device, uint16_t function)
 
     if (function != 0)
     {
-        dbg("trying to configure a multi-function bridge. Cancelled\r\n");
+        err("trying to configure a multi-function bridge. Cancelled\r\n");
         return;
     }
     handle = PCI_HANDLE(bus, device, function);
+    dbg("handle=%d\r\n", handle);
 
     pci_write_config_longword(handle, PCIBAR0, 0x40000000);
     pci_write_config_longword(handle, PCIBAR1, 0x0);
@@ -1081,6 +1091,7 @@ void pci_scan(void)
 
         /* save handle to index value so that we'll be able to later find our resources */
         handles[index] = handle;
+        handles[index + 1] = -1;
 
         if (PCI_VENDOR_ID(value) != 0x1057 && PCI_DEVICE_ID(value) != 0x5806) /* do not configure bridge */
         {
@@ -1091,10 +1102,12 @@ void pci_scan(void)
         }
         else
         {
+            dbg("");
             pci_bridge_config(PCI_BUS_FROM_HANDLE(handle),
                         PCI_DEVICE_FROM_HANDLE(handle),
                         PCI_FUNCTION_FROM_HANDLE(handle));
         }
+        dbg("");
         handle = pci_find_device(0x0, 0xFFFF, ++index);
     }
     xprintf("\r\n...finished\r\n");
@@ -1118,7 +1131,7 @@ void init_eport(void)
 
     MCF_EPORT_EPDDR = 0;    /* clear data direction register. All pins as input */
     MCF_EPORT_EPFR = -1;    /* clear all EPORT interrupt flags */
-    MCF_EPORT_EPIER = 0xfe; /* enable all EPORT interrupts (for now) */
+    // MCF_EPORT_EPIER = 0xfe; /* enable all EPORT interrupts (for now) */
 }
 
 void init_xlbus_arbiter(void)

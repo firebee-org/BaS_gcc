@@ -486,8 +486,8 @@ void BaS(void)
     dma_irq_enable();
     fec_irq_enable(0, 5, 1);
 
-    init_pci();
     enable_pci_interrupts();
+    init_pci();
     video_init();
 
     /* initialize USB devices */
