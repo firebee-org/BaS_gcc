@@ -77,7 +77,7 @@ static int num_pci_classes = sizeof(pci_classes) / sizeof(struct pci_class);
 #define NUM_CARDS       10
 #define NUM_RESOURCES   7
 /* holds the handle of a card at position = array index */
-static int32_t handles[NUM_CARDS];
+static int32_t handles[NUM_CARDS] = { -1 };
 
 /* holds the card's resource descriptors; filled in pci_device_config() */
 static struct pci_rd resource_descriptors[NUM_CARDS][NUM_RESOURCES];
