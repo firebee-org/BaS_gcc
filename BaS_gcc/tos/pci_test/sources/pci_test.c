@@ -27,7 +27,7 @@ void do_tests(struct pci_native_driver_interface *pci)
     end = MCF_SLT0_SCNT;
     time = (start - end) / (SYSCLK / 1000) / 1000;
 
-    printf("iterate over PCI devices\r\n");
+    printf("enumerate PCI devices\r\n");
 
     int16_t handle;
     int16_t index = 0;
@@ -103,7 +103,12 @@ void pci_test(void)
     struct pci_native_driver_interface *pci_driver = NULL;
 
     bas_drivers = get_bas_drivers();
-    if (bas_drivers != NULL && bas_drivers != -1L)
+
+    /*
+     * trap0_catcher should return 0L on failure, for some reason FireTOS
+     * returns -1L on a trap #0. Anyway, ...
+     */
+    if (bas_drivers != NULL && bas_drivers != (void *) -1L)
     {
         printf("BaS driver vector: %p\r\n", bas_drivers);
         printf("BaS version: %ld.%02ld\r\n", (long) bas_drivers->bas_version, (long) bas_drivers->bas_revision);
