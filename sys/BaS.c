@@ -423,16 +423,17 @@ void BaS(void)
 
     xprintf("finished\r\n");
     xprintf("enable video: ");
+
     /*
      * video setup (25MHz)
      */
-    * (volatile uint32_t *) (0xf0000410 + 0) = 0x032002ba;  /* horizontal 640x480 */
-    * (volatile uint32_t *) (0xf0000410 + 4) = 0x020c020a;  /* vertical 640x480 */
-    * (volatile uint32_t *) (0xf0000410 + 8) = 0x0190015d;  /* horizontal 320x240 */
-    * (volatile uint32_t *) (0xf0000410 + 12) = 0x020C020A; /* vertical 320x230 */
+    * (volatile uint32_t *) 0xf0000410 = 0x032002ba;  /* horizontal 640x480 */
+    * (volatile uint32_t *) 0xf0000414 = 0x020c020a;  /* vertical 640x480 */
+    * (volatile uint32_t *) 0xf0000418 = 0x0190015d;  /* horizontal 320x240 */
+    * (volatile uint32_t *) 0xf000041c = 0x020c020a; /* vertical 320x230 */
 
     /* fifo on, refresh on, ddrcs and cke on, video dac on */
-    * (volatile uint32_t *) (0xf0000410 - 0x20) = 0x01070002;
+    * (volatile uint32_t *) 0xf0000400 = 0x01070082;
 
     xprintf("finished\r\n");
 #endif /* MACHINE_FIREBEE */
@@ -442,7 +443,7 @@ void BaS(void)
     /*
      * memory setup
      */
-    memset((void *) 0x400, 0, 0x400);
+    memset((void *) 0x200, 0, 0x400);
 
 #if defined(MACHINE_FIREBEE)
     /* set Falcon bus control register */
@@ -483,6 +484,7 @@ void BaS(void)
     enable_coldfire_interrupts();
     MCF_INTC_IMRH = 0;
     MCF_INTC_IMRL = 0;
+
     dma_irq_enable();
     fec_irq_enable(0, 5, 1);
 
@@ -494,6 +496,37 @@ void BaS(void)
     init_usb();
 
     set_ipl(7);     /* disable interrupts */
+
+    /*
+     * start FireTOS if DIP switch is set accordingly
+     */
+    if (!(DIP_SWITCH & (1 << 6)))
+    {
+        extern uint8_t _FIRETOS[];
+#define FIRETOS ((uint32_t)_FIRETOS) /* where FireTOS is stored in flash */
+
+        /* make sure MMU is disabled */
+        MCF_MMU_MMUCR = 0;  /* MMU off */
+        NOP();              /* force pipeline sync */
+
+        /* ST RAM */
+
+        * (uint32_t *) 0x42e = STRAM_END;   /* phystop TOS system variable */
+        * (uint32_t *) 0x420 = 0x752019f3;  /* memvalid TOS system variable */
+        * (uint32_t *) 0x43a = 0x237698aa;  /* memval2 TOS system variable */
+        * (uint32_t *) 0x51a = 0x5555aaaa;  /* memval3 TOS system variable */
+
+        /* TT-RAM */
+
+        * (uint32_t *) 0x5a4 = FASTRAM_END; /* ramtop TOS system variable */
+        * (uint32_t *) 0x5a8 = 0x1357bd13;  /* ramvalid TOS system variable */
+
+        xprintf("call FireTOS\r\n");
+        /* Jump into FireTOS */
+        typedef void void_func(void);
+        void_func* FireTOS = (void_func*) FIRETOS;
+        FireTOS();  // Should never return
+    }
 
     xprintf("call EmuTOS\r\n");
     struct rom_header *os_header = (struct rom_header *) TOS;
