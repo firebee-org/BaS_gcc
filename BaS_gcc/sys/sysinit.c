@@ -561,8 +561,7 @@ static void init_video_ddr(void) {
     _VRAM = 0000070022; /* load MR dll on */
     NOP();
 
-    * (uint32_t *) 0xf0000400 = 0x01070002; /* fifo on, refresh on, ddrcs und cke on, video dac on */
-//    * (uint32_t *) 0xf0000400 = 0x0107820b; /* fifo on, refresh on, ddrcs und cke on, video dac on */
+    * (uint32_t *) 0xf0000400 = 0x01070082; /* fifo on, refresh on, ddrcs und cke on, video dac on, Falcon shift mode on */
 
     xprintf("finished\r\n");
 }
@@ -940,7 +939,7 @@ static void clear_bss_segment(void)
 void initialize_hardware(void)
 {
     /* Test for FireTOS switch: DIP switch #5 up */
-#if defined(MACHINE_FIREBEE)
+#ifdef _NOT_USED_ // #if defined(MACHINE_FIREBEE)
     if (!(DIP_SWITCH & (1 << 6))) {
         /* Minimal hardware initialization */
         init_gpio();
@@ -958,6 +957,7 @@ void initialize_hardware(void)
 
         /* TT-RAM */
 
+        xprintf("FASTRAM_END = %p\r\n", FASTRAM_END);
         * (uint32_t *) 0x5a4 = FASTRAM_END; /* ramtop TOS system variable */
         * (uint32_t *) 0x5a8 = 0x1357bd13;  /* ramvalid TOS system variable */
 

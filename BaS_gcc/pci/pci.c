@@ -33,7 +33,7 @@
 #include "interrupts.h"
 #include "wait.h"
 
-#define DEBUG_PCI
+//#define DEBUG_PCI
 #ifdef DEBUG_PCI
 #define dbg(format, arg...) do { xprintf("DEBUG: %s(): " format, __FUNCTION__, ##arg); } while (0)
 #else
@@ -1131,7 +1131,7 @@ void init_eport(void)
 
     MCF_EPORT_EPDDR = 0;    /* clear data direction register. All pins as input */
     MCF_EPORT_EPFR = -1;    /* clear all EPORT interrupt flags */
-    // MCF_EPORT_EPIER = 0xfe; /* enable all EPORT interrupts (for now) */
+    MCF_EPORT_EPIER = 0xfe; /* enable all EPORT interrupts (for now) */
 }
 
 void init_xlbus_arbiter(void)

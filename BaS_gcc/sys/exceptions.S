@@ -144,7 +144,7 @@
         subq.l  #8,sp
         movem.l d0/a5,(sp)                      // save registers
 
-        lea MCF_EPORT_EPFR,a5
+        lea     MCF_EPORT_EPFR,a5
         move.b  #\clr_int,(a5)                  // clear int pending
 
         movem.l (sp),d0/a5                      // restore registers
