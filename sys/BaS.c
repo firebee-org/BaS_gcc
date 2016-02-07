@@ -366,7 +366,7 @@ void init_isr(void)
                        MCF_XLB_XARB_IMR_TTME |          /* TBST/TSIZ mismatch interrupt */
                        MCF_XLB_XARB_IMR_BAE;            /* bus activity tenure timeout interrupt */
 
-    if (!isr_register_handler(64 + INT_SOURCE_PCIARB, 5, 1, pciarb_interrupt_handler, NULL, NULL))
+    if (!isr_register_handler(64 + INT_SOURCE_PCIARB, 5, 0, pciarb_interrupt_handler, NULL, NULL))
     {
         dbg("Error: unable to register isr for PCIARB interrupts\r\n");
 
