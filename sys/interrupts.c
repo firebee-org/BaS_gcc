@@ -61,8 +61,6 @@ struct isrentry
 
 static struct isrentry isrtab[MAX_ISR_ENTRY];      /* list of interrupt service routines */
 
-extern void write_pic_byte(uint8_t value);
-extern uint8_t read_pic_byte(void);
 
 /*
  * clear the table of interrupt service handlers

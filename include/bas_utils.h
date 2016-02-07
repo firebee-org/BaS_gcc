@@ -26,4 +26,7 @@
 #define CLEAR_BIT(p,bit)        p &= ~(bit)
 #define CLEAR_BIT_NO(p,nr)      CLEAR_BIT(p, (1 << (nr)))
 
+extern void write_pic_byte(uint8_t value);
+extern uint8_t read_pic_byte(void);
+
 #endif /* _BAS_UTILS_H_ */

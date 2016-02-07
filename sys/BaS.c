@@ -31,6 +31,7 @@
 #include "bas_printf.h"
 #include "bas_string.h"
 #include "bas_types.h"
+#include "bas_utils.h"
 #include "sd_card.h"
 #include "wait.h"
 
