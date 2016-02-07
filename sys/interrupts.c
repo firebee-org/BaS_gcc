@@ -61,6 +61,9 @@ struct isrentry
 
 static struct isrentry isrtab[MAX_ISR_ENTRY];      /* list of interrupt service routines */
 
+extern void write_pic_byte(uint8_t value);
+extern uint8_t read_pic_byte(void);
+
 /*
  * clear the table of interrupt service handlers
  */
@@ -247,7 +250,7 @@ bool pic_interrupt_handler(void *arg1, void *arg2)
 
     dbg("PIC interrupt\r\n");
 
-    rcv_byte = * (volatile uint8_t *) (&MCF_PSC3_PSCRB_8BIT);
+    rcv_byte = read_pic_byte();
     if (rcv_byte == 2)                  /* PIC requests RTC data */
     {
         volatile uint8_t *rtc_reg = (uint8_t *) 0xffff8961;
@@ -256,11 +259,11 @@ bool pic_interrupt_handler(void *arg1, void *arg2)
 
         err("PIC interrupt: requesting RTC data\r\n");
 
-        * (volatile uint8_t *) (&MCF_PSC3_PSCTB_8BIT) = 0x82;     // header byte to PIC
+        write_pic_byte(0x82);     // header byte to PIC
         do
         {
-            *rtc_reg = 0;
-            * (volatile uint8_t *) (&MCF_PSC3_PSCTB_8BIT) = *rtc_data;
+            *rtc_reg = index;
+            write_pic_byte(*rtc_data);
         } while (index++ < 64);
     }
     return true;
