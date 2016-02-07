@@ -41,7 +41,8 @@ CFLAGS=	-Wall \
 	-fomit-frame-pointer \
 	-ffreestanding \
 	-fleading-underscore \
-	-Wa,--register-prefix-optional
+	-Wa,--register-prefix-optional \
+	-g
 CFLAGS_OPTIMIZED = -mcpu=5474 \
 		-Wall \
 		-O2 \
