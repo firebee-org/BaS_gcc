@@ -265,9 +265,6 @@ static void init_serial(void)
     MCF_PSC3_PSCCR = 0x05;
 #endif /* MACHINE_FIREBEE */
 
-    MCF_INTC_ICR32 = MCF_INTC_ICR_IL(7) |
-                     MCF_INTC_ICR_IL(4);      /* PSC3 interrupt vector. Do we need it? */
-
     xprintf("\r\nserial interfaces initialization: finished\r\n");
 }
 

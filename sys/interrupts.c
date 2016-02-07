@@ -37,7 +37,7 @@
 #include "dma.h"
 #include "pci.h"
 
-//#define IRQ_DEBUG
+// #define IRQ_DEBUG
 #if defined(IRQ_DEBUG)
 #define dbg(format, arg...) do { xprintf("DEBUG %s(): " format, __FUNCTION__, ##arg); } while (0)
 #else
@@ -247,20 +247,20 @@ bool pic_interrupt_handler(void *arg1, void *arg2)
 
     dbg("PIC interrupt\r\n");
 
-    rcv_byte = MCF_PSC3_PSCRB_8BIT;
+    rcv_byte = * (volatile uint8_t *) (&MCF_PSC3_PSCRB_8BIT);
     if (rcv_byte == 2)                  /* PIC requests RTC data */
     {
-        uint8_t *rtc_reg = (uint8_t *) 0xffff8961;
-        uint8_t *rtc_data = (uint8_t *) 0xffff8963;
+        volatile uint8_t *rtc_reg = (uint8_t *) 0xffff8961;
+        volatile uint8_t *rtc_data = (uint8_t *) 0xffff8963;
         int index = 0;
 
         err("PIC interrupt: requesting RTC data\r\n");
 
-        MCF_PSC3_PSCTB_8BIT = 0x82;     // header byte to PIC
+        * (volatile uint8_t *) (&MCF_PSC3_PSCTB_8BIT) = 0x82;     // header byte to PIC
         do
         {
             *rtc_reg = 0;
-            MCF_PSC3_PSCTB_8BIT = *rtc_data;
+            * (volatile uint8_t *) (&MCF_PSC3_PSCTB_8BIT) = *rtc_data;
         } while (index++ < 64);
     }
     return true;
