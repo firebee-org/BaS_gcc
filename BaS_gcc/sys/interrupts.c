@@ -262,7 +262,7 @@ bool pic_interrupt_handler(void *arg1, void *arg2)
         {
             *rtc_reg = index;
             write_pic_byte(*rtc_data);
-        } while (index++ < 64);
+        } while (++index < 64);
     }
     return true;
 }
