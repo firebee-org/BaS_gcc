@@ -581,7 +581,7 @@ _lowlevel_isr_handler:
         jsr     _isr_execute_handler            // call the C handler
         addq.l	#4,sp                           // adjust stack
         tst.b	d0                              // handled?
-        beq	lowlevel_forward                    // no, forward it to TOS
+        beq     lowlevel_forward                // no, forward it to TOS
 
         movem.l	(sp),d0-d1/a0-a1                // restore registers
         unlk	a6

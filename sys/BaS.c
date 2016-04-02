@@ -529,6 +529,16 @@ void BaS(void)
         FireTOS();  // Should never return
     }
 
+    /*
+     * fix initial pc/sp in ST RAM for FreeMiNT. It expects valid values there
+     * like on original STs (where these values reside in ROM) and uses them on
+     * CTRL-ALT-DELETE reboots.
+     */
+    struct rom_header *bas_header = (struct rom_header *) TARGET_ADDRESS;
+    struct rom_header *stram_header = (struct rom_header *) 0x0;
+
+    *stram_header = *bas_header;
+
     xprintf("call EmuTOS\r\n");
     struct rom_header *os_header = (struct rom_header *) TOS;
     os_header->initial_pc();
