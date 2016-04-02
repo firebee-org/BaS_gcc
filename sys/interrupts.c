@@ -477,7 +477,7 @@ bool irq7_handler(void)
  */
 bool gpt0_interrupt_handler(void *arg0, void *arg1)
 {
-    dbg("handler called\n\r");
+    dbg("gpt0 handler called\n\r");
 
     MCF_GPT0_GMS &= ~1;     /* rearm trigger */
     NOP();

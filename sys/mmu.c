@@ -679,7 +679,7 @@ void mmu_init(void)
 
     /* create locked TLB entries */
 
-    flags.cache_mode = CACHE_COPYBACK;
+    flags.cache_mode = CACHE_WRITETHROUGH;
     flags.supervisor_protect = 0;
     flags.read = 1;
     flags.write = 1;
@@ -687,7 +687,7 @@ void mmu_init(void)
     flags.locked = true;
 
     /* 0x00000000 - 0x00100000 (first MB of physical memory) locked virt = phys */
-    mmu_map_page(0x0, 0x0, MMU_PAGE_SIZE_1M, 0, &flags);
+    mmu_map_page(0x0, 0x60000000, MMU_PAGE_SIZE_1M, 0, &flags);
 
     /*
      * Make the TOS (in SDRAM) read-only

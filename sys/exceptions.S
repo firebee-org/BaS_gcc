@@ -247,7 +247,7 @@ init_vec_loop:
 #ifdef MACHINE_FIREBEE
 
 // timer vectors (triggers when vbashi gets changed, used for video page copy)
-        move.l  a1,(INT_SOURCE_GPT0 + 64) * 4(a0)
+        // move.l  a1,(INT_SOURCE_GPT0 + 64) * 4(a0)
 #endif /* MACHINE_FIREBEE */
 
         move.l  (sp)+,a2                        // Restore registers

@@ -223,6 +223,7 @@ void enable_coldfire_interrupts()
 
     MCF_EPORT_EPPAR = 0xaaa8;               /* all interrupts on falling edge */
 
+#ifdef _NOT_USED_
 #if defined(MACHINE_FIREBEE)
     /*
      * TIN0 on the Coldfire is connected to the FPGA. TIN0 triggers every write
@@ -235,7 +236,7 @@ void enable_coldfire_interrupts()
                      MCF_INTC_ICR_IP(6);    /* interrupt level 7, interrupt priority 7 */
     MCF_INTC_IMRH = 0xbffffffe;             /* psc3 and timer 0 int on */
 #endif
-
+#endif
     xprintf("finished\r\n");
 }
 
