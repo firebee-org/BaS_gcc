@@ -41,6 +41,7 @@ _rom_entry:
 
 		clr.l	d0
 		move.l	d0,MCF_MMU_MMUCR
+        nop
 
 #if !defined(MACHINE_M54455)			// MCF54455 does not have RAMBAR0 and RAMBAR1 registers */
 
