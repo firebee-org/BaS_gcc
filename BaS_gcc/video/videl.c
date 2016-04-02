@@ -11,7 +11,7 @@
  * option any later version.  See doc/license.txt for details.
  */
 
-#define DBG_VIDEL
+// #define DBG_VIDEL
 #ifdef DBG_VIDEL
 #define dbg(format, arg...) do { xprintf("DEBUG: %s(): " format, __FUNCTION__, ##arg); } while (0)
 #else
