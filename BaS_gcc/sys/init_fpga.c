@@ -95,13 +95,15 @@ bool init_fpga(void)
     int i;
 
     xprintf("FPGA load config...\r\n");
+    xprintf("_FPGA_JTAG_LOADED = 0x%x\r\n", _FPGA_JTAG_LOADED);
+    xprintf("_FPGA_JTAG_VALID = 0x%x\r\n", _FPGA_JTAG_VALID);
     if (_FPGA_JTAG_LOADED == 1 && _FPGA_JTAG_VALID == VALID_JTAG)
     {
         xprintf("detected _FPGA_JTAG_LOADED flag. FPGA config skipped.\r\n");
 
         /* reset the flag so that next boot will load config again from flash */
-        _FPGA_JTAG_LOADED = 0;
-        _FPGA_JTAG_VALID = 0;
+        // _FPGA_JTAG_LOADED = 0;
+        // _FPGA_JTAG_VALID = 0;
 
         return true;
     }
@@ -180,6 +182,16 @@ bool init_fpga(void)
 
         xprintf("finished (took %f seconds).\r\n", time / 1000.0);
         config_gpio_for_jtag_config();
+
+        /*
+         * assure skipping fpga load on warm boot
+         */
+
+        _FPGA_JTAG_LOADED = 1;
+        _FPGA_JTAG_VALID = VALID_JTAG;
+
+        xprintf("SRAM now set to FPGA load skip\r\n");
+
         return true;
     }
     xprintf("FAILED!\r\n");
