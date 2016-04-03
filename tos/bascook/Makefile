@@ -23,7 +23,9 @@ TOPDIR= ../..
 
 BAS_INCLUDE=-I$(TOPDIR)/../BaS_gcc/include
 
-INCLUDE=-I$(TOPDIR)/../libcmini/include $(BAS_INCLUDE) -nostdlib
+LIBCMINI=$(TOPDIR)/../libcmini/libcmini
+
+INCLUDE=-I$(LIBCMINI)/include $(BAS_INCLUDE) -nostdlib
 LIBS=-lcmini -nostdlib -lgcc
 CC=$(PREFIX)/bin/gcc
 
@@ -72,7 +74,7 @@ $(1)/objs/%.o:$(SRCDIR)/%.S
 
 $(1)_OBJS=$(patsubst %,$(1)/objs/%,$(OBJS))
 $(1)/$(APP): $$($(1)_OBJS)
-	$(CC) $$(CFLAGS) -o $$@ $(TOPDIR)/../libcmini/m5475/startup.o $$($(1)_OBJS) -L$(TOPDIR)/../libcmini/m5475 $(LIBS)
+	$(CC) $$(CFLAGS) -o $$@ $(LIBCMINI)/m5475/startup.o $$($(1)_OBJS) -L$(LIBCMINI)/m5475 $(LIBS)
 	$(STRIP) $$@
 endef
 $(foreach DIR,$(TRGTDIRS),$(eval $(call CC_TEMPLATE,$(DIR))))
@@ -90,8 +92,7 @@ clean:
 
 .PHONY: printvars
 printvars:
-	@$(foreach V,$(.VARIABLES), $(if $(filter-out environment% default automatic, $(origin $V)),$(warning $V=$($V))))
-
+	@$(foreach V,$(.VARIABLES), $(if $(filter-out environment% default automatic, $(origin $V)),$(warning $V=$($V)))) 
 ifneq (clean,$(MAKECMDGOALS))
 -include $(DEPEND)
 endif
