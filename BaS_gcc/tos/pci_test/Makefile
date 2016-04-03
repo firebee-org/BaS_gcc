@@ -21,7 +21,9 @@ endif
 DEPEND=depend
 TOPDIR = ../..
 
-INCLUDE=-I$(TOPDIR)/../libcmini/include -nostdlib
+LIBCMINI=$(TOPDIR)/../libcmini/libcmini
+
+INCLUDE=-I$(LIBCMINI)/include -nostdlib
 LIBS=-lcmini -nostdlib -lgcc
 CC=$(PREFIX)/bin/gcc
 
@@ -79,7 +81,7 @@ $(1)/objs/%.o:$(SRCDIR)/%.S
 
 $(1)_OBJS=$(patsubst %,$(1)/objs/%,$(OBJS))
 $(1)/$(APP): $$($(1)_OBJS)
-	$(CC) $$(CFLAGS) -o $$@ $(TOPDIR)/../libcmini/$(1)/startup.o $$($(1)_OBJS) -L$(TOPDIR)/../libcmini/$(1) $(LIBS)
+	$(CC) $$(CFLAGS) -o $$@ $(LIBCMINI)/$(1)/startup.o $$($(1)_OBJS) -L$(LIBCMINI)/$(1) $(LIBS)
 	$(STRIP) $$@
 endef
 $(foreach DIR,$(TRGTDIRS),$(eval $(call CC_TEMPLATE,$(DIR))))

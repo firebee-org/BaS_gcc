@@ -186,6 +186,8 @@ clean:
 		do rm -f $$d/*.map $$d/*.s19 $$d/*.elf $$d/*.lk $$d/*.a $$d/objs/* $$d/depend;\
 	done
 	rm -f tags
+	(cd tos; make clean)
+
 
 
 # flags for targets

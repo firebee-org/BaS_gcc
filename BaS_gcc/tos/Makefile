@@ -17,3 +17,11 @@ vmem_test:
 pci_test:
 	$(MAKE) -C $@
 
+.PHONY: clean
+clean:
+	(cd jtagwait; make clean)
+	(cd bascook; make clean)
+	(cd vmem_test; make clean)
+	(cd pci_test; make clean)
+
+
