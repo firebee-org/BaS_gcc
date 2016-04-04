@@ -38,6 +38,7 @@ endif
 
 INCLUDE=-Iinclude
 CFLAGS=	-Wall \
+        -O2 \
 	-fomit-frame-pointer \
 	-ffreestanding \
 	-fleading-underscore \
