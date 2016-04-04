@@ -610,3 +610,5 @@ tos/pci_test/include/MCF5475_XLB.h
 tos/pci_test/include/MCF5475.h
 tos/pci_test/include/pci.h
 memory_map.txt
+pci/pci_errata.c
+include/pci_errata.h
