@@ -10,7 +10,7 @@
 
 # can be either "Y" or "N" (without quotes). "Y" for using the m68k-elf-, "N" for using the m68k-atari-mint
 # toolchain
-COMPILE_ELF=Y
+COMPILE_ELF=N
 
 ifeq (Y,$(COMPILE_ELF))
 TCPREFIX=m68k-elf-
@@ -52,7 +52,7 @@ CFLAGS_OPTIMIZED = -mcpu=5474 \
 		-Wa,--register-prefix-optional
 LDFLAGS=
 
-TRGTDIRS= ./firebee ./m5484lite
+TRGTDIRS= ./firebee ./m54455 ./m5484lite
 OBJDIRS=$(patsubst %, %/objs,$(TRGTDIRS))
 TOOLDIR=util
 
@@ -93,6 +93,7 @@ CSRCS= \
 	xhdi_sd.c \
 	xhdi_interface.c \
 	pci.c \
+	pci_errata.c \
 	dspi.c \
 	driver_vec.c \
 	driver_mem.c \

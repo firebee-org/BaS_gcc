@@ -49,6 +49,8 @@ SECTIONS
 
                 OBJDIR/BaS.o(.text)
                 OBJDIR/pci.o(.text)
+                . = ALIGN(16);
+                OBJDIR/pci_errata.o(.text)
                 OBJDIR/pci_wrappers.o(.text)
                 OBJDIR/usb.o(.text)
                 OBJDIR/driver_mem.o(.text)
