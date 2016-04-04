@@ -26,6 +26,7 @@
 
 #include <MCF5475.h>
 #include "pci.h"
+#include "pci_errata.h"
 #include "bas_types.h"
 #include "bas_printf.h"
 #include "bas_string.h"
