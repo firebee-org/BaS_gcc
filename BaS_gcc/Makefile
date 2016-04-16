@@ -283,7 +283,7 @@ $(1)_MAPFILE_RAM=$(1)/$$(basename $$(RAM_EXEC)).map
 $(1)/$$(RAM_EXEC): $(1)/$(LIBBAS) $(LDCSRC)
 	$(CPP) $(INCLUDE) -DCOMPILE_RAM -DOBJDIR=$(1)/objs -P -DFORMAT_ELF=$(FORMAT_ELF) -D$$(MACHINE) $(LDCSRC) -o $(1)/$$(LDRFILE)
 	#$(LD) $(LDFLAGS) --oformat $$(FORMAT) -Map $$($(1)_MAPFILE_RAM) --cref -T $(1)/$$(LDRFILE) $(LDLIBS) -o $$@
-	$(CC) $$(CFLAGS) -nostdlib -Wl,--oformat -Wl,$$(FORMAT) -Wl,-Map -Wl,$$($(1)_MAPFILE) -Wl,--cref -Wl,-T -Wl,$(1)/$$(LDRFILE) $(LDLIBS) -o $$@
+	$(CC) $$(CFLAGS) -nostdlib -Wl,--oformat -Wl,$$(FORMAT) -Wl,-Map -Wl,$$($(1)_MAPFILE_RAM) -Wl,--cref -Wl,-T -Wl,$(1)/$$(LDRFILE) $(LDLIBS) -o $$@
 ifeq ($(COMPILE_ELF),Y)
 	$(OBJCOPY) -O srec $$@ $$(basename $$@).s19
 else
