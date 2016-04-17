@@ -74,7 +74,7 @@
 #error "unknown machine!"x
 #endif /* MACHINE_FIREBEE */
 
-//#define DBG_MMU
+#define DBG_MMU
 #ifdef DBG_MMU
 #define dbg(format, arg...) do { xprintf("DEBUG (%s()): " format, __FUNCTION__, ##arg);} while(0)
 #else
@@ -247,7 +247,7 @@ static struct virt_to_phys translation[] =
 
 static int num_translations = sizeof(translation) / sizeof(struct virt_to_phys);
 
-static inline int32_t lookup_phys(int32_t virt)
+static inline uint32_t lookup_phys(int32_t virt)
 {
     int i;
 
@@ -263,36 +263,27 @@ static inline int32_t lookup_phys(int32_t virt)
     return -1;
 }
 
-struct mmu_page_descriptor
-{
-    uint8_t cache_mode          : 2;
-    uint8_t supervisor_protect  : 1;
-    uint8_t read                : 1;
-    uint8_t write               : 1;
-    uint8_t execute             : 1;
-    uint8_t global              : 1;
-    uint8_t locked              : 1;
-};
 
 /*
  * page descriptors. Size depending on DEFAULT_PAGE_SIZE, either 1M (resulting in 512
  * bytes size) or 8k pages (64k descriptor array size)
  */
-static struct mmu_page_descriptor pages[SDRAM_SIZE / DEFAULT_PAGE_SIZE];
+#define NUM_PAGES    (SDRAM_SIZE / SIZE_DEFAULT)
+static struct mmu_page_descriptor pages[NUM_PAGES];
 
 
-int mmu_map_instruction_page(int32_t virt, uint8_t asid)
+int mmu_map_instruction_page(uint32_t virt, uint8_t asid)
 {
-    const uint32_t size_mask = ~ (DEFAULT_PAGE_SIZE - 1);       /* pagesize */
-    int page_index = (virt & size_mask) / DEFAULT_PAGE_SIZE;    /* index into page_descriptor array */
-    struct mmu_page_descriptor *page = &pages[page_index];      /* attributes of page to map */
+    const uint32_t size_mask = ~ (SIZE_DEFAULT - 1);                /* pagesize */
+    int page_index = (virt & size_mask) / SIZE_DEFAULT;             /* index into page_descriptor array */
+    struct mmu_page_descriptor *page = &pages[page_index];          /* attributes of page to map */
     int ipl;
-    int32_t phys = lookup_phys(virt);                           /* virtual to physical translation of page */
+    uint32_t phys = lookup_phys(virt);                               /* virtual to physical translation of page */
 
-    if (phys == -1)
+    if (phys == (uint32_t) -1)
     {
         /* no valid mapping found, caller will issue a bus error in return */
-
+        dbg("no mapping found\r\n");
         return 0;
     }
 
@@ -315,7 +306,7 @@ int mmu_map_instruction_page(int32_t virt, uint8_t asid)
         MCF_MMU_MMUTR_V;                                            /* valid */
 
     MCF_MMU_MMUDR = (phys & size_mask) |                            /* physical address */
-        MCF_MMU_MMUDR_SZ(DEFAULT_PAGE_SIZE) |                       /* page size */
+        MCF_MMU_MMUDR_SZ(MMU_PAGE_SIZE_DEFAULT) |                   /* page size */
         MCF_MMU_MMUDR_CM(page->cache_mode) |                        /* cache mode */
         (page->supervisor_protect ? MCF_MMU_MMUDR_SP : 0) |         /* supervisor protect */
         (page->read ? MCF_MMU_MMUDR_R : 0) |                        /* read access enable */
@@ -336,19 +327,19 @@ int mmu_map_instruction_page(int32_t virt, uint8_t asid)
     return 1;
 }
 
-int mmu_map_data_page(int32_t virt, uint8_t asid)
+int mmu_map_data_page(uint32_t virt, uint8_t asid)
 {
     uint16_t ipl;
-    const uint32_t size_mask = ~ (DEFAULT_PAGE_SIZE - 1);       /* pagesize */
-    int page_index = (virt & size_mask) / DEFAULT_PAGE_SIZE;    /* index into page_descriptor array */
+    const uint32_t size_mask = ~ (SIZE_DEFAULT - 1);            /* pagesize */
+    int page_index = (virt & size_mask) / SIZE_DEFAULT;         /* index into page_descriptor array */
     struct mmu_page_descriptor *page = &pages[page_index];      /* attributes of page to map */
 
-    int32_t phys = lookup_phys(virt);                           /* virtual to physical translation of page */
+    uint32_t phys = lookup_phys(virt);                           /* virtual to physical translation of page */
 
-    if (phys == -1)
+    if (phys == (uint32_t) -1)
     {
         /* no valid mapping found, caller will issue a bus error in return */
-
+        dbg("no mapping found\r\n");
         return 0;
     }
 
@@ -369,7 +360,7 @@ int mmu_map_data_page(int32_t virt, uint8_t asid)
         MCF_MMU_MMUTR_V;                                            /* valid */
 
     MCF_MMU_MMUDR = (phys & size_mask) |                            /* physical address */
-        MCF_MMU_MMUDR_SZ(DEFAULT_PAGE_SIZE) |                       /* page size */
+        MCF_MMU_MMUDR_SZ(MMU_PAGE_SIZE_DEFAULT) |                   /* page size */
         MCF_MMU_MMUDR_CM(page->cache_mode) |                        /* cache mode */
         (page->supervisor_protect ? MCF_MMU_MMUDR_SP : 0) |         /* supervisor protect */
         (page->read ? MCF_MMU_MMUDR_R : 0) |                        /* read access enable */
@@ -398,7 +389,7 @@ int mmu_map_data_page(int32_t virt, uint8_t asid)
  * per instruction as a minimum, more for performance. Thus locked pages (that can't be touched by the
  * LRU algorithm) should be used sparsingly.
  */
-int mmu_map_page(int32_t virt, int32_t phys, enum mmu_page_size sz, uint8_t page_id, const struct mmu_page_descriptor *flags)
+uint32_t mmu_map_page(uint32_t virt, uint32_t phys, enum mmu_page_size sz, uint8_t page_id, const struct mmu_page_descriptor *flags)
 {
     int size_mask;
     int ipl;
@@ -432,17 +423,18 @@ int mmu_map_page(int32_t virt, int32_t phys, enum mmu_page_size sz, uint8_t page
 
     ipl = set_ipl(7);       /* do not disturb */
 
-    MCF_MMU_MMUTR = ((int) virt & size_mask) |                      /* virtual address */
+    MCF_MMU_MMUTR = (virt & size_mask) |                            /* virtual address */
         MCF_MMU_MMUTR_ID(page_id) |                                 /* address space id (ASID) */
         (flags->global ? MCF_MMU_MMUTR_SG : 0) |                    /* shared global */
         MCF_MMU_MMUTR_V;                                            /* valid */
 
-    MCF_MMU_MMUDR = ((int) phys & size_mask) |                      /* physical address */
+    MCF_MMU_MMUDR = (phys & size_mask) |                            /* physical address */
         MCF_MMU_MMUDR_SZ(sz) |                                      /* page size */
         MCF_MMU_MMUDR_CM(flags->cache_mode) |
         (flags->read ? MCF_MMU_MMUDR_R : 0) |                       /* read access enable */
         (flags->write ? MCF_MMU_MMUDR_W : 0) |                      /* write access enable */
         (flags->execute ? MCF_MMU_MMUDR_X : 0) |                    /* execute access enable */
+        (flags->supervisor_protect ? MCF_MMU_MMUDR_SP : 0) |        /* supervisor protect */
         (flags->locked ? MCF_MMU_MMUDR_LK : 0);
 
     MCF_MMU_MMUOR = MCF_MMU_MMUOR_ACC |     /* access TLB, data */
@@ -455,7 +447,7 @@ int mmu_map_page(int32_t virt, int32_t phys, enum mmu_page_size sz, uint8_t page
 
     set_ipl(ipl);
 
-    dbg("mapped virt=0x%08x to phys=0x%08x\r\n", virt, phys);
+    dbg("mapped virt=0x%08x to phys=0x%08x size mask 0x%lx\r\n", virt, phys, size_mask);
 
     return 1;
 }
@@ -476,26 +468,24 @@ void mmu_init(void)
     /*
      * prelaminary initialization of page descriptor 0 (root) table
      */
-    for (i = 0; i < sizeof(pages) / sizeof(struct mmu_page_descriptor); i++)
+    for (i = 0; i < NUM_PAGES; i++)
     {
-        uint32_t addr = i * DEFAULT_PAGE_SIZE;
+        uint32_t addr = i * SIZE_DEFAULT;
 
 #if defined(MACHINE_FIREBEE)
         if (addr >= 0x00f00000UL && addr < 0x00ffffffUL)        /* Falcon I/O area on the Firebee */
         {
             pages[i].cache_mode = CACHE_NOCACHE_PRECISE;
-            pages[i].execute = 0;
+            pages[i].supervisor_protect = 1;
             pages[i].read = 1;
             pages[i].write = 1;
             pages[i].execute = 0;
             pages[i].global = 1;
-            pages[i].supervisor_protect = 1;
         }
         else if (addr >= 0x0UL && addr < 0x00e00000UL)          /* ST-RAM, potential video memory */
         {
             pages[i].cache_mode = CACHE_WRITETHROUGH;
-            pages[i].execute = 1;
-            pages[i].supervisor_protect = 0;
+            pages[i].supervisor_protect = 0; // (addr == 0x0L ? 1 : 0);
             pages[i].read = 1;
             pages[i].write = 1;
             pages[i].execute = 1;
@@ -504,24 +494,31 @@ void mmu_init(void)
         else if (addr >= 0x00e00000UL && addr < 0x00f00000UL)   /* EmuTOS */
         {
             pages[i].cache_mode = CACHE_COPYBACK;
-            pages[i].execute = 1;
-            pages[i].supervisor_protect = 1;
+            pages[i].supervisor_protect = 0;
             pages[i].read = 1;
             pages[i].write = 0;
+            pages[i].execute = 1;
+            pages[i].global = 1;
+        }
+        else if (addr >= 0x00000000 && addr <= 0x00010000)      /* first Megabyte of ST RAM */
+        {
+            pages[i].cache_mode = CACHE_COPYBACK;
+            pages[i].supervisor_protect = 0;
+            pages[i].read = 1;
+            pages[i].write = 1;
             pages[i].execute = 1;
             pages[i].global = 1;
         }
         else
         {
             pages[i].cache_mode = CACHE_COPYBACK;
-            pages[i].execute = 1;
+            pages[i].supervisor_protect = 0;
             pages[i].read = 1;
             pages[i].write = 1;
-            pages[i].supervisor_protect = 0;
+            pages[i].execute = 1;
             pages[i].global = 1;
         }
         pages[i].locked = 0;                /* not locked */
-        pages[0].supervisor_protect = 0;    /* protect system vectors */
 
 #elif defined(MACHINE_M5484LITE)
         if (addr >= 0x60000000UL && addr < 0x70000000UL)        /* Compact Flash on the m5484lite */
@@ -562,7 +559,6 @@ void mmu_init(void)
             pages[i].global = 1;
         }
         pages[i].locked = 0;                /* not locked */
-        pages[0].supervisor_protect = 0;    /* protect system vectors */
 
 #elif defined(MACHINE_M54455)
         if (addr >= 0x60000000UL && addr < 0x70000000UL)        /* Compact Flash on the m5484lite */
@@ -605,26 +601,27 @@ void mmu_init(void)
             pages[i].global = 1;
         }
         pages[i].locked = 0;                /* not locked */
-        pages[0].supervisor_protect = 0;    /* protect system vectors */
 #else
 #error Unknown machine!
 #endif /* MACHINE_FIREBEE */
     }
 
-    set_asid(0);            /* do not use address extension (ASID provides virtual 48 bit addresses */
+    set_asid(0);                        /* do not use address extension (ASID provides virtual 48 bit addresses */
+
+    // pages[0].supervisor_protect = 1;    /* protect system vectors */
 
     /* set data access attributes in ACR0 and ACR1 */
 
     /* map PCI address space */
     set_acr0(ACR_W(0) |                             /* read and write accesses permitted */
-            ACR_SP(1) |                             /* supervisor and user mode access permitted */
+            //ACR_SP(1) |                             /* supervisor only access permitted */
             ACR_CM(ACR_CM_CACHE_INH_PRECISE) |      /* cache inhibit, precise */
             ACR_AMM(0) |                            /* control region > 16 MB */
             ACR_S(ACR_S_SUPERVISOR_MODE) |          /* match addresses in supervisor mode only */
             ACR_E(1) |                              /* enable ACR */
 #if defined(MACHINE_FIREBEE)
             ACR_ADMSK(0x7f) |                       /* cover 2GB area from 0x80000000 to 0xffffffff */
-            ACR_BA(0x80000000));                    /* (equals area from 3 to 4 GB */
+            ACR_BA(PCI_MEMORY_OFFSET));             /* (equals area from 3 to 4 GB */
 #elif defined(MACHINE_M5484LITE)
             ACR_ADMSK(0x7f) |                       /* cover 2 GB area from 0x80000000 to 0xffffffff */
             ACR_BA(PCI_MEMORY_OFFSET));
@@ -671,30 +668,18 @@ void mmu_init(void)
             ACR_ADMSK(0x7) |
             ACR_BA(0xe0000000));
 
-    /* disable ACR1 - 3, essentially disabling all of the above */
 
+    /* disable ACR3 */
     set_acr3(0x0);
 
     set_mmubar(MMUBAR + 1);     /* set and enable MMUBAR */
-
-    /* create locked TLB entries */
-
-    flags.cache_mode = CACHE_WRITETHROUGH;
-    flags.supervisor_protect = 0;
-    flags.read = 1;
-    flags.write = 1;
-    flags.execute = 1;
-    flags.locked = true;
-
-    /* 0x00000000 - 0x00100000 (first MB of physical memory) locked virt = phys */
-    mmu_map_page(0x0, 0x60000000, MMU_PAGE_SIZE_1M, 0, &flags);
 
     /*
      * Make the TOS (in SDRAM) read-only
      * This maps virtual 0x00e0'0000 - 0x00ef'ffff to the same virtual address
      */
     flags.cache_mode = CACHE_COPYBACK;
-    flags.supervisor_protect = 0;
+    flags.supervisor_protect = 0;  // needs to stay like this or cf_flasher will choke */
     flags.read = 1;
     flags.write = 0;
     flags.execute = 1;
@@ -731,7 +716,7 @@ void mmu_init(void)
      * virtual address. This is also used (completely) when BaS is in RAM
      */
     flags.cache_mode = CACHE_COPYBACK;
-    flags.supervisor_protect = 1;
+    flags.supervisor_protect = 0;
     flags.read = 1;
     flags.write = 1;
     flags.execute = 1;
@@ -743,7 +728,7 @@ void mmu_init(void)
      * virtual address. Used uncached for drivers.
      */
     flags.cache_mode = CACHE_NOCACHE_PRECISE;
-    flags.supervisor_protect = 1;
+    flags.supervisor_protect = 0;
     flags.read = 1;
     flags.write = 1;
     flags.execute = 0;
@@ -774,22 +759,24 @@ uint32_t mmutr_miss(uint32_t mmu_sr, uint32_t fault_address, uint32_t pc, uint32
 
             if (!mmu_map_instruction_page(pc, 0))
             {
-                dbg("bus error\r\n");
+                dbg("ITLB miss bus error\r\n");
                 return 1;   /* bus error */
             }
 
+#ifdef _NOT_USED_
             /* due to prefetch, it makes sense to map the next adjacent page also for ITLBs */
-            if (pc + DEFAULT_PAGE_SIZE < TARGET_ADDRESS)
+            if (pc + SIZE_DEFAULT < TARGET_ADDRESS)
             {
                 /*
                  * only do this if the next page is still valid RAM
                  */
-                if (!mmu_map_instruction_page(pc + DEFAULT_PAGE_SIZE, 0))
+                if (!mmu_map_instruction_page(pc + MMU_DEFAULT_PAGE_SIZE, 0))
                 {
-                    dbg("bus error\r\n");
+                    dbg("ITLB next page bus error\r\n");
                     return 1;   /* bus error */
                 }
             }
+#endif /* _NOT_USED_ */
             break;
 
         case 0x08020000:    /* TLB miss on data write */
@@ -803,14 +790,58 @@ uint32_t mmutr_miss(uint32_t mmu_sr, uint32_t fault_address, uint32_t pc, uint32
 
             if (!mmu_map_data_page(fault_address, 0))
             {
-                dbg("bus error\r\n");
+                dbg("DTLB miss bus error\r\n");
                 return 1;   /* bus error */
             }
             break;
 
+        case 0x0c010000:
+        case 0x08010000:
+            dbg("privilege violation accessing 0x%08x\r\n"
+                "FS = 0x%08x\r\n"
+                "MMUSR = 0x%08x\r\n"
+                "PC = 0x%08x\r\n",
+                fault_address, format_status, mmu_sr, pc);
+            dbg("fault = 0x%08x\r\n", fault);
+#ifdef _DOES_NOT_WORK_
+            /*
+             * check if its one of our "special cases" and map a user page on top of it if user
+             * mode access should be allowed
+             */
+            if (fault_address >= 1024 && fault_address < 0x00100000) /* ST-RAM */
+            {
+                struct mmu_page_descriptor flags =
+                {
+                    .cache_mode = CACHE_COPYBACK,
+                    .supervisor_protect = 0,
+                    .read = 1,
+                    .write = 1,
+                    .execute = 1,
+                    .global = 1,
+                    .locked = 0
+                };
+
+                uint32_t virt = fault_address & ~(SIZE_1K - 1);
+                uint32_t phys = (fault_address & (~(SIZE_1K - 1))) + 0x60000000;
+                dbg("mapping helper page virt=0x%08x to phys=0x%08x\r\n", virt, phys);
+                if (!mmu_map_page(virt, phys, MMU_PAGE_SIZE_1K, 0, &flags))
+                {
+                    dbg("privilege violation (bus error)\r\n");
+                    return 1;
+                }
+            }
+#endif
+            return 1;
+            break;
+
         /* else issue a bus error */
         default:
-            dbg("bus error\r\n");
+            dbg("bus error accessing 0x%08x\r\n"
+                "FS = 0x%08x\r\n"
+                "MMUSR = 0x%08x\r\n"
+                "PC = 0x%08x\r\n",
+                fault_address, format_status, mmu_sr, pc);
+            dbg("fault = 0x%08x\r\n", fault);
             return 1;       /* signal bus error to caller */
     }
 #ifdef DBG_MMU
@@ -846,14 +877,14 @@ uint32_t mmutr_miss(uint32_t mmu_sr, uint32_t fault_address, uint32_t pc, uint32
  *
  * return: 0 if failed (page not in translation table), 1 otherwise
  */
-int32_t mmu_map_data_page_locked(uint32_t virt, uint32_t size, int asid)
+uint32_t mmu_map_data_page_locked(uint32_t virt, uint32_t size, int asid)
 {
-    const uint32_t size_mask = ~ (DEFAULT_PAGE_SIZE - 1);       /* pagesize */
-    int page_index = (virt & size_mask) / DEFAULT_PAGE_SIZE;    /* index into page_descriptor array */
+    const uint32_t size_mask = ~ (SIZE_DEFAULT - 1);       /* pagesize */
+    int page_index = (virt & size_mask) / SIZE_DEFAULT;    /* index into page_descriptor array */
     struct mmu_page_descriptor *page = &pages[page_index];          /* attributes of page to map */
     int i = 0;
 
-    while (page_index * DEFAULT_PAGE_SIZE < virt + size)
+    while (page_index * SIZE_DEFAULT < virt + size)
     {
         if (page->locked)
         {
@@ -865,7 +896,7 @@ int32_t mmu_map_data_page_locked(uint32_t virt, uint32_t size, int asid)
             mmu_map_data_page(virt, 0);
             i++;
         }
-        virt += DEFAULT_PAGE_SIZE;
+        virt += SIZE_DEFAULT;
     }
 
     dbg("%d pages locked\r\n", i);
@@ -878,18 +909,18 @@ int32_t mmu_map_data_page_locked(uint32_t virt, uint32_t size, int asid)
  *
  * return: 0 if failed (page not found), 1 otherwise
  */
-int32_t mmu_unlock_data_page(uint32_t address, uint32_t size, int asid)
+uint32_t mmu_unlock_data_page(uint32_t address, uint32_t size, int asid)
 {
     int curr_asid;
-    const uint32_t size_mask = ~ (DEFAULT_PAGE_SIZE - 1);
-    int page_index = (address & size_mask) / DEFAULT_PAGE_SIZE;     /* index into page descriptor array */
+    const uint32_t size_mask = ~ (SIZE_DEFAULT - 1);
+    int page_index = (address & size_mask) / SIZE_DEFAULT;     /* index into page descriptor array */
     struct mmu_page_descriptor *page = &pages[page_index];
 
     curr_asid = set_asid(asid);         /* set asid to the one to search for */
 
     /* TODO: check for pages[] array bounds */
 
-    while (page_index * DEFAULT_PAGE_SIZE < address + size)
+    while (page_index * SIZE_DEFAULT < address + size)
     {
         MCF_MMU_MMUAR = address + page->supervisor_protect;
         MCF_MMU_MMUOR = MCF_MMU_MMUOR_STLB |        /* search TLB */
@@ -918,7 +949,7 @@ int32_t mmu_unlock_data_page(uint32_t address, uint32_t size, int asid)
     return 1;   /* success */
 }
 
-int32_t mmu_report_locked_pages(uint32_t *num_itlb, uint32_t *num_dtlb)
+uint32_t mmu_report_locked_pages(uint32_t *num_itlb, uint32_t *num_dtlb)
 {
     int i;
     int li = 0;
@@ -967,5 +998,5 @@ int32_t mmu_report_locked_pages(uint32_t *num_itlb, uint32_t *num_dtlb)
 
 uint32_t mmu_report_pagesize(void)
 {
-    return DEFAULT_PAGE_SIZE;
+    return SIZE_DEFAULT;
 }
