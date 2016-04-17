@@ -326,8 +326,9 @@ access:
         move.l  4(a6),-(sp)                     // push format_status
         move.l  8(a6),-(sp)                     // pc at exception
         move.l  MCF_MMU_MMUAR,-(sp)             // MMU fault address
-        move.l  MCF_MMU_MMUSR,-(sp)             // MMU status regisrter
-        move.w  #0x2300,sr                      // can lower interrupt mask now that MMU status is safe
+        move.l  MCF_MMU_MMUSR,-(sp)             // MMU status register
+        // probably doesn't make sense since we still have a potential unmapped MMU page
+        // move.w  #0x2300,sr                      // can lower interrupt mask now that MMU status is safe
         jsr     _mmutr_miss                     // call C routine
         lea     4 * 4(sp),sp                    // adjust stack
 
@@ -341,7 +342,9 @@ access:
 bus_error:
         movem.l (sp),d0-d1/a0-a1                // restore registers
         unlk    a6
-        bra     std_exc_vec                     // FIXME: this seems to be bogous...
+        move.l  0x08,-(sp)
+        rts
+        // bra     std_exc_vec                     // FIXME: this seems to be bogous...
 
 zero_divide:
         move.w  #0x2700,sr                      // disable interrupt
