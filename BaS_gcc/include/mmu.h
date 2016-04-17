@@ -64,13 +64,14 @@ enum mmu_page_size
     MMU_PAGE_SIZE_1K	= 3
 };
 
+#define MMU_PAGE_SIZE_DEFAULT   MMU_PAGE_SIZE_1M    /* note: if this changes, SIZE_DEFAULT below _must_ also change */
+
 #define SIZE_1M             0x100000        /* 1 Megabyte */
 #define SIZE_4K             0x1000          /* 4 KB */
 #define SIZE_8K             0x2000          /* 8 KB */
 #define SIZE_1K             0x400           /* 1 KB */
 
-#define DEFAULT_PAGE_SIZE   0x00100000      /* 1M pagesize */
-
+#define SIZE_DEFAULT        SIZE_1M
 /*
  * cache modes
  */
@@ -97,16 +98,25 @@ enum mmu_page_size
 extern long video_tlb;
 extern long video_sbt;
 
-struct mmu_page_descriptor;
+struct mmu_page_descriptor
+{
+    uint8_t cache_mode          : 2;
+    uint8_t supervisor_protect  : 1;
+    uint8_t read                : 1;
+    uint8_t write               : 1;
+    uint8_t execute             : 1;
+    uint8_t global              : 1;
+    uint8_t locked              : 1;
+};
 
 extern void mmu_init(void);
-extern int mmu_map_page(int32_t virt, int32_t phys, enum mmu_page_size sz, uint8_t page_id, const struct mmu_page_descriptor *flags);
+extern uint32_t mmu_map_page(uint32_t virt, uint32_t phys, enum mmu_page_size sz, uint8_t page_id, const struct mmu_page_descriptor *flags);
 
 /*
  * API functions for the BaS driver interface
  */
-extern int32_t mmu_map_data_page_locked(uint32_t address, uint32_t length, int asid);
-extern int32_t mmu_unlock_data_page(uint32_t address, uint32_t length, int asid);
-extern int32_t mmu_report_locked_pages(uint32_t *num_itlb, uint32_t *num_dtlb);
+extern uint32_t mmu_map_data_page_locked(uint32_t address, uint32_t length, int asid);
+extern uint32_t mmu_unlock_data_page(uint32_t address, uint32_t length, int asid);
+extern uint32_t mmu_report_locked_pages(uint32_t *num_itlb, uint32_t *num_dtlb);
 extern uint32_t mmu_report_pagesize(void);
 #endif /* _MMU_H_ */
