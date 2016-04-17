@@ -10,7 +10,7 @@
 
 # can be either "Y" or "N" (without quotes). "Y" for using the m68k-elf-, "N" for using the m68k-atari-mint
 # toolchain
-COMPILE_ELF=N
+COMPILE_ELF=Y
 
 ifeq (Y,$(COMPILE_ELF))
 TCPREFIX=m68k-elf-
@@ -38,12 +38,12 @@ endif
 
 INCLUDE=-Iinclude
 CFLAGS=	-Wall \
-        -O2 \
+	-O2 \
 	-fomit-frame-pointer \
 	-ffreestanding \
 	-fleading-underscore \
 	-Wa,--register-prefix-optional \
-	-g
+	-g2
 CFLAGS_OPTIMIZED = -mcpu=5474 \
 		-Wall \
 		-O2 \
