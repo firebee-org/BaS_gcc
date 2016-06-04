@@ -122,6 +122,7 @@ static void init_video_ddr(void) {
 void do_tests(void)
 {
     uint32_t version;
+    uint32_t buffer[64];
 
     xprintf("initialize Firebee video PLL\r\n");
     init_pll();
@@ -138,20 +139,38 @@ void do_tests(void)
 
     xprintf("try to access Firebee FPGA memory\r\n");
 
-    xprintf("read\r\n");
-    start = MCF_SLT0_SCNT;
-    hexdump((uint8_t *) _VRAM, 64);
-    end = MCF_SLT0_SCNT;
-    time = (start - end) / (SYSCLK / 1000) / 1000;
-
-    xprintf("finished (took %f seconds).\r\n", time / 1000.0);
-
     xprintf("write\r\n");
     start = MCF_SLT0_SCNT;
     for (i = 0; i < 64; i++)
     {
-       ((uint8_t *) _VRAM)[i] = (uint32_t) i;
+       ((volatile uint8_t *) _VRAM)[i] = (uint32_t) i;
     }
+
+    xprintf("read\r\n");
+    start = MCF_SLT0_SCNT;
+
+    xprintf("byte read\r\n");
+    for (i = 0; i < 64; i++)
+        ((uint8_t *) buffer)[i] = * ((uint8_t *) _VRAM) + i;
+
+    hexdump((volatile uint8_t *) buffer, 64);
+
+    xprintf("word read\r\n");
+    for (i = 0; i < 64 / sizeof(uint16_t); i++)
+        ((uint16_t *) buffer)[i] = * ((uint16_t *) _VRAM) + i;
+    hexdump((volatile uint8_t *) buffer, 64);
+
+    xprintf("longword read\r\n");
+    for (i = 0; i < 64 / sizeof(uint32_t); i++)
+        ((uint32_t *) buffer)[i] = *((uint32_t *) _VRAM) + i;
+    hexdump((volatile uint8_t *) buffer, 64);
+
+    end = MCF_SLT0_SCNT;
+    time = (start - end) / (SYSCLK / 1000) / 1000;
+
+    xprintf("finished (took %f seconds).\r\n", time / 1000.0);
+
+
     end = MCF_SLT0_SCNT;
     time = (start - end) / (SYSCLK / 1000) / 1000;
 
@@ -159,7 +178,7 @@ void do_tests(void)
 
     xprintf("read\r\n");
     start = MCF_SLT0_SCNT;
-    hexdump((uint8_t *) _VRAM, 64);
+    hexdump((volatile uint8_t *) _VRAM, 64);
     end = MCF_SLT0_SCNT;
     time = (start - end) / (SYSCLK / 1000) / 1000;
 
@@ -233,7 +252,7 @@ void wait_for_jtag(void)
 
     /* begin of tests */
 
-    while (1) do_tests();
+    do_tests();
 
     xprintf("wait a little to let things settle...\r\n");
     for (i = 0; i < 100000L; i++);

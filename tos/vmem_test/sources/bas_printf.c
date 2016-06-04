@@ -417,27 +417,28 @@ void display_progress()
     xputchar('\r');
 }
 
-void hexdump(uint8_t buffer[], int size)
+void hexdump(volatile uint8_t buffer[], int size)
 {
    int i;
    int line = 0;
-   uint8_t *bp = buffer;
+   volatile uint8_t *bp = buffer;
 
    while (bp < buffer + size) {
-      uint8_t *lbp = bp;
+      volatile uint8_t *lbp = bp;
 
       xprintf("%08x  ", line);
 
       for (i = 0; i < 16; i++) {
+          uint8_t c = *lbp++;
          if (bp + i > buffer + size) {
             break;
          }
-         xprintf("%02x ", (uint8_t) *lbp++);
+         xprintf("%02x ", c);
       }
 
       lbp = bp;
       for (i = 0; i < 16; i++) {
-         int8_t c = *lbp++;
+         volatile int8_t c = *lbp++;
 
          if (bp + i > buffer + size) {
             break;

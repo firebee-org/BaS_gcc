@@ -31,5 +31,5 @@ extern int sprintf(char *str, const char *format, ...);
 
 
 extern void display_progress(void);
-extern void hexdump(uint8_t buffer[], int size);
+extern void hexdump(volatile uint8_t buffer[], int size);
 #endif /* _BAS_PRINTF_H_ */
