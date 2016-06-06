@@ -42,6 +42,8 @@ CFLAGS=	-Wall \
 	-fomit-frame-pointer \
 	-ffreestanding \
 	-fleading-underscore \
+	-Winline \
+	-Wshadow \
 	-Wa,--register-prefix-optional \
 	-g2
 CFLAGS_OPTIMIZED = -mcpu=5474 \
