@@ -85,7 +85,8 @@ static void init_pll(void)
 /*
  * INIT VIDEO DDR RAM
  */
-static void init_video_ddr(void) {
+static void init_video_ddr(void)
+{
     xprintf("init video RAM: ");
 
     * (volatile uint16_t *) 0xf0000400 = 0xb;   /* set cke = 1, cs=1, config = 1 */
@@ -119,10 +120,40 @@ static void init_video_ddr(void) {
     xprintf("finished\r\n");
 }
 
+void memmove_b(uint8_t *dst, uint8_t *src, size_t size)
+{
+    while (--size)
+    {
+        *dst++ = *src++;
+    }
+}
+
+void memmove_w(uint16_t *dst, uint16_t *src, size_t size)
+{
+    size >>= 1;
+
+    while (--size)
+    {
+        *dst++ = *src++;
+    }
+}
+
+void memmove_l(uint32_t *dst, uint32_t *src, size_t size)
+{
+    size >>= 2;
+
+    while (--size)
+    {
+        *dst++ = *src++;
+    }
+}
+
+
 void do_tests(void)
 {
-    uint32_t version;
-    uint32_t buffer[64];
+    // uint32_t version;
+    const int buffer_size = 64;
+    uint8_t buffer[buffer_size * 4];
 
     xprintf("initialize Firebee video PLL\r\n");
     init_pll();
@@ -132,57 +163,74 @@ void do_tests(void)
     init_video_ddr();
     xprintf("finished\r\n");
 
+#ifdef _NOT_USED_
     xprintf("try to read Configware version (only works on later configs)\r\n");
     version = * (uint32_t *) 0xffffffff;
 
     xprintf("version = 0x%08lx\r\n", version);
+#endif /* _NOT_USED_ */
 
     xprintf("try to access Firebee FPGA memory\r\n");
 
     xprintf("write\r\n");
     start = MCF_SLT0_SCNT;
+
+    /*
+     * fill 4 lines of video memory with 64 consecutive byte values
+     */
     for (i = 0; i < 64; i++)
     {
        ((volatile uint8_t *) _VRAM)[i] = (uint32_t) i;
     }
+    end = MCF_SLT0_SCNT;
+    time = (start - end) / (SYSCLK / 1000) / 1000;
+
+    xprintf("finished (took %f seconds).\r\n", time / 1000.0);
+
+
+    /*
+     * read back video memory into local fast ram buffer
+     */
 
     xprintf("read\r\n");
     start = MCF_SLT0_SCNT;
 
+    /*
+     * read byte-wise
+     */
     xprintf("byte read\r\n");
-    for (i = 0; i < 64; i++)
-        ((uint8_t *) buffer)[i] = * ((uint8_t *) _VRAM) + i;
+    memmove_b(buffer, (uint8_t *) _VRAM, buffer_size);
+    end = MCF_SLT0_SCNT;
+    time = (start - end) / (SYSCLK / 1000) / 1000;
 
-    hexdump((volatile uint8_t *) buffer, 64);
+    xprintf("finished (took %f seconds).\r\n", time / 1000.0);
 
+    hexdump(buffer, 64);
+
+
+    /*
+     * read word-wise
+     */
     xprintf("word read\r\n");
-    for (i = 0; i < 64 / sizeof(uint16_t); i++)
-        ((uint16_t *) buffer)[i] = * ((uint16_t *) _VRAM) + i;
-    hexdump((volatile uint8_t *) buffer, 64);
+    memmove_w((uint16_t *) buffer, (uint16_t *) _VRAM, buffer_size);
+    end = MCF_SLT0_SCNT;
+    time = (start - end) / (SYSCLK / 1000) / 1000;
 
+    xprintf("finished (took %f seconds).\r\n", time / 1000.0);
+
+    hexdump(buffer, 64);
+
+    /*
+     * read longword-wise
+     */
     xprintf("longword read\r\n");
-    for (i = 0; i < 64 / sizeof(uint32_t); i++)
-        ((uint32_t *) buffer)[i] = *((uint32_t *) _VRAM) + i;
-    hexdump((volatile uint8_t *) buffer, 64);
-
+    memmove_l((uint32_t *) buffer, (uint32_t *) _VRAM, buffer_size);
     end = MCF_SLT0_SCNT;
     time = (start - end) / (SYSCLK / 1000) / 1000;
 
     xprintf("finished (took %f seconds).\r\n", time / 1000.0);
 
-
-    end = MCF_SLT0_SCNT;
-    time = (start - end) / (SYSCLK / 1000) / 1000;
-
-    xprintf("finished (took %f seconds).\r\n", time / 1000.0);
-
-    xprintf("read\r\n");
-    start = MCF_SLT0_SCNT;
-    hexdump((volatile uint8_t *) _VRAM, 64);
-    end = MCF_SLT0_SCNT;
-    time = (start - end) / (SYSCLK / 1000) / 1000;
-
-    xprintf("finished (took %f seconds).\r\n", time / 1000.0);
+    hexdump(buffer, 64);
 }
 
 

@@ -999,7 +999,7 @@ static void pci_bridge_config(uint16_t bus, uint16_t device, uint16_t function)
     handle = PCI_HANDLE(bus, device, function);
     dbg("handle=%d\r\n", handle);
 
-    pci_write_config_longword(handle, PCIBAR0, 0x40000000);
+    pci_write_config_longword(handle, PCIBAR0, swpl(0x40000000));
     pci_write_config_longword(handle, PCIBAR1, 0x0);
     pci_write_config_longword(handle, PCICSR, 0x146);
 }

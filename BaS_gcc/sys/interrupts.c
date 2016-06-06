@@ -236,6 +236,7 @@ bool isr_execute_handler(int vector)
     return true;
 }
 
+#if defined(MACHINE_FIREBEE)
 /*
  * PIC interrupt handler for Firebee
  *
@@ -266,6 +267,7 @@ bool pic_interrupt_handler(void *arg1, void *arg2)
     }
     return true;
 }
+#endif /* MACHINE_FIREBEE */
 
 bool xlbpci_interrupt_handler(void *arg1, void *arg2)
 {
