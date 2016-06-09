@@ -42,7 +42,7 @@ CFLAGS=\
 	-Wl,--defsym -Wl,__MMUBAR=0xff040000\
 	-Wl,--defsym -Wl,__FPGA_JTAG_LOADED=0xff101000\
 	-Wl,--defsym -Wl,__FPGA_JTAG_VALID=0xff101004\
-	-Wl,--defsym -Wl,__VRAM=0x60010000\
+	-Wl,--defsym -Wl,__VRAM=0x60000000\
 	-Wall
 
 SRCDIR=sources
