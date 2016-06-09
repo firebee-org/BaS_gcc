@@ -120,7 +120,7 @@ static void init_video_ddr(void)
     xprintf("finished\r\n");
 }
 
-void memmove_b(uint8_t *dst, uint8_t *src, size_t size)
+void memmove_b(uint8_t *dst, volatile uint8_t *src, size_t size)
 {
     while (--size)
     {
@@ -128,7 +128,7 @@ void memmove_b(uint8_t *dst, uint8_t *src, size_t size)
     }
 }
 
-void memmove_w(uint16_t *dst, uint16_t *src, size_t size)
+void memmove_w(uint16_t *dst, volatile uint16_t *src, size_t size)
 {
     size >>= 1;
 
@@ -138,7 +138,7 @@ void memmove_w(uint16_t *dst, uint16_t *src, size_t size)
     }
 }
 
-void memmove_l(uint32_t *dst, uint32_t *src, size_t size)
+void memmove_l(uint32_t *dst, volatile uint32_t *src, size_t size)
 {
     size >>= 2;
 
@@ -180,7 +180,7 @@ void do_tests(void)
      */
     for (i = 0; i < 64; i++)
     {
-       ((volatile uint8_t *) _VRAM)[i] = (uint32_t) i;
+       ((uint8_t *) _VRAM)[i] = (uint32_t) i;
     }
     end = MCF_SLT0_SCNT;
     time = (start - end) / (SYSCLK / 1000) / 1000;
@@ -231,6 +231,46 @@ void do_tests(void)
     xprintf("finished (took %f seconds).\r\n", time / 1000.0);
 
     hexdump(buffer, 64);
+
+    /*
+     * do some Firebee register tests
+     */
+
+    volatile uint8_t *dbasef = (volatile uint8_t *) 0xffff8200;
+
+    xprintf("dbasef = 0x%02x\r\n", *dbasef);
+    *dbasef = 0x0;
+    xprintf("dbasef after clearing it = 0x%02x\r\n", *dbasef);
+
+    volatile uint8_t *dbaseh = (volatile uint8_t *) 0xffff8201;
+
+    xprintf("dbaseh = 0x%02x\r\n", *dbaseh);
+    *dbaseh = 0x0;
+    xprintf("dbaseh after clearing it = 0x%02x\r\n", *dbaseh);
+
+    volatile uint8_t *dbasel = (volatile uint8_t *) 0xffff8203;
+    xprintf("dbasel = 0x%02x\r\n", *dbasel);
+    *dbasel = 0x0;
+    xprintf("dbasel after clearing it = 0x%02x\r\n", *dbasel);
+
+    volatile uint8_t *dbaselow = (volatile uint8_t *) 0xffff820d;
+    xprintf("dbaselow = 0x%02x\r\n", *dbaselow);
+    *dbaselow = 0x0;
+    xprintf("dbaselow after clearing it = 0x%02x\r\n", *dbaselow);
+
+    volatile uint16_t *linewidth = (volatile uint16_t *) 0xffff820e;
+    xprintf("linewidth = 0x%04x\r\n", *linewidth);
+    *linewidth = 0x0;
+    xprintf("linewidth after clearing it = 0x%04x\r\n", *linewidth);
+    *linewidth = 0x1234;
+    xprintf("linewidth after setting it to 0x1234 = 0x%04x\r\n", *linewidth);
+
+    volatile uint16_t *vwrap = (volatile uint16_t *) 0xffff8210;
+    xprintf("VWRAP = 0x%04x\r\n", *vwrap);
+    *vwrap = 0;
+    xprintf("VWRAP after clearing it = 0x%04x\r\n", *vwrap);
+    *vwrap = 0x1234;
+    xprintf("VWRAP after setting it to 0x1234 = 0x%04x\r\n", *vwrap);
 }
 
 
