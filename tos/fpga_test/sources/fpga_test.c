@@ -26,14 +26,18 @@ int i;
 
 void do_tests(void)
 {
-    long *test_address = (long *) 0xf0000000;
+    volatile unsigned long *t1 = (volatile unsigned long *) 0xf0000000;
+    volatile unsigned short *t2 = (volatile unsigned short *) 0xf0000004;
+    volatile unsigned short *t3 = (volatile unsigned short *) 0xf0000006;
     long value = 0;
 
     while (1)
     {
-
-        *test_address = value;
-        xprintf("value written = %ld, value read = %ld\r\n", value, *test_address);
+        *t1 = value;
+        *t2 = (short) value;
+        *t3 = (short) (value >> 16);
+        xprintf("W: 0x%lx R: 0x%lx W: 0x%04x R: 0x%04x W: 0x%04x R: 0x%04x\r\n", value, *t1,
+                 (unsigned short) value, *t2, (unsigned short)(value >> 16), *t3);
         value++;
     }
 }

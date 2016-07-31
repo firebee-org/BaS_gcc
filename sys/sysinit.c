@@ -580,11 +580,11 @@ void init_usb(void)
 
     do
     {
-        handle = pci_find_classcode(PCI_CLASS_SERIAL_USB | (1 << 25) | (1 << 26), index++);
+        handle = pci_find_classcode(PCI_CLASS_SERIAL_USB | PCI_FIND_BASE_CLASS | PCI_FIND_SUB_CLASS, index++);
         if (handle > 0)
         {
             long id;
-            long class;
+            long pci_class;
 
             xprintf("serial USB found at bus=0x%x, dev=0x%x, fnc=0x%x (0x%x)\r\n",
                     PCI_BUS_FROM_HANDLE(handle),
@@ -592,9 +592,9 @@ void init_usb(void)
                     PCI_FUNCTION_FROM_HANDLE(handle),
                     handle);
             id = pci_read_config_longword(handle, PCIIDR);
-            class = pci_read_config_longword(handle, PCIREV);
+            pci_class = pci_read_config_longword(handle, PCIREV);
 
-            if (PCI_SUBCLASS(class) == PCI_CLASS_SERIAL_USB_EHCI)
+            if (PCI_SUBCLASS(pci_class) == PCI_CLASS_SERIAL_USB_EHCI)
             {
                 board = ehci_usb_pci_table;
                 while (board->vendor)
@@ -609,7 +609,7 @@ void init_usb(void)
                     board++;
                 }
             }
-            if (PCI_SUBCLASS(class) == PCI_CLASS_SERIAL_USB_OHCI)
+            if (PCI_SUBCLASS(pci_class) == PCI_CLASS_SERIAL_USB_OHCI)
             {
                 board = ohci_usb_pci_table;
                 while (board->vendor)

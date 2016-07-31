@@ -44,3 +44,6 @@ tos/vmem_test
 tos/pci_test/sources
 firebee
 tos/jtagwait
+tos/fpga_test/include
+tos/fpga_test
+tos/fpga_test/sources
