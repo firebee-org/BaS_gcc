@@ -34,7 +34,7 @@
 #include "interrupts.h"
 #include "wait.h"
 
-//#define DEBUG_PCI
+#define DEBUG_PCI
 #ifdef DEBUG_PCI
 #define dbg(format, arg...) do { xprintf("DEBUG: %s(): " format, __FUNCTION__, ##arg); } while (0)
 #else
@@ -541,9 +541,9 @@ int32_t pci_find_classcode(uint32_t classcode, int index)
                 value = pci_read_config_longword(handle, PCICCR);
 
                 dbg("classcode to search for=%x\r\n", classcode);
-                dbg("PCI_CLASSCODE found=%x\r\n", PCI_CLASS_CODE(value));
-                dbg("PCI_SUBCLASS found=%x\r\n", PCI_SUBCLASS(value));
-                dbg("PCI_PROG_IF found=%x\r\n", PCI_PROG_IF(value));
+                dbg("PCI_CLASSCODE found=%02x\r\n", PCI_CLASS_CODE(value));
+                dbg("PCI_SUBCLASS found=%02x\r\n", PCI_SUBCLASS(value));
+                dbg("PCI_PROG_IF found=%02x\r\n", PCI_PROG_IF(value));
 
                 if ((classcode & (1 << 26) ? ((PCI_CLASS_CODE(value) == (classcode & 0xff))) : true) &&
                     (classcode & (1 << 25) ? ((PCI_SUBCLASS(value) == ((classcode & 0xff00) >> 8))) : true) &&
@@ -551,6 +551,7 @@ int32_t pci_find_classcode(uint32_t classcode, int index)
                 {
                     if (n == index)
                     {
+                        dbg("found device at handle %d\r\n", handle);
                         return handle;
                     }
                     n++;
@@ -574,12 +575,13 @@ int32_t pci_find_classcode(uint32_t classcode, int index)
                         {
                             value = pci_read_config_longword(handle, PCICCR);
 
-                            if ((classcode & (1 << 26) ? ((PCI_CLASS_CODE(value) == (classcode & 0xff))) : true) &&
-                                (classcode & (1 << 25) ? ((PCI_SUBCLASS(value) == ((classcode & 0xff00) >> 8))) : true) &&
-                                (classcode & (1 << 24) ? ((PCI_PROG_IF(value) == ((classcode & 0xff0000) >> 16))) : true))
+                            if ((classcode & PCI_FIND_BASE_CLASS ? ((PCI_CLASS_CODE(value) == (classcode & 0xff))) : true) &&
+                                (classcode & PCI_FIND_SUB_CLASS ? ((PCI_SUBCLASS(value) == ((classcode & 0xff00) >> 8))) : true) &&
+                                (classcode & PCI_FIND_PROG_IF ? ((PCI_PROG_IF(value) == ((classcode & 0xff0000) >> 16))) : true))
                             {
                                 if (n == index)
                                 {
+                                    dbg("found device with handle %d\n", handle);
                                     return handle;
                                 }
                                 n++;
@@ -1023,14 +1025,15 @@ void pci_scan(void)
 
         value = pci_read_config_longword(handle, PCIIDR);
 
-        xprintf(" %02x | %02x | %02x |%04x|%04x|%04x| %s (0x%02x)\r\n",
+        xprintf(" %02x | %02x | %02x |%04x|%04x|%04x| %s (0x%02x, 0x%04x)\r\n",
                 PCI_BUS_FROM_HANDLE(handle),
                 PCI_DEVICE_FROM_HANDLE(handle),
                 PCI_FUNCTION_FROM_HANDLE(handle),
                 PCI_VENDOR_ID(value), PCI_DEVICE_ID(value),
                 handle,
                 device_class(pci_read_config_byte(handle, PCICCR)),
-                pci_read_config_byte(handle, PCICCR));
+                pci_read_config_byte(handle, PCICCR),
+                pci_read_config_word(handle, PCICCR));
 
         /* save handle to index value so that we'll be able to later find our resources */
         handles[index] = handle;

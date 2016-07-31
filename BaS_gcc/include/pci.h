@@ -195,7 +195,7 @@ typedef struct                       /* structure of address conversion     */
 
 /* register 0x08 macros */
 #define PCI_CLASS_CODE(i)   ((swpl((i)) & 0xff000000) >> 24)
-#define PCI_SUBCLASS(i)     ((swpl((i)) & 0xffff0000) >> 16)
+#define PCI_SUBCLASS(i)     ((swpl((i)) & 0x00ff0000) >> 16)
 #define PCI_PROG_IF(i)      ((swpl((i)) & 0x0000ff00) >> 8)
 #define PCI_REVISION_ID(i)  ((swpl((i)) & 0x000000ff))
 

@@ -74,7 +74,7 @@
 #error "unknown machine!"x
 #endif /* MACHINE_FIREBEE */
 
-#define DBG_MMU
+//#define DBG_MMU
 #ifdef DBG_MMU
 #define dbg(format, arg...) do { xprintf("DEBUG (%s()): " format, __FUNCTION__, ##arg);} while(0)
 #else
