@@ -425,13 +425,19 @@ static void init_fbcs()
     MCF_FBCS2_CSMR = (MCF_FBCS_CSMR_BAM_128M            /* F000'0000-F7FF'FFFF */
               | MCF_FBCS_CSMR_V);
 
-    MCF_FBCS3_CSAR = MCF_FBCS_CSAR_BA(0xF8000000);      /* Firebee new I/O address range */
+    MCF_FBCS3_CSAR = MCF_FBCS_CSAR_BA(0xF8000000);      /* Firebee SRAM */
     MCF_FBCS3_CSCR = MCF_FBCS_CSCR_PS_16                /* 16 bit port */
         | MCF_FBCS_CSCR_WS(32)                          /* 0 wait states */
         | MCF_FBCS_CSCR_AA;                             /* auto /TA acknowledge */
     MCF_FBCS3_CSMR = (MCF_FBCS_CSMR_BAM_64M             /* F800'0000-FBFF'FFFF */
               | MCF_FBCS_CSMR_V);
 
+    /*
+     * Note: burst read/write settings of the following FBCS are purely "cosmetical".
+     * The Coldfire FlexBus only "bursts" on a smaller port size than 32 bit up to 32 bit,
+     * i.e. it can burst on an 8 bit port up to 4 burst cycles or two on a 16 bit port.
+     * Enabling burst on a 32 bit port has no effect (unfortunately).
+     */
     MCF_FBCS4_CSAR = MCF_FBCS_CSAR_BA(0x40000000);      /* video ram area, FB_CS3 not used, decoded on FPGA */
     MCF_FBCS4_CSCR = MCF_FBCS_CSCR_PS_32                /* 32 bit port */
         | MCF_FBCS_CSCR_WS(32)                          /* 0 wait states */
