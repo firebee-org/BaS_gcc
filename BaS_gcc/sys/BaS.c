@@ -511,6 +511,12 @@ void BaS(void)
         MCF_MMU_MMUCR = 0;  /* MMU off */
         NOP();              /* force pipeline sync */
 
+
+        /*
+         * FireTOS wants to have the TOS system variables cleared
+         */
+        memset((void *) 0x400, 0, 0x400);
+
         /* ST RAM */
 
         * (uint32_t *) 0x42e = STRAM_END;   /* phystop TOS system variable */
