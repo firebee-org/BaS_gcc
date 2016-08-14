@@ -29,7 +29,7 @@
  */
 
 #define MAJOR_VERSION   0
-#define MINOR_VERSION   9
+#define MINOR_VERSION   91
 
 
 #endif /* VERSION_H_ */
