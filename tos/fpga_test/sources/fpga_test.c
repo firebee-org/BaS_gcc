@@ -27,8 +27,8 @@ int i;
 void do_tests(void)
 {
     volatile unsigned long *t1 = (volatile unsigned long *) 0xf0000000;
-    volatile unsigned short *t2 = (volatile unsigned short *) 0xf0000004;
-    volatile unsigned short *t3 = (volatile unsigned short *) 0xf0000006;
+    volatile unsigned short *t2 = (volatile unsigned short *) 0xf0000000;
+    volatile unsigned short *t3 = (volatile unsigned short *) 0xf0000002;
     long value = 0;
 
     while (1)

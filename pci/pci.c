@@ -34,7 +34,7 @@
 #include "interrupts.h"
 #include "wait.h"
 
-#define DEBUG_PCI
+// #define DEBUG_PCI
 #ifdef DEBUG_PCI
 #define dbg(format, arg...) do { xprintf("DEBUG: %s(): " format, __FUNCTION__, ##arg); } while (0)
 #else
