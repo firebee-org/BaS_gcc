@@ -445,7 +445,7 @@ void BaS(void)
     /*
      * memory setup
      */
-    memset((void *) 0x200, 0, 0x400);
+    // memset((void *) 0x200, 0, 0x400);
 
 #if defined(MACHINE_FIREBEE)
     /* set Falcon bus control register */

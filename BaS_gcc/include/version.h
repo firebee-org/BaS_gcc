@@ -28,8 +28,8 @@
  * increment version number for release
  */
 
-#define MAJOR_VERSION	0
-#define MINOR_VERSION	88
+#define MAJOR_VERSION   0
+#define MINOR_VERSION   9
 
 
 #endif /* VERSION_H_ */
