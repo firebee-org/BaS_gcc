@@ -344,13 +344,19 @@ void video_init(void)
                     radeon_found = true;
 
                     dbg("matched\r\n");
-                    if (radeonfb_pci_register(handle, board) >= 0)
+
+                    xprintf("not registering RADEON card\r\n");
+
+                    if (0)
                     {
-                        xprintf("RADEON video card found and registered\r\n");
-                    }
-                    else
-                    {
-                        dbg("failed to register RADEON PCI video card\r\n");
+                        if (radeonfb_pci_register(handle, board) >= 0)
+                        {
+                            xprintf("RADEON video card found and registered\r\n");
+                        }
+                        else
+                        {
+                            dbg("failed to register RADEON PCI video card\r\n");
+                        }
                     }
                     return;
                 }
