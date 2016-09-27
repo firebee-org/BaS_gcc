@@ -2185,14 +2185,6 @@ int32_t radeonfb_pci_register(int32_t handle, const struct pci_device_id *ent)
                         rinfo->big_endian = 1; /* radeon make swapping intel -> motorola */
                         dbg("host bridge is little endian\r\n");
                     }
-
-                    xprintf("framebuffer dump:\r\n");
-                    hexdump((uint8_t *) rinfo->fb_base_phys, 0x10);
-                    xprintf("change framebuffer contents\r\n");
-                    * (uint32_t *) rinfo->fb_base_phys = 0x01234567;
-                    * (uint32_t *) (rinfo->fb_base_phys + 8) = 0x89abcdef;
-                    hexdump((uint8_t *) rinfo->fb_base_phys, 0x10);
-
                 }
                 else if ((pci_rsc_desc->length >= RADEON_REGSIZE) && (pci_rsc_desc->length < 0x100000))
                 {
@@ -2213,8 +2205,6 @@ int32_t radeonfb_pci_register(int32_t handle, const struct pci_device_id *ent)
                             {
                                 dbg("rinfo->bios_seg[0] (%p) was %x (expected 0xaa55)\r\n",
                                     rinfo->bios_seg_phys, * (uint16_t *) rinfo->bios_seg_phys);
-                                xprintf("bios_seg_phys dump:\r\n");
-                                hexdump((uint8_t *) rinfo->bios_seg_phys, 0x100);
 
                                 rinfo->bios_seg_phys = 0;
                             }
@@ -2227,8 +2217,6 @@ int32_t radeonfb_pci_register(int32_t handle, const struct pci_device_id *ent)
                             rinfo->mmio_base = (void *)(pci_rsc_desc->offset + pci_rsc_desc->start);
                             rinfo->mmio_base_phys = pci_rsc_desc->start;
 
-                            xprintf("mmio_base dump:\r\n");
-                            hexdump((uint8_t *) rinfo->mmio_base_phys, 0x100);
                         }
                     }
                 }
@@ -2240,8 +2228,6 @@ int32_t radeonfb_pci_register(int32_t handle, const struct pci_device_id *ent)
                     rinfo->io_base = (void *)(pci_rsc_desc->offset + pci_rsc_desc->start);
                     rinfo->io_base_phys = pci_rsc_desc->start;
 
-                    xprintf("io_base dump:\r\n");
-                    hexdump((uint8_t *) rinfo->io_base_phys, 0x100);
                 }
             }
             flags = pci_rsc_desc->flags;
