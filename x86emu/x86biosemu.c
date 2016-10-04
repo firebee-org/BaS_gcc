@@ -10,6 +10,8 @@
 #include "pci_ids.h"
 #include "x86pcibios.h"
 
+#include "debug.h"
+
 #define USE_SDRAM
 #define DIRECT_ACCESS
 
@@ -26,13 +28,6 @@
 #define SYS_BIOS                0xF0000
 #define SIZE_EMU               0x100000
 
-#define DBG_BIOSEMU
-#ifdef DBG_BIOSEMU
-#define dbg(format, arg...) do { xprintf("DEBUG (%s()): " format, __FUNCTION__, ##arg);} while(0)
-#else
-#define dbg(format, arg...) do {;} while (0)
-#endif /* DBG_BIOSEMU */
-#define err(format, arg...) do { xprintf("ERROR (%s()): " format, __FUNCTION__, ##arg); } while(0)
 
 typedef struct
 {

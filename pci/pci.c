@@ -34,13 +34,7 @@
 #include "interrupts.h"
 #include "wait.h"
 
-// #define DEBUG_PCI
-#ifdef DEBUG_PCI
-#define dbg(format, arg...) do { xprintf("DEBUG: %s(): " format, __FUNCTION__, ##arg); } while (0)
-#else
-#define dbg(format, arg...) do { ; } while (0)
-#endif /* DEBUG_PCI */
-#define err(format, arg...) do { xprintf("ERROR: %s(): " format, __FUNCTION__, ##arg); } while (0)
+#include "debug.h"
 
 #define pci_config_wait() do { __asm__ __volatile("tpf" ::: "memory"); } while (0)
 

@@ -30,15 +30,7 @@
 #include "ehci.h"
 #include "pci.h"
 
-#define DBG_EHCI
-#ifdef DBG_EHCI
-#define dbg(format, arg...) xprintf("DEBUG %s(): " format, __FUNCTION__, ## arg)
-#else
-#define dbg(format, arg...) do {} while (0)
-#endif /* DBG_EHCI */
-#define err(format, arg...) xprintf("ERROR %s(): " format, __FUNCTION__, ## arg)
-#define info(format, arg...) xprintf("INFO %s(): " format, __FUNCTION__, ## arg)
-
+#include "debug.h"
 
 static char ehci_inited;
 static int rootdev;
@@ -1068,7 +1060,7 @@ int ehci_usb_lowlevel_init(long handle, const struct pci_device_id *ent, void **
     ehci_writel(&gehci.hcor->or_asynclistaddr, (uint32_t) gehci.qh_list - gehci.dma_offset);
     reg = ehci_readl(&gehci.hccr->cr_hcsparams);
     gehci.descriptor->hub.bNbrPorts = HCS_N_PORTS(reg);
-    info("Register %x NbrPorts %d\r\n", reg, gehci.descriptor->hub.bNbrPorts);
+    xprintf("Register %x NbrPorts %d\r\n", reg, gehci.descriptor->hub.bNbrPorts);
 
     /* Port Indicators */
     if (HCS_INDICATOR(reg))
@@ -1101,7 +1093,7 @@ int ehci_usb_lowlevel_init(long handle, const struct pci_device_id *ent, void **
     wait(5 * 1000);
 
     reg = HC_VERSION(ehci_readl(&gehci.hccr->cr_capbase));
-    info("USB EHCI host controller version %x.%02x\r\n", reg >> 8, reg & 0xff);
+    xprintf("USB EHCI host controller version %x.%02x\r\n", reg >> 8, reg & 0xff);
 
     /* turn on interrupts */
     pci_hook_interrupt(handle, handle_usb_interrupt, &gehci);
