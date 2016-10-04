@@ -732,3 +732,4 @@ tos/vmem_test/sources/fpga_test.c
 tos/vmem_test/Makefile
 tos/Makefile
 tos/fpga_test/sources/fpga_test.c
+include/debug.h

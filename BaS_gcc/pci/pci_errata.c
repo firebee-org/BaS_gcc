@@ -2,6 +2,8 @@
 #include "pci.h"
 #include <MCF5475.h>
 
+#include "debug.h"
+
 __attribute__((aligned(16))) void chip_errata_135(void)
 {
     /*

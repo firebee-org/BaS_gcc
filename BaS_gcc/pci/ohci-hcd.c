@@ -48,19 +48,12 @@
 #include "bas_string.h"     /* for memset() */
 #include "pci.h"
 #include "interrupts.h"
+#include "debug.h"
 
 #undef OHCI_USE_NPS         /* force NoPowerSwitching mode */
 
 #undef OHCI_VERBOSE_DEBUG	/* not always helpful */
 #undef OHCI_FILL_TRACE
-
-#define DEBUG_OHCI
-#ifdef DEBUG_OHCI
-#define dbg(format, arg...) do { xprintf("DEBUG: %s(): " format, __FUNCTION__, ##arg); } while (0)
-#else
-#define dbg(format, arg...) do { ; } while (0)
-#endif /* DEBUG_OHCI */
-#define err(format, arg...) do { xprintf("DEBUG: %s(): " format, __FUNCTION__, ##arg); } while (0)
 
 #include "usb.h"
 #include "ohci.h"

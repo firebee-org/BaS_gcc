@@ -26,6 +26,8 @@
 //#include "hardware.h"
 #include "ikbd.h"
 
+#include "debug.h"
+
 // atari ikbd stuff
 #define IKBD_STATE_JOYSTICK_EVENT_REPORTING  0x01
 #define IKBD_STATE_MOUSE_Y_BOTTOM            0x02
