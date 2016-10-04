@@ -39,7 +39,7 @@ static struct fb_var_screeninfo radeonfb_default_var =
     .vmode = FB_VMODE_NONINTERLACED
 };
 
-static char *radeon_get_mon_name(int type)
+char *radeon_get_mon_name(int type)
 {
     char *pret = NULL;
     switch(type)

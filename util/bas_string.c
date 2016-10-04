@@ -84,9 +84,9 @@ int strcmp(const char *s1, const char *s2)
 int strncmp(const char *s1, const char *s2, size_t max)
 {
     int i;
-    int cmp;
+    int cmp = 0;
 
-    for (i = 0; i < max && *s1++ && *s2++; i++);
+    for (i = 0; i < max && *s1++ && *s2++; i++)
     {
         cmp = (*s1 - *s2);
         if (cmp != 0) return cmp;

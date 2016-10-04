@@ -418,6 +418,7 @@ get_data_segment(struct X86EMU *emu)
             return emu->x86.R_SS;
     }
     X86EMU_halt_sys(emu);
+    return 0L;
 }
 /****************************************************************************
 PARAMETERS:
@@ -636,6 +637,7 @@ decode_rm_byte_register(struct X86EMU *emu, int reg)
         default:
             X86EMU_halt_sys(emu);
     }
+    return 0L;
 }
 
 static uint8_t *
@@ -683,6 +685,7 @@ decode_rm_word_register(struct X86EMU *emu, int reg)
         default:
             X86EMU_halt_sys(emu);
     }
+    return 0;
 }
 
 static uint16_t *
@@ -730,6 +733,7 @@ decode_rm_long_register(struct X86EMU *emu, int reg)
         default:
             X86EMU_halt_sys(emu);
     }
+    return 0L;
 }
 
 static uint32_t *
@@ -775,6 +779,7 @@ decode_rh_seg_register(struct X86EMU *emu)
         default:
             X86EMU_halt_sys(emu);
     }
+    return 0;
 }
 /*
  *

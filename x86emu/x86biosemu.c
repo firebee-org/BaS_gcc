@@ -8,6 +8,7 @@
 #include "x86emu_regs.h"
 #include "pci.h"
 #include "pci_ids.h"
+#include "x86pcibios.h"
 
 #define USE_SDRAM
 #define DIRECT_ACCESS

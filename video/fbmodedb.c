@@ -488,6 +488,12 @@ int fb_find_mode(struct fb_var_screeninfo *var,
 
     dbg("fb_find_mode\r\n");
 
+    /*
+     * FIXME: temporarily use unused variables here to make compiler happy
+     */
+    (void) yres_specified;
+    (void) bpp_specified;
+
     /* Set up defaults */
     if (!db)
     {

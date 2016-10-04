@@ -127,7 +127,8 @@ int dspi_set_baudrate(int rate)
         pbr = baudrates[i].pbr_divisor;
 
         /* TODO: set br and pbr here */
-
+        (void) pbr;
+        (void) br;
         return set_baudrate;
     }
 
@@ -162,7 +163,7 @@ uint8_t dspi_xchg_byte(int device, uint8_t byte, int last)
  * buff: pointer to data buffer
  * btr: number of bytes to receive (16, 64 or 512)
  */
-static void dspi_rcv_byte_multi(int device, uint8_t *buff, uint32_t count)
+void dspi_rcv_byte_multi(int device, uint8_t *buff, uint32_t count)
 {
     int i;
 
@@ -176,7 +177,7 @@ static void dspi_rcv_byte_multi(int device, uint8_t *buff, uint32_t count)
  * buff: pointer to data
  * btx: number of bytes to send
  */
-static void dspi_xmt_byte_multi(int device, const uint8_t *buff, uint32_t btx)
+void dspi_xmt_byte_multi(int device, const uint8_t *buff, uint32_t btx)
 {
     int i;
 
