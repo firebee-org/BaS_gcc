@@ -531,7 +531,7 @@ void BaS(void)
 
         xprintf("call FireTOS\r\n");
         /* Jump into FireTOS */
-        typedef void void_func(void);
+
         void_func* FireTOS = (void_func*) FIRETOS;
         FireTOS();  // Should never return
     }

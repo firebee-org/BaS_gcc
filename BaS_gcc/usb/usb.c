@@ -138,9 +138,9 @@ int usb_init(int32_t handle, const struct pci_device_id *ent)
         {
             if (controller_priv[i] != NULL)
             {
-                long handle = controller_priv[i]->handle;
+                long hdl = controller_priv[i]->handle;
 
-                if (handle)
+                if (hdl)
                 {
                     res |= usb_init(handle, NULL);	/* FIXME: recursive call!? */
                 }
@@ -1044,13 +1044,13 @@ struct usb_device *usb_get_dev_index(int index, int index_bus)
  * returns a pointer of a new device structure or NULL, if
  * no device struct is available
  */
-struct usb_device *usb_alloc_new_device(int bus_index, void *priv)
+struct usb_device *usb_alloc_new_device(int bus, void *priv)
 {
     int i;
-    int index = dev_index[bus_index];
+    int index = dev_index[bus];
     struct usb_device *dev;
 
-    dbg("USB %d new device %d\r\n", bus_index, index);
+    dbg("USB %d new device %d\r\n", bus, index);
     if (index >= USB_MAX_DEVICE)
     {
         dbg("ERROR, too many USB Devices, max=%d\r\n", USB_MAX_DEVICE);
@@ -1058,7 +1058,7 @@ struct usb_device *usb_alloc_new_device(int bus_index, void *priv)
     }
 
     /* default Address is 0, real addresses start with 1 */
-    dev = &usb_dev[(bus_index * USB_MAX_DEVICE) + index];
+    dev = &usb_dev[(bus * USB_MAX_DEVICE) + index];
     dev->devnum = index + 1;
     dev->maxchild = 0;
 
@@ -1067,8 +1067,8 @@ struct usb_device *usb_alloc_new_device(int bus_index, void *priv)
 
     dev->parent = NULL;
     dev->priv_hcd = priv;
-    dev->usbnum = bus_index;
-    dev_index[bus_index]++;
+    dev->usbnum = bus;
+    dev_index[bus]++;
 
     return dev;
 }

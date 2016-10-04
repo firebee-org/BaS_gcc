@@ -164,11 +164,10 @@ int MCD_initDma (dmaRegs *dmaBarAddr, void *taskTableDest, u32 flags)
         int taskTableSize, varTabsSize, funcDescTabsSize, contextSavesSize;
         int taskDescTabSize;
 
-        int i;
 
         /* check if physical address is aligned on 512 byte boundary */
-        if (((u32)taskTableDest & 0x000001ff) != 0)
-            return(MCD_TABLE_UNALIGNED);
+        if (((u32) taskTableDest & 0x000001ff) != 0)
+            return MCD_TABLE_UNALIGNED;
 
         MCD_taskTable = taskTableDest; /* set up local pointer to task Table */
 
@@ -246,9 +245,9 @@ int MCD_initDma (dmaRegs *dmaBarAddr, void *taskTableDest, u32 flags)
             entryPtr[i].TDTend = (u32)taskDescTabsOffset - 4;
         }
 #ifdef MCD_INCLUDE_EU /* Tack single DMA BDs onto end of code so API controls
-                         where they are since DMA might write to them */        
+                         where they are since DMA might write to them */
         MCD_relocBuffDesc = (MCD_bufDesc*)(entryPtr[NUMOFVARIANTS - 1].TDTend + 4);
-#else /* DMA does not touch them so they can be wherever and we don't need to 
+#else /* DMA does not touch them so they can be wherever and we don't need to
          waste SRAM on them */
         MCD_relocBuffDesc = MCD_singleBufDescs;
 #endif
@@ -300,7 +299,7 @@ int MCD_initDma (dmaRegs *dmaBarAddr, void *taskTableDest, u32 flags)
     else
         MCD_dmaBar->ptdControl |= PTD_CTL_COMM_PREFETCH;
 
-    return(MCD_OK);
+    return MCD_OK;
 }
 /*********************** End of MCD_initDma() ***********************/
 
@@ -379,14 +378,14 @@ int MCD_startDma (
 
     if((channel < 0) || (channel >= NCHANNELS))
         return(MCD_CHANNEL_INVALID);
-        
-    /* tbd - need to determine the proper response to a bad funcDesc when not 
+
+    /* tbd - need to determine the proper response to a bad funcDesc when not
        including EU functions, for now, assign a benign funcDesc, but maybe
        should return an error */
 #ifndef MCD_INCLUDE_EU
     funcDesc = MCD_FUNC_NOEU1;
 #endif
-        
+
 #ifdef MCD_DEBUG
 printf("startDma:Setting up params\n");
 #endif
@@ -547,7 +546,7 @@ printf("startDma:Setting up params\n");
         }
     }
     MCD_chStatus[channel] = MCD_IDLE;
-    return(MCD_OK);
+    return MCD_OK;
 }
 
 /************************ End of MCD_startDma() *********************/
@@ -562,7 +561,7 @@ printf("startDma:Setting up params\n");
  * Notes:
  *  MCD_XferProgrQuery() upon completing or after aborting a DMA, or
  *  while the DMA is in progress, this function returns the first
- *  DMA-destination address not (or not yet) used in the DMA. When 
+ *  DMA-destination address not (or not yet) used in the DMA. When
  *  encountering a non-ready buffer descriptor, the information for
  *  the last completed descriptor is returned.
  *
@@ -694,7 +693,7 @@ int MCD_XferProgrQuery (int channel, MCD_XferProg *progRep)
        default: break;
     }
 
-    return(MCD_OK);
+    return MCD_OK;
 }
 /******************* End of MCD_XferProgrQuery() ********************/
 
@@ -753,7 +752,7 @@ int MCD_killDma (int channel)
      * MCD_XferProgrQuery (channel, &progRep);
      * progRep.currBufDesc->lastDestAddr = progRep.lastDestAddr;
      */
-    return(MCD_OK);
+    return MCD_OK;
 }
 /************************ End of MCD_killDma() **********************/
 
@@ -776,7 +775,7 @@ int MCD_continDma (int channel)
     MCD_dmaBar->taskControl[channel] |= TASK_CTL_EN;
     MCD_chStatus[channel] = MCD_RUNNING;
 
-    return(MCD_OK);
+    return MCD_OK;
 }
 /********************** End of MCD_continDma() **********************/
 
@@ -808,7 +807,7 @@ int MCD_continDma (int channel)
  * this means that bits 14 and 0 must enable debug functions before
  * bits 1 and 2, respectively, have any effect.
  *
- * NOTE: It's extremely important to not pause more than one DMA channel 
+ * NOTE: It's extremely important to not pause more than one DMA channel
  *  at a time.
  ********************************************************************/
 
@@ -839,7 +838,7 @@ int MCD_pauseDma (int channel)
          * progRep.currBufDesc->lastDestAddr = progRep.lastDestAddr;
          */
     }
-    return(MCD_OK);
+    return MCD_OK;
 }
 /************************* End of MCD_pauseDma() ********************/
 
@@ -858,7 +857,7 @@ int MCD_resumeDma (int channel)
     if (MCD_dmaBar->taskControl[channel] & TASK_CTL_EN)
         MCD_resmActions (channel);
 
-    return(MCD_OK);
+    return MCD_OK;
 }
 /************************ End of MCD_resumeDma() ********************/
 
@@ -881,7 +880,7 @@ int MCD_csumQuery (int channel, u32 *csum)
     *csum = MCD_relocBuffDesc[channel].csumResult;
     return(MCD_OK);
 #else
-    return(MCD_ERROR);
+    return MCD_ERROR;
 #endif
 }
 /*********************** End of MCD_resumeDma() *********************/

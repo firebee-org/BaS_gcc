@@ -23,7 +23,7 @@
 #define RADEON_MMIOSIZE   0x80000
 
 #define RADEON_ALIGN(x,bytes) (((x) + ((bytes) - 1)) & ~((bytes) - 1))
-  
+
 #define ATY_RADEON_LCD_ON	0x00000001
 #define ATY_RADEON_CRT_ON	0x00000002
 
@@ -82,7 +82,7 @@ enum radeon_chip_flags
 	CHIP_FLAGS_MASK		= 0xffff0000UL,
 	CHIP_IS_MOBILITY	= 0x00010000UL,
 	CHIP_IS_IGP		= 0x00020000UL,
-	CHIP_HAS_CRTC2		= 0x00040000UL,	
+	CHIP_HAS_CRTC2		= 0x00040000UL,
 };
 
 /*
@@ -235,7 +235,7 @@ struct radeon_regs
 	uint32_t		dot_clock_freq;
 	uint32_t		pll_output_freq;
 	int32_t		feedback_div;
-	int32_t		post_div;	
+	int32_t		post_div;
 
 	/* PLL registers */
 	uint32_t		ppll_div_3;
@@ -308,7 +308,7 @@ struct radeonfb_info
 {
 	int32_t handle;     /* PCI BIOS, must be 1st place */
 	int32_t big_endian; /* PCI BIOS */
-	
+
 	uint32_t cursor_x;
 	uint32_t cursor_y;
 	int32_t cursor_show;
@@ -352,10 +352,10 @@ struct radeonfb_info
 	void *io_base;
 	void *mmio_base;
 	void *fb_base;
-	
+
 	uint32_t fb_local_base;
 	uint32_t fb_offset;
-	
+
 	uint32_t bios_seg_phys;
 	void *bios_seg;
 	int32_t fp_bios_start;
@@ -413,7 +413,7 @@ struct radeonfb_info
 #endif
 
   /* Texture */
-  
+
 	int32_t RenderInited3D;
 	int32_t tilingEnabled;
 	void *RenderTex;
@@ -437,7 +437,7 @@ struct radeonfb_info
 	int32_t RageTheatreCompositePort;
 	int32_t RageTheatreSVideoPort;
 	int32_t tunerType;
-	
+
 	int32_t videoStatus;
 	int32_t encoding;
 	int32_t overlay_deint32_terlacing_method;
@@ -451,7 +451,7 @@ struct radeonfb_info
 		uint32_t y,u,v;
 	} videoLinearOffset;
 #endif /* _NOT_USED_ */
-	
+
 	int32_t dec_hue;
 	int32_t dec_saturation;
 	int32_t dec_contrast;
@@ -489,8 +489,8 @@ extern void __OUTPLLP(struct radeonfb_info *rinfo, uint32_t index, uint32_t val,
 #define INREG16(addr)		swpw(*(uint16_t *)(rinfo->mmio_base + addr))
 #define INREG(addr)			swpl(*(uint32_t *)(rinfo->mmio_base + addr))
 #define OUTREG8(addr, val)	(*((uint8_t *)(rinfo->mmio_base + addr)) = val)
-#define OUTREG16(addr, val)	(*((uint16_t *)(rinfo->mmio_base + addr)) = swpw(val))
-#define OUTREG(addr, val)	(*((uint32_t *)(rinfo->mmio_base + addr)) = swpl(val))
+#define OUTREG16(addr, val)	(*((uint16_t *)(rinfo->mmio_base + addr)) = swpw((uint32_t) val))
+#define OUTREG(addr, val)	(*((uint32_t *)(rinfo->mmio_base + addr)) = swpl((uint32_t) val))
 
 extern int32_t *tab_funcs_pci;
 #define BIOS_IN8(v)		(* ((uint8_t *) rinfo->bios_seg_phys + v))
@@ -600,24 +600,24 @@ extern void radeon_restore_accel_state_mmio(struct fb_info *info);
 extern void radeon_setup_for_solid_fill(struct fb_info *info, int color, int rop, unsigned int planemask);
 extern void radeon_subsequent_solid_fill_rect_mmio(struct fb_info *info, int x, int y, int w, int h);
 extern void radeon_setup_for_solid_line_mmio(struct fb_info *info, int color, int rop, unsigned int planemask);
-extern void radeon_subsequent_solid_hor_vert_line_mmio(struct fb_info *info, int x, int y, int len, int dir);   
+extern void radeon_subsequent_solid_hor_vert_line_mmio(struct fb_info *info, int x, int y, int len, int dir);
 extern void radeon_subsequent_solid_two_point_line_mmio(struct fb_info *info, int xa, int ya, int xb,
-														int yb, int flags);  
+														int yb, int flags);
 extern void radeon_setup_for_dashed_line_mmio(struct fb_info *info, int fg, int bg,
 												int rop, unsigned int planemask, int length, unsigned char *pattern);
 extern void radeon_subsequent_dashed_two_point_line_mmio(struct fb_info *info,
-            				int xa, int ya, int xb, int yb, int flags, int phase);  
+            				int xa, int ya, int xb, int yb, int flags, int phase);
 extern void radeon_setup_for_screen_to_screen_copy_mmio(struct fb_info *info,
             				int xdir, int ydir, int rop, unsigned int planemask, int trans_color);
 extern void radeon_subsequent_screen_to_screen_copy_mmio(struct fb_info *info,
-            				int xa, int ya, int xb, int yb, int w, int h);   
+            				int xa, int ya, int xb, int yb, int w, int h);
 extern void radeon_screen_to_screen_copy_mmio(struct fb_info *info,
             				int xa, int ya, int xb, int yb, int w, int h, int rop);
 extern void radeon_setup_for_mono_8x8_pattern_fill_mmio(struct fb_info *info,
             			int patternx, int patterny, int fg, int bg, int rop, unsigned int planemask);
 extern void radeon_subsequent_mono_8x8_pattern_fill_rect_mmio(struct fb_info *info,
             				int patternx, int patterny, int x, int y, int w, int h);
-extern void radeon_setup_for_scanline_cpu_to_screen_color_expand_fill_mmio(struct fb_info *info, 
+extern void radeon_setup_for_scanline_cpu_to_screen_color_expand_fill_mmio(struct fb_info *info,
             				int fg, int bg, int rop, unsigned int planemask);
 extern void radeon_subsequent_scanline_cpu_to_screen_color_expand_fill_mmio(struct fb_info *info,
             				int x, int y, int w, int h, int skipleft);
@@ -625,12 +625,12 @@ extern void radeon_subsequent_scanline_mmio(struct fb_info *info, unsigned long 
 extern void radeon_setup_for_scanline_image_write_mmio(struct fb_info *info,
             							int rop, unsigned int planemask, int trans_color, int bpp);
 extern void radeon_subsequent_scanline_image_write_rect_mmio(struct fb_info *info,
-            				int x, int y, int w, int h, int skipleft);  
+            				int x, int y, int w, int h, int skipleft);
 extern void radeon_set_clipping_rectangle_mmio(struct fb_info *info,
             				int xa, int ya, int xb, int yb);
 extern void radeon_disable_clipping_mmio(struct fb_info *info);
 
-extern int32_t radeon_setup_for_cpu_to_screen_alpha_texture_mmio(struct fb_info *info, 
+extern int32_t radeon_setup_for_cpu_to_screen_alpha_texture_mmio(struct fb_info *info,
            					int op, int red, int green, int blue,
 							int alpha, int maskFormat, int dstFormat,
 							uint8_t *alphaPtr, int alphaPitch,

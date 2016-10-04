@@ -509,8 +509,8 @@ void radeon_setup_for_mono_8x8_pattern_fill_mmio(struct fb_info *info, int patte
         OUT_ACCEL_REG(DP_BRUSH_BKGD_CLR, bg);
     if (rinfo->big_endian)
     {
-        OUT_ACCEL_REG(BRUSH_DATA0, *(unsigned long *) &pattern[0]);
-        OUT_ACCEL_REG(BRUSH_DATA1, *(unsigned long *) &pattern[4]);
+        OUT_ACCEL_REG(BRUSH_DATA0, &pattern[0]);
+        OUT_ACCEL_REG(BRUSH_DATA1, &pattern[4]);
     }
     else
     {

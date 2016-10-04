@@ -213,7 +213,18 @@ void ikbd_handle_input(unsigned char cmd)
     }
 }
 
-void ikbd_poll(void) {
+/*
+ * FIXME: temporarily provide function prototypes for unimplemented functions here to make compiler happy
+ */
+
+extern int GetTimer(int);
+extern int CheckTimer(int);
+extern void EnableIO(void);
+extern void DisableIO(void);
+extern int SPI(int);
+
+void ikbd_poll(void)
+{
     static int mtimer = 0;
     if (CheckTimer(mtimer))
     {
