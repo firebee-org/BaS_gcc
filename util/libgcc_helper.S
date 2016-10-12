@@ -24,3 +24,47 @@ ___udivdi3:	jmp		__udivdi3
 		.global		___umoddi3
 		.extern		__umoddi3
 ___umoddi3:	jmp		__umoddi3
+
+		.global		___divdf3
+		.extern		__divdf3
+___divdf3:	jmp		__divdf3
+
+		.global		___muldf3
+		.extern		__muldf3
+___muldf3:	jmp		__muldf3
+
+		.global		___subsf3
+		.extern		__subsf3
+___subsf3:	jmp		__subsf3
+
+		.global		___floatsidf
+		.extern		__floatsidf
+___floatsidf:	jmp		__floatsidf
+
+		.global		___floatsisf
+		.extern		__floatsisf
+___floatsisf:	jmp		__floatsisf
+
+		.global		___extendsfdf2
+		.extern		__extendsfdf2
+___extendsfdf2:	jmp		__extendsfdf2
+
+		.global		___floatunsidf
+		.extern		__floatunsidf
+___floatunsidf:	jmp		__floatunsidf
+
+		.global		___truncdfsf2
+		.extern		__truncdfsf2
+___truncdfsf2:	jmp		__truncdfsf2
+
+		.global		___ltsf2
+		.extern		__ltsf2
+___ltsf2:	jmp		__ltsf2
+
+		.global		___fixdfsi
+		.extern		__fixdfsi
+___fixdfsi:	jmp		__fixdfsi
+
+		.global		___fixsfsi
+		.extern		__fixsfsi
+___fixsfsi:	jmp		__fixsfsi
