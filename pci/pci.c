@@ -1182,7 +1182,7 @@ void init_pci(void)
      * initiator window 0 base / translation adress register
      * used for PCI memory access
      */
-    MCF_PCI_PCIIW0BTAR = (PCI_MEMORY_OFFSET + ((PCI_MEMORY_SIZE - 1) >> 8))
+    MCF_PCI_PCIIW0BTAR = ((PCI_MEMORY_OFFSET + ((PCI_MEMORY_SIZE - 1) >> 8)) & 0xffff0000)
                           + (PCI_MEMORY_OFFSET >> 16);
 
     NOP();
@@ -1192,7 +1192,8 @@ void init_pci(void)
      * initiator window 1 base / translation adress register
      * used for PCI I/O access
      */
-    MCF_PCI_PCIIW1BTAR = (PCI_IO_OFFSET + ((PCI_IO_SIZE - 1) >> 8)) & 0xffff0000;
+    MCF_PCI_PCIIW1BTAR = ((PCI_IO_OFFSET + ((PCI_IO_SIZE - 1) >> 8)) & 0xffff0000) +
+                           + (PCI_IO_OFFSET >> 16);
     NOP();
     /* initiator window 2 base / translation address register */
     MCF_PCI_PCIIW2BTAR = 0L;   /* not used */
