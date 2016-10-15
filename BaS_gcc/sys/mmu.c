@@ -36,26 +36,6 @@
  * Copyright 2013        M. Froeschle
  */
 
-#define ACR_BA(x)                   ((x) & 0xffff0000)
-#define ACR_ADMSK(x)                (((x) & 0xffff) << 16)
-#define ACR_E(x)                    (((x) & 1) << 15)
-
-#define ACR_S(x)                    (((x) & 3) << 13)
-#define ACR_S_USERMODE              0
-#define ACR_S_SUPERVISOR_MODE       1
-#define ACR_S_ALL                   2
-
-#define ACR_AMM(x)                  (((x) & 1) << 10)
-
-#define ACR_CM(x)                   (((x) & 3) << 5)
-#define ACR_CM_CACHEABLE_WT         0x0
-#define ACR_CM_CACHEABLE_CB         0x1
-#define ACR_CM_CACHE_INH_PRECISE    0x2
-#define ACR_CM_CACHE_INH_IMPRECISE  0x3
-
-#define ACR_SP(x)           (((x) & 1) << 3)
-#define ACR_W(x)            (((x) & 1) << 2)
-
 #include <stdint.h>
 #include "bas_printf.h"
 #include "bas_types.h"
@@ -230,6 +210,9 @@ static struct virt_to_phys translation[] =
     { 0x00000000, 0x00e00000, 0x00000000 },     /* map first 14 MByte to first 14 Mb of SD ram */
     { 0x00e00000, 0x00100000, 0x00000000 },     /* map TOS to SDRAM */
     { 0x01000000, 0x04000000, 0x00000000 },     /* map rest of ram virt = phys */
+#if 0
+    { 0x04000000, 0x08000000, 0x7C000000 },     /* experimental mapping for PCI memory */
+#endif
 };
 #elif defined(MACHINE_M54455)
 /* FIXME: this is not determined yet! */
@@ -269,14 +252,14 @@ static inline uint32_t lookup_phys(int32_t virt)
  * bytes size) or 8k pages (64k descriptor array size)
  */
 #define NUM_PAGES    (SDRAM_SIZE / SIZE_DEFAULT)
-static struct mmu_page_descriptor pages[NUM_PAGES];
+static struct mmu_page_descriptor_ram pages[NUM_PAGES];
 
 
 int mmu_map_instruction_page(uint32_t virt, uint8_t asid)
 {
     const uint32_t size_mask = ~ (SIZE_DEFAULT - 1);                /* pagesize */
     int page_index = (virt & size_mask) / SIZE_DEFAULT;             /* index into page_descriptor array */
-    struct mmu_page_descriptor *page = &pages[page_index];          /* attributes of page to map */
+    struct mmu_page_descriptor_ram *page = &pages[page_index];      /* attributes of page to map */
     int ipl;
     uint32_t phys = lookup_phys(virt);                               /* virtual to physical translation of page */
 
@@ -332,7 +315,7 @@ int mmu_map_data_page(uint32_t virt, uint8_t asid)
     uint16_t ipl;
     const uint32_t size_mask = ~ (SIZE_DEFAULT - 1);            /* pagesize */
     int page_index = (virt & size_mask) / SIZE_DEFAULT;         /* index into page_descriptor array */
-    struct mmu_page_descriptor *page = &pages[page_index];      /* attributes of page to map */
+    struct mmu_page_descriptor_ram *page = &pages[page_index];  /* attributes of page to map */
 
     uint32_t phys = lookup_phys(virt);                           /* virtual to physical translation of page */
 
@@ -389,7 +372,7 @@ int mmu_map_data_page(uint32_t virt, uint8_t asid)
  * per instruction as a minimum, more for performance. Thus locked pages (that can't be touched by the
  * LRU algorithm) should be used sparsingly.
  */
-uint32_t mmu_map_page(uint32_t virt, uint32_t phys, enum mmu_page_size sz, uint8_t page_id, const struct mmu_page_descriptor *flags)
+uint32_t mmu_map_page(uint32_t virt, uint32_t phys, enum mmu_page_size sz, uint8_t page_id, const struct mmu_page_descriptor_ram *flags)
 {
     int size_mask;
     int ipl;
@@ -456,7 +439,7 @@ void mmu_init(void)
 {
     extern uint8_t _MMUBAR[];
     uint32_t MMUBAR = (uint32_t) &_MMUBAR[0];
-    struct mmu_page_descriptor flags;
+    struct mmu_page_descriptor_ram flags;
     int i;
 
     /*
@@ -613,18 +596,21 @@ void mmu_init(void)
     /* set data access attributes in ACR0 and ACR1 */
 
     /* map PCI address space */
+    /* set SRAM and MBAR access */
     set_acr0(ACR_W(0) |                             /* read and write accesses permitted */
-            //ACR_SP(1) |                             /* supervisor only access permitted */
+            // ACR_SP(1) |                             /* supervisor only access permitted */
             ACR_CM(ACR_CM_CACHE_INH_PRECISE) |      /* cache inhibit, precise */
             ACR_AMM(0) |                            /* control region > 16 MB */
-            ACR_S(ACR_S_SUPERVISOR_MODE) |          /* match addresses in supervisor mode only */
+            ACR_S(ACR_S_SUPERVISOR_MODE) |          /* match addresses in supervisor and user mode */
             ACR_E(1) |                              /* enable ACR */
 #if defined(MACHINE_FIREBEE)
             ACR_ADMSK(0x7f) |                       /* cover 2GB area from 0x80000000 to 0xffffffff */
-            ACR_BA(PCI_MEMORY_OFFSET));             /* (equals area from 3 to 4 GB */
+            // ACR_BA(PCI_MEMORY_OFFSET));             /* (equals area from 3 to 4 GB */
+            ACR_BA(0xe0000000));
 #elif defined(MACHINE_M5484LITE)
             ACR_ADMSK(0x7f) |                       /* cover 2 GB area from 0x80000000 to 0xffffffff */
-            ACR_BA(PCI_MEMORY_OFFSET));
+            // ACR_BA(PCI_MEMORY_OFFSET));
+            ACR_BA(0xe0000000));
 #elif defined(MACHINE_M54455)
             ACR_ADMSK(0x7f) |
             ACR_BA(0x80000000));                    /* FIXME: not determined yet */
@@ -709,6 +695,10 @@ void mmu_init(void)
     flags.execute = 0;
     flags.locked = 1;
     mmu_map_page(0x6a000000, 0x6a000000, MMU_PAGE_SIZE_1M, 0, &flags);
+#elif defined(MACHINE_M54455)
+#warning MMU specs for M54455 not yet determined
+#else
+#error Unknown machine
 #endif /* MACHINE_FIREBEE */
 
     /*
@@ -881,7 +871,7 @@ uint32_t mmu_map_data_page_locked(uint32_t virt, uint32_t size, int asid)
 {
     const uint32_t size_mask = ~ (SIZE_DEFAULT - 1);       /* pagesize */
     int page_index = (virt & size_mask) / SIZE_DEFAULT;    /* index into page_descriptor array */
-    struct mmu_page_descriptor *page = &pages[page_index];          /* attributes of page to map */
+    struct mmu_page_descriptor_ram *page = &pages[page_index];          /* attributes of page to map */
     int i = 0;
 
     while (page_index * SIZE_DEFAULT < virt + size)
@@ -914,7 +904,7 @@ uint32_t mmu_unlock_data_page(uint32_t address, uint32_t size, int asid)
     int curr_asid;
     const uint32_t size_mask = ~ (SIZE_DEFAULT - 1);
     int page_index = (address & size_mask) / SIZE_DEFAULT;     /* index into page descriptor array */
-    struct mmu_page_descriptor *page = &pages[page_index];
+    struct mmu_page_descriptor_ram *page = &pages[page_index];
 
     curr_asid = set_asid(asid);         /* set asid to the one to search for */
 
@@ -1000,3 +990,4 @@ uint32_t mmu_report_pagesize(void)
 {
     return SIZE_DEFAULT;
 }
+

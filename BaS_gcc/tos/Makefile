@@ -3,8 +3,9 @@
 .PHONY: bascook
 .PHONY: vmem_test
 .PHONY: pci_test
+.PHONY: pci_mem
 .PHONY: fpga_test
-tos: jtagwait bascook vmem_test pci_test fpga_test
+tos: jtagwait bascook vmem_test pci_test pci_mem fpga_test
 
 jtagwait:
 	$(MAKE) -C $@
@@ -16,6 +17,9 @@ vmem_test:
 	$(MAKE) -C $@
 
 pci_test:
+	$(MAKE) -C $@
+
+pci_mem:
 	$(MAKE) -C $@
 
 fpga_test:

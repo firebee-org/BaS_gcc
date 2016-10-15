@@ -295,9 +295,10 @@ NIF nif2;
 
 bool spurious_interrupt_handler(void *arg1, void *arg2)
 {
-    dbg("IMRH=%lx, IMRL=%lx\r\n", MCF_INTC_IMRH, MCF_INTC_IMRL);
-    dbg("IPRH=%lx, IPRL=%lx\r\n", MCF_INTC_IPRH, MCF_INTC_IPRL);
-    dbg("IRLR=%x\r\n", MCF_INTC_IRLR);
+    err("spurious interrupt\r\n");
+    err("IMRH=%lx, IMRL=%lx\r\n", MCF_INTC_IMRH, MCF_INTC_IMRL);
+    err("IPRH=%lx, IPRL=%lx\r\n", MCF_INTC_IPRH, MCF_INTC_IPRL);
+    err("IRLR=%x\r\n", MCF_INTC_IRLR);
 
     return true;
 }

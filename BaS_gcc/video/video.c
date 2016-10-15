@@ -7,13 +7,8 @@
 #include "fb.h"
 #include "radeonfb.h"
 
-#define DBG_VIDEO
-#ifdef DBG_VIDEO
-#define dbg(format, arg...) do { xprintf("DEBUG (%s()): " format, __FUNCTION__, ##arg);} while(0)
-#else
-#define dbg(format, arg...) do {;} while (0)
-#endif /* DBG_VIDEO */
-#define err(format, arg...) do { xprintf("ERROR (%s()): " format, __FUNCTION__, ##arg); } while(0)
+// #define DEBUG
+#include "debug.h"
 
 #ifdef _USE_VIDEL_
 #define MON_ALL     -1  /* code used in VMODE_ENTRY for match on mode only */
@@ -277,7 +272,13 @@ void videl_screen_init(void)
 
 #endif /* _USE_VIDEL_ */
 
-static struct fb_info fb;
+static struct radeonfb_info rfb;
+
+static struct fb_info fb =
+{
+    .par = &rfb
+};
+
 struct fb_info *info_fb = &fb;
 
 const char monitor_layout[1024] = "CRT,CRT";
@@ -345,18 +346,15 @@ void video_init(void)
 
                     dbg("matched\r\n");
 
-                    xprintf("not registering RADEON card\r\n");
+                    xprintf("registering RADEON card with PCI handle 0x%02x\r\n", handle);
 
-                    if (0)
+                    if (radeonfb_pci_register(handle, board) >= 0)
                     {
-                        if (radeonfb_pci_register(handle, board) >= 0)
-                        {
-                            xprintf("RADEON video card found and registered\r\n");
-                        }
-                        else
-                        {
-                            dbg("failed to register RADEON PCI video card\r\n");
-                        }
+                        xprintf("RADEON video card found and registered\r\n");
+                    }
+                    else
+                    {
+                        dbg("failed to register RADEON PCI video card\r\n");
                     }
                     return;
                 }

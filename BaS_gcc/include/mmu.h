@@ -30,8 +30,8 @@
 /*
  * ACR register handling macros
  */
-#define ACR_BA(x)                   ((x) & 0xffff0000)
-#define ACR_ADMSK(x)                (((x) & 0xffff) << 16)
+#define ACR_BA(x)                   ((x) & 0xff000000)
+#define ACR_ADMSK(x)                (((x) & 0xff) << 16)
 #define ACR_E(x)                    (((x) & 1) << 15)
 
 #define ACR_S(x)                    (((x) & 3) << 13)
@@ -44,6 +44,17 @@
 #define ACR_CACHE_MODE(x)			(((x) & 3) << 5)
 #define ACR_SUPERVISOR_PROTECT(x)	(((x) & 1) << 3)
 #define ACR_WRITE_PROTECT(x)		(((x) & 1) << 2)
+
+#define ACR_AMM(x)                  (((x) & 1) << 10)
+
+#define ACR_CM(x)                   (((x) & 3) << 5)
+#define ACR_CM_CACHEABLE_WT         0x0
+#define ACR_CM_CACHEABLE_CB         0x1
+#define ACR_CM_CACHE_INH_PRECISE    0x2
+#define ACR_CM_CACHE_INH_IMPRECISE  0x3
+
+#define ACR_SP(x)           (((x) & 1) << 3)
+#define ACR_W(x)            (((x) & 1) << 2)
 
 
 /*
@@ -98,7 +109,7 @@ enum mmu_page_size
 extern long video_tlb;
 extern long video_sbt;
 
-struct mmu_page_descriptor
+struct mmu_page_descriptor_ram
 {
     uint8_t cache_mode          : 2;
     uint8_t supervisor_protect  : 1;
@@ -110,7 +121,7 @@ struct mmu_page_descriptor
 };
 
 extern void mmu_init(void);
-extern uint32_t mmu_map_page(uint32_t virt, uint32_t phys, enum mmu_page_size sz, uint8_t page_id, const struct mmu_page_descriptor *flags);
+extern uint32_t mmu_map_page(uint32_t virt, uint32_t phys, enum mmu_page_size sz, uint8_t page_id, const struct mmu_page_descriptor_ram *flags);
 
 /*
  * API functions for the BaS driver interface

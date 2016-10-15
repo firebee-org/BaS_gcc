@@ -103,13 +103,13 @@ static uint32_t hex_to_long(uint8_t hex[8])
 static uint8_t checksum(uint8_t arr[])
 {
     int i;
-    uint8_t csum = SREC_COUNT(arr);
+    uint8_t cs = SREC_COUNT(arr);
 
     for (i = 0; i < SREC_COUNT(arr) - 1; i++)
     {
-        csum += arr[i + 2];
+        cs += arr[i + 2];
     }
-    return ~csum;
+    return ~cs;
 }
 
 #ifdef _NOT_USED_

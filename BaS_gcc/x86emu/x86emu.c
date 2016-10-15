@@ -35,8 +35,9 @@
 #include <x86emu.h>
 #include <x86emu_regs.h>
 #include "setjmp.h"
+#include "debug.h"
 
-static void 	x86emu_intr_raise (struct X86EMU *, uint8_t type);
+static void x86emu_intr_raise (struct X86EMU *, uint8_t type);
 
 static void	X86EMU_exec_one_byte(struct X86EMU *);
 static void	X86EMU_exec_two_byte(struct X86EMU *);
@@ -57,25 +58,25 @@ static void	store_data_word (struct X86EMU *, uint32_t offset, uint16_t val);
 static void	store_word (struct X86EMU *, uint32_t segment, uint32_t offset, uint16_t val);
 static void	store_data_long (struct X86EMU *, uint32_t offset, uint32_t val);
 static void	store_long (struct X86EMU *, uint32_t segment, uint32_t offset, uint32_t val);
-static uint8_t*	decode_rl_byte_register(struct X86EMU *);
-static uint16_t*	decode_rl_word_register(struct X86EMU *);
-static uint32_t* 	decode_rl_long_register(struct X86EMU *);
-static uint8_t* 	decode_rh_byte_register(struct X86EMU *);
-static uint16_t* 	decode_rh_word_register(struct X86EMU *);
-static uint32_t* 	decode_rh_long_register(struct X86EMU *);
-static uint16_t* 	decode_rh_seg_register(struct X86EMU *);
+static uint8_t *decode_rl_byte_register(struct X86EMU *);
+static uint16_t *decode_rl_word_register(struct X86EMU *);
+static uint32_t *decode_rl_long_register(struct X86EMU *);
+static uint8_t *decode_rh_byte_register(struct X86EMU *);
+static uint16_t *decode_rh_word_register(struct X86EMU *);
+static uint32_t *decode_rh_long_register(struct X86EMU *);
+static uint16_t *decode_rh_seg_register(struct X86EMU *);
 static uint32_t	decode_rl_address(struct X86EMU *);
 
 static uint8_t 	decode_and_fetch_byte(struct X86EMU *);
-static uint16_t 	decode_and_fetch_word(struct X86EMU *);
-static uint32_t 	decode_and_fetch_long(struct X86EMU *);
+static uint16_t decode_and_fetch_word(struct X86EMU *);
+static uint32_t decode_and_fetch_long(struct X86EMU *);
 
 static uint8_t 	decode_and_fetch_byte_imm8(struct X86EMU *, uint8_t *);
-static uint16_t 	decode_and_fetch_word_imm8(struct X86EMU *, uint8_t *);
-static uint32_t 	decode_and_fetch_long_imm8(struct X86EMU *, uint8_t *);
+static uint16_t decode_and_fetch_word_imm8(struct X86EMU *, uint8_t *);
+static uint32_t decode_and_fetch_long_imm8(struct X86EMU *, uint8_t *);
 
-static uint16_t 	decode_and_fetch_word_disp(struct X86EMU *, int16_t);
-static uint32_t 	decode_and_fetch_long_disp(struct X86EMU *, int16_t);
+static uint16_t decode_and_fetch_word_disp(struct X86EMU *, int16_t);
+static uint32_t decode_and_fetch_long_disp(struct X86EMU *, int16_t);
 
 static void	write_back_byte(struct X86EMU *, uint8_t);
 static void	write_back_word(struct X86EMU *, uint16_t);
@@ -395,27 +396,27 @@ static uint32_t
 get_data_segment(struct X86EMU *emu)
 {
     switch (emu->x86.mode & SYSMODE_SEGMASK) {
-        case 0:		/* default case: use ds register */
-        case SYSMODE_SEGOVR_DS:
-        case SYSMODE_SEGOVR_DS | SYSMODE_SEG_DS_SS:
-            return emu->x86.R_DS;
-        case SYSMODE_SEG_DS_SS:/* non-overridden, use ss register */
-            return emu->x86.R_SS;
-        case SYSMODE_SEGOVR_CS:
-        case SYSMODE_SEGOVR_CS | SYSMODE_SEG_DS_SS:
-            return emu->x86.R_CS;
-        case SYSMODE_SEGOVR_ES:
-        case SYSMODE_SEGOVR_ES | SYSMODE_SEG_DS_SS:
-            return emu->x86.R_ES;
-        case SYSMODE_SEGOVR_FS:
-        case SYSMODE_SEGOVR_FS | SYSMODE_SEG_DS_SS:
-            return emu->x86.R_FS;
-        case SYSMODE_SEGOVR_GS:
-        case SYSMODE_SEGOVR_GS | SYSMODE_SEG_DS_SS:
-            return emu->x86.R_GS;
-        case SYSMODE_SEGOVR_SS:
-        case SYSMODE_SEGOVR_SS | SYSMODE_SEG_DS_SS:
-            return emu->x86.R_SS;
+    case 0:		/* default case: use ds register */
+    case SYSMODE_SEGOVR_DS:
+    case SYSMODE_SEGOVR_DS | SYSMODE_SEG_DS_SS:
+        return emu->x86.R_DS;
+    case SYSMODE_SEG_DS_SS:/* non-overridden, use ss register */
+        return emu->x86.R_SS;
+    case SYSMODE_SEGOVR_CS:
+    case SYSMODE_SEGOVR_CS | SYSMODE_SEG_DS_SS:
+        return emu->x86.R_CS;
+    case SYSMODE_SEGOVR_ES:
+    case SYSMODE_SEGOVR_ES | SYSMODE_SEG_DS_SS:
+        return emu->x86.R_ES;
+    case SYSMODE_SEGOVR_FS:
+    case SYSMODE_SEGOVR_FS | SYSMODE_SEG_DS_SS:
+        return emu->x86.R_FS;
+    case SYSMODE_SEGOVR_GS:
+    case SYSMODE_SEGOVR_GS | SYSMODE_SEG_DS_SS:
+        return emu->x86.R_GS;
+    case SYSMODE_SEGOVR_SS:
+    case SYSMODE_SEGOVR_SS | SYSMODE_SEG_DS_SS:
+        return emu->x86.R_SS;
     }
     X86EMU_halt_sys(emu);
     return 0L;
@@ -618,24 +619,24 @@ static uint8_t *
 decode_rm_byte_register(struct X86EMU *emu, int reg)
 {
     switch (reg) {
-        case 0:
-            return &emu->x86.R_AL;
-        case 1:
-            return &emu->x86.R_CL;
-        case 2:
-            return &emu->x86.R_DL;
-        case 3:
-            return &emu->x86.R_BL;
-        case 4:
-            return &emu->x86.R_AH;
-        case 5:
-            return &emu->x86.R_CH;
-        case 6:
-            return &emu->x86.R_DH;
-        case 7:
-            return &emu->x86.R_BH;
-        default:
-            X86EMU_halt_sys(emu);
+    case 0:
+        return &emu->x86.R_AL;
+    case 1:
+        return &emu->x86.R_CL;
+    case 2:
+        return &emu->x86.R_DL;
+    case 3:
+        return &emu->x86.R_BL;
+    case 4:
+        return &emu->x86.R_AH;
+    case 5:
+        return &emu->x86.R_CH;
+    case 6:
+        return &emu->x86.R_DH;
+    case 7:
+        return &emu->x86.R_BH;
+    default:
+        X86EMU_halt_sys(emu);
     }
     return 0L;
 }
@@ -666,24 +667,24 @@ static uint16_t *
 decode_rm_word_register(struct X86EMU *emu, int reg)
 {
     switch (reg) {
-        case 0:
-            return &emu->x86.R_AX;
-        case 1:
-            return &emu->x86.R_CX;
-        case 2:
-            return &emu->x86.R_DX;
-        case 3:
-            return &emu->x86.R_BX;
-        case 4:
-            return &emu->x86.R_SP;
-        case 5:
-            return &emu->x86.R_BP;
-        case 6:
-            return &emu->x86.R_SI;
-        case 7:
-            return &emu->x86.R_DI;
-        default:
-            X86EMU_halt_sys(emu);
+    case 0:
+        return &emu->x86.R_AX;
+    case 1:
+        return &emu->x86.R_CX;
+    case 2:
+        return &emu->x86.R_DX;
+    case 3:
+        return &emu->x86.R_BX;
+    case 4:
+        return &emu->x86.R_SP;
+    case 5:
+        return &emu->x86.R_BP;
+    case 6:
+        return &emu->x86.R_SI;
+    case 7:
+        return &emu->x86.R_DI;
+    default:
+        X86EMU_halt_sys(emu);
     }
     return 0;
 }
@@ -714,24 +715,24 @@ static uint32_t *
 decode_rm_long_register(struct X86EMU *emu, int reg)
 {
     switch (reg) {
-        case 0:
-            return &emu->x86.R_EAX;
-        case 1:
-            return &emu->x86.R_ECX;
-        case 2:
-            return &emu->x86.R_EDX;
-        case 3:
-            return &emu->x86.R_EBX;
-        case 4:
-            return &emu->x86.R_ESP;
-        case 5:
-            return &emu->x86.R_EBP;
-        case 6:
-            return &emu->x86.R_ESI;
-        case 7:
-            return &emu->x86.R_EDI;
-        default:
-            X86EMU_halt_sys(emu);
+    case 0:
+        return &emu->x86.R_EAX;
+    case 1:
+        return &emu->x86.R_ECX;
+    case 2:
+        return &emu->x86.R_EDX;
+    case 3:
+        return &emu->x86.R_EBX;
+    case 4:
+        return &emu->x86.R_ESP;
+    case 5:
+        return &emu->x86.R_EBP;
+    case 6:
+        return &emu->x86.R_ESI;
+    case 7:
+        return &emu->x86.R_EDI;
+    default:
+        X86EMU_halt_sys(emu);
     }
     return 0L;
 }
@@ -764,20 +765,20 @@ static uint16_t *
 decode_rh_seg_register(struct X86EMU *emu)
 {
     switch (emu->cur_rh) {
-        case 0:
-            return &emu->x86.R_ES;
-        case 1:
-            return &emu->x86.R_CS;
-        case 2:
-            return &emu->x86.R_SS;
-        case 3:
-            return &emu->x86.R_DS;
-        case 4:
-            return &emu->x86.R_FS;
-        case 5:
-            return &emu->x86.R_GS;
-        default:
-            X86EMU_halt_sys(emu);
+    case 0:
+        return &emu->x86.R_ES;
+    case 1:
+        return &emu->x86.R_CS;
+    case 2:
+        return &emu->x86.R_SS;
+    case 3:
+        return &emu->x86.R_DS;
+    case 4:
+        return &emu->x86.R_FS;
+    case 5:
+        return &emu->x86.R_GS;
+    default:
+        X86EMU_halt_sys(emu);
     }
     return 0;
 }
@@ -791,62 +792,62 @@ decode_sib_address(struct X86EMU *emu, int sib, int mod)
     uint32_t base = 0, i = 0, scale = 1;
 
     switch (sib & 0x07) {
-        case 0:
-            base = emu->x86.R_EAX;
-            break;
-        case 1:
-            base = emu->x86.R_ECX;
-            break;
-        case 2:
-            base = emu->x86.R_EDX;
-            break;
-        case 3:
-            base = emu->x86.R_EBX;
-            break;
-        case 4:
-            base = emu->x86.R_ESP;
+    case 0:
+        base = emu->x86.R_EAX;
+        break;
+    case 1:
+        base = emu->x86.R_ECX;
+        break;
+    case 2:
+        base = emu->x86.R_EDX;
+        break;
+    case 3:
+        base = emu->x86.R_EBX;
+        break;
+    case 4:
+        base = emu->x86.R_ESP;
+        emu->x86.mode |= SYSMODE_SEG_DS_SS;
+        break;
+    case 5:
+        if (mod == 0) {
+            base = fetch_long_imm(emu);
+        } else {
+            base = emu->x86.R_EBP;
             emu->x86.mode |= SYSMODE_SEG_DS_SS;
-            break;
-        case 5:
-            if (mod == 0) {
-                base = fetch_long_imm(emu);
-            } else {
-                base = emu->x86.R_EBP;
-                emu->x86.mode |= SYSMODE_SEG_DS_SS;
-            }
-            break;
-        case 6:
-            base = emu->x86.R_ESI;
-            break;
-        case 7:
-            base = emu->x86.R_EDI;
-            break;
+        }
+        break;
+    case 6:
+        base = emu->x86.R_ESI;
+        break;
+    case 7:
+        base = emu->x86.R_EDI;
+        break;
     }
     switch ((sib >> 3) & 0x07) {
-        case 0:
-            i = emu->x86.R_EAX;
-            break;
-        case 1:
-            i = emu->x86.R_ECX;
-            break;
-        case 2:
-            i = emu->x86.R_EDX;
-            break;
-        case 3:
-            i = emu->x86.R_EBX;
-            break;
-        case 4:
-            i = 0;
-            break;
-        case 5:
-            i = emu->x86.R_EBP;
-            break;
-        case 6:
-            i = emu->x86.R_ESI;
-            break;
-        case 7:
-            i = emu->x86.R_EDI;
-            break;
+    case 0:
+        i = emu->x86.R_EAX;
+        break;
+    case 1:
+        i = emu->x86.R_ECX;
+        break;
+    case 2:
+        i = emu->x86.R_EDX;
+        break;
+    case 3:
+        i = emu->x86.R_EBX;
+        break;
+    case 4:
+        i = 0;
+        break;
+    case 5:
+        i = emu->x86.R_EBP;
+        break;
+    case 6:
+        i = emu->x86.R_ESI;
+        break;
+    case 7:
+        i = emu->x86.R_EDI;
+        break;
     }
     scale = 1 << ((sib >> 6) & 0x03);
     return base + (i * scale);
@@ -869,38 +870,38 @@ decode_rl_address(struct X86EMU *emu)
         uint32_t offset, sib;
         /* 32-bit addressing */
         switch (emu->cur_rl) {
-            case 0:
-                offset = emu->x86.R_EAX;
-                break;
-            case 1:
-                offset = emu->x86.R_ECX;
-                break;
-            case 2:
-                offset = emu->x86.R_EDX;
-                break;
-            case 3:
-                offset = emu->x86.R_EBX;
-                break;
-            case 4:
-                sib = fetch_byte_imm(emu);
-                offset = decode_sib_address(emu, sib, 0);
-                break;
-            case 5:
-                if (emu->cur_mod == 0) {
-                    offset = fetch_long_imm(emu);
-                } else {
-                    emu->x86.mode |= SYSMODE_SEG_DS_SS;
-                    offset = emu->x86.R_EBP;
-                }
-                break;
-            case 6:
-                offset = emu->x86.R_ESI;
-                break;
-            case 7:
-                offset = emu->x86.R_EDI;
-                break;
-            default:
-                X86EMU_halt_sys(emu);
+        case 0:
+            offset = emu->x86.R_EAX;
+            break;
+        case 1:
+            offset = emu->x86.R_ECX;
+            break;
+        case 2:
+            offset = emu->x86.R_EDX;
+            break;
+        case 3:
+            offset = emu->x86.R_EBX;
+            break;
+        case 4:
+            sib = fetch_byte_imm(emu);
+            offset = decode_sib_address(emu, sib, 0);
+            break;
+        case 5:
+            if (emu->cur_mod == 0) {
+                offset = fetch_long_imm(emu);
+            } else {
+                emu->x86.mode |= SYSMODE_SEG_DS_SS;
+                offset = emu->x86.R_EBP;
+            }
+            break;
+        case 6:
+            offset = emu->x86.R_ESI;
+            break;
+        case 7:
+            offset = emu->x86.R_EDI;
+            break;
+        default:
+            X86EMU_halt_sys(emu);
         }
         if (emu->cur_mod == 1)
             offset += (int8_t)fetch_byte_imm(emu);
@@ -912,39 +913,39 @@ decode_rl_address(struct X86EMU *emu)
 
         /* 16-bit addressing */
         switch (emu->cur_rl) {
-            case 0:
-                offset = emu->x86.R_BX + emu->x86.R_SI;
-                break;
-            case 1:
-                offset = emu->x86.R_BX + emu->x86.R_DI;
-                break;
-            case 2:
+        case 0:
+            offset = emu->x86.R_BX + emu->x86.R_SI;
+            break;
+        case 1:
+            offset = emu->x86.R_BX + emu->x86.R_DI;
+            break;
+        case 2:
+            emu->x86.mode |= SYSMODE_SEG_DS_SS;
+            offset = emu->x86.R_BP + emu->x86.R_SI;
+            break;
+        case 3:
+            emu->x86.mode |= SYSMODE_SEG_DS_SS;
+            offset = emu->x86.R_BP + emu->x86.R_DI;
+            break;
+        case 4:
+            offset = emu->x86.R_SI;
+            break;
+        case 5:
+            offset = emu->x86.R_DI;
+            break;
+        case 6:
+            if (emu->cur_mod == 0) {
+                offset = fetch_word_imm(emu);
+            } else {
                 emu->x86.mode |= SYSMODE_SEG_DS_SS;
-                offset = emu->x86.R_BP + emu->x86.R_SI;
-                break;
-            case 3:
-                emu->x86.mode |= SYSMODE_SEG_DS_SS;
-                offset = emu->x86.R_BP + emu->x86.R_DI;
-                break;
-            case 4:
-                offset = emu->x86.R_SI;
-                break;
-            case 5:
-                offset = emu->x86.R_DI;
-                break;
-            case 6:
-                if (emu->cur_mod == 0) {
-                    offset = fetch_word_imm(emu);
-                } else {
-                    emu->x86.mode |= SYSMODE_SEG_DS_SS;
-                    offset = emu->x86.R_BP;
-                }
-                break;
-            case 7:
-                offset = emu->x86.R_BX;
-                break;
-            default:
-                X86EMU_halt_sys(emu);
+                offset = emu->x86.R_BP;
+            }
+            break;
+        case 7:
+            offset = emu->x86.R_BX;
+            break;
+        default:
+            X86EMU_halt_sys(emu);
         }
         if (emu->cur_mod == 1)
             offset += (int8_t)fetch_byte_imm(emu);
@@ -3747,26 +3748,26 @@ x86emuOp_opcF6_byte_RM(struct X86EMU *emu)
     }
     destval = decode_and_fetch_byte(emu);
     switch (emu->cur_rh) {
-        case 2:
-            destval = ~destval;
-            write_back_byte(emu, destval);
-            break;
-        case 3:
-            destval = neg_byte(emu, destval);
-            write_back_byte(emu, destval);
-            break;
-        case 4:
-            mul_byte(emu, destval);
-            break;
-        case 5:
-            imul_byte(emu, destval);
-            break;
-        case 6:
-            div_byte(emu, destval);
-            break;
-        case 7:
-            idiv_byte(emu, destval);
-            break;
+    case 2:
+        destval = ~destval;
+        write_back_byte(emu, destval);
+        break;
+    case 3:
+        destval = neg_byte(emu, destval);
+        write_back_byte(emu, destval);
+        break;
+    case 4:
+        mul_byte(emu, destval);
+        break;
+    case 5:
+        imul_byte(emu, destval);
+        break;
+    case 6:
+        div_byte(emu, destval);
+        break;
+    case 7:
+        idiv_byte(emu, destval);
+        break;
     }
 }
 /****************************************************************************
@@ -3800,26 +3801,26 @@ x86emuOp32_opcF7_word_RM(struct X86EMU *emu)
     }
     destval = decode_and_fetch_long(emu);
     switch (emu->cur_rh) {
-        case 2:
-            destval = ~destval;
-            write_back_long(emu, destval);
-            break;
-        case 3:
-            destval = neg_long(emu, destval);
-            write_back_long(emu, destval);
-            break;
-        case 4:
-            mul_long(emu, destval);
-            break;
-        case 5:
-            imul_long(emu, destval);
-            break;
-        case 6:
-            div_long(emu, destval);
-            break;
-        case 7:
-            idiv_long(emu, destval);
-            break;
+    case 2:
+        destval = ~destval;
+        write_back_long(emu, destval);
+        break;
+    case 3:
+        destval = neg_long(emu, destval);
+        write_back_long(emu, destval);
+        break;
+    case 4:
+        mul_long(emu, destval);
+        break;
+    case 5:
+        imul_long(emu, destval);
+        break;
+    case 6:
+        div_long(emu, destval);
+        break;
+    case 7:
+        idiv_long(emu, destval);
+        break;
     }
 }
 static void
@@ -3849,26 +3850,26 @@ x86emuOp16_opcF7_word_RM(struct X86EMU *emu)
     }
     destval = decode_and_fetch_word(emu);
     switch (emu->cur_rh) {
-        case 2:
-            destval = ~destval;
-            write_back_word(emu, destval);
-            break;
-        case 3:
-            destval = neg_word(emu, destval);
-            write_back_word(emu, destval);
-            break;
-        case 4:
-            mul_word(emu, destval);
-            break;
-        case 5:
-            imul_word(emu, destval);
-            break;
-        case 6:
-            div_word(emu, destval);
-            break;
-        case 7:
-            idiv_word(emu, destval);
-            break;
+    case 2:
+        destval = ~destval;
+        write_back_word(emu, destval);
+        break;
+    case 3:
+        destval = neg_word(emu, destval);
+        write_back_word(emu, destval);
+        break;
+    case 4:
+        mul_word(emu, destval);
+        break;
+    case 5:
+        imul_word(emu, destval);
+        break;
+    case 6:
+        div_word(emu, destval);
+        break;
+    case 7:
+        idiv_word(emu, destval);
+        break;
     }
 }
 static void
@@ -3895,26 +3896,26 @@ x86emuOp_opcFE_byte_RM(struct X86EMU *emu)
     if (emu->cur_mod != 3) {
         destoffset = decode_rl_address(emu);
         switch (emu->cur_rh) {
-            case 0:	/* inc word ptr ... */
-                destval = fetch_data_byte(emu, destoffset);
-                destval = inc_byte(emu, destval);
-                store_data_byte(emu, destoffset, destval);
-                break;
-            case 1:	/* dec word ptr ... */
-                destval = fetch_data_byte(emu, destoffset);
-                destval = dec_byte(emu, destval);
-                store_data_byte(emu, destoffset, destval);
-                break;
+        case 0:	/* inc word ptr ... */
+            destval = fetch_data_byte(emu, destoffset);
+            destval = inc_byte(emu, destval);
+            store_data_byte(emu, destoffset, destval);
+            break;
+        case 1:	/* dec word ptr ... */
+            destval = fetch_data_byte(emu, destoffset);
+            destval = dec_byte(emu, destval);
+            store_data_byte(emu, destoffset, destval);
+            break;
         }
     } else {
         destreg = decode_rl_byte_register(emu);
         switch (emu->cur_rh) {
-            case 0:
-                *destreg = inc_byte(emu, *destreg);
-                break;
-            case 1:
-                *destreg = dec_byte(emu, *destreg);
-                break;
+        case 0:
+            *destreg = inc_byte(emu, *destreg);
+            break;
+        case 1:
+            *destreg = dec_byte(emu, *destreg);
+            break;
         }
     }
 }
@@ -3932,30 +3933,30 @@ x86emuOp32_opcFF_word_RM(struct X86EMU *emu)
         destoffset = decode_rl_address(emu);
         destval = fetch_data_long(emu, destoffset);
         switch (emu->cur_rh) {
-            case 0:	/* inc word ptr ... */
-                destval = inc_long(emu, destval);
-                store_data_long(emu, destoffset, destval);
-                break;
-            case 1:	/* dec word ptr ... */
-                destval = dec_long(emu, destval);
-                store_data_long(emu, destoffset, destval);
-                break;
-            case 6:	/* push word ptr ... */
-                push_long(emu, destval);
-                break;
+        case 0:	/* inc word ptr ... */
+            destval = inc_long(emu, destval);
+            store_data_long(emu, destoffset, destval);
+            break;
+        case 1:	/* dec word ptr ... */
+            destval = dec_long(emu, destval);
+            store_data_long(emu, destoffset, destval);
+            break;
+        case 6:	/* push word ptr ... */
+            push_long(emu, destval);
+            break;
         }
     } else {
         destreg = decode_rl_long_register(emu);
         switch (emu->cur_rh) {
-            case 0:
-                *destreg = inc_long(emu, *destreg);
-                break;
-            case 1:
-                *destreg = dec_long(emu, *destreg);
-                break;
-            case 6:
-                push_long(emu, *destreg);
-                break;
+        case 0:
+            *destreg = inc_long(emu, *destreg);
+            break;
+        case 1:
+            *destreg = dec_long(emu, *destreg);
+            break;
+        case 6:
+            push_long(emu, *destreg);
+            break;
         }
     }
 }
@@ -3971,30 +3972,30 @@ x86emuOp16_opcFF_word_RM(struct X86EMU *emu)
         destoffset = decode_rl_address(emu);
         destval = fetch_data_word(emu, destoffset);
         switch (emu->cur_rh) {
-            case 0:
-                destval = inc_word(emu, destval);
-                store_data_word(emu, destoffset, destval);
-                break;
-            case 1:	/* dec word ptr ... */
-                destval = dec_word(emu, destval);
-                store_data_word(emu, destoffset, destval);
-                break;
-            case 6:	/* push word ptr ... */
-                push_word(emu, destval);
-                break;
+        case 0:
+            destval = inc_word(emu, destval);
+            store_data_word(emu, destoffset, destval);
+            break;
+        case 1:	/* dec word ptr ... */
+            destval = dec_word(emu, destval);
+            store_data_word(emu, destoffset, destval);
+            break;
+        case 6:	/* push word ptr ... */
+            push_word(emu, destval);
+            break;
         }
     } else {
         destreg = decode_rl_word_register(emu);
         switch (emu->cur_rh) {
-            case 0:
-                *destreg = inc_word(emu, *destreg);
-                break;
-            case 1:
-                *destreg = dec_word(emu, *destreg);
-                break;
-            case 6:
-                push_word(emu, *destreg);
-                break;
+        case 0:
+            *destreg = inc_word(emu, *destreg);
+            break;
+        case 1:
+            *destreg = dec_word(emu, *destreg);
+            break;
+        case 6:
+            push_word(emu, *destreg);
+            break;
         }
     }
 }
@@ -4021,31 +4022,31 @@ x86emuOp_opcFF_word_RM(struct X86EMU *emu)
         destoffset = decode_rl_address(emu);
         destval = fetch_data_word(emu, destoffset);
         switch (emu->cur_rh) {
-            case 3:	/* call far ptr ... */
-                destval2 = fetch_data_word(emu, destoffset + 2);
-                push_word(emu, emu->x86.R_CS);
-                emu->x86.R_CS = destval2;
-                push_word(emu, emu->x86.R_IP);
-                emu->x86.R_IP = destval;
-                break;
-            case 5:	/* jmp far ptr ... */
-                destval2 = fetch_data_word(emu, destoffset + 2);
-                emu->x86.R_IP = destval;
-                emu->x86.R_CS = destval2;
-                break;
+        case 3:	/* call far ptr ... */
+            destval2 = fetch_data_word(emu, destoffset + 2);
+            push_word(emu, emu->x86.R_CS);
+            emu->x86.R_CS = destval2;
+            push_word(emu, emu->x86.R_IP);
+            emu->x86.R_IP = destval;
+            break;
+        case 5:	/* jmp far ptr ... */
+            destval2 = fetch_data_word(emu, destoffset + 2);
+            emu->x86.R_IP = destval;
+            emu->x86.R_CS = destval2;
+            break;
         }
     } else {
         destval = *decode_rl_word_register(emu);
     }
 
     switch (emu->cur_rh) {
-        case 2: /* call word ptr */
-            push_word(emu, emu->x86.R_IP);
-            emu->x86.R_IP = destval;
-            break;
-        case 4: /* jmp */
-            emu->x86.R_IP = destval;
-            break;
+    case 2: /* call word ptr */
+        push_word(emu, emu->x86.R_IP);
+        emu->x86.R_IP = destval;
+        break;
+    case 4: /* jmp */
+        emu->x86.R_IP = destval;
+        break;
     }
 }
 /***************************************************************************
@@ -4059,798 +4060,798 @@ X86EMU_exec_one_byte(struct X86EMU * emu)
     op1 = fetch_byte_imm(emu);
 
     switch (op1) {
-        case 0x00:
-            common_binop_byte_rm_r(emu, add_byte);
-            break;
-        case 0x01:
-            common_binop_word_long_rm_r(emu, add_word, add_long);
-            break;
-        case 0x02:
-            common_binop_byte_r_rm(emu, add_byte);
-            break;
-        case 0x03:
-            common_binop_word_long_r_rm(emu, add_word, add_long);
-            break;
-        case 0x04:
-            common_binop_byte_imm(emu, add_byte);
-            break;
-        case 0x05:
-            common_binop_word_long_imm(emu, add_word, add_long);
-            break;
-        case 0x06:
-            push_word(emu, emu->x86.R_ES);
-            break;
-        case 0x07:
-            emu->x86.R_ES = pop_word(emu);
-            break;
+    case 0x00:
+        common_binop_byte_rm_r(emu, add_byte);
+        break;
+    case 0x01:
+        common_binop_word_long_rm_r(emu, add_word, add_long);
+        break;
+    case 0x02:
+        common_binop_byte_r_rm(emu, add_byte);
+        break;
+    case 0x03:
+        common_binop_word_long_r_rm(emu, add_word, add_long);
+        break;
+    case 0x04:
+        common_binop_byte_imm(emu, add_byte);
+        break;
+    case 0x05:
+        common_binop_word_long_imm(emu, add_word, add_long);
+        break;
+    case 0x06:
+        push_word(emu, emu->x86.R_ES);
+        break;
+    case 0x07:
+        emu->x86.R_ES = pop_word(emu);
+        break;
 
-        case 0x08:
-            common_binop_byte_rm_r(emu, or_byte);
-            break;
-        case 0x09:
-            common_binop_word_long_rm_r(emu, or_word, or_long);
-            break;
-        case 0x0a:
-            common_binop_byte_r_rm(emu, or_byte);
-            break;
-        case 0x0b:
-            common_binop_word_long_r_rm(emu, or_word, or_long);
-            break;
-        case 0x0c:
-            common_binop_byte_imm(emu, or_byte);
-            break;
-        case 0x0d:
-            common_binop_word_long_imm(emu, or_word, or_long);
-            break;
-        case 0x0e:
-            push_word(emu, emu->x86.R_CS);
-            break;
-        case 0x0f:
-            X86EMU_exec_two_byte(emu);
-            break;
+    case 0x08:
+        common_binop_byte_rm_r(emu, or_byte);
+        break;
+    case 0x09:
+        common_binop_word_long_rm_r(emu, or_word, or_long);
+        break;
+    case 0x0a:
+        common_binop_byte_r_rm(emu, or_byte);
+        break;
+    case 0x0b:
+        common_binop_word_long_r_rm(emu, or_word, or_long);
+        break;
+    case 0x0c:
+        common_binop_byte_imm(emu, or_byte);
+        break;
+    case 0x0d:
+        common_binop_word_long_imm(emu, or_word, or_long);
+        break;
+    case 0x0e:
+        push_word(emu, emu->x86.R_CS);
+        break;
+    case 0x0f:
+        X86EMU_exec_two_byte(emu);
+        break;
 
-        case 0x10:
-            common_binop_byte_rm_r(emu, adc_byte);
-            break;
-        case 0x11:
-            common_binop_word_long_rm_r(emu, adc_word, adc_long);
-            break;
-        case 0x12:
-            common_binop_byte_r_rm(emu, adc_byte);
-            break;
-        case 0x13:
-            common_binop_word_long_r_rm(emu, adc_word, adc_long);
-            break;
-        case 0x14:
-            common_binop_byte_imm(emu, adc_byte);
-            break;
-        case 0x15:
-            common_binop_word_long_imm(emu, adc_word, adc_long);
-            break;
-        case 0x16:
-            push_word(emu, emu->x86.R_SS);
-            break;
-        case 0x17:
-            emu->x86.R_SS = pop_word(emu);
-            break;
+    case 0x10:
+        common_binop_byte_rm_r(emu, adc_byte);
+        break;
+    case 0x11:
+        common_binop_word_long_rm_r(emu, adc_word, adc_long);
+        break;
+    case 0x12:
+        common_binop_byte_r_rm(emu, adc_byte);
+        break;
+    case 0x13:
+        common_binop_word_long_r_rm(emu, adc_word, adc_long);
+        break;
+    case 0x14:
+        common_binop_byte_imm(emu, adc_byte);
+        break;
+    case 0x15:
+        common_binop_word_long_imm(emu, adc_word, adc_long);
+        break;
+    case 0x16:
+        push_word(emu, emu->x86.R_SS);
+        break;
+    case 0x17:
+        emu->x86.R_SS = pop_word(emu);
+        break;
 
-        case 0x18:
-            common_binop_byte_rm_r(emu, sbb_byte);
-            break;
-        case 0x19:
-            common_binop_word_long_rm_r(emu, sbb_word, sbb_long);
-            break;
-        case 0x1a:
-            common_binop_byte_r_rm(emu, sbb_byte);
-            break;
-        case 0x1b:
-            common_binop_word_long_r_rm(emu, sbb_word, sbb_long);
-            break;
-        case 0x1c:
-            common_binop_byte_imm(emu, sbb_byte);
-            break;
-        case 0x1d:
-            common_binop_word_long_imm(emu, sbb_word, sbb_long);
-            break;
-        case 0x1e:
-            push_word(emu, emu->x86.R_DS);
-            break;
-        case 0x1f:
-            emu->x86.R_DS = pop_word(emu);
-            break;
+    case 0x18:
+        common_binop_byte_rm_r(emu, sbb_byte);
+        break;
+    case 0x19:
+        common_binop_word_long_rm_r(emu, sbb_word, sbb_long);
+        break;
+    case 0x1a:
+        common_binop_byte_r_rm(emu, sbb_byte);
+        break;
+    case 0x1b:
+        common_binop_word_long_r_rm(emu, sbb_word, sbb_long);
+        break;
+    case 0x1c:
+        common_binop_byte_imm(emu, sbb_byte);
+        break;
+    case 0x1d:
+        common_binop_word_long_imm(emu, sbb_word, sbb_long);
+        break;
+    case 0x1e:
+        push_word(emu, emu->x86.R_DS);
+        break;
+    case 0x1f:
+        emu->x86.R_DS = pop_word(emu);
+        break;
 
-        case 0x20:
-            common_binop_byte_rm_r(emu, and_byte);
-            break;
-        case 0x21:
-            common_binop_word_long_rm_r(emu, and_word, and_long);
-            break;
-        case 0x22:
-            common_binop_byte_r_rm(emu, and_byte);
-            break;
-        case 0x23:
-            common_binop_word_long_r_rm(emu, and_word, and_long);
-            break;
-        case 0x24:
-            common_binop_byte_imm(emu, and_byte);
-            break;
-        case 0x25:
-            common_binop_word_long_imm(emu, and_word, and_long);
-            break;
-        case 0x26:
-            emu->x86.mode |= SYSMODE_SEGOVR_ES;
-            break;
-        case 0x27:
-            emu->x86.R_AL = daa_byte(emu, emu->x86.R_AL);
-            break;
+    case 0x20:
+        common_binop_byte_rm_r(emu, and_byte);
+        break;
+    case 0x21:
+        common_binop_word_long_rm_r(emu, and_word, and_long);
+        break;
+    case 0x22:
+        common_binop_byte_r_rm(emu, and_byte);
+        break;
+    case 0x23:
+        common_binop_word_long_r_rm(emu, and_word, and_long);
+        break;
+    case 0x24:
+        common_binop_byte_imm(emu, and_byte);
+        break;
+    case 0x25:
+        common_binop_word_long_imm(emu, and_word, and_long);
+        break;
+    case 0x26:
+        emu->x86.mode |= SYSMODE_SEGOVR_ES;
+        break;
+    case 0x27:
+        emu->x86.R_AL = daa_byte(emu, emu->x86.R_AL);
+        break;
 
-        case 0x28:
-            common_binop_byte_rm_r(emu, sub_byte);
-            break;
-        case 0x29:
-            common_binop_word_long_rm_r(emu, sub_word, sub_long);
-            break;
-        case 0x2a:
-            common_binop_byte_r_rm(emu, sub_byte);
-            break;
-        case 0x2b:
-            common_binop_word_long_r_rm(emu, sub_word, sub_long);
-            break;
-        case 0x2c:
-            common_binop_byte_imm(emu, sub_byte);
-            break;
-        case 0x2d:
-            common_binop_word_long_imm(emu, sub_word, sub_long);
-            break;
-        case 0x2e:
-            emu->x86.mode |= SYSMODE_SEGOVR_CS;
-            break;
-        case 0x2f:
-            emu->x86.R_AL = das_byte(emu, emu->x86.R_AL);
-            break;
+    case 0x28:
+        common_binop_byte_rm_r(emu, sub_byte);
+        break;
+    case 0x29:
+        common_binop_word_long_rm_r(emu, sub_word, sub_long);
+        break;
+    case 0x2a:
+        common_binop_byte_r_rm(emu, sub_byte);
+        break;
+    case 0x2b:
+        common_binop_word_long_r_rm(emu, sub_word, sub_long);
+        break;
+    case 0x2c:
+        common_binop_byte_imm(emu, sub_byte);
+        break;
+    case 0x2d:
+        common_binop_word_long_imm(emu, sub_word, sub_long);
+        break;
+    case 0x2e:
+        emu->x86.mode |= SYSMODE_SEGOVR_CS;
+        break;
+    case 0x2f:
+        emu->x86.R_AL = das_byte(emu, emu->x86.R_AL);
+        break;
 
-        case 0x30:
-            common_binop_byte_rm_r(emu, xor_byte);
-            break;
-        case 0x31:
-            common_binop_word_long_rm_r(emu, xor_word, xor_long);
-            break;
-        case 0x32:
-            common_binop_byte_r_rm(emu, xor_byte);
-            break;
-        case 0x33:
-            common_binop_word_long_r_rm(emu, xor_word, xor_long);
-            break;
-        case 0x34:
-            common_binop_byte_imm(emu, xor_byte);
-            break;
-        case 0x35:
-            common_binop_word_long_imm(emu, xor_word, xor_long);
-            break;
-        case 0x36:
-            emu->x86.mode |= SYSMODE_SEGOVR_SS;
-            break;
-        case 0x37:
-            emu->x86.R_AX = aaa_word(emu, emu->x86.R_AX);
-            break;
+    case 0x30:
+        common_binop_byte_rm_r(emu, xor_byte);
+        break;
+    case 0x31:
+        common_binop_word_long_rm_r(emu, xor_word, xor_long);
+        break;
+    case 0x32:
+        common_binop_byte_r_rm(emu, xor_byte);
+        break;
+    case 0x33:
+        common_binop_word_long_r_rm(emu, xor_word, xor_long);
+        break;
+    case 0x34:
+        common_binop_byte_imm(emu, xor_byte);
+        break;
+    case 0x35:
+        common_binop_word_long_imm(emu, xor_word, xor_long);
+        break;
+    case 0x36:
+        emu->x86.mode |= SYSMODE_SEGOVR_SS;
+        break;
+    case 0x37:
+        emu->x86.R_AX = aaa_word(emu, emu->x86.R_AX);
+        break;
 
-        case 0x38:
-            common_binop_ns_byte_rm_r(emu, cmp_byte_no_return);
-            break;
-        case 0x39:
-            common_binop_ns_word_long_rm_r(emu, cmp_word_no_return,
-                                           cmp_long_no_return);
-            break;
-        case 0x3a:
-            x86emuOp_cmp_byte_R_RM(emu);
-            break;
-        case 0x3b:
-            x86emuOp_cmp_word_R_RM(emu);
-            break;
-        case 0x3c:
-            x86emuOp_cmp_byte_AL_IMM(emu);
-            break;
-        case 0x3d:
-            x86emuOp_cmp_word_AX_IMM(emu);
-            break;
-        case 0x3e:
-            emu->x86.mode |= SYSMODE_SEGOVR_DS;
-            break;
-        case 0x3f:
-            emu->x86.R_AX = aas_word(emu, emu->x86.R_AX);
-            break;
+    case 0x38:
+        common_binop_ns_byte_rm_r(emu, cmp_byte_no_return);
+        break;
+    case 0x39:
+        common_binop_ns_word_long_rm_r(emu, cmp_word_no_return,
+                                       cmp_long_no_return);
+        break;
+    case 0x3a:
+        x86emuOp_cmp_byte_R_RM(emu);
+        break;
+    case 0x3b:
+        x86emuOp_cmp_word_R_RM(emu);
+        break;
+    case 0x3c:
+        x86emuOp_cmp_byte_AL_IMM(emu);
+        break;
+    case 0x3d:
+        x86emuOp_cmp_word_AX_IMM(emu);
+        break;
+    case 0x3e:
+        emu->x86.mode |= SYSMODE_SEGOVR_DS;
+        break;
+    case 0x3f:
+        emu->x86.R_AX = aas_word(emu, emu->x86.R_AX);
+        break;
 
-        case 0x40:
-            common_inc_word_long(emu, &emu->x86.register_a);
-            break;
-        case 0x41:
-            common_inc_word_long(emu, &emu->x86.register_c);
-            break;
-        case 0x42:
-            common_inc_word_long(emu, &emu->x86.register_d);
-            break;
-        case 0x43:
-            common_inc_word_long(emu, &emu->x86.register_b);
-            break;
-        case 0x44:
-            common_inc_word_long(emu, &emu->x86.register_sp);
-            break;
-        case 0x45:
-            common_inc_word_long(emu, &emu->x86.register_bp);
-            break;
-        case 0x46:
-            common_inc_word_long(emu, &emu->x86.register_si);
-            break;
-        case 0x47:
-            common_inc_word_long(emu, &emu->x86.register_di);
-            break;
+    case 0x40:
+        common_inc_word_long(emu, &emu->x86.register_a);
+        break;
+    case 0x41:
+        common_inc_word_long(emu, &emu->x86.register_c);
+        break;
+    case 0x42:
+        common_inc_word_long(emu, &emu->x86.register_d);
+        break;
+    case 0x43:
+        common_inc_word_long(emu, &emu->x86.register_b);
+        break;
+    case 0x44:
+        common_inc_word_long(emu, &emu->x86.register_sp);
+        break;
+    case 0x45:
+        common_inc_word_long(emu, &emu->x86.register_bp);
+        break;
+    case 0x46:
+        common_inc_word_long(emu, &emu->x86.register_si);
+        break;
+    case 0x47:
+        common_inc_word_long(emu, &emu->x86.register_di);
+        break;
 
-        case 0x48:
-            common_dec_word_long(emu, &emu->x86.register_a);
-            break;
-        case 0x49:
-            common_dec_word_long(emu, &emu->x86.register_c);
-            break;
-        case 0x4a:
-            common_dec_word_long(emu, &emu->x86.register_d);
-            break;
-        case 0x4b:
-            common_dec_word_long(emu, &emu->x86.register_b);
-            break;
-        case 0x4c:
-            common_dec_word_long(emu, &emu->x86.register_sp);
-            break;
-        case 0x4d:
-            common_dec_word_long(emu, &emu->x86.register_bp);
-            break;
-        case 0x4e:
-            common_dec_word_long(emu, &emu->x86.register_si);
-            break;
-        case 0x4f:
-            common_dec_word_long(emu, &emu->x86.register_di);
-            break;
+    case 0x48:
+        common_dec_word_long(emu, &emu->x86.register_a);
+        break;
+    case 0x49:
+        common_dec_word_long(emu, &emu->x86.register_c);
+        break;
+    case 0x4a:
+        common_dec_word_long(emu, &emu->x86.register_d);
+        break;
+    case 0x4b:
+        common_dec_word_long(emu, &emu->x86.register_b);
+        break;
+    case 0x4c:
+        common_dec_word_long(emu, &emu->x86.register_sp);
+        break;
+    case 0x4d:
+        common_dec_word_long(emu, &emu->x86.register_bp);
+        break;
+    case 0x4e:
+        common_dec_word_long(emu, &emu->x86.register_si);
+        break;
+    case 0x4f:
+        common_dec_word_long(emu, &emu->x86.register_di);
+        break;
 
-        case 0x50:
-            common_push_word_long(emu, &emu->x86.register_a);
-            break;
-        case 0x51:
-            common_push_word_long(emu, &emu->x86.register_c);
-            break;
-        case 0x52:
-            common_push_word_long(emu, &emu->x86.register_d);
-            break;
-        case 0x53:
-            common_push_word_long(emu, &emu->x86.register_b);
-            break;
-        case 0x54:
-            common_push_word_long(emu, &emu->x86.register_sp);
-            break;
-        case 0x55:
-            common_push_word_long(emu, &emu->x86.register_bp);
-            break;
-        case 0x56:
-            common_push_word_long(emu, &emu->x86.register_si);
-            break;
-        case 0x57:
-            common_push_word_long(emu, &emu->x86.register_di);
-            break;
+    case 0x50:
+        common_push_word_long(emu, &emu->x86.register_a);
+        break;
+    case 0x51:
+        common_push_word_long(emu, &emu->x86.register_c);
+        break;
+    case 0x52:
+        common_push_word_long(emu, &emu->x86.register_d);
+        break;
+    case 0x53:
+        common_push_word_long(emu, &emu->x86.register_b);
+        break;
+    case 0x54:
+        common_push_word_long(emu, &emu->x86.register_sp);
+        break;
+    case 0x55:
+        common_push_word_long(emu, &emu->x86.register_bp);
+        break;
+    case 0x56:
+        common_push_word_long(emu, &emu->x86.register_si);
+        break;
+    case 0x57:
+        common_push_word_long(emu, &emu->x86.register_di);
+        break;
 
-        case 0x58:
-            common_pop_word_long(emu, &emu->x86.register_a);
-            break;
-        case 0x59:
-            common_pop_word_long(emu, &emu->x86.register_c);
-            break;
-        case 0x5a:
-            common_pop_word_long(emu, &emu->x86.register_d);
-            break;
-        case 0x5b:
-            common_pop_word_long(emu, &emu->x86.register_b);
-            break;
-        case 0x5c:
-            common_pop_word_long(emu, &emu->x86.register_sp);
-            break;
-        case 0x5d:
-            common_pop_word_long(emu, &emu->x86.register_bp);
-            break;
-        case 0x5e:
-            common_pop_word_long(emu, &emu->x86.register_si);
-            break;
-        case 0x5f:
-            common_pop_word_long(emu, &emu->x86.register_di);
-            break;
+    case 0x58:
+        common_pop_word_long(emu, &emu->x86.register_a);
+        break;
+    case 0x59:
+        common_pop_word_long(emu, &emu->x86.register_c);
+        break;
+    case 0x5a:
+        common_pop_word_long(emu, &emu->x86.register_d);
+        break;
+    case 0x5b:
+        common_pop_word_long(emu, &emu->x86.register_b);
+        break;
+    case 0x5c:
+        common_pop_word_long(emu, &emu->x86.register_sp);
+        break;
+    case 0x5d:
+        common_pop_word_long(emu, &emu->x86.register_bp);
+        break;
+    case 0x5e:
+        common_pop_word_long(emu, &emu->x86.register_si);
+        break;
+    case 0x5f:
+        common_pop_word_long(emu, &emu->x86.register_di);
+        break;
 
-        case 0x60:
-            x86emuOp_push_all(emu);
-            break;
-        case 0x61:
-            x86emuOp_pop_all(emu);
-            break;
-            /* 0x62 bound */
-            /* 0x63 arpl */
-        case 0x64:
-            emu->x86.mode |= SYSMODE_SEGOVR_FS;
-            break;
-        case 0x65:
-            emu->x86.mode |= SYSMODE_SEGOVR_GS;
-            break;
-        case 0x66:
-            emu->x86.mode |= SYSMODE_PREFIX_DATA;
-            break;
-        case 0x67:
-            emu->x86.mode |= SYSMODE_PREFIX_ADDR;
-            break;
+    case 0x60:
+        x86emuOp_push_all(emu);
+        break;
+    case 0x61:
+        x86emuOp_pop_all(emu);
+        break;
+        /* 0x62 bound */
+        /* 0x63 arpl */
+    case 0x64:
+        emu->x86.mode |= SYSMODE_SEGOVR_FS;
+        break;
+    case 0x65:
+        emu->x86.mode |= SYSMODE_SEGOVR_GS;
+        break;
+    case 0x66:
+        emu->x86.mode |= SYSMODE_PREFIX_DATA;
+        break;
+    case 0x67:
+        emu->x86.mode |= SYSMODE_PREFIX_ADDR;
+        break;
 
-        case 0x68:
-            x86emuOp_push_word_IMM(emu);
-            break;
-        case 0x69:
-            common_imul_imm(emu, false);
-            break;
-        case 0x6a:
-            x86emuOp_push_byte_IMM(emu);
-            break;
-        case 0x6b:
-            common_imul_imm(emu, true);
-            break;
-        case 0x6c:
-            ins(emu, 1);
-            break;
-        case 0x6d:
-            x86emuOp_ins_word(emu);
-            break;
-        case 0x6e:
-            outs(emu, 1);
-            break;
-        case 0x6f:
-            x86emuOp_outs_word(emu);
-            break;
+    case 0x68:
+        x86emuOp_push_word_IMM(emu);
+        break;
+    case 0x69:
+        common_imul_imm(emu, false);
+        break;
+    case 0x6a:
+        x86emuOp_push_byte_IMM(emu);
+        break;
+    case 0x6b:
+        common_imul_imm(emu, true);
+        break;
+    case 0x6c:
+        ins(emu, 1);
+        break;
+    case 0x6d:
+        x86emuOp_ins_word(emu);
+        break;
+    case 0x6e:
+        outs(emu, 1);
+        break;
+    case 0x6f:
+        x86emuOp_outs_word(emu);
+        break;
 
-        case 0x70:
-            common_jmp_near(emu, ACCESS_FLAG(F_OF));
-            break;
-        case 0x71:
-            common_jmp_near(emu, !ACCESS_FLAG(F_OF));
-            break;
-        case 0x72:
-            common_jmp_near(emu, ACCESS_FLAG(F_CF));
-            break;
-        case 0x73:
-            common_jmp_near(emu, !ACCESS_FLAG(F_CF));
-            break;
-        case 0x74:
-            common_jmp_near(emu, ACCESS_FLAG(F_ZF));
-            break;
-        case 0x75:
-            common_jmp_near(emu, !ACCESS_FLAG(F_ZF));
-            break;
-        case 0x76:
-            common_jmp_near(emu, ACCESS_FLAG(F_CF) || ACCESS_FLAG(F_ZF));
-            break;
-        case 0x77:
-            common_jmp_near(emu, !ACCESS_FLAG(F_CF) && !ACCESS_FLAG(F_ZF));
-            break;
+    case 0x70:
+        common_jmp_near(emu, ACCESS_FLAG(F_OF));
+        break;
+    case 0x71:
+        common_jmp_near(emu, !ACCESS_FLAG(F_OF));
+        break;
+    case 0x72:
+        common_jmp_near(emu, ACCESS_FLAG(F_CF));
+        break;
+    case 0x73:
+        common_jmp_near(emu, !ACCESS_FLAG(F_CF));
+        break;
+    case 0x74:
+        common_jmp_near(emu, ACCESS_FLAG(F_ZF));
+        break;
+    case 0x75:
+        common_jmp_near(emu, !ACCESS_FLAG(F_ZF));
+        break;
+    case 0x76:
+        common_jmp_near(emu, ACCESS_FLAG(F_CF) || ACCESS_FLAG(F_ZF));
+        break;
+    case 0x77:
+        common_jmp_near(emu, !ACCESS_FLAG(F_CF) && !ACCESS_FLAG(F_ZF));
+        break;
 
-        case 0x78:
-            common_jmp_near(emu, ACCESS_FLAG(F_SF));
-            break;
-        case 0x79:
-            common_jmp_near(emu, !ACCESS_FLAG(F_SF));
-            break;
-        case 0x7a:
-            common_jmp_near(emu, ACCESS_FLAG(F_PF));
-            break;
-        case 0x7b:
-            common_jmp_near(emu, !ACCESS_FLAG(F_PF));
-            break;
-        case 0x7c:
-            x86emuOp_jump_near_L(emu);
-            break;
-        case 0x7d:
-            x86emuOp_jump_near_NL(emu);
-            break;
-        case 0x7e:
-            x86emuOp_jump_near_LE(emu);
-            break;
-        case 0x7f:
-            x86emuOp_jump_near_NLE(emu);
-            break;
+    case 0x78:
+        common_jmp_near(emu, ACCESS_FLAG(F_SF));
+        break;
+    case 0x79:
+        common_jmp_near(emu, !ACCESS_FLAG(F_SF));
+        break;
+    case 0x7a:
+        common_jmp_near(emu, ACCESS_FLAG(F_PF));
+        break;
+    case 0x7b:
+        common_jmp_near(emu, !ACCESS_FLAG(F_PF));
+        break;
+    case 0x7c:
+        x86emuOp_jump_near_L(emu);
+        break;
+    case 0x7d:
+        x86emuOp_jump_near_NL(emu);
+        break;
+    case 0x7e:
+        x86emuOp_jump_near_LE(emu);
+        break;
+    case 0x7f:
+        x86emuOp_jump_near_NLE(emu);
+        break;
 
-        case 0x80:
-            x86emuOp_opc80_byte_RM_IMM(emu);
-            break;
-        case 0x81:
-            x86emuOp_opc81_word_RM_IMM(emu);
-            break;
-        case 0x82:
-            x86emuOp_opc82_byte_RM_IMM(emu);
-            break;
-        case 0x83:
-            x86emuOp_opc83_word_RM_IMM(emu);
-            break;
-        case 0x84:
-            common_binop_ns_byte_rm_r(emu, test_byte);
-            break;
-        case 0x85:
-            common_binop_ns_word_long_rm_r(emu, test_word, test_long);
-            break;
-        case 0x86:
-            x86emuOp_xchg_byte_RM_R(emu);
-            break;
-        case 0x87:
-            x86emuOp_xchg_word_RM_R(emu);
-            break;
+    case 0x80:
+        x86emuOp_opc80_byte_RM_IMM(emu);
+        break;
+    case 0x81:
+        x86emuOp_opc81_word_RM_IMM(emu);
+        break;
+    case 0x82:
+        x86emuOp_opc82_byte_RM_IMM(emu);
+        break;
+    case 0x83:
+        x86emuOp_opc83_word_RM_IMM(emu);
+        break;
+    case 0x84:
+        common_binop_ns_byte_rm_r(emu, test_byte);
+        break;
+    case 0x85:
+        common_binop_ns_word_long_rm_r(emu, test_word, test_long);
+        break;
+    case 0x86:
+        x86emuOp_xchg_byte_RM_R(emu);
+        break;
+    case 0x87:
+        x86emuOp_xchg_word_RM_R(emu);
+        break;
 
-        case 0x88:
-            x86emuOp_mov_byte_RM_R(emu);
-            break;
-        case 0x89:
-            x86emuOp_mov_word_RM_R(emu);
-            break;
-        case 0x8a:
-            x86emuOp_mov_byte_R_RM(emu);
-            break;
-        case 0x8b:
-            x86emuOp_mov_word_R_RM(emu);
-            break;
-        case 0x8c:
-            x86emuOp_mov_word_RM_SR(emu);
-            break;
-        case 0x8d:
-            x86emuOp_lea_word_R_M(emu);
-            break;
-        case 0x8e:
-            x86emuOp_mov_word_SR_RM(emu);
-            break;
-        case 0x8f:
-            x86emuOp_pop_RM(emu);
-            break;
+    case 0x88:
+        x86emuOp_mov_byte_RM_R(emu);
+        break;
+    case 0x89:
+        x86emuOp_mov_word_RM_R(emu);
+        break;
+    case 0x8a:
+        x86emuOp_mov_byte_R_RM(emu);
+        break;
+    case 0x8b:
+        x86emuOp_mov_word_R_RM(emu);
+        break;
+    case 0x8c:
+        x86emuOp_mov_word_RM_SR(emu);
+        break;
+    case 0x8d:
+        x86emuOp_lea_word_R_M(emu);
+        break;
+    case 0x8e:
+        x86emuOp_mov_word_SR_RM(emu);
+        break;
+    case 0x8f:
+        x86emuOp_pop_RM(emu);
+        break;
 
-        case 0x90:
-            /* nop */
-            break;
-        case 0x91:
-            x86emuOp_xchg_word_AX_CX(emu);
-            break;
-        case 0x92:
-            x86emuOp_xchg_word_AX_DX(emu);
-            break;
-        case 0x93:
-            x86emuOp_xchg_word_AX_BX(emu);
-            break;
-        case 0x94:
-            x86emuOp_xchg_word_AX_SP(emu);
-            break;
-        case 0x95:
-            x86emuOp_xchg_word_AX_BP(emu);
-            break;
-        case 0x96:
-            x86emuOp_xchg_word_AX_SI(emu);
-            break;
-        case 0x97:
-            x86emuOp_xchg_word_AX_DI(emu);
-            break;
+    case 0x90:
+        /* nop */
+        break;
+    case 0x91:
+        x86emuOp_xchg_word_AX_CX(emu);
+        break;
+    case 0x92:
+        x86emuOp_xchg_word_AX_DX(emu);
+        break;
+    case 0x93:
+        x86emuOp_xchg_word_AX_BX(emu);
+        break;
+    case 0x94:
+        x86emuOp_xchg_word_AX_SP(emu);
+        break;
+    case 0x95:
+        x86emuOp_xchg_word_AX_BP(emu);
+        break;
+    case 0x96:
+        x86emuOp_xchg_word_AX_SI(emu);
+        break;
+    case 0x97:
+        x86emuOp_xchg_word_AX_DI(emu);
+        break;
 
-        case 0x98:
-            x86emuOp_cbw(emu);
-            break;
-        case 0x99:
-            x86emuOp_cwd(emu);
-            break;
-        case 0x9a:
-            x86emuOp_call_far_IMM(emu);
-            break;
-        case 0x9b:
-            /* wait */
-            break;
-        case 0x9c:
-            x86emuOp_pushf_word(emu);
-            break;
-        case 0x9d:
-            x86emuOp_popf_word(emu);
-            break;
-        case 0x9e:
-            x86emuOp_sahf(emu);
-            break;
-        case 0x9f:
-            x86emuOp_lahf(emu);
-            break;
+    case 0x98:
+        x86emuOp_cbw(emu);
+        break;
+    case 0x99:
+        x86emuOp_cwd(emu);
+        break;
+    case 0x9a:
+        x86emuOp_call_far_IMM(emu);
+        break;
+    case 0x9b:
+        /* wait */
+        break;
+    case 0x9c:
+        x86emuOp_pushf_word(emu);
+        break;
+    case 0x9d:
+        x86emuOp_popf_word(emu);
+        break;
+    case 0x9e:
+        x86emuOp_sahf(emu);
+        break;
+    case 0x9f:
+        x86emuOp_lahf(emu);
+        break;
 
-        case 0xa0:
-            x86emuOp_mov_AL_M_IMM(emu);
-            break;
-        case 0xa1:
-            x86emuOp_mov_AX_M_IMM(emu);
-            break;
-        case 0xa2:
-            x86emuOp_mov_M_AL_IMM(emu);
-            break;
-        case 0xa3:
-            x86emuOp_mov_M_AX_IMM(emu);
-            break;
-        case 0xa4:
-            x86emuOp_movs_byte(emu);
-            break;
-        case 0xa5:
-            x86emuOp_movs_word(emu);
-            break;
-        case 0xa6:
-            x86emuOp_cmps_byte(emu);
-            break;
-        case 0xa7:
-            x86emuOp_cmps_word(emu);
-            break;
+    case 0xa0:
+        x86emuOp_mov_AL_M_IMM(emu);
+        break;
+    case 0xa1:
+        x86emuOp_mov_AX_M_IMM(emu);
+        break;
+    case 0xa2:
+        x86emuOp_mov_M_AL_IMM(emu);
+        break;
+    case 0xa3:
+        x86emuOp_mov_M_AX_IMM(emu);
+        break;
+    case 0xa4:
+        x86emuOp_movs_byte(emu);
+        break;
+    case 0xa5:
+        x86emuOp_movs_word(emu);
+        break;
+    case 0xa6:
+        x86emuOp_cmps_byte(emu);
+        break;
+    case 0xa7:
+        x86emuOp_cmps_word(emu);
+        break;
 
-        case 0xa8:
-            test_byte(emu, emu->x86.R_AL, fetch_byte_imm(emu));
-            break;
-        case 0xa9:
-            x86emuOp_test_AX_IMM(emu);
-            break;
-        case 0xaa:
-            x86emuOp_stos_byte(emu);
-            break;
-        case 0xab:
-            x86emuOp_stos_word(emu);
-            break;
-        case 0xac:
-            x86emuOp_lods_byte(emu);
-            break;
-        case 0xad:
-            x86emuOp_lods_word(emu);
-            break;
-        case 0xae:
-            x86emuOp_scas_byte(emu);
-            break;
-        case 0xaf:
-            x86emuOp_scas_word(emu);
-            break;
+    case 0xa8:
+        test_byte(emu, emu->x86.R_AL, fetch_byte_imm(emu));
+        break;
+    case 0xa9:
+        x86emuOp_test_AX_IMM(emu);
+        break;
+    case 0xaa:
+        x86emuOp_stos_byte(emu);
+        break;
+    case 0xab:
+        x86emuOp_stos_word(emu);
+        break;
+    case 0xac:
+        x86emuOp_lods_byte(emu);
+        break;
+    case 0xad:
+        x86emuOp_lods_word(emu);
+        break;
+    case 0xae:
+        x86emuOp_scas_byte(emu);
+        break;
+    case 0xaf:
+        x86emuOp_scas_word(emu);
+        break;
 
-        case 0xb0:
-            emu->x86.R_AL = fetch_byte_imm(emu);
-            break;
-        case 0xb1:
-            emu->x86.R_CL = fetch_byte_imm(emu);
-            break;
-        case 0xb2:
-            emu->x86.R_DL = fetch_byte_imm(emu);
-            break;
-        case 0xb3:
-            emu->x86.R_BL = fetch_byte_imm(emu);
-            break;
-        case 0xb4:
-            emu->x86.R_AH = fetch_byte_imm(emu);
-            break;
-        case 0xb5:
-            emu->x86.R_CH = fetch_byte_imm(emu);
-            break;
-        case 0xb6:
-            emu->x86.R_DH = fetch_byte_imm(emu);
-            break;
-        case 0xb7:
-            emu->x86.R_BH = fetch_byte_imm(emu);
-            break;
+    case 0xb0:
+        emu->x86.R_AL = fetch_byte_imm(emu);
+        break;
+    case 0xb1:
+        emu->x86.R_CL = fetch_byte_imm(emu);
+        break;
+    case 0xb2:
+        emu->x86.R_DL = fetch_byte_imm(emu);
+        break;
+    case 0xb3:
+        emu->x86.R_BL = fetch_byte_imm(emu);
+        break;
+    case 0xb4:
+        emu->x86.R_AH = fetch_byte_imm(emu);
+        break;
+    case 0xb5:
+        emu->x86.R_CH = fetch_byte_imm(emu);
+        break;
+    case 0xb6:
+        emu->x86.R_DH = fetch_byte_imm(emu);
+        break;
+    case 0xb7:
+        emu->x86.R_BH = fetch_byte_imm(emu);
+        break;
 
-        case 0xb8:
-            x86emuOp_mov_word_AX_IMM(emu);
-            break;
-        case 0xb9:
-            x86emuOp_mov_word_CX_IMM(emu);
-            break;
-        case 0xba:
-            x86emuOp_mov_word_DX_IMM(emu);
-            break;
-        case 0xbb:
-            x86emuOp_mov_word_BX_IMM(emu);
-            break;
-        case 0xbc:
-            x86emuOp_mov_word_SP_IMM(emu);
-            break;
-        case 0xbd:
-            x86emuOp_mov_word_BP_IMM(emu);
-            break;
-        case 0xbe:
-            x86emuOp_mov_word_SI_IMM(emu);
-            break;
-        case 0xbf:
-            x86emuOp_mov_word_DI_IMM(emu);
-            break;
+    case 0xb8:
+        x86emuOp_mov_word_AX_IMM(emu);
+        break;
+    case 0xb9:
+        x86emuOp_mov_word_CX_IMM(emu);
+        break;
+    case 0xba:
+        x86emuOp_mov_word_DX_IMM(emu);
+        break;
+    case 0xbb:
+        x86emuOp_mov_word_BX_IMM(emu);
+        break;
+    case 0xbc:
+        x86emuOp_mov_word_SP_IMM(emu);
+        break;
+    case 0xbd:
+        x86emuOp_mov_word_BP_IMM(emu);
+        break;
+    case 0xbe:
+        x86emuOp_mov_word_SI_IMM(emu);
+        break;
+    case 0xbf:
+        x86emuOp_mov_word_DI_IMM(emu);
+        break;
 
-        case 0xc0:
-            x86emuOp_opcC0_byte_RM_MEM(emu);
-            break;
-        case 0xc1:
-            x86emuOp_opcC1_word_RM_MEM(emu);
-            break;
-        case 0xc2:
-            x86emuOp_ret_near_IMM(emu);
-            break;
-        case 0xc3:
-            emu->x86.R_IP = pop_word(emu);
-            break;
-        case 0xc4:
-            common_load_far_pointer(emu, &emu->x86.R_ES);
-            break;
-        case 0xc5:
-            common_load_far_pointer(emu, &emu->x86.R_DS);
-            break;
-        case 0xc6:
-            x86emuOp_mov_byte_RM_IMM(emu);
-            break;
-        case 0xc7:
-            x86emuOp_mov_word_RM_IMM(emu);
-            break;
-        case 0xc8:
-            x86emuOp_enter(emu);
-            break;
-        case 0xc9:
-            x86emuOp_leave(emu);
-            break;
-        case 0xca:
-            x86emuOp_ret_far_IMM(emu);
-            break;
-        case 0xcb:
-            x86emuOp_ret_far(emu);
-            break;
-        case 0xcc:
-            x86emuOp_int3(emu);
-            break;
-        case 0xcd:
-            x86emuOp_int_IMM(emu);
-            break;
-        case 0xce:
-            x86emuOp_into(emu);
-            break;
-        case 0xcf:
-            x86emuOp_iret(emu);
-            break;
+    case 0xc0:
+        x86emuOp_opcC0_byte_RM_MEM(emu);
+        break;
+    case 0xc1:
+        x86emuOp_opcC1_word_RM_MEM(emu);
+        break;
+    case 0xc2:
+        x86emuOp_ret_near_IMM(emu);
+        break;
+    case 0xc3:
+        emu->x86.R_IP = pop_word(emu);
+        break;
+    case 0xc4:
+        common_load_far_pointer(emu, &emu->x86.R_ES);
+        break;
+    case 0xc5:
+        common_load_far_pointer(emu, &emu->x86.R_DS);
+        break;
+    case 0xc6:
+        x86emuOp_mov_byte_RM_IMM(emu);
+        break;
+    case 0xc7:
+        x86emuOp_mov_word_RM_IMM(emu);
+        break;
+    case 0xc8:
+        x86emuOp_enter(emu);
+        break;
+    case 0xc9:
+        x86emuOp_leave(emu);
+        break;
+    case 0xca:
+        x86emuOp_ret_far_IMM(emu);
+        break;
+    case 0xcb:
+        x86emuOp_ret_far(emu);
+        break;
+    case 0xcc:
+        x86emuOp_int3(emu);
+        break;
+    case 0xcd:
+        x86emuOp_int_IMM(emu);
+        break;
+    case 0xce:
+        x86emuOp_into(emu);
+        break;
+    case 0xcf:
+        x86emuOp_iret(emu);
+        break;
 
-        case 0xd0:
-            x86emuOp_opcD0_byte_RM_1(emu);
-            break;
-        case 0xd1:
-            x86emuOp_opcD1_word_RM_1(emu);
-            break;
-        case 0xd2:
-            x86emuOp_opcD2_byte_RM_CL(emu);
-            break;
-        case 0xd3:
-            x86emuOp_opcD3_word_RM_CL(emu);
-            break;
-        case 0xd4:
-            x86emuOp_aam(emu);
-            break;
-        case 0xd5:
-            x86emuOp_aad(emu);
-            break;
-            /* 0xd6 Undocumented SETALC instruction */
-        case 0xd7:
-            x86emuOp_xlat(emu);
-            break;
-        case 0xd8:
-            x86emuOp_esc_coprocess_d8(emu);
-            break;
-        case 0xd9:
-            x86emuOp_esc_coprocess_d9(emu);
-            break;
-        case 0xda:
-            x86emuOp_esc_coprocess_da(emu);
-            break;
-        case 0xdb:
-            x86emuOp_esc_coprocess_db(emu);
-            break;
-        case 0xdc:
-            x86emuOp_esc_coprocess_dc(emu);
-            break;
-        case 0xdd:
-            x86emuOp_esc_coprocess_dd(emu);
-            break;
-        case 0xde:
-            x86emuOp_esc_coprocess_de(emu);
-            break;
-        case 0xdf:
-            x86emuOp_esc_coprocess_df(emu);
-            break;
+    case 0xd0:
+        x86emuOp_opcD0_byte_RM_1(emu);
+        break;
+    case 0xd1:
+        x86emuOp_opcD1_word_RM_1(emu);
+        break;
+    case 0xd2:
+        x86emuOp_opcD2_byte_RM_CL(emu);
+        break;
+    case 0xd3:
+        x86emuOp_opcD3_word_RM_CL(emu);
+        break;
+    case 0xd4:
+        x86emuOp_aam(emu);
+        break;
+    case 0xd5:
+        x86emuOp_aad(emu);
+        break;
+        /* 0xd6 Undocumented SETALC instruction */
+    case 0xd7:
+        x86emuOp_xlat(emu);
+        break;
+    case 0xd8:
+        x86emuOp_esc_coprocess_d8(emu);
+        break;
+    case 0xd9:
+        x86emuOp_esc_coprocess_d9(emu);
+        break;
+    case 0xda:
+        x86emuOp_esc_coprocess_da(emu);
+        break;
+    case 0xdb:
+        x86emuOp_esc_coprocess_db(emu);
+        break;
+    case 0xdc:
+        x86emuOp_esc_coprocess_dc(emu);
+        break;
+    case 0xdd:
+        x86emuOp_esc_coprocess_dd(emu);
+        break;
+    case 0xde:
+        x86emuOp_esc_coprocess_de(emu);
+        break;
+    case 0xdf:
+        x86emuOp_esc_coprocess_df(emu);
+        break;
 
-        case 0xe0:
-            x86emuOp_loopne(emu);
-            break;
-        case 0xe1:
-            x86emuOp_loope(emu);
-            break;
-        case 0xe2:
-            x86emuOp_loop(emu);
-            break;
-        case 0xe3:
-            x86emuOp_jcxz(emu);
-            break;
-        case 0xe4:
-            x86emuOp_in_byte_AL_IMM(emu);
-            break;
-        case 0xe5:
-            x86emuOp_in_word_AX_IMM(emu);
-            break;
-        case 0xe6:
-            x86emuOp_out_byte_IMM_AL(emu);
-            break;
-        case 0xe7:
-            x86emuOp_out_word_IMM_AX(emu);
-            break;
+    case 0xe0:
+        x86emuOp_loopne(emu);
+        break;
+    case 0xe1:
+        x86emuOp_loope(emu);
+        break;
+    case 0xe2:
+        x86emuOp_loop(emu);
+        break;
+    case 0xe3:
+        x86emuOp_jcxz(emu);
+        break;
+    case 0xe4:
+        x86emuOp_in_byte_AL_IMM(emu);
+        break;
+    case 0xe5:
+        x86emuOp_in_word_AX_IMM(emu);
+        break;
+    case 0xe6:
+        x86emuOp_out_byte_IMM_AL(emu);
+        break;
+    case 0xe7:
+        x86emuOp_out_word_IMM_AX(emu);
+        break;
 
-        case 0xe8:
-            x86emuOp_call_near_IMM(emu);
-            break;
-        case 0xe9:
-            x86emuOp_jump_near_IMM(emu);
-            break;
-        case 0xea:
-            x86emuOp_jump_far_IMM(emu);
-            break;
-        case 0xeb:
-            x86emuOp_jump_byte_IMM(emu);
-            break;
-        case 0xec:
-            x86emuOp_in_byte_AL_DX(emu);
-            break;
-        case 0xed:
-            x86emuOp_in_word_AX_DX(emu);
-            break;
-        case 0xee:
-            x86emuOp_out_byte_DX_AL(emu);
-            break;
-        case 0xef:
-            x86emuOp_out_word_DX_AX(emu);
-            break;
+    case 0xe8:
+        x86emuOp_call_near_IMM(emu);
+        break;
+    case 0xe9:
+        x86emuOp_jump_near_IMM(emu);
+        break;
+    case 0xea:
+        x86emuOp_jump_far_IMM(emu);
+        break;
+    case 0xeb:
+        x86emuOp_jump_byte_IMM(emu);
+        break;
+    case 0xec:
+        x86emuOp_in_byte_AL_DX(emu);
+        break;
+    case 0xed:
+        x86emuOp_in_word_AX_DX(emu);
+        break;
+    case 0xee:
+        x86emuOp_out_byte_DX_AL(emu);
+        break;
+    case 0xef:
+        x86emuOp_out_word_DX_AX(emu);
+        break;
 
-        case 0xf0:
-            x86emuOp_lock(emu);
-            break;
-        case 0xf2:
-            emu->x86.mode |= SYSMODE_PREFIX_REPNE;
-            break;
-        case 0xf3:
-            emu->x86.mode |= SYSMODE_PREFIX_REPE;
-            break;
-        case 0xf4:
-            X86EMU_halt_sys(emu);
-            break;
-        case 0xf5:
-            x86emuOp_cmc(emu);
-            break;
-        case 0xf6:
-            x86emuOp_opcF6_byte_RM(emu);
-            break;
-        case 0xf7:
-            x86emuOp_opcF7_word_RM(emu);
-            break;
+    case 0xf0:
+        x86emuOp_lock(emu);
+        break;
+    case 0xf2:
+        emu->x86.mode |= SYSMODE_PREFIX_REPNE;
+        break;
+    case 0xf3:
+        emu->x86.mode |= SYSMODE_PREFIX_REPE;
+        break;
+    case 0xf4:
+        X86EMU_halt_sys(emu);
+        break;
+    case 0xf5:
+        x86emuOp_cmc(emu);
+        break;
+    case 0xf6:
+        x86emuOp_opcF6_byte_RM(emu);
+        break;
+    case 0xf7:
+        x86emuOp_opcF7_word_RM(emu);
+        break;
 
-        case 0xf8:
-            CLEAR_FLAG(F_CF);
-            break;
-        case 0xf9:
-            SET_FLAG(F_CF);
-            break;
-        case 0xfa:
-            CLEAR_FLAG(F_IF);
-            break;
-        case 0xfb:
-            SET_FLAG(F_IF);
-            break;
-        case 0xfc:
-            CLEAR_FLAG(F_DF);
-            break;
-        case 0xfd:
-            SET_FLAG(F_DF);
-            break;
-        case 0xfe:
-            x86emuOp_opcFE_byte_RM(emu);
-            break;
-        case 0xff:
-            x86emuOp_opcFF_word_RM(emu);
-            break;
-        default:
-            X86EMU_halt_sys(emu);
-            break;
+    case 0xf8:
+        CLEAR_FLAG(F_CF);
+        break;
+    case 0xf9:
+        SET_FLAG(F_CF);
+        break;
+    case 0xfa:
+        CLEAR_FLAG(F_IF);
+        break;
+    case 0xfb:
+        SET_FLAG(F_IF);
+        break;
+    case 0xfc:
+        CLEAR_FLAG(F_DF);
+        break;
+    case 0xfd:
+        SET_FLAG(F_DF);
+        break;
+    case 0xfe:
+        x86emuOp_opcFE_byte_RM(emu);
+        break;
+    case 0xff:
+        x86emuOp_opcFF_word_RM(emu);
+        break;
+    default:
+        X86EMU_halt_sys(emu);
+        break;
     }
     if (op1 != 0x26 && op1 != 0x2e && op1 != 0x36 && op1 != 0x3e &&
             (op1 | 3) != 0x67)
@@ -4899,17 +4900,17 @@ common_bitstring32(struct X86EMU *emu, int op)
     CONDITIONAL_SET_FLAG(srcval & mask, F_CF);
 
     switch (op) {
-        case 0:
-            break;
-        case 1:
-            write_back_long(emu, srcval | mask);
-            break;
-        case 2:
-            write_back_long(emu, srcval & ~mask);
-            break;
-        case 3:
-            write_back_long(emu, srcval ^ mask);
-            break;
+    case 0:
+        break;
+    case 1:
+        write_back_long(emu, srcval | mask);
+        break;
+    case 2:
+        write_back_long(emu, srcval & ~mask);
+        break;
+    case 3:
+        write_back_long(emu, srcval ^ mask);
+        break;
     }
 }
 
@@ -4927,17 +4928,17 @@ common_bitstring16(struct X86EMU *emu, int op)
     CONDITIONAL_SET_FLAG(srcval & mask, F_CF);
 
     switch (op) {
-        case 0:
-            break;
-        case 1:
-            write_back_word(emu, srcval | mask);
-            break;
-        case 2:
-            write_back_word(emu, srcval & ~mask);
-            break;
-        case 3:
-            write_back_word(emu, srcval ^ mask);
-            break;
+    case 0:
+        break;
+    case 1:
+        write_back_word(emu, srcval | mask);
+        break;
+    case 2:
+        write_back_word(emu, srcval & ~mask);
+        break;
+    case 3:
+        write_back_word(emu, srcval ^ mask);
+        break;
     }
 }
 
@@ -5094,28 +5095,28 @@ x86emuOp2_cpuid(struct X86EMU *emu)
              &emu->x86.R_EDX);
 #endif
     switch (emu->x86.R_EAX) {
-        case 0:
-            emu->x86.R_EAX = 1;
+    case 0:
+        emu->x86.R_EAX = 1;
 #if !defined(__i386__) && !defined(__amd64__)
-            /* "GenuineIntel" */
-            emu->x86.R_EBX = 0x756e6547;
-            emu->x86.R_EDX = 0x49656e69;
-            emu->x86.R_ECX = 0x6c65746e;
+        /* "GenuineIntel" */
+        emu->x86.R_EBX = 0x756e6547;
+        emu->x86.R_EDX = 0x49656e69;
+        emu->x86.R_ECX = 0x6c65746e;
 #endif
-            break;
-        case 1:
+        break;
+    case 1:
 #if !defined(__i386__) && !defined(__amd64__)
-            emu->x86.R_EAX = 0x00000480;
-            emu->x86.R_EBX = emu->x86.R_ECX = 0;
-            emu->x86.R_EDX = 0x00000002;
+        emu->x86.R_EAX = 0x00000480;
+        emu->x86.R_EBX = emu->x86.R_ECX = 0;
+        emu->x86.R_EDX = 0x00000002;
 #else
-            emu->x86.R_EDX &= 0x00000012;
+        emu->x86.R_EDX &= 0x00000012;
 #endif
-            break;
-        default:
-            emu->x86.R_EAX = emu->x86.R_EBX = emu->x86.R_ECX =
-                    emu->x86.R_EDX = 0;
-            break;
+        break;
+    default:
+        emu->x86.R_EAX = emu->x86.R_EBX = emu->x86.R_ECX =
+                emu->x86.R_EDX = 0;
+        break;
     }
 }
 /****************************************************************************
@@ -5343,15 +5344,15 @@ x86emuOp2_32_btX_I(struct X86EMU *emu)
     mask = (0x1 << bit);
 
     switch (emu->cur_rh) {
-        case 5:
-            write_back_long(emu, srcval | mask);
-            break;
-        case 6:
-            write_back_long(emu, srcval & ~mask);
-            break;
-        case 7:
-            write_back_long(emu, srcval ^ mask);
-            break;
+    case 5:
+        write_back_long(emu, srcval | mask);
+        break;
+    case 6:
+        write_back_long(emu, srcval & ~mask);
+        break;
+    case 7:
+        write_back_long(emu, srcval ^ mask);
+        break;
     }
     CONDITIONAL_SET_FLAG(srcval & mask, F_CF);
 }
@@ -5372,15 +5373,15 @@ x86emuOp2_16_btX_I(struct X86EMU *emu)
     bit = shift & 0xF;
     mask = (0x1 << bit);
     switch (emu->cur_rh) {
-        case 5:
-            write_back_word(emu, srcval | mask);
-            break;
-        case 6:
-            write_back_word(emu, srcval & ~mask);
-            break;
-        case 7:
-            write_back_word(emu, srcval ^ mask);
-            break;
+    case 5:
+        write_back_word(emu, srcval | mask);
+        break;
+    case 6:
+        write_back_word(emu, srcval & ~mask);
+        break;
+    case 7:
+        write_back_word(emu, srcval ^ mask);
+        break;
     }
     CONDITIONAL_SET_FLAG(srcval & mask, F_CF);
 }
@@ -5474,221 +5475,221 @@ X86EMU_exec_two_byte(struct X86EMU * emu)
     op2 = fetch_byte_imm(emu);
 
     switch (op2) {
-        /* 0x00 Group F (ring 0 PM)      */
-        /* 0x01 Group G (ring 0 PM)      */
-        /* 0x02 lar (ring 0 PM)          */
-        /* 0x03 lsl (ring 0 PM)          */
-        /* 0x05 loadall (undocumented)   */
-        /* 0x06 clts (ring 0 PM)         */
-        /* 0x07 loadall (undocumented)   */
-        /* 0x08 invd (ring 0 PM)         */
-        /* 0x09 wbinvd (ring 0 PM)       */
+    /* 0x00 Group F (ring 0 PM)      */
+    /* 0x01 Group G (ring 0 PM)      */
+    /* 0x02 lar (ring 0 PM)          */
+    /* 0x03 lsl (ring 0 PM)          */
+    /* 0x05 loadall (undocumented)   */
+    /* 0x06 clts (ring 0 PM)         */
+    /* 0x07 loadall (undocumented)   */
+    /* 0x08 invd (ring 0 PM)         */
+    /* 0x09 wbinvd (ring 0 PM)       */
 
-        /* 0x20 mov reg32(op2); break;creg (ring 0 PM) */
-        /* 0x21 mov reg32(op2); break;dreg (ring 0 PM) */
-        /* 0x22 mov creg(op2); break;reg32 (ring 0 PM) */
-        /* 0x23 mov dreg(op2); break;reg32 (ring 0 PM) */
-        /* 0x24 mov reg32(op2); break;treg (ring 0 PM) */
-        /* 0x26 mov treg(op2); break;reg32 (ring 0 PM) */
+    /* 0x20 mov reg32(op2); break;creg (ring 0 PM) */
+    /* 0x21 mov reg32(op2); break;dreg (ring 0 PM) */
+    /* 0x22 mov creg(op2); break;reg32 (ring 0 PM) */
+    /* 0x23 mov dreg(op2); break;reg32 (ring 0 PM) */
+    /* 0x24 mov reg32(op2); break;treg (ring 0 PM) */
+    /* 0x26 mov treg(op2); break;reg32 (ring 0 PM) */
 
-        case 0x31:
-            x86emuOp2_rdtsc(emu);
-            break;
+    case 0x31:
+        x86emuOp2_rdtsc(emu);
+        break;
 
-        case 0x80:
-            common_jmp_long(emu, ACCESS_FLAG(F_OF));
-            break;
-        case 0x81:
-            common_jmp_long(emu, !ACCESS_FLAG(F_OF));
-            break;
-        case 0x82:
-            common_jmp_long(emu, ACCESS_FLAG(F_CF));
-            break;
-        case 0x83:
-            common_jmp_long(emu, !ACCESS_FLAG(F_CF));
-            break;
-        case 0x84:
-            common_jmp_long(emu, ACCESS_FLAG(F_ZF));
-            break;
-        case 0x85:
-            common_jmp_long(emu, !ACCESS_FLAG(F_ZF));
-            break;
-        case 0x86:
-            common_jmp_long(emu, ACCESS_FLAG(F_CF) || ACCESS_FLAG(F_ZF));
-            break;
-        case 0x87:
-            common_jmp_long(emu, !(ACCESS_FLAG(F_CF) || ACCESS_FLAG(F_ZF)));
-            break;
-        case 0x88:
-            common_jmp_long(emu, ACCESS_FLAG(F_SF));
-            break;
-        case 0x89:
-            common_jmp_long(emu, !ACCESS_FLAG(F_SF));
-            break;
-        case 0x8a:
-            common_jmp_long(emu, ACCESS_FLAG(F_PF));
-            break;
-        case 0x8b:
-            common_jmp_long(emu, !ACCESS_FLAG(F_PF));
-            break;
-        case 0x8c:
-            common_jmp_long(emu, xorl(ACCESS_FLAG(F_SF), ACCESS_FLAG(F_OF)));
-            break;
-        case 0x8d:
-            common_jmp_long(emu, !(xorl(ACCESS_FLAG(F_SF), ACCESS_FLAG(F_OF))));
-            break;
-        case 0x8e:
-            common_jmp_long(emu,
-                            (xorl(ACCESS_FLAG(F_SF), ACCESS_FLAG(F_OF)) || ACCESS_FLAG(F_ZF)));
-            break;
-        case 0x8f:
-            common_jmp_long(emu,
-                            !(xorl(ACCESS_FLAG(F_SF), ACCESS_FLAG(F_OF)) || ACCESS_FLAG(F_ZF)));
-            break;
+    case 0x80:
+        common_jmp_long(emu, ACCESS_FLAG(F_OF));
+        break;
+    case 0x81:
+        common_jmp_long(emu, !ACCESS_FLAG(F_OF));
+        break;
+    case 0x82:
+        common_jmp_long(emu, ACCESS_FLAG(F_CF));
+        break;
+    case 0x83:
+        common_jmp_long(emu, !ACCESS_FLAG(F_CF));
+        break;
+    case 0x84:
+        common_jmp_long(emu, ACCESS_FLAG(F_ZF));
+        break;
+    case 0x85:
+        common_jmp_long(emu, !ACCESS_FLAG(F_ZF));
+        break;
+    case 0x86:
+        common_jmp_long(emu, ACCESS_FLAG(F_CF) || ACCESS_FLAG(F_ZF));
+        break;
+    case 0x87:
+        common_jmp_long(emu, !(ACCESS_FLAG(F_CF) || ACCESS_FLAG(F_ZF)));
+        break;
+    case 0x88:
+        common_jmp_long(emu, ACCESS_FLAG(F_SF));
+        break;
+    case 0x89:
+        common_jmp_long(emu, !ACCESS_FLAG(F_SF));
+        break;
+    case 0x8a:
+        common_jmp_long(emu, ACCESS_FLAG(F_PF));
+        break;
+    case 0x8b:
+        common_jmp_long(emu, !ACCESS_FLAG(F_PF));
+        break;
+    case 0x8c:
+        common_jmp_long(emu, xorl(ACCESS_FLAG(F_SF), ACCESS_FLAG(F_OF)));
+        break;
+    case 0x8d:
+        common_jmp_long(emu, !(xorl(ACCESS_FLAG(F_SF), ACCESS_FLAG(F_OF))));
+        break;
+    case 0x8e:
+        common_jmp_long(emu,
+                        (xorl(ACCESS_FLAG(F_SF), ACCESS_FLAG(F_OF)) || ACCESS_FLAG(F_ZF)));
+        break;
+    case 0x8f:
+        common_jmp_long(emu,
+                        !(xorl(ACCESS_FLAG(F_SF), ACCESS_FLAG(F_OF)) || ACCESS_FLAG(F_ZF)));
+        break;
 
-        case 0x90:
-            common_set_byte(emu, ACCESS_FLAG(F_OF));
-            break;
-        case 0x91:
-            common_set_byte(emu, !ACCESS_FLAG(F_OF));
-            break;
-        case 0x92:
-            common_set_byte(emu, ACCESS_FLAG(F_CF));
-            break;
-        case 0x93:
-            common_set_byte(emu, !ACCESS_FLAG(F_CF));
-            break;
-        case 0x94:
-            common_set_byte(emu, ACCESS_FLAG(F_ZF));
-            break;
-        case 0x95:
-            common_set_byte(emu, !ACCESS_FLAG(F_ZF));
-            break;
-        case 0x96:
-            common_set_byte(emu, ACCESS_FLAG(F_CF) || ACCESS_FLAG(F_ZF));
-            break;
-        case 0x97:
-            common_set_byte(emu, !(ACCESS_FLAG(F_CF) || ACCESS_FLAG(F_ZF)));
-            break;
-        case 0x98:
-            common_set_byte(emu, ACCESS_FLAG(F_SF));
-            break;
-        case 0x99:
-            common_set_byte(emu, !ACCESS_FLAG(F_SF));
-            break;
-        case 0x9a:
-            common_set_byte(emu, ACCESS_FLAG(F_PF));
-            break;
-        case 0x9b:
-            common_set_byte(emu, !ACCESS_FLAG(F_PF));
-            break;
-        case 0x9c:
-            common_set_byte(emu, xorl(ACCESS_FLAG(F_SF), ACCESS_FLAG(F_OF)));
-            break;
-        case 0x9d:
-            common_set_byte(emu, xorl(ACCESS_FLAG(F_SF), ACCESS_FLAG(F_OF)));
-            break;
-        case 0x9e:
-            common_set_byte(emu,
-                            (xorl(ACCESS_FLAG(F_SF), ACCESS_FLAG(F_OF)) ||
-                             ACCESS_FLAG(F_ZF)));
-            break;
-        case 0x9f:
-            common_set_byte(emu,
-                            !(xorl(ACCESS_FLAG(F_SF), ACCESS_FLAG(F_OF)) ||
-                              ACCESS_FLAG(F_ZF)));
-            break;
+    case 0x90:
+        common_set_byte(emu, ACCESS_FLAG(F_OF));
+        break;
+    case 0x91:
+        common_set_byte(emu, !ACCESS_FLAG(F_OF));
+        break;
+    case 0x92:
+        common_set_byte(emu, ACCESS_FLAG(F_CF));
+        break;
+    case 0x93:
+        common_set_byte(emu, !ACCESS_FLAG(F_CF));
+        break;
+    case 0x94:
+        common_set_byte(emu, ACCESS_FLAG(F_ZF));
+        break;
+    case 0x95:
+        common_set_byte(emu, !ACCESS_FLAG(F_ZF));
+        break;
+    case 0x96:
+        common_set_byte(emu, ACCESS_FLAG(F_CF) || ACCESS_FLAG(F_ZF));
+        break;
+    case 0x97:
+        common_set_byte(emu, !(ACCESS_FLAG(F_CF) || ACCESS_FLAG(F_ZF)));
+        break;
+    case 0x98:
+        common_set_byte(emu, ACCESS_FLAG(F_SF));
+        break;
+    case 0x99:
+        common_set_byte(emu, !ACCESS_FLAG(F_SF));
+        break;
+    case 0x9a:
+        common_set_byte(emu, ACCESS_FLAG(F_PF));
+        break;
+    case 0x9b:
+        common_set_byte(emu, !ACCESS_FLAG(F_PF));
+        break;
+    case 0x9c:
+        common_set_byte(emu, xorl(ACCESS_FLAG(F_SF), ACCESS_FLAG(F_OF)));
+        break;
+    case 0x9d:
+        common_set_byte(emu, xorl(ACCESS_FLAG(F_SF), ACCESS_FLAG(F_OF)));
+        break;
+    case 0x9e:
+        common_set_byte(emu,
+                        (xorl(ACCESS_FLAG(F_SF), ACCESS_FLAG(F_OF)) ||
+                         ACCESS_FLAG(F_ZF)));
+        break;
+    case 0x9f:
+        common_set_byte(emu,
+                        !(xorl(ACCESS_FLAG(F_SF), ACCESS_FLAG(F_OF)) ||
+                          ACCESS_FLAG(F_ZF)));
+        break;
 
-        case 0xa0:
-            x86emuOp2_push_FS(emu);
-            break;
-        case 0xa1:
-            x86emuOp2_pop_FS(emu);
-            break;
-        case 0xa2:
-            x86emuOp2_cpuid(emu);
-            break;
-        case 0xa3:
-            x86emuOp2_bt_R(emu);
-            break;
-        case 0xa4:
-            x86emuOp2_shld_IMM(emu);
-            break;
-        case 0xa5:
-            x86emuOp2_shld_CL(emu);
-            break;
-        case 0xa8:
-            x86emuOp2_push_GS(emu);
-            break;
-        case 0xa9:
-            x86emuOp2_pop_GS(emu);
-            break;
-        case 0xab:
-            x86emuOp2_bts_R(emu);
-            break;
-        case 0xac:
-            x86emuOp2_shrd_IMM(emu);
-            break;
-        case 0xad:
-            x86emuOp2_shrd_CL(emu);
-            break;
-        case 0xaf:
-            x86emuOp2_imul_R_RM(emu);
-            break;
+    case 0xa0:
+        x86emuOp2_push_FS(emu);
+        break;
+    case 0xa1:
+        x86emuOp2_pop_FS(emu);
+        break;
+    case 0xa2:
+        x86emuOp2_cpuid(emu);
+        break;
+    case 0xa3:
+        x86emuOp2_bt_R(emu);
+        break;
+    case 0xa4:
+        x86emuOp2_shld_IMM(emu);
+        break;
+    case 0xa5:
+        x86emuOp2_shld_CL(emu);
+        break;
+    case 0xa8:
+        x86emuOp2_push_GS(emu);
+        break;
+    case 0xa9:
+        x86emuOp2_pop_GS(emu);
+        break;
+    case 0xab:
+        x86emuOp2_bts_R(emu);
+        break;
+    case 0xac:
+        x86emuOp2_shrd_IMM(emu);
+        break;
+    case 0xad:
+        x86emuOp2_shrd_CL(emu);
+        break;
+    case 0xaf:
+        x86emuOp2_imul_R_RM(emu);
+        break;
 
-            /* 0xb0 TODO: cmpxchg */
-            /* 0xb1 TODO: cmpxchg */
-        case 0xb2:
-            x86emuOp2_lss_R_IMM(emu);
-            break;
-        case 0xb3:
-            x86emuOp2_btr_R(emu);
-            break;
-        case 0xb4:
-            x86emuOp2_lfs_R_IMM(emu);
-            break;
-        case 0xb5:
-            x86emuOp2_lgs_R_IMM(emu);
-            break;
-        case 0xb6:
-            x86emuOp2_movzx_byte_R_RM(emu);
-            break;
-        case 0xb7:
-            x86emuOp2_movzx_word_R_RM(emu);
-            break;
-        case 0xba:
-            x86emuOp2_btX_I(emu);
-            break;
-        case 0xbb:
-            x86emuOp2_btc_R(emu);
-            break;
-        case 0xbc:
-            x86emuOp2_bsf(emu);
-            break;
-        case 0xbd:
-            x86emuOp2_bsr(emu);
-            break;
-        case 0xbe:
-            x86emuOp2_movsx_byte_R_RM(emu);
-            break;
-        case 0xbf:
-            x86emuOp2_movsx_word_R_RM(emu);
-            break;
+        /* 0xb0 TODO: cmpxchg */
+        /* 0xb1 TODO: cmpxchg */
+    case 0xb2:
+        x86emuOp2_lss_R_IMM(emu);
+        break;
+    case 0xb3:
+        x86emuOp2_btr_R(emu);
+        break;
+    case 0xb4:
+        x86emuOp2_lfs_R_IMM(emu);
+        break;
+    case 0xb5:
+        x86emuOp2_lgs_R_IMM(emu);
+        break;
+    case 0xb6:
+        x86emuOp2_movzx_byte_R_RM(emu);
+        break;
+    case 0xb7:
+        x86emuOp2_movzx_word_R_RM(emu);
+        break;
+    case 0xba:
+        x86emuOp2_btX_I(emu);
+        break;
+    case 0xbb:
+        x86emuOp2_btc_R(emu);
+        break;
+    case 0xbc:
+        x86emuOp2_bsf(emu);
+        break;
+    case 0xbd:
+        x86emuOp2_bsr(emu);
+        break;
+    case 0xbe:
+        x86emuOp2_movsx_byte_R_RM(emu);
+        break;
+    case 0xbf:
+        x86emuOp2_movsx_word_R_RM(emu);
+        break;
 
-            /* 0xc0 TODO: xadd */
-            /* 0xc1 TODO: xadd */
-            /* 0xc8 TODO: bswap */
-            /* 0xc9 TODO: bswap */
-            /* 0xca TODO: bswap */
-            /* 0xcb TODO: bswap */
-            /* 0xcc TODO: bswap */
-            /* 0xcd TODO: bswap */
-            /* 0xce TODO: bswap */
-            /* 0xcf TODO: bswap */
+        /* 0xc0 TODO: xadd */
+        /* 0xc1 TODO: xadd */
+        /* 0xc8 TODO: bswap */
+        /* 0xc9 TODO: bswap */
+        /* 0xca TODO: bswap */
+        /* 0xcb TODO: bswap */
+        /* 0xcc TODO: bswap */
+        /* 0xcd TODO: bswap */
+        /* 0xce TODO: bswap */
+        /* 0xcf TODO: bswap */
 
-        default:
-            X86EMU_halt_sys(emu);
-            break;
+    default:
+        X86EMU_halt_sys(emu);
+        break;
     }
 }
 
@@ -7949,28 +7950,28 @@ ins(struct X86EMU *emu, int size)
         uint32_t count = ((emu->x86.mode & SYSMODE_PREFIX_DATA) ?
                               emu->x86.R_ECX : emu->x86.R_CX);
         switch (size) {
-            case 1:
-                while (count--) {
-                    store_byte(emu, emu->x86.R_ES, emu->x86.R_DI,
-                               (*emu->emu_inb) (emu, emu->x86.R_DX));
-                    emu->x86.R_DI += inc;
-                }
-                break;
+        case 1:
+            while (count--) {
+                store_byte(emu, emu->x86.R_ES, emu->x86.R_DI,
+                           (*emu->emu_inb) (emu, emu->x86.R_DX));
+                emu->x86.R_DI += inc;
+            }
+            break;
 
-            case 2:
-                while (count--) {
-                    store_word(emu, emu->x86.R_ES, emu->x86.R_DI,
-                               (*emu->emu_inw) (emu, emu->x86.R_DX));
-                    emu->x86.R_DI += inc;
-                }
+        case 2:
+            while (count--) {
+                store_word(emu, emu->x86.R_ES, emu->x86.R_DI,
+                           (*emu->emu_inw) (emu, emu->x86.R_DX));
+                emu->x86.R_DI += inc;
+            }
+            break;
+        case 4:
+            while (count--) {
+                store_long(emu, emu->x86.R_ES, emu->x86.R_DI,
+                           (*emu->emu_inl) (emu, emu->x86.R_DX));
+                emu->x86.R_DI += inc;
                 break;
-            case 4:
-                while (count--) {
-                    store_long(emu, emu->x86.R_ES, emu->x86.R_DI,
-                               (*emu->emu_inl) (emu, emu->x86.R_DX));
-                    emu->x86.R_DI += inc;
-                    break;
-                }
+            }
         }
         emu->x86.R_CX = 0;
         if (emu->x86.mode & SYSMODE_PREFIX_DATA) {
@@ -7979,18 +7980,18 @@ ins(struct X86EMU *emu, int size)
         emu->x86.mode &= ~(SYSMODE_PREFIX_REPE | SYSMODE_PREFIX_REPNE);
     } else {
         switch (size) {
-            case 1:
-                store_byte(emu, emu->x86.R_ES, emu->x86.R_DI,
-                           (*emu->emu_inb) (emu, emu->x86.R_DX));
-                break;
-            case 2:
-                store_word(emu, emu->x86.R_ES, emu->x86.R_DI,
-                           (*emu->emu_inw) (emu, emu->x86.R_DX));
-                break;
-            case 4:
-                store_long(emu, emu->x86.R_ES, emu->x86.R_DI,
-                           (*emu->emu_inl) (emu, emu->x86.R_DX));
-                break;
+        case 1:
+            store_byte(emu, emu->x86.R_ES, emu->x86.R_DI,
+                       (*emu->emu_inb) (emu, emu->x86.R_DX));
+            break;
+        case 2:
+            store_word(emu, emu->x86.R_ES, emu->x86.R_DI,
+                       (*emu->emu_inw) (emu, emu->x86.R_DX));
+            break;
+        case 4:
+            store_long(emu, emu->x86.R_ES, emu->x86.R_DI,
+                       (*emu->emu_inl) (emu, emu->x86.R_DX));
+            break;
         }
         emu->x86.R_DI += inc;
     }
@@ -8013,28 +8014,28 @@ outs(struct X86EMU *emu, int size)
         uint32_t count = ((emu->x86.mode & SYSMODE_PREFIX_DATA) ?
                               emu->x86.R_ECX : emu->x86.R_CX);
         switch (size) {
-            case 1:
-                while (count--) {
-                    (*emu->emu_outb) (emu, emu->x86.R_DX,
-                                      fetch_byte(emu, emu->x86.R_ES, emu->x86.R_SI));
-                    emu->x86.R_SI += inc;
-                }
-                break;
+        case 1:
+            while (count--) {
+                (*emu->emu_outb) (emu, emu->x86.R_DX,
+                                  fetch_byte(emu, emu->x86.R_ES, emu->x86.R_SI));
+                emu->x86.R_SI += inc;
+            }
+            break;
 
-            case 2:
-                while (count--) {
-                    (*emu->emu_outw) (emu, emu->x86.R_DX,
-                                      fetch_word(emu, emu->x86.R_ES, emu->x86.R_SI));
-                    emu->x86.R_SI += inc;
-                }
+        case 2:
+            while (count--) {
+                (*emu->emu_outw) (emu, emu->x86.R_DX,
+                                  fetch_word(emu, emu->x86.R_ES, emu->x86.R_SI));
+                emu->x86.R_SI += inc;
+            }
+            break;
+        case 4:
+            while (count--) {
+                (*emu->emu_outl) (emu, emu->x86.R_DX,
+                                  fetch_long(emu, emu->x86.R_ES, emu->x86.R_SI));
+                emu->x86.R_SI += inc;
                 break;
-            case 4:
-                while (count--) {
-                    (*emu->emu_outl) (emu, emu->x86.R_DX,
-                                      fetch_long(emu, emu->x86.R_ES, emu->x86.R_SI));
-                    emu->x86.R_SI += inc;
-                    break;
-                }
+            }
         }
         emu->x86.R_CX = 0;
         if (emu->x86.mode & SYSMODE_PREFIX_DATA) {
@@ -8043,18 +8044,18 @@ outs(struct X86EMU *emu, int size)
         emu->x86.mode &= ~(SYSMODE_PREFIX_REPE | SYSMODE_PREFIX_REPNE);
     } else {
         switch (size) {
-            case 1:
-                (*emu->emu_outb) (emu, emu->x86.R_DX,
-                                  fetch_byte(emu, emu->x86.R_ES, emu->x86.R_SI));
-                break;
-            case 2:
-                (*emu->emu_outw) (emu, emu->x86.R_DX,
-                                  fetch_word(emu, emu->x86.R_ES, emu->x86.R_SI));
-                break;
-            case 4:
-                (*emu->emu_outl) (emu, emu->x86.R_DX,
-                                  fetch_long(emu, emu->x86.R_ES, emu->x86.R_SI));
-                break;
+        case 1:
+            (*emu->emu_outb) (emu, emu->x86.R_DX,
+                              fetch_byte(emu, emu->x86.R_ES, emu->x86.R_SI));
+            break;
+        case 2:
+            (*emu->emu_outw) (emu, emu->x86.R_DX,
+                              fetch_word(emu, emu->x86.R_ES, emu->x86.R_SI));
+            break;
+        case 4:
+            (*emu->emu_outl) (emu, emu->x86.R_DX,
+                              fetch_long(emu, emu->x86.R_ES, emu->x86.R_SI));
+            break;
         }
         emu->x86.R_SI += inc;
     }
