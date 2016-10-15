@@ -37,14 +37,8 @@
 #include "dma.h"
 #include "pci.h"
 
-// #define IRQ_DEBUG
-#if defined(IRQ_DEBUG)
-#define dbg(format, arg...) do { xprintf("DEBUG %s(): " format, __FUNCTION__, ##arg); } while (0)
-#else
-#define dbg(format, arg...) do { ; } while (0)
-#endif
-#define err(format, arg...) do { xprintf("DEBUG %s(): " format, __FUNCTION__, ##arg); } while (0)
-
+// #define DEBUG
+#include "debug.h"
 
 #ifndef MAX_ISR_ENTRY
 #define MAX_ISR_ENTRY   (20)
@@ -206,6 +200,140 @@ void isr_remove_handler(bool (*handler)(void *, void *))
     dbg("no such handler registered (handler=%p\r\n", handler);
 }
 
+#ifdef DEBUG
+static char *vector_to_str[] =
+{
+    "initial stack pointer",                    /* 0 */
+    "initial program counter",                  /* 1 */
+    "access error",                             /* 2 */
+    "address error",                            /* 3 */
+    "illegal instruction",                      /* 4 */
+    "divide by zero",                           /* 5 */
+    "reserved6",                                /* 6 */
+    "reserved7",                                /* 7 */
+    "privilege violation",                      /* 8 */
+    "trace",                                    /* 9 */
+    "unimplemented line-a opcode",              /* 10 */
+    "unimplemented line-f opcode",              /* 11 */
+    "non-PC breakpoint debug interrupt",        /* 12 */
+    "PC breakpoint debug interrupt",            /* 13 */
+    "format error",                             /* 14 */
+    "uninitialized interrupt",                  /* 15 */
+    "reserved16",
+    "reserved17",
+    "reserved18",
+    "reserved19",
+    "reserved20",
+    "reserved21",
+    "reserved22",
+    "reserved23",
+    "spurious interrupt",                       /* 24 */
+    "level 1 autovector",                       /* 25 */
+    "level 2 autovector",                       /* 26 */
+    "level 3 autovector",                       /* 27 */
+    "level 4 autovector",                       /* 28 */
+    "level 5 autovector",                       /* 29 */
+    "level 6 autovector",                       /* 30 */
+    "level 7 autovector",                       /* 31 */
+    "trap #0",                                  /* 32 */
+    "trap #1",                                  /* 33 */
+    "trap #2",                                  /* 34 */
+    "trap #3",                                  /* 35 */
+    "trap #4",                                  /* 36 */
+    "trap #5",                                  /* 37 */
+    "trap #6",                                  /* 38 */
+    "trap #7",                                  /* 39 */
+    "trap #8",                                  /* 40 */
+    "trap #9",                                  /* 41 */
+    "trap #10"                                  /* 42 */
+    "trap #11",                                 /* 43 */
+    "trap #12",                                 /* 44 */
+    "trap #13",                                 /* 45 */
+    "trap #14",                                 /* 46 */
+    "trap #15",                                 /* 47 */
+    "floating point branch on unordered condition", /* 48 */
+    "floting point inexact result",             /* 49 */
+    "floating point divide by zero",            /* 50 */
+    "floating point underflow",                 /* 51 */
+    "floating point operand error",             /* 52 */
+    "floating point overflow",                  /* 53 */
+    "floating point NaN",                       /* 54 */
+    "floating point denormalized number",       /* 55 */
+    "reserved56",                               /* 56 */
+    "reserved57",
+    "reserved58",
+    "reserved59",
+    "reserved60",
+    "unsupported instruction",                  /* 61 */
+    "reserved62",                               /* 62 */
+    "reserved63",                               /* 63 */
+    "", "",
+    "edge port 1",                              /* 1 */
+    "edge port 2",                              /* 2 */
+    "edge port 3",                              /* 3 */
+    "edge port 4",                              /* 4 */
+    "edge port 5",                              /* 5 */
+    "edge port 6",                              /* 6 */
+    "edge port 7",                              /* 7 */
+    "unused8",
+    "unused9",
+    "unused10",
+    "unused11",
+    "unused12",
+    "unused13",
+    "unused14",
+    "USB endpoint 0",                           /* 15 */
+    "USB endpoint 1",                           /* 16 */
+    "USB endpoint 2",                           /* 17 */
+    "USB endpoint 3",                           /* 18 */
+    "USB endpoint 4",                           /* 19 */
+    "USB endpoint 5",                           /* 20 */
+    "USB endpoint 6",                           /* 21 */
+    "USB general interrupt",                    /* 22 */
+    "USB core interrupt",                       /* 23 */
+    "USB OR interrupt",                         /* 24 */
+    "DSPI over/underflow",                      /* 25 */
+    "DSPI receive FIFO overflow",               /* 26 */
+    "DSPI receive FIFO drain",                  /* 27 */
+    "DSPI transmit FIFO underflow",             /* 28 */
+    "DSPI transfer complete",                   /* 29 */
+    "DSPI trasmit FIFO full",                   /* 30 */
+    "DSPI end of queue",                        /* 31 */
+    "PSC3",                                     /* 32 */
+    "PSC2",                                     /* 33 */
+    "PSC1",                                     /* 34 */
+    "PSC0",                                     /* 35 */
+    "Comm timer",                               /* 36 */
+    "SEC",                                      /* 37 */
+    "FEC1",                                     /* 38 */
+    "FEC0",                                     /* 39 */
+    "I2C",                                      /* 40 */
+    "PCI arbiter",                              /* 41 */
+    "comm bus PCI",                             /* 42 */
+    "XLB PCI",                                  /* 43 */
+    "not used44",
+    "not used45",
+    "not used46",
+    "XLB arbiter to CPU",                       /* 47 */
+    "multichannel DMA",                         /* 48 */
+    "FlexCAN 0 error",                          /* 49 */
+    "FlexCAN 0 bus off",                        /* 50 */
+    "FlexCAN 0 message buffer",                 /* 51 */
+    "not used52"
+    "slice timer 1",                            /* 53 */
+    "slice timer 0",                            /* 54 */
+    "FlexCAN 1 error",                          /* 55 */
+    "FlexCAN 1 bus off",                        /* 56 */
+    "FlexCAN 1 message buffer",                 /* 57 */
+    "not used58",
+    "GPT3",                                     /* 59 */
+    "GPT2",                                     /* 60 */
+    "GPT1",                                     /* 61 */
+    "GPT0",                                     /* 62 */
+    "not used63"
+};
+#endif /* DEBUG */
+
 /*
  * This routine searches the ISR table for an entry that matches
  * 'vector'. If one is found, then 'handler' is executed.
@@ -218,7 +346,7 @@ bool isr_execute_handler(int vector)
 {
     int index;
 
-    dbg("vector = %d\r\n", vector);
+    dbg("vector = %d (%s)\r\n", vector, vector_to_str[vector]);
 
     /*
      * locate an interrupt service routine handler.

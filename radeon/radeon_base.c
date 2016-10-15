@@ -62,13 +62,8 @@
 #include "bas_string.h"
 #include "exceptions.h"		/* for set_ipl() */
 
-#define DBG_RADEON
-#ifdef DBG_RADEON
-#define dbg(format, arg...) do { xprintf("DEBUG (%s()): " format, __FUNCTION__, ##arg);} while(0)
-#else
-#define dbg(format, arg...) do {;} while (0)
-#endif /* DBG_RADEON */
-#define err(format, arg...) do { xprintf("ERROR (%s()): " format, __FUNCTION__, ##arg); } while(0)
+// #define DEBUG
+#include "debug.h"
 
 extern void run_bios(struct radeonfb_info *rinfo);
 
@@ -241,8 +236,9 @@ extern struct fb_info *info_fb;
 #define rinfo ((struct radeonfb_info *) info_fb->par)
 static uint32_t inreg(uint32_t addr)
 {
-    return swpl(*(uint32_t *)(rinfo->mmio_base + addr));
-    //return INREG(addr);
+    dbg("info_fb = %p, info_fb->par = %p\r\n", info_fb, info_fb->par);
+    dbg("retrieve from addr %p\r\n", rinfo->mmio_base + addr);
+    return INREG(addr);
 }
 
 static void outreg(uint32_t addr, uint32_t val)
@@ -367,7 +363,9 @@ static int radeon_map_ROM(struct radeonfb_info *rinfo)
     dbg("bios_seg=%p\r\n", rinfo->bios_seg);
     dbg("bios_seg_phys=%p\r\n", rinfo->bios_seg_phys);
 
+    dbg("before inreg\r\n");
     temp = inreg(MPP_TB_CONFIG);
+    dbg("after inreg\r\n");
 
     dbg("temp=%d\r\n", temp);
     temp &= 0x00ffffffu;
@@ -2218,6 +2216,7 @@ int32_t radeonfb_pci_register(int32_t handle, const struct pci_device_id *ent)
                                 hexdump((uint8_t *) rinfo->bios_seg_phys, 0x100);
 #endif
                                 rinfo->bios_seg_phys = 0;
+                                return 0;
                             }
                         }
                     }

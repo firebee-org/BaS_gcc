@@ -53,6 +53,9 @@
 #include "usb.h"
 #include "video.h"
 
+#define DEBUG
+#include "debug.h"
+
 #define UNUSED(x) (void)(x)             /* Unused variable         */
 
 bool fpga_configured = false;           /* for FPGA JTAG configuration */
@@ -462,6 +465,9 @@ static void init_fbcs()
     MCF_FBCS3_CSMR = 0;
     MCF_FBCS4_CSMR = 0;
 
+    /*
+     * the FireEngine needs AA for its CPLD accessed registers
+     */
     MCF_FBCS5_CSAR = MCF_FBCS_CSAR_BA(0x60000000);
     MCF_FBCS5_CSCR = MCF_FBCS_CSCR_PS_16 |              /* CPLD access 16 bit wide */
                      MCF_FBCS_CSCR_WS(32) |             /* 32 wait states */
@@ -587,6 +593,7 @@ void init_usb(void)
     do
     {
         handle = pci_find_classcode(PCI_CLASS_SERIAL_USB | PCI_FIND_BASE_CLASS | PCI_FIND_SUB_CLASS, index++);
+        dbg("handle 0x%02x\r\n", handle);
         if (handle > 0)
         {
             long id;
@@ -597,10 +604,10 @@ void init_usb(void)
                     PCI_DEVICE_FROM_HANDLE(handle),
                     PCI_FUNCTION_FROM_HANDLE(handle),
                     handle);
-            id = pci_read_config_longword(handle, PCIIDR);
-            pci_class = pci_read_config_longword(handle, PCIREV);
+            id = swpl(pci_read_config_longword(handle, PCIIDR));
+            pci_class = swpl(pci_read_config_longword(handle, PCIREV));
 
-            if (PCI_SUBCLASS(pci_class) == PCI_CLASS_SERIAL_USB_EHCI)
+            if (pci_class == PCI_CLASS_SERIAL_USB_EHCI)
             {
                 board = ehci_usb_pci_table;
                 while (board->vendor)
@@ -615,7 +622,7 @@ void init_usb(void)
                     board++;
                 }
             }
-            if (PCI_SUBCLASS(pci_class) == PCI_CLASS_SERIAL_USB_OHCI)
+            if (pci_class == PCI_CLASS_SERIAL_USB_OHCI)
             {
                 board = ohci_usb_pci_table;
                 while (board->vendor)

@@ -50,10 +50,9 @@ INCDIR=include
 INCLUDE+=-I$(INCDIR)
 
 CSRCS=\
-	$(SRCDIR)/pci_test.c \
-	$(SRCDIR)/bas_printf.c
+	$(SRCDIR)/pci_test.c
 
-ASRCS=$(SRCDIR)/printf_helper.S
+ASRCS=
 
 COBJS=$(patsubst $(SRCDIR)/%.o,%.o,$(patsubst %.c,%.o,$(CSRCS)))
 AOBJS=$(patsubst $(SRCDIR)/%.o,%.o,$(patsubst %.S,%.o,$(ASRCS)))

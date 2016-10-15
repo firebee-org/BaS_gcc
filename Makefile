@@ -22,7 +22,7 @@ EXE=s19
 FORMAT=srec
 endif
 
-CC=$(TCPREFIX)gcc
+CC=$(TCPREFIX)gcc-4.6.4
 LD=$(TCPREFIX)ld
 CPP=$(TCPREFIX)cpp
 OBJCOPY=$(TCPREFIX)objcopy

@@ -79,11 +79,11 @@ Reads a byte value from the emulator memory.
 ****************************************************************************/
 static uint8_t rdb(struct X86EMU *emu, uint32_t addr)
 {
-	if (addr > emu->mem_size - 1)
+    if (addr > emu->mem_size - 1)
     {
-		X86EMU_halt_sys(emu);
+        X86EMU_halt_sys(emu);
     }
-	return emu->mem_base[addr];
+    return emu->mem_base[addr];
 }
 
 /****************************************************************************
@@ -98,11 +98,11 @@ Reads a word value from the emulator memory.
 ****************************************************************************/
 static uint16_t rdw(struct X86EMU *emu, uint32_t addr)
 {
-	if (addr > emu->mem_size - 2)
+    if (addr > emu->mem_size - 2)
     {
-		X86EMU_halt_sys(emu);
+        X86EMU_halt_sys(emu);
     }
-	return le16dec(emu->mem_base + addr);
+    return le16dec(emu->mem_base + addr);
 }
 
 /****************************************************************************
@@ -116,11 +116,11 @@ Reads a long value from the emulator memory.
 ****************************************************************************/
 static uint32_t rdl(struct X86EMU *emu, uint32_t addr)
 {
-	if (addr > emu->mem_size - 4)
+    if (addr > emu->mem_size - 4)
     {
-		X86EMU_halt_sys(emu);
+        X86EMU_halt_sys(emu);
     }
-	return le32dec(emu->mem_base + addr);
+    return le32dec(emu->mem_base + addr);
 }
 
 /****************************************************************************
@@ -133,11 +133,11 @@ Writes a byte value to emulator memory.
 ****************************************************************************/
 static void wrb(struct X86EMU *emu, uint32_t addr, uint8_t val)
 {
-	if (addr > emu->mem_size - 1)
+    if (addr > emu->mem_size - 1)
     {
-		X86EMU_halt_sys(emu);
+        X86EMU_halt_sys(emu);
     }
-	emu->mem_base[addr] = val;
+    emu->mem_base[addr] = val;
 }
 
 /****************************************************************************
@@ -150,11 +150,11 @@ Writes a word value to emulator memory.
 ****************************************************************************/
 static void wrw(struct X86EMU *emu, uint32_t addr, uint16_t val)
 {
-	if (addr > emu->mem_size - 2)
+    if (addr > emu->mem_size - 2)
     {
-		X86EMU_halt_sys(emu);
+        X86EMU_halt_sys(emu);
     }
-	le16enc(emu->mem_base + addr, val);
+    le16enc(emu->mem_base + addr, val);
 }
 /****************************************************************************
 PARAMETERS:
@@ -166,28 +166,28 @@ Writes a long value to emulator memory.
 ****************************************************************************/
 static void wrl(struct X86EMU *emu, uint32_t addr, uint32_t val)
 {
-	if (addr > emu->mem_size - 4)
+    if (addr > emu->mem_size - 4)
     {
-		X86EMU_halt_sys(emu);
+        X86EMU_halt_sys(emu);
     }
-	le32enc(emu->mem_base + addr, val);
+    le32enc(emu->mem_base + addr, val);
 }
 
 /*----------------------------- Setup -------------------------------------*/
 
 void X86EMU_init_default(struct X86EMU *emu)
 {
-	int i;
+    int i;
 
-	emu->emu_rdb = rdb;
-	emu->emu_rdw = rdw;
-	emu->emu_rdl = rdl;
-	emu->emu_wrb = wrb;
-	emu->emu_wrw = wrw;
-	emu->emu_wrl = wrl;
+    emu->emu_rdb = rdb;
+    emu->emu_rdw = rdw;
+    emu->emu_rdl = rdl;
+    emu->emu_wrb = wrb;
+    emu->emu_wrw = wrw;
+    emu->emu_wrl = wrl;
 
-	for (i = 0; i < 256; i++)
+    for (i = 0; i < 256; i++)
     {
-		emu->_X86EMU_intrTab[i] = NULL;
+        emu->_X86EMU_intrTab[i] = NULL;
     }
 }

@@ -1,9 +1,9 @@
 #include <stdio.h>
+#include <string.h>
 #include <mint/osbind.h>
 #include <stdint.h>
 #include <stdbool.h>
 
-#include "bas_printf.h"
 #include "MCF5475.h"
 #include "driver_vec.h"
 #include "pci.h"
@@ -15,17 +15,97 @@
 volatile int32_t time, start, end;
 int i;
 
-#define swpw(a) ((a) >> 8 | (a) << 8)
+/*
+ * PCI device class descriptions displayed during PCI bus scan
+ */
+static struct pci_class
+{
+    int classcode;
+    char *description;
+} pci_classes[] =
+{
+    { 0x00, "device was built prior definition of the class code field" },
+    { 0x01, "Mass Storage Controller" },
+    { 0x02, "Network Controller" },
+    { 0x03, "Display Controller" },
+    { 0x04, "Multimedia Controller" },
+    { 0x05, "Memory Controller" },
+    { 0x06, "Bridge Device" },
+    { 0x07, "Simple Communication Controller" },
+    { 0x08, "Base System Peripherial" },
+    { 0x09, "Input Device" },
+    { 0x0a, "Docking Station" },
+    { 0x0b, "Processor" },
+    { 0x0c, "Serial Bus Controller" },
+    { 0x0d, "Wireless Controller" },
+    { 0x0e, "Intelligent I/O Controller" },
+    { 0x0f, "Satellite Communication Controller" },
+    { 0x10, "Encryption/Decryption Controller" },
+    { 0x11, "Data Acquisition and Signal Processing Controller" },
+    { 0xff, "Device does not fit any defined class" },
+};
+static int num_pci_classes = sizeof(pci_classes) / sizeof(struct pci_class);
+
+/*
+ * retrieve device class (in cleartext) for a PCI classcode
+ */
+static char *device_class(int classcode)
+{
+    int i;
+
+    for (i = 0; i < num_pci_classes; i++)
+    {
+        if (pci_classes[i].classcode == classcode)
+        {
+            return pci_classes[i].description;
+        }
+    }
+    return "unknown device class";
+}
+
+void hexdump(uint8_t buffer[], int size)
+{
+   int i;
+   int line = 0;
+   uint8_t *bp = buffer;
+
+   while (bp < buffer + size) {
+      uint8_t *lbp = bp;
+
+      printf("%08lx  ", (uintptr_t) buffer + line);
+
+      for (i = 0; i < 16; i++) {
+         if (bp + i > buffer + size) {
+            break;
+         }
+         printf("%02x ", (uint8_t) *lbp++);
+      }
+
+      lbp = bp;
+      for (i = 0; i < 16; i++) {
+         int8_t c = *lbp++;
+
+         if (bp + i > buffer + size) {
+            break;
+         }
+         if (c > ' ' && c < '~') {
+            printf("%c", c);
+         } else {
+            printf(".");
+         }
+      }
+      printf("\r\n");
+
+      bp += 16;
+      line += 16;
+   }
+}
 
 void do_tests(struct pci_native_driver_interface *pci)
 {
 #define PCI_READ_CONFIG_LONGWORD(a, b)  pci->pci_read_config_longword(a, b)
 #define PCI_WRITE_CONFIG_LONGWORD(a, b) pci->pci_write_config_longword(a, b)
 
-    start = MCF_SLT0_SCNT;
-    hexdump((uint8_t *) 0, 64);
-    end = MCF_SLT0_SCNT;
-    time = (start - end) / (SYSCLK / 1000) / 1000;
 
     printf("enumerate PCI devices\r\n");
 
@@ -42,20 +122,69 @@ void do_tests(struct pci_native_driver_interface *pci)
     {
         uint32_t value;
 
-        value = (*pci->pci_read_config_longword)(handle, PCIIDR);
+        value = swpl((*pci->pci_read_config_longword)(handle, PCIIDR));
 
-        printf(" %02x | %02x | %02x |%04x|%04x|%04x| (0x%02x)\r\n",
-               (char) PCI_BUS_FROM_HANDLE(handle),
-               (char) PCI_DEVICE_FROM_HANDLE(handle),
-               (char) PCI_FUNCTION_FROM_HANDLE(handle),
-               (short) PCI_VENDOR_ID(value), (short) PCI_DEVICE_ID(value),
-               (unsigned char) handle,
-               (char) (*pci->pci_read_config_byte)(handle, PCICCR));
+        printf(" %02x | %02x | %02x |%04x|%04x|%04x| %s (0x%02x, 0x%04x)\r\n",
+               PCI_BUS_FROM_HANDLE(handle),
+               PCI_DEVICE_FROM_HANDLE(handle),
+               PCI_FUNCTION_FROM_HANDLE(handle),
+               PCI_VENDOR_ID(value), PCI_DEVICE_ID(value),
+               handle,
+               device_class((*pci->pci_read_config_byte)(handle, PCI_LANESWAP_B(PCICCR))),
+               (*pci->pci_read_config_byte)(handle, PCI_LANESWAP_B(PCICCR)),
+               (*pci->pci_read_config_word)(handle, PCI_LANESWAP_W(PCICCR)));
 
         handle = (*pci->pci_find_device)(0x0, 0xFFFF, ++index);
     }
+
+    struct pci_rd *rd;
+    int flags;
+
+    handle = 0xa0;
+
+    rd = (*pci->pci_get_resource)(handle);     /* get resource descriptor for ATI graphics card */
+    if (rd != NULL)
+    {
+        do
+        {
+            flags = rd->flags;
+
+            printf("Start address: 0x%08lx\r\n", rd->start);
+            printf("Length:        0x%08lx\r\n", rd->length);
+            printf("Offset:        0x%08lx\r\n", rd->offset);
+            printf("DMA offset:    0x%08lx\r\n", rd->dmaoffset);
+            printf("FLAGS: %s%s%s%s%s%s%s\r\n",
+                   flags & FLG_IO ? "FLG_IO, " : "",
+                   flags & FLG_ROM ? "FLG_ROM, " : "",
+                   flags & FLG_8BIT ? "FLG_8BIT, " : "",
+                   flags & FLG_16BIT ? "FLG_16BIT, " : "",
+                   flags & FLG_32BIT ? "FLG_32BIT, " : "",
+                   (flags & FLG_ENDMASK) == ORD_MOTOROLA ? "ORD_MOTOROLA" :
+                                              (flags & FLG_ENDMASK) == ORD_INTEL_AS ? "ORD_INTEL_AS" :
+                                              (flags & FLG_ENDMASK) == ORD_INTEL_LS ? "ORD_INTEL_LS" :
+                                              (flags & FLG_ENDMASK) == ORD_UNKNOWN ? "ORD_UNKNOWN" :
+                                              "", "");
+            printf("\r\n");
+
+            if (rd->start != 0L)
+            {
+                hexdump((uint8_t *) rd->start + rd->offset, 128);
+
+                memset((uint8_t *) rd-> start + rd->offset, 0, 128);
+
+                printf("memory cleared\r\n");
+                hexdump((uint8_t *) rd->start + rd->offset, 128);
+            }
+
+            rd = (struct pci_rd *) (((uintptr_t) rd) + (uintptr_t) rd->next);
+        } while (!(flags & FLG_LAST));
+    }
+    else
+    {
+        printf("resource descriptor for handle 0x%02x not found\r\n", handle);
+    }
+
     printf("\r\n...finished\r\n");
-    printf("finished (took %f seconds).\r\n", time / 1000.0);
 }
 
 /*

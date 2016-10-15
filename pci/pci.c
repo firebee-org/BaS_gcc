@@ -34,6 +34,7 @@
 #include "interrupts.h"
 #include "wait.h"
 
+#define DEBUG
 #include "debug.h"
 
 #define pci_config_wait() do { __asm__ __volatile("tpf" ::: "memory"); } while (0)
@@ -112,13 +113,13 @@ int32_t pci_get_interrupt_cause(void)
     dbg("");
     while ((handle = *hdl++) != -1)
     {
-        uint16_t command_register = swpw(pci_read_config_word(handle, PCICR));
-        uint16_t status_register = swpw(pci_read_config_word(handle, PCISR));
+        uint16_t command_register = swpw(pci_read_config_word(handle, PCI_LANESWAP_W(PCICR)));
+        uint16_t status_register = swpw(pci_read_config_word(handle, PCI_LANESWAP_W(PCISR)));
 
         /*
          * ...to see which device caused the interrupt
          */
-        if ((status_register & PCICSR_INTERRUPT) && !(command_register & PCICSR_INT_DISABLE))
+        if ((status_register & PCISR_INTERRUPT) && !(command_register & PCICR_INT_DISABLE))
         {
             /* device has interrupts enabled and has an active interrupt, so its probably ours */
 
@@ -284,7 +285,7 @@ uint16_t pci_read_config_word(int32_t handle, int offset)
 
     NOP();
 
-    value = * (volatile uint16_t *) PCI_IO_OFFSET + (offset & 2);
+    value = * (volatile uint16_t *) (PCI_IO_OFFSET + (offset & 2));
 
     NOP();
 
@@ -329,17 +330,15 @@ int32_t pci_write_config_longword(int32_t handle, int offset, uint32_t value)
 {
     /* initiate PCI configuration access to device */
 
-    dbg("initiate configuration access\r\n");
-
     MCF_PCI_PCICAR = MCF_PCI_PCICAR_E |             /* enable configuration access special cycle */
         MCF_PCI_PCICAR_BUSNUM(PCI_BUS_FROM_HANDLE(handle)) |
         MCF_PCI_PCICAR_DEVNUM(PCI_DEVICE_FROM_HANDLE(handle)) |     /* device number, devices 0 - 9 are reserved */
         MCF_PCI_PCICAR_FUNCNUM(PCI_FUNCTION_FROM_HANDLE(handle)) |  /* function number */
         MCF_PCI_PCICAR_DWORD(offset / 4);
 
+    chip_errata_135();
     NOP();
 
-    dbg("access device\r\n");
     * (volatile uint32_t *) PCI_IO_OFFSET = value;  /* access device */
 
     dbg("chip errata\r\n");
@@ -347,7 +346,6 @@ int32_t pci_write_config_longword(int32_t handle, int offset, uint32_t value)
 
     NOP();
 
-    dbg("finish config space access cycle\r\n");
     /* finish configuration space access cycle */
     MCF_PCI_PCICAR &= ~MCF_PCI_PCICAR_E;
 
@@ -367,12 +365,14 @@ int32_t pci_write_config_word(int32_t handle, int offset, uint16_t value)
             MCF_PCI_PCICAR_DEVNUM(PCI_DEVICE_FROM_HANDLE(handle)) |
             MCF_PCI_PCICAR_FUNCNUM(PCI_FUNCTION_FROM_HANDLE(handle)) |
             MCF_PCI_PCICAR_DWORD(offset / 4);
+
     chip_errata_135();
 
     NOP();
 
     * (volatile uint16_t *) (PCI_IO_OFFSET + (offset & 2)) = value;
     chip_errata_135();
+    NOP();
 
     /* finish configuration space access cycle */
     MCF_PCI_PCICAR &= ~MCF_PCI_PCICAR_E;
@@ -399,7 +399,8 @@ int32_t pci_write_config_byte(int32_t handle, int offset, uint8_t value)
     * (volatile uint8_t *) (PCI_IO_OFFSET + (offset & 3)) = value;
     chip_errata_135();
 
-    __asm__ __volatile__("tpf" ::: "memory");
+    NOP();
+
 
     /* finish configuration space access cycle */
     MCF_PCI_PCICAR &= ~MCF_PCI_PCICAR_E;
@@ -456,7 +457,7 @@ int32_t pci_find_device(uint16_t device_id, uint16_t vendor_id, int index)
             uint8_t htr;
 
             handle = PCI_HANDLE(bus, device, 0);
-            value = pci_read_config_longword(handle, PCIIDR);
+            value = swpl(pci_read_config_longword(handle, PCIIDR));
             if (value != 0xffffffff)    /* we have a device at this position */
             {
                 if (vendor_id == 0xffff ||
@@ -474,14 +475,14 @@ int32_t pci_find_device(uint16_t device_id, uint16_t vendor_id, int index)
                  * Check to see if it is a multi-function device. We need to look "behind" it
                  * for the other functions in that case.
                  */
-                if ((htr = pci_read_config_byte(handle, PCIHTR)) & 0x80)
+                if ((htr = pci_read_config_byte(handle, PCI_LANESWAP_B(PCIHTR))) & 0x80)
                 {
                     /* yes, this is a multi-function device, look for more functions */
 
                     for (function = 1; function < 8; function++)
                     {
                         handle = PCI_HANDLE(bus, device, function);
-                        value = pci_read_config_longword(handle, PCIIDR);
+                        value = swpl(pci_read_config_longword(handle, PCIIDR));
                         if (value != 0xffffffff)    /* device found */
                         {
                             if (vendor_id == 0xffff ||
@@ -528,11 +529,11 @@ int32_t pci_find_classcode(uint32_t classcode, int index)
             handle = PCI_HANDLE(bus, device, 0);
             dbg("check handle %d\r\n", handle);
 
-            value = pci_read_config_longword(handle, PCIIDR);
+            value = swpl(pci_read_config_longword(handle, PCIIDR));
 
             if (value != 0xffffffff)    /* device found */
             {
-                value = pci_read_config_longword(handle, PCICCR);
+                value = swpl(pci_read_config_longword(handle, PCICCR));
 
                 dbg("classcode to search for=%x\r\n", classcode);
                 dbg("PCI_CLASSCODE found=%02x\r\n", PCI_CLASS_CODE(value));
@@ -556,7 +557,7 @@ int32_t pci_find_classcode(uint32_t classcode, int index)
                 * Check to see if it is a multi-function device. We need to look "behind" it
                 * for the other functions in that case.
                 */
-                if ((htr = pci_read_config_byte(handle, PCIHTR)) & 0x80)
+                if ((htr = pci_read_config_byte(handle, PCI_LANESWAP_B(PCIHTR))) & 0x80)
                 {
                     /* yes, this is a multi-function device, look for more functions */
 
@@ -567,7 +568,7 @@ int32_t pci_find_classcode(uint32_t classcode, int index)
 
                         if (value != 0xffffffff)    /* device found */
                         {
-                            value = pci_read_config_longword(handle, PCICCR);
+                            value = swpl(pci_read_config_longword(handle, PCICCR));
 
                             if ((classcode & PCI_FIND_BASE_CLASS ? ((PCI_CLASS_CODE(value) == (classcode & 0xff))) : true) &&
                                 (classcode & PCI_FIND_SUB_CLASS ? ((PCI_SUBCLASS(value) == ((classcode & 0xff00) >> 8))) : true) &&
@@ -831,9 +832,9 @@ static void pci_device_config(uint16_t bus, uint16_t device, uint16_t function)
      * disable device
      */
 
-    cr = swpw(pci_read_config_word(handle, PCICSR));
+    cr = swpw(pci_read_config_word(handle, PCI_LANESWAP_W(PCICR)));
     cr &= ~3;   /* disable device response to address */
-    pci_write_config_word(handle, PCICSR, swpw(cr));
+    pci_write_config_word(handle, PCI_LANESWAP_W(PCICR), swpw(cr));
 
     int barnum = 0;
 
@@ -861,8 +862,8 @@ static void pci_device_config(uint16_t bus, uint16_t device, uint16_t function)
             if (IS_PCI_MEM_BAR(address))
             {
                 /* adjust base address to card's alignment requirements */
-                int size = ~(address & 0xfffffff0) + 1;
-                dbg("device 0x%x: BAR[%d] requests %d bytes of memory\r\n", handle, i / 4, size);
+                long size = ~(address & 0xfffffff0) + 1;
+                dbg("device 0x%02x: BAR[%d] requests %ld kBytes of memory\r\n", handle, i / 4, size / 1024);
 
                 /* calculate a valid map adress with alignment requirements */
                 address = (mem_address + size - 1) & ~(size - 1);
@@ -923,7 +924,6 @@ static void pci_device_config(uint16_t bus, uint16_t device, uint16_t function)
     /*
      * check if we have an expansion ROM
      */
-    value = swpl(pci_read_config_longword(handle, PCIERBAR));
 
     /*
      * write all bits of PCIERBAR
@@ -936,8 +936,15 @@ static void pci_device_config(uint16_t bus, uint16_t device, uint16_t function)
     address = swpl(pci_read_config_longword(handle, PCIERBAR));
     if (address & 1)
     {
+        /*
+         * there is a ROM
+         */
+
         struct pci_rd *rd = &descriptors[barnum];
-        int size = ~(address & ~0x7ff);
+        int size = ~(address & ~0x7ff) + 1;
+
+        dbg("expansion ROM requested size=0x%08x\r\n", size);
+        dbg("device 0x%02x: requests %ld kBytes for expansion ROM\r\n", handle, size / 1024);
 
         /* expansion ROM active and mapped */
 
@@ -959,6 +966,7 @@ static void pci_device_config(uint16_t bus, uint16_t device, uint16_t function)
         rd->length = size;
         rd->dmaoffset = 0;
 
+        cr |= 2;   /* enable Memory */
         mem_address += size;
         barnum++;
     }
@@ -968,19 +976,17 @@ static void pci_device_config(uint16_t bus, uint16_t device, uint16_t function)
         descriptors[barnum - 1].flags |= FLG_LAST;
 
     /* check if device requests an interrupt */
-    il = pci_read_config_byte(handle, PCIIPR);
+    il = pci_read_config_byte(handle, PCI_LANESWAP_B(PCIIPR));
     dbg("device requests interrupts on interrupt pin %d\r\n", il);
 
     /* enable interrupt on PCI device */
 
-    il = pci_read_config_byte(handle, PCICR);
-    il &= ~PCICSR_INT_DISABLE;
-    pci_write_config_byte(handle, PCICR, il);
+    cr &= ~PCICR_INT_DISABLE;
 
     /*
      * enable device memory or I/O access
      */
-    pci_write_config_word(handle, PCICSR, swpw(cr));
+    pci_write_config_word(handle, PCI_LANESWAP_W(PCICR), swpw(cr));
 }
 
 static void pci_bridge_config(uint16_t bus, uint16_t device, uint16_t function)
@@ -995,9 +1001,18 @@ static void pci_bridge_config(uint16_t bus, uint16_t device, uint16_t function)
     handle = PCI_HANDLE(bus, device, function);
     dbg("handle=%d\r\n", handle);
 
+    pci_write_config_longword(handle, PCIBISTR, MCF_PCI_PCICR1_CACHELINESIZE(8) |
+                                      MCF_PCI_PCICR1_LATTIMER(0x20));
     pci_write_config_longword(handle, PCIBAR0, swpl(0x40000000));
     pci_write_config_longword(handle, PCIBAR1, 0x0);
-    pci_write_config_longword(handle, PCICSR, 0x146);
+    pci_write_config_word(handle, PCI_LANESWAP_W(PCICR), swpw(
+                            (1 << 1)  /* memory space */
+                          | (1 << 2)  /* bus master */
+                          | (1 << 4)  /* memory write and invalidate */
+                          | (1 << 6)  /* parity errors */
+                          | (1 << 8)  /* SERR */
+                          | (1 << 9)  /* fast back-to-back */
+                          ));
 }
 
 /*
@@ -1017,7 +1032,7 @@ void pci_scan(void)
     {
         uint32_t value;
 
-        value = pci_read_config_longword(handle, PCIIDR);
+        value = swpl(pci_read_config_longword(handle, PCIIDR));
 
         xprintf(" %02x | %02x | %02x |%04x|%04x|%04x| %s (0x%02x, 0x%04x)\r\n",
                 PCI_BUS_FROM_HANDLE(handle),
@@ -1025,9 +1040,9 @@ void pci_scan(void)
                 PCI_FUNCTION_FROM_HANDLE(handle),
                 PCI_VENDOR_ID(value), PCI_DEVICE_ID(value),
                 handle,
-                device_class(pci_read_config_byte(handle, PCICCR)),
-                pci_read_config_byte(handle, PCICCR),
-                pci_read_config_word(handle, PCICCR));
+                device_class(pci_read_config_byte(handle, PCI_LANESWAP_B(PCICCR))),
+                pci_read_config_byte(handle, PCI_LANESWAP_B(PCICCR)),
+                pci_read_config_word(handle, PCI_LANESWAP_W(PCICCR)));
 
         /* save handle to index value so that we'll be able to later find our resources */
         handles[index] = handle;
@@ -1042,12 +1057,12 @@ void pci_scan(void)
         }
         else
         {
-            dbg("");
+            dbg("\r\n");
             pci_bridge_config(PCI_BUS_FROM_HANDLE(handle),
                         PCI_DEVICE_FROM_HANDLE(handle),
                         PCI_FUNCTION_FROM_HANDLE(handle));
         }
-        dbg("");
+        dbg("\r\n");
         handle = pci_find_device(0x0, 0xFFFF, ++index);
     }
     xprintf("\r\n...finished\r\n");
@@ -1125,13 +1140,14 @@ void init_pci(void)
     init_eport();
     init_xlbus_arbiter();
 
-    MCF_PCI_PCIGSCR = -1;
+    MCF_PCI_PCIGSCR |= MCF_PCI_PCIGSCR_PR;           /* reset PCI devices */
+
 
     /*
      * setup the PCI arbiter
      */
     MCF_PCIARB_PACR = MCF_PCIARB_PACR_INTMPRI   /* internal master priority: high */
-       | MCF_PCIARB_PACR_EXTMPRI(0xf)           /* external master priority: high */
+       | MCF_PCIARB_PACR_EXTMPRI(0x0)           /* external master priority: high */
        | MCF_PCIARB_PACR_INTMINTEN              /* enable "internal master broken" interrupt */
        | MCF_PCIARB_PACR_EXTMINTEN(0x0f);       /* enable "external master broken" interrupt */
 
@@ -1146,20 +1162,29 @@ void init_pci(void)
             MCF_PAD_PAR_PCIBR_PAR_PCIBR2_PCIBR2 |
             MCF_PAD_PAR_PCIBR_PAR_PCIBR1_PCIBR1 |
             MCF_PAD_PAR_PCIBR_PAR_PCIBR0_PCIBR0;
-#elif MACHINE_M5484LITE
-    MCF_PAD_PAR_PCIBG = 0x3ff; /* enable all PCI bus grant and bus requests on the LITE board */
-    MCF_PAD_PAR_PCIBR = 0x3ff;
+#elif defined(MACHINE_M5484LITE)
+    MCF_PAD_PAR_PCIBG = MCF_PAD_PAR_PCIBG_PAR_PCIBG0_PCIBG0 |
+            MCF_PAD_PAR_PCIBG_PAR_PCIBG1_PCIBG1 |
+            MCF_PAD_PAR_PCIBG_PAR_PCIBG2_PCIBG2 |
+            MCF_PAD_PAR_PCIBG_PAR_PCIBG3_PCIBG3 |
+            MCF_PAD_PAR_PCIBG_PAR_PCIBG4_PCIBG4; /* enable all PCI bus grant and bus requests on the LITE board */
+    MCF_PAD_PAR_PCIBR = MCF_PAD_PAR_PCIBR_PAR_PCIBR0_PCIBR0 |
+            MCF_PAD_PAR_PCIBR_PAR_PCIBR1_PCIBR1 |
+            MCF_PAD_PAR_PCIBR_PAR_PCIBR2_PCIBR2 |
+            MCF_PAD_PAR_PCIBR_PAR_PCIBR3_PCIBR3 |
+            MCF_PAD_PAR_PCIBR_PAR_PCIBR4_PCIBR4;
 #endif /* MACHINE_FIREBEE */
 
     MCF_PCI_PCISCR =  MCF_PCI_PCISCR_M |    /* memory access control enabled */
         MCF_PCI_PCISCR_B |                  /* bus master enabled */
         MCF_PCI_PCISCR_M |                  /* mem access enable */
         MCF_PCI_PCISCR_MA |                 /* clear master abort error */
-        MCF_PCI_PCISCR_MW;                  /* memory write and invalidate enabled */
+        MCF_PCI_PCISCR_MW |                 /* memory write and invalidate enabled */
+        MCF_PCI_PCISCR_PER;                 /* assert PERR on parity error */
 
 
     /* Setup burst parameters */
-    MCF_PCI_PCICR1 = MCF_PCI_PCICR1_CACHELINESIZE(0) |
+    MCF_PCI_PCICR1 = MCF_PCI_PCICR1_CACHELINESIZE(8) |
                         MCF_PCI_PCICR1_LATTIMER(0x20); /* TODO: test increased latency timer */
 
     MCF_PCI_PCICR2 = MCF_PCI_PCICR2_MINGNT(1) |
@@ -1174,8 +1199,8 @@ void init_pci(void)
 
     // MCF_PCI_PCIICR = 0;                      /* this is what Linux does */
 
-    MCF_PCI_PCIGSCR |= MCF_PCI_PCIGSCR_SEE; /* system error interrupt enable */
-
+    MCF_PCI_PCIGSCR |= MCF_PCI_PCIGSCR_SEE |    /* system error interrupt enable */
+                       MCF_PCI_PCIGSCR_PEE;     /* parity error interrupt enable */
     /* Configure Initiator Windows */
 
     /*
@@ -1183,7 +1208,7 @@ void init_pci(void)
      * used for PCI memory access
      */
     MCF_PCI_PCIIW0BTAR = ((PCI_MEMORY_OFFSET + ((PCI_MEMORY_SIZE - 1) >> 8)) & 0xffff0000)
-                          + (PCI_MEMORY_OFFSET >> 16);
+                          | (PCI_MEMORY_OFFSET >> 16);
 
     NOP();
     dbg("PCIIW0BTAR=0x%08x\r\n", MCF_PCI_PCIIW0BTAR);
@@ -1192,8 +1217,8 @@ void init_pci(void)
      * initiator window 1 base / translation adress register
      * used for PCI I/O access
      */
-    MCF_PCI_PCIIW1BTAR = ((PCI_IO_OFFSET + ((PCI_IO_SIZE - 1) >> 8)) & 0xffff0000) +
-                           + (PCI_IO_OFFSET >> 16);
+    MCF_PCI_PCIIW1BTAR = ((PCI_IO_OFFSET + ((PCI_IO_SIZE - 1) >> 8)) & 0xffff0000)
+                           | (PCI_IO_OFFSET >> 16);
     NOP();
     /* initiator window 2 base / translation address register */
     MCF_PCI_PCIIW2BTAR = 0L;   /* not used */
@@ -1217,6 +1242,8 @@ void init_pci(void)
     /* reset PCI devices */
     MCF_PCI_PCIGSCR &= ~MCF_PCI_PCIGSCR_PR;
     do { NOP(); } while (MCF_PCI_PCIGSCR & MCF_PCI_PCIGSCR_PR); /* wait until reset finished */
+    wait(200);
+
     xprintf("finished\r\n");
 
     /* initialize/clear resource descriptor table */

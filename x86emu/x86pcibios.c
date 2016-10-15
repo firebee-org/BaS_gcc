@@ -6,14 +6,8 @@
 #include "bas_printf.h"
 extern unsigned short offset_port;
 
-#define DBG_PCIBIOS
-#ifdef DBG_PCIBIOS
-#define dbg(format, arg...) do { xprintf("DEBUG (%s()): " format, __FUNCTION__, ##arg);} while(0)
-#else
-#define dbg(format, arg...) do {;} while (0)
-#endif /* DBG_PCIBIOS */
-#define err(format, arg...) do { xprintf("ERROR (%s()): " format, __FUNCTION__, ##arg); } while(0);
-
+#define DEBUG
+#include "debug.h"
 
 int x86_pcibios_handler(struct X86EMU *emu)
 {

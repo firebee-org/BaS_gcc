@@ -54,14 +54,8 @@
 #include "usb.h"
 #include "usb_hub.h"
 
-#define DEBUG_USB
-#ifdef DEBUG_USB
-#define dbg(format, arg...) do { xprintf("DEBUG: %s(): " format, __FUNCTION__, ##arg); } while (0)
-#else
-#define dbg(format, arg...) do { ; } while (0)
-#endif /* DEBUG_USB */
-#define err(format, arg...) do { xprintf("ERROR: %s(): " format, __FUNCTION__, ##arg); } while (0)
-#define info(format, arg...) do { xprintf("INFO: %s(): " format, __FUNCTION__, ##arg); } while (0)
+#define DEBUG
+#include "debug.h"
 
 struct hci
 {

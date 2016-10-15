@@ -47,3 +47,6 @@ tos/jtagwait
 tos/fpga_test/include
 tos/fpga_test
 tos/fpga_test/sources
+tos/pci_mem
+tos/pci_mem/include
+tos/pci_mem/sources

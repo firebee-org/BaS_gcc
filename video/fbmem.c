@@ -148,25 +148,14 @@ int fb_ioctl(struct fb_info *info, unsigned int cmd, unsigned long arg)
  */
 struct fb_info *framebuffer_alloc(unsigned long size)
 {
-    struct fb_info *info = driver_mem_alloc(sizeof(struct fb_info));
+    /* changed for BaS_gcc:
+     * we do not allocate anything here anymore, info_fb is statically allocated in video.c
+     * This leads to the (not really existing) limitation that we only support one Radeon
+     * card in the system
+     */
+    extern struct fb_info *info_fb;
 
-    if (info == NULL)
-    {
-        dbg("%s: could not allocate fb_info structure\r\n", __FUNCTION__);
-        return 0;
-    }
-    memset(info, 0, sizeof(struct fb_info));
-
-    if (size)
-    {
-        char *p = driver_mem_alloc(size);
-
-        if (!p)
-            return NULL;
-        memset(p, 0, size);
-        info->par = p;
-    }
-    return info;
+    return info_fb;
 }
 
 /**

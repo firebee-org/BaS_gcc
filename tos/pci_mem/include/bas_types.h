@@ -1,4 +1,8 @@
 /*
+ * bas_types.h
+ *
+ *  Created on: 17.11.2012
+ *      Author: mfro
  *
  * This file is part of BaS_gcc.
  *
@@ -15,21 +19,17 @@
  * You should have received a copy of the GNU General Public License
  * along with BaS_gcc.  If not, see <http://www.gnu.org/licenses/>.
  *
+ * Copyright 2010 - 2012 F. Aschwanden
+ * Copyright 2011 - 2012 V. Riviere
+ * Copyright 2012        M. Froeschle
+ *
  */
 
-#ifndef _BAS_PRINTF_H_
-#define _BAS_PRINTF_H_
-#include <stdarg.h>
-#include <stddef.h>
+#ifndef BAS_TYPES_H_
+#define BAS_TYPES_H_
 
-extern void xvsnprintf(char *str, size_t size, const char *fmt, va_list va);
-extern void xvprintf(const char *fmt, va_list va);
-extern void xprintf(const char *fmt, ...);
-extern void xsnprintf(char *str, size_t size, const char *fmt, ...);
-extern void xputchar(int c);
-extern int sprintf(char *str, const char *format, ...);
+#include <stdint.h>
+#include <stdbool.h>
+#include <stddef.h>		/* for sizeof() etc. */
 
-
-extern void display_progress(void);
-extern void hexdump(uint8_t buffer[], int size);
-#endif /* _BAS_PRINTF_H_ */
+#endif /* BAS_TYPES_H_ */
