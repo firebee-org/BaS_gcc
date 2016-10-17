@@ -18,18 +18,18 @@ int x86_pcibios_handler(struct X86EMU *emu)
     {
         case PCI_BIOS_PRESENT:
             dbg("PCI_BIOS_PRESENT\r\n");
-            emu->x86.R_AH	= 0x00;			/* no config space/special cycle support */
-            emu->x86.R_AL	= 0x01;			/* config mechanism 1 */
+            emu->x86.R_AH	= 0x00;         /* no config space/special cycle support */
+            emu->x86.R_AL	= 0x01;         /* config mechanism 1 */
             emu->x86.R_EDX = 'P' | 'C' << 8 | 'I' << 16 | ' ' << 24;
-            emu->x86.R_EBX = 0x0210;		/* Version 2.10 */
-            emu->x86.R_ECX = 0xFF00;		/* FixME: Max bus number */
+            emu->x86.R_EBX = 0x0210;        /* Version 2.10 */
+            emu->x86.R_ECX = 0xFF00;        /* FixME: Max bus number */
             emu->x86.R_EFLG &= ~FB_CF;      /* clear carry flag */
             ret = 1;
             break;
 
         case FIND_PCI_DEVICE:
             dbg("FIND_PCI_DEVICE vendor = %04x, device = %04x\r\n", emu->x86.R_DX, emu->x86.R_CX);
-            dev = pci_find_device((unsigned long) emu->x86.R_DX, ((unsigned long) emu->x86.R_CX), 0);
+            dev = pci_find_device((uintptr_t) emu->x86.R_DX, ((unsigned long) emu->x86.R_CX), 0);
 
             if (dev != 0)
             {

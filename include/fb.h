@@ -536,17 +536,18 @@ struct fb_videomode {
 extern const struct fb_videomode vesa_modes[];
 
 /* timer */
-#ifdef COLDFIRE
-#ifdef MCF5445X
+
+#if defined(MACHINE_FIREBEE)
+#define US_TO_TIMER(a) (((a) * 256) / 5000)
+#define TIMER_TO_US(a) (((a) * 5000) / 256)
+#elif defined(MACHINE_M5484LITE)
+#define US_TO_TIMER(a) ((a) * 100)
+#define TIMER_TO_US(a) ((a) / 100)
+#elif defined(MACHINE_M54455)
 #define US_TO_TIMER(a) (a)
 #define TIMER_TO_US(a) (a)
-#else /* MCF548X */
-#define US_TO_TIMER(a) ((a)*100)
-#define TIMER_TO_US(a) ((a)/100)
-#endif
 #else
-#define US_TO_TIMER(a) (((a)*256)/5000)
-#define TIMER_TO_US(a) (((a)*5000)/256)
+#error Unknown machine!
 #endif
 
 extern void start_timeout(void);
