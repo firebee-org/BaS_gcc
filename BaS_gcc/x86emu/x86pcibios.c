@@ -75,7 +75,7 @@ int x86_pcibios_handler(struct X86EMU *emu)
         case READ_CONFIG_BYTE:
             // bus, devfn
             dbg("READ_CONFIG_BYTE bus = %x, devfn = %x, reg = %x\r\n", emu->x86.R_BH, emu->x86.R_BL, emu->x86.R_DI);
-            dev = PCI_HANDLE(emu->x86.R_BH, emu->x86.R_BL >> 3, emu->x86.R_BL & 3);
+            dev = PCI_HANDLE(emu->x86.R_BH, emu->x86.R_BL >> 3, emu->x86.R_BL & 7);
             emu->x86.R_CL = pci_read_config_byte(dev, emu->x86.R_DI);
             dbg("value = %x\r\n", emu->x86.R_CL);
             emu->x86.R_AH = SUCCESSFUL;
@@ -86,7 +86,7 @@ int x86_pcibios_handler(struct X86EMU *emu)
         case READ_CONFIG_WORD:
             // bus, devfn
             dbg("READ_CONFIG_WORD bus = %x, devfn = %x, reg = %x\r\n", emu->x86.R_BH, emu->x86.R_BL, emu->x86.R_DI);
-            dev = PCI_HANDLE(emu->x86.R_BH, emu->x86.R_BL >> 3, emu->x86.R_BL & 3);
+            dev = PCI_HANDLE(emu->x86.R_BH, emu->x86.R_BL >> 3, emu->x86.R_BL & 7);
             if (emu->x86.R_DI == PCIBAR1)
                 emu->x86.R_CX = offset_port + 1;
             else
@@ -100,7 +100,7 @@ int x86_pcibios_handler(struct X86EMU *emu)
         case READ_CONFIG_DWORD:
             // bus, devfn
             dbg("READ_CONFIG_DWORD bus = %x, devfn = %x, reg = %x\r\n", emu->x86.R_BH, emu->x86.R_BL, emu->x86.R_DI);
-            dev = PCI_HANDLE(emu->x86.R_BH, emu->x86.R_BL >> 3, emu->x86.R_BL & 3);
+            dev = PCI_HANDLE(emu->x86.R_BH, emu->x86.R_BL >> 3, emu->x86.R_BL & 7);
             if (emu->x86.R_DI == PCIBAR1)
                 emu->x86.R_CX = (unsigned long) offset_port + 1;
             else
@@ -115,7 +115,7 @@ int x86_pcibios_handler(struct X86EMU *emu)
             // bus, devfn
             dbg("READ_CONFIG_BYTE bus = %x, devfn = %x, reg = %x, value = %x\r\n",
                 emu->x86.R_BH, emu->x86.R_BL, emu->x86.R_DI, emu->x86.R_CL);
-            dev = PCI_HANDLE(emu->x86.R_BH, emu->x86.R_BL >> 3, emu->x86.R_BL & 3);
+            dev = PCI_HANDLE(emu->x86.R_BH, emu->x86.R_BL >> 3, emu->x86.R_BL & 7);
             pci_write_config_byte(dev, emu->x86.R_DI, emu->x86.R_CL);
             emu->x86.R_AH = SUCCESSFUL;
             emu->x86.R_EFLG &= ~FB_CF;	/* clear carry flag */
@@ -124,7 +124,7 @@ int x86_pcibios_handler(struct X86EMU *emu)
 
         case WRITE_CONFIG_WORD:
             // bus, devfn
-            dev = PCI_HANDLE(emu->x86.R_BH, emu->x86.R_BL >> 3, emu->x86.R_BL & 3);
+            dev = PCI_HANDLE(emu->x86.R_BH, emu->x86.R_BL >> 3, emu->x86.R_BL & 7);
             dbg("WRITE_CONFIG_WORD bus = %x, devfn = %x, reg = %x, value = %x\r\n", emu->x86.R_BH, emu->x86.R_BL, emu->x86.R_DI, emu->x86.R_CX);
             if (emu->x86.R_DI == PCIBAR1)
             {
@@ -142,7 +142,7 @@ int x86_pcibios_handler(struct X86EMU *emu)
 
         case WRITE_CONFIG_DWORD:
             // bus, devfn
-            dev = PCI_HANDLE(emu->x86.R_BH, emu->x86.R_BL >> 3, emu->x86.R_BL & 3);
+            dev = PCI_HANDLE(emu->x86.R_BH, emu->x86.R_BL >> 3, emu->x86.R_BL & 7);
             dbg("WRITE_CONFIG_DWORD bus = %x, devfn = %x, value = %x\r\n",
                 emu->x86.R_BH, emu->x86.R_BL, emu->x86.R_DI, emu->x86.R_ECX);
             if (emu->x86.R_DI == PCIBAR1)
