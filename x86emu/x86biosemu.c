@@ -10,7 +10,7 @@
 #include "pci_ids.h"
 #include "x86pcibios.h"
 
-// #define DEBUG
+#define DEBUG
 #include "debug.h"
 
 #define USE_SDRAM
@@ -30,24 +30,13 @@
 #define SIZE_EMU               0x100000
 
 
-typedef struct
-{
-    long ident;
-    union
-    {
-        long l;
-        short i[2];
-        char c[4];
-    } v;
-} COOKIE;
-
 struct rom_header
 {
     uint16_t signature;
     uint8_t size;
     uint8_t init[3];
     uint8_t reserved[0x12];
-    uint16_t	data;
+    uint16_t data;
 };
 
 struct pci_data
@@ -73,22 +62,21 @@ uint32_t offset_mem;
 static uint32_t offset_io;
 static uint32_t config_address_reg;
 
-//X86EMU_sysEnv _X86EMU_env;
 
 /* general software interrupt handler */
-uint32_t getIntVect(struct X86EMU *emu, int num)
+static uint32_t getIntVect(struct X86EMU *emu, int num)
 {
     return MEM_RW(num << 2) + (MEM_RW((num << 2) + 2) << 4);
 }
 
 /* FixME: There is already a push_word() in the emulator */
-void pushw(struct X86EMU *emu, uint16_t val)
+static void pushw(struct X86EMU *emu, uint16_t val)
 {
     emu->x86.R_ESP -= 2;
     MEM_WW(((uint32_t) emu->x86.R_SS << 4) + emu->x86.R_SP, val);
 }
 
-int run_bios_int(struct X86EMU *emu, int num)
+static int run_bios_int(struct X86EMU *emu, int num)
 {
     uint32_t eflags;
     eflags = emu->x86.R_EFLG;
@@ -105,14 +93,14 @@ static uint8_t inb(struct X86EMU *emu, uint16_t port)
 {
     uint8_t val = 0;
 
-    if ((port >= offset_port) && (port <= offset_port + 0xFF))
+    if ((port >= offset_port) && (port <= offset_port + 0xff))
     {
         val = * (uint8_t *) (offset_io + (uint32_t) port);
     }
     return val;
 }
 
-uint16_t inw(struct X86EMU *emu, uint16_t port)
+static uint16_t inw(struct X86EMU *emu, uint16_t port)
 {
     uint16_t val = 0;
 
@@ -123,9 +111,10 @@ uint16_t inw(struct X86EMU *emu, uint16_t port)
     return val;
 }
 
-uint32_t inl(struct X86EMU *emu, uint16_t port)
+static uint32_t inl(struct X86EMU *emu, uint16_t port)
 {
     uint32_t val = 0;
+
     if ((port >= offset_port) && (port <= offset_port + 0xFF))
     {
         val = swpl(*(uint32_t *)(offset_io + (uint32_t) port));
@@ -153,10 +142,11 @@ uint32_t inl(struct X86EMU *emu, uint16_t port)
         }
         dbg("inl(0x%x) = 0x%x\r\n", port, val);
     }
+
     return val;
 }
 
-void outb(struct X86EMU *emu, uint16_t port, uint8_t val)
+static void outb(struct X86EMU *emu, uint16_t port, uint8_t val)
 {
     if ((port >= offset_port) && (port <= offset_port + 0xFF))
     {
@@ -164,7 +154,7 @@ void outb(struct X86EMU *emu, uint16_t port, uint8_t val)
     }
 }
 
-void outw(struct X86EMU *emu, uint16_t port, uint16_t val)
+static void outw(struct X86EMU *emu, uint16_t port, uint16_t val)
 {
     if ((port >= offset_port) && (port <= offset_port + 0xFF))
     {
@@ -172,7 +162,7 @@ void outw(struct X86EMU *emu, uint16_t port, uint16_t val)
     }
 }
 
-void outl(struct X86EMU *emu, uint16_t port, uint32_t val)
+static void outl(struct X86EMU *emu, uint16_t port, uint32_t val)
 {
     if ((port >= offset_port) && (port <= offset_port + 0xFF))
     {
@@ -185,7 +175,9 @@ void outl(struct X86EMU *emu, uint16_t port, uint32_t val)
     else if ((port == 0xCFC) && ((config_address_reg & 0x80000000) !=0))
     {
         if ((config_address_reg & 0xFC) == PCIBAR1)
+        {
             offset_port = (uint16_t)val & 0xFFFC;
+        }
         else
         {
             dbg("outl(0x%x, 0x%x) to PCI config space\r\n", port, val);
@@ -196,20 +188,29 @@ void outl(struct X86EMU *emu, uint16_t port, uint32_t val)
 
 /* Interrupt multiplexer */
 
-void do_int(struct X86EMU *emu, int num)
+static void do_int(struct X86EMU *emu, int num)
 {
     int ret = 0;
-
-    dbg("int %02xh\r\n", num);
 
     switch (num)
     {
 #ifndef _PC
         case 0x10:
+            /* video interrupt */
+            /* fall through intentional */
+
         case 0x42:
-        case 0x6D:
+            /* video interrupt */
+            /* fall through intentional */
+
+        case 0x6d:
+            /* VGA internal interrupt */
+
+            dbg("int %02xh, AH=0x%02x, AL=0x%02x\r\n", num, emu->x86.register_a.I8_reg.h_reg, emu->x86.register_a.I8_reg.l_reg);
+
             if (getIntVect(emu, num) == 0x0000)
-                dbg("uninitialised int vector\r\n");
+                err("uninitialised int vector\r\n");
+
             if (getIntVect(emu, num) == 0xFF065)
             {
                 //ret = int42_handler();
@@ -221,54 +222,64 @@ void do_int(struct X86EMU *emu, int num)
             //ret = int15_handler();
             ret = 1;
             break;
+
         case 0x16:
             //ret = int16_handler();
             ret = 0;
             break;
-        case 0x1A:
+
+        case 0x1a:
             ret = x86_pcibios_handler(emu);
             ret = 1;
             break;
+
         case 0xe6:
             //ret = intE6_handler();
             ret = 0;
             break;
+
         default:
             break;
     }
+
     if (!ret)
+    {
         ret = run_bios_int(emu, num);
+    }
 }
 
 static int setup_system_bios(void *base_addr)
 {
     char *base = (char *) base_addr;
     int i;
+
     /*
      * we trap the "industry standard entry points" to the BIOS
      * and all other locations by filling them with "hlt"
      * TODO: implement hlt-handler for these
      */
-    for(i = 0; i < SIZE_EMU + 4; base[i++] = 0xF4);
 
-    return(1);
+    for (i = 0; i < SIZE_EMU + 4; base[i++] = 0xF4);
+
+    return 1;
 }
 
 void run_bios(struct radeonfb_info *rinfo)
 {
-    long i, j;
+    long i;
+    long j;
     unsigned char *ptr;
     struct rom_header *rom_header;
     struct pci_data *rom_data;
-    unsigned long rom_size=0;
-    unsigned long image_size=0;
+    unsigned long rom_size = 0;
+    unsigned long image_size = 0;
     void *biosmem = (void *) 0x0100000; /* when run_bios() is called, SDRAM is valid but not added to the system */
     unsigned long addr;
     unsigned short initialcs;
     unsigned short initialip;
     unsigned short devfn = (unsigned short) rinfo->handle;
 
-    struct X86EMU emu = {0};
+    struct X86EMU emu = { 0 };
 
     X86EMU_init_default(&emu);
     emu.emu_inb = inb;
@@ -290,14 +301,15 @@ void run_bios(struct radeonfb_info *rinfo)
     config_address_reg = 0;
     offset_port = 0x300;
     offset_io = (uint32_t) rinfo->io_base - (uint32_t) offset_port;
-    offset_mem = (uint32_t) rinfo->fb_base - 0xA0000;
+    offset_mem = (uint32_t) rinfo->fb_base - 0xa0000;
 
     rom_header = NULL;
+
     do
     {
-        rom_header = (struct rom_header *) ((unsigned long) rom_header + image_size); // get next image
-        rom_data = (struct pci_data *) ((unsigned long)rom_header + (unsigned long) BIOS_IN16((long) &rom_header->data));
-        image_size = (unsigned long) BIOS_IN16((long) &rom_data->ilen) * 512;
+        rom_header = (struct rom_header *) ((uintptr_t) rom_header + image_size); // get next image
+        rom_data = (struct pci_data *) ((uintptr_t) rom_header + (uintptr_t) BIOS_IN16((long) &rom_header->data));
+        image_size = (size_t) BIOS_IN16((long) &rom_data->ilen) * 512;
     } while ((BIOS_IN8((long) &rom_data->type) != 0) && (BIOS_IN8((long) &rom_data->indicator) != 0));  // make sure we got x86 version
 
     if (BIOS_IN8((long) &rom_data->type) != 0)
@@ -306,7 +318,7 @@ void run_bios(struct radeonfb_info *rinfo)
         return;
     }
 
-    rom_size = (unsigned long) BIOS_IN8((long) &rom_header->size) * 512;
+    rom_size = (size_t) BIOS_IN8((uintptr_t) &rom_header->size) * 512;
     dbg("ROM size = 0x%lx\r\n", rom_size);
 
     if (PCI_CLASS_DISPLAY_VGA == BIOS_IN16((long) &rom_data->class_hi))
@@ -315,44 +327,48 @@ void run_bios(struct radeonfb_info *rinfo)
         setup_system_bios((char *) biosmem);
 
         dbg("Copying VGA ROM Image from %p to %p (0x%lx bytes)\r\n",
-            (long) rinfo->bios_seg + (long) rom_header,
+            (uintptr_t) rinfo->bios_seg + (uintptr_t) rom_header,
             biosmem + PCI_VGA_RAM_IMAGE_START, rom_size);
         {
-            long bytes_align = (long) rom_header & 3;
+            long bytes_align = (uintptr_t) rom_header & 3;
 
-            ptr = (unsigned char *) biosmem;
+            ptr = (uint8_t *) biosmem;
             i = (long) rom_header;
             j = PCI_VGA_RAM_IMAGE_START;
 
             if (bytes_align)
-                for(; i < 4 - bytes_align; ptr[j++] = BIOS_IN8(i++));
+            {
+                for (; i < 4 - bytes_align; ptr[j++] = BIOS_IN8(i++));
+            }
 
-            for(; i < (long) rom_header + rom_size; i += 4, j += 4)
-                *((unsigned long *) &ptr[j]) = swpl(BIOS_IN32(i));
+            for (; i < (long) rom_header + rom_size; i += 4, j += 4)
+            {
+                *((uintptr_t *) &ptr[j]) = swpl(BIOS_IN32(i));
+            }
         }
         addr = PCI_VGA_RAM_IMAGE_START;
     }
     else
     {
-        memset((char *) biosmem, 0, SIZE_EMU);
+        memset((uint8_t *) biosmem, 0, SIZE_EMU);
         setup_system_bios((char *) biosmem);
 
         dbg("Copying non-VGA ROM Image from %p to %p (0x%lx bytes)\r\n",
-            (long) rinfo->bios_seg + (long) rom_header,
+            (uintptr_t) rinfo->bios_seg + (uintptr_t) rom_header,
             biosmem + PCI_RAM_IMAGE_START,
             rom_size);
-        ptr = (unsigned char *) biosmem;
-        for (i = (long) rom_header, j = PCI_RAM_IMAGE_START; i < (long) rom_header+rom_size; ptr[j++] = BIOS_IN8(i++));
+        ptr = (uint8_t *) biosmem;
+        for (i = (long) rom_header, j = PCI_RAM_IMAGE_START; i < (long) rom_header + rom_size; ptr[j++] = BIOS_IN8(i++));
         addr = PCI_RAM_IMAGE_START;
     }
 
-    initialcs = (addr & 0xF0000) >> 4;
-    initialip = (addr + 3) & 0xFFFF;
+    initialcs = (addr & 0xf0000) >> 4;
+    initialip = (addr + 3) & 0xffff;
 
     /*
      * set emulator memory
      */
-    emu.mem_base = (void *) biosmem;
+    emu.mem_base = biosmem;
     emu.mem_size = SIZE_EMU;
 
     for (i = 0; i < 256; i++)
@@ -360,19 +376,20 @@ void run_bios(struct radeonfb_info *rinfo)
         emu._X86EMU_intrTab[i] = do_int;
     }
 
+    char *date = "01/01/99";
+
+    for (i = 0; date[i]; i++)
     {
-        char *date = "01/01/99";
-        for (i = 0; date[i]; i++)
-            emu.emu_wrb(&emu, 0xffff5 + i, date[i]);
-        emu.emu_wrb(&emu, 0xffff7, '/');
-        emu.emu_wrb(&emu, 0xffffa, '/');
+        emu.emu_wrb(&emu, 0xffff5 + i, date[i]);
     }
-    {
-        /* FixME: move PIT init to its own file */
-        outb(&emu, 0x36, 0x43);
-        outb(&emu, 0x00, 0x40);
-        outb(&emu, 0x00, 0x40);
-    }
+    emu.emu_wrb(&emu, 0xffff7, '/');
+    emu.emu_wrb(&emu, 0xffffa, '/');
+
+    /* FixME: move PIT init to its own file */
+    outb(&emu, 0x36, 0x43);
+    outb(&emu, 0x00, 0x40);
+    outb(&emu, 0x00, 0x40);
+
     //	setup_int_vect();
 
     /* cpu setup */
@@ -398,14 +415,19 @@ void run_bios(struct radeonfb_info *rinfo)
     //	pushw(0x0013);    /* 320 x 200 x 256 colors */
     // //	pushw(0x000F);    /* 640 x 350 x mono */
     //	pushw(0xb890);    /* nop, mov ax,#0x13 */
+
     pushw(&emu, emu.x86.R_SS);
     pushw(&emu, emu.x86.R_SP + 2);
 
     dbg("X86EMU entering emulator\r\n");
-    //*vblsem = 0;
+
     X86EMU_exec(&emu);
-    //*vblsem = 1;
+
     dbg("X86EMU halted\r\n");
     //	biosfn_set_video_mode(0x13); /* 320 x 200 x 256 colors */
+
+    /*
+     * clear emulator memory once we are finished
+     */
     memset((char *) biosmem, 0, SIZE_EMU);
 }

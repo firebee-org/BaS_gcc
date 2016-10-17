@@ -219,6 +219,7 @@ void x86emu_intr_raise(struct X86EMU *emu, uint8_t intrnum)
     emu->x86.intno = intrnum;
     emu->x86.intr |= INTR_SYNCH;
 }
+
 /****************************************************************************
 REMARKS:
 Main execution loop for the emulator. We return from here when the system
@@ -278,6 +279,8 @@ Halts the system by setting the halted system flag.
 void
 X86EMU_halt_sys(struct X86EMU *emu)
 {
+    dbg("\r\n");
+
 #ifdef _KERNEL
     longjmp(&emu->exec_state);
 #else
@@ -346,7 +349,7 @@ fetch_word_imm(struct X86EMU *emu)
 }
 /****************************************************************************
 RETURNS:
-Immediate lone value read from instruction queue
+Immediate long value read from instruction queue
 
 REMARKS:
 This function returns the immediate byte from the instruction queue, and
