@@ -893,3 +893,4 @@ tos/vmem_test/sources/printf_helper.S
 tos/vmem_test/sources/vmem_test.c
 tos/vmem_test/Makefile
 tos/Makefile
+radeon/radeon_i2c.c

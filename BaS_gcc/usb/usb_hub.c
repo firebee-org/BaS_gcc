@@ -12,14 +12,8 @@
 #include "usb.h"
 #include "usb_hub.h"
 
-#define DEBUG_HUB
-#ifdef DEBUG_HUB
-#define dbg(format, arg...) do { xprintf("DEBUG: %s(): " format, __FUNCTION__, ##arg); } while (0)
-#else
-#define dbg(format, arg...) do { ; } while (0)
-#endif /* DEBUG_HUB */
-#define err(format, arg...) do { xprintf("DEBUG: %s(): " format, __FUNCTION__, ##arg); } while (0)
-#define info(format, arg...) do { xprintf("DEBUG: %s(): " format, __FUNCTION__, ##arg); } while (0)
+// #define DEBUG
+#include "debug.h"
 
 static struct usb_hub_device hub_dev[USB_MAX_BUS][USB_MAX_HUB];
 static int usb_hub_index[USB_MAX_BUS];

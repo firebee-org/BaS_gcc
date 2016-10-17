@@ -54,7 +54,7 @@
 #include "usb.h"
 #include "usb_hub.h"
 
-#define DEBUG
+// #define DEBUG
 #include "debug.h"
 
 struct hci

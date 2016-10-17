@@ -8,7 +8,9 @@ sleep 1
 
 wait
 
-
+# set VBR
+write-ctrl 0x0801 0x00000000
+dump-register VBR
 
 # Turn on MBAR at 0x1000_0000
 write-ctrl 0x0C0F 0x10000000
@@ -20,8 +22,8 @@ write-ctrl 0x0C04 0x20000021
 # Turn on RAMBAR1 at address 20001000
 write-ctrl 0x0C05 0x20001021
 
-# Init CS0 (BootFLASH @ E000_0000 - E03F_FFFF 8Mbytes)
-write 0x10000500 0xE0000000 4
+# Init CS0 (BootFLASH @ ff80_0000 - ff8F_FFFF 8Mbytes)
+write 0x10000500 0xff800000 4
 write 0x10000508 0x00041180 4
 write 0x10000504 0x003F0001 4
 wait
@@ -47,11 +49,7 @@ write 0x10000100 0x018D0000 4	# SDMR (write to LMR)
 write 0x10000104 0x710D0F00 4	# SDCR (lock SDMR and enable refresh)
 sleep 100
 
-load m548xlite_dbug_ram.elf .sec1 .sec2 .sec3
-
-# set VBR
-write-ctrl 0x0801 0x00000000
-dump-register VBR
+load m548xlite_dbug_ram.elf
 
 execute
 wait

@@ -34,7 +34,7 @@
 #include "interrupts.h"
 #include "wait.h"
 
-#define DEBUG
+// #define DEBUG
 #include "debug.h"
 
 #define pci_config_wait() do { __asm__ __volatile("tpf" ::: "memory"); } while (0)
@@ -862,7 +862,7 @@ static void pci_device_config(uint16_t bus, uint16_t device, uint16_t function)
             if (IS_PCI_MEM_BAR(address))
             {
                 /* adjust base address to card's alignment requirements */
-                long size = ~(address & 0xfffffff0) + 1;
+                size_t size = ~(address & 0xfffffff0) + 1;
                 dbg("device 0x%02x: BAR[%d] requests %ld kBytes of memory\r\n", handle, i / 4, size / 1024);
 
                 /* calculate a valid map adress with alignment requirements */
