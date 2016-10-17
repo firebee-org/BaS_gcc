@@ -332,12 +332,12 @@ void __OUTPLLP(struct radeonfb_info *rinfo, uint32_t index, uint32_t val, uint32
     __OUTPLL(rinfo, index, tmp);
 }
 
-static int round_div(int num, int den)
+static __inline int round_div(int num, int den)
 {
     return(num + (den / 2)) / den;
 }
 
-static uint32_t read_vline_crnt(struct radeonfb_info *rinfo)
+static __inline uint32_t read_vline_crnt(struct radeonfb_info *rinfo)
 {
     return((INREG(CRTC_VLINE_CRNT_VLINE) >> 16) & 0x3FF);
 }
@@ -357,10 +357,6 @@ static int radeon_map_ROM(struct radeonfb_info *rinfo)
 
     uint32_t temp;
 
-    dbg("mmio_base=%p\r\n", rinfo->mmio_base);
-    dbg("bios_seg=%p\r\n", rinfo->bios_seg);
-    dbg("bios_seg_phys=%p\r\n", rinfo->bios_seg_phys);
-
     temp = inreg(MPP_TB_CONFIG);
 
     dbg("temp=%d\r\n", temp);
@@ -371,14 +367,14 @@ static int radeon_map_ROM(struct radeonfb_info *rinfo)
 
     if (rinfo->bios_seg == NULL)
     {
-        dbg("ROM failed to map\r\n");
+        err("no ROM found on ATI card\r\n");
         return -1;
     }
 
     /* Very simple test to make sure it appeared */
     if (BIOS_IN16(0) != 0xaa55)
     {
-        dbg("Invalid ROM signature");
+        dbg("Invalid ROM signature 0x%04x instead of 0x%04x found\r\n", BIOS_IN16(0), 0xaa55);
         goto failed;
     }
 
@@ -394,27 +390,30 @@ static int radeon_map_ROM(struct radeonfb_info *rinfo)
      * them all, and we should use fb_bios_start relative to start of image and not
      * relative start of ROM, but so far, I never found a dual-image ATI card
      *
-     * typedef struct {
-     * 	u32	signature;	+ 0x00
-     * 	u16	vendor;		+ 0x04
-     * 	u16	device;		+ 0x06
-     * 	u16	reserved_1;	+ 0x08
-     * 	u16	dlen;		+ 0x0a
-     * 	u8	drevision;	+ 0x0c
-     * 	u8	class_hi;	+ 0x0d
-     * 	u16	class_lo;	+ 0x0e
-     * 	u16	ilen;		+ 0x10
-     * 	u16	irevision;	+ 0x12
-     * 	u8	type;		+ 0x14
-     * 	u8	indicator;	+ 0x15
-     * 	u16	reserved_2;	+ 0x16
+     * typedef struct
+     * {
+     *     u32 signature;	+ 0x00
+     *     u16 vendor;		+ 0x04
+     *     u16 device;		+ 0x06
+     *     u16 reserved_1;	+ 0x08
+     *     u16 dlen;		+ 0x0a
+     *     u8 drevision;	+ 0x0c
+     *     u8 class_hi;	+ 0x0d
+     *     u16 class_lo;	+ 0x0e
+     *     u16 ilen;		+ 0x10
+     *     u16 irevision;	+ 0x12
+     *     u8 type;		+ 0x14
+     *     u8 indicator;	+ 0x15
+     *     u16 reserved_2;	+ 0x16
      * } pci_data_t;
      */
+
     if (BIOS_IN32(dptr) !=  (('R' << 24) | ('I' << 16) | ('C' << 8) | 'P'))
     {
         dbg("PCI DATA signature in ROM incorrect: %p\r\n", BIOS_IN32(dptr));
         goto anyway;
     }
+
     rom_type = BIOS_IN8(dptr + 0x14);
     switch(rom_type)
     {
@@ -431,23 +430,24 @@ static int radeon_map_ROM(struct radeonfb_info *rinfo)
             dbg("Found unknown type %d ROM Image\r\n", rom_type);
             goto failed;
     }
+
 anyway:
     /* Locate the flat panel infos, do some sanity checking !!! */
     rinfo->fp_bios_start = BIOS_IN16(0x48);
     dbg("BIOS start offset: %p\r\n", BIOS_IN16(0x48));
 
     /* Save BIOS PLL informations */
-    {
-        uint16_t pll_info_block = BIOS_IN16(rinfo->fp_bios_start + 0x30);
 
-        dbg("BIOS PLL info block offset: %p\r\n", BIOS_IN16(rinfo->fp_bios_start + 0x30));
-        rinfo->bios_pll.sclk = BIOS_IN16(pll_info_block + 0x08);
-        rinfo->bios_pll.mclk = BIOS_IN16(pll_info_block + 0x0a);
-        rinfo->bios_pll.ref_clk	= BIOS_IN16(pll_info_block + 0x0e);
-        rinfo->bios_pll.ref_div	= BIOS_IN16(pll_info_block + 0x10);
-        rinfo->bios_pll.ppll_min = BIOS_IN32(pll_info_block + 0x12);
-        rinfo->bios_pll.ppll_max = BIOS_IN32(pll_info_block + 0x16);
-    }
+    uint16_t pll_info_block = BIOS_IN16(rinfo->fp_bios_start + 0x30);
+
+    dbg("BIOS PLL info block offset: %p\r\n", BIOS_IN16(rinfo->fp_bios_start + 0x30));
+    rinfo->bios_pll.sclk = BIOS_IN16(pll_info_block + 0x08);
+    rinfo->bios_pll.mclk = BIOS_IN16(pll_info_block + 0x0a);
+    rinfo->bios_pll.ref_clk	= BIOS_IN16(pll_info_block + 0x0e);
+    rinfo->bios_pll.ref_div	= BIOS_IN16(pll_info_block + 0x10);
+    rinfo->bios_pll.ppll_min = BIOS_IN32(pll_info_block + 0x12);
+    rinfo->bios_pll.ppll_max = BIOS_IN32(pll_info_block + 0x16);
+
     return 0;
 
 failed:
@@ -461,12 +461,24 @@ failed:
 static int radeon_probe_pll_params(struct radeonfb_info *rinfo)
 {
     uint8_t ppll_div_sel;
-    unsigned Ns, Nm, M;
-    unsigned sclk, mclk, tmp, ref_div;
-    int hTotal, vTotal, num, denom, m, n;
-    double hz, vclk;
+    unsigned Ns;
+    unsigned Nm;
+    unsigned M;
+    unsigned sclk;
+    unsigned mclk;
+    unsigned tmp;
+    unsigned ref_div;
+    int hTotal;
+    int vTotal;
+    int num;
+    int denom;
+    int m;
+    int n;
+    double hz;
+    double vclk;
     int32_t xtal;
-    uint32_t start_tv, stop_tv;
+    uint32_t start_tv;
+    uint32_t stop_tv;
     int timeout = 0;
     int ipl;
 
@@ -474,12 +486,12 @@ static int radeon_probe_pll_params(struct radeonfb_info *rinfo)
      * Ugh, we cut interrupts, bad bad bad, but we want some precision
      * here, so... --BenH
      */
+    ipl = set_ipl(0);
+
     dbg("radeon_probe_pll_params\r\n");
 
     /* Flush PCI buffers ? */
     tmp = INREG16(DEVICE_ID);
-
-    ipl = set_ipl(0);
 
     start_tv = get_timer();
     while (read_vline_crnt(rinfo) != 0)
@@ -504,6 +516,7 @@ static int radeon_probe_pll_params(struct radeonfb_info *rinfo)
                 break;
             }
         }
+
         if (!timeout)
         {
             while (read_vline_crnt(rinfo) != 0)
