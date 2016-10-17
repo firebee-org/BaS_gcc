@@ -79,6 +79,7 @@ static void pushw(struct X86EMU *emu, uint16_t val)
 static int run_bios_int(struct X86EMU *emu, int num)
 {
     uint32_t eflags;
+
     eflags = emu->x86.R_EFLG;
     pushw(emu, eflags);
     pushw(emu, emu->x86.R_CS);
@@ -176,7 +177,7 @@ static void outl(struct X86EMU *emu, uint16_t port, uint32_t val)
     {
         if ((config_address_reg & 0xFC) == PCIBAR1)
         {
-            offset_port = (uint16_t)val & 0xFFFC;
+            offset_port = (uint16_t) val & 0xFFFC;
         }
         else
         {
