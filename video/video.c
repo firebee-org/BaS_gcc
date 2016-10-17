@@ -286,12 +286,12 @@ int16_t ignore_edid;
 
 struct mode_option resolution =
 {
-    .used = 0,
+    .used = 1,
     .width = 640,
     .height = 480,
     .bpp = 8,
     .freq = 60,
-    .flags = 0
+    .flags = MODE_VESA_FLAG
 };
 int16_t force_measure_pll;
 

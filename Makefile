@@ -138,6 +138,7 @@ CSRCS= \
 	radeon_accel.c \
 	radeon_cursor.c \
 	radeon_monitor.c \
+	radeon_i2c.c \
 	fnt_st_8x16.c \
 	\
 	x86emu.c \

@@ -79,7 +79,7 @@ extern void run_bios(struct radeonfb_info *rinfo);
     0,												\
     0,												\
     (flags) | (CHIP_FAMILY_##family)				\
-    }
+}
 
 struct pci_device_id radeonfb_pci_table[] =
 {
@@ -236,8 +236,6 @@ extern struct fb_info *info_fb;
 #define rinfo ((struct radeonfb_info *) info_fb->par)
 static uint32_t inreg(uint32_t addr)
 {
-    dbg("info_fb = %p, info_fb->par = %p\r\n", info_fb, info_fb->par);
-    dbg("retrieve from addr %p\r\n", rinfo->mmio_base + addr);
     return INREG(addr);
 }
 
@@ -282,8 +280,8 @@ void radeon_pll_errata_after_index(struct radeonfb_info *rinfo)
 {
     if (!(rinfo->errata & CHIP_ERRATA_PLL_DUMMYREADS))
         return;
-    (void)INREG(CLOCK_CNTL_DATA);
-    (void)INREG(CRTC_GEN_CNTL);
+    (void) INREG(CLOCK_CNTL_DATA);
+    (void) INREG(CRTC_GEN_CNTL);
 }
 
 void radeon_pll_errata_after_data(struct radeonfb_info *rinfo)
@@ -363,9 +361,7 @@ static int radeon_map_ROM(struct radeonfb_info *rinfo)
     dbg("bios_seg=%p\r\n", rinfo->bios_seg);
     dbg("bios_seg_phys=%p\r\n", rinfo->bios_seg_phys);
 
-    dbg("before inreg\r\n");
     temp = inreg(MPP_TB_CONFIG);
-    dbg("after inreg\r\n");
 
     dbg("temp=%d\r\n", temp);
     temp &= 0x00ffffffu;
@@ -445,12 +441,12 @@ anyway:
         uint16_t pll_info_block = BIOS_IN16(rinfo->fp_bios_start + 0x30);
 
         dbg("BIOS PLL info block offset: %p\r\n", BIOS_IN16(rinfo->fp_bios_start + 0x30));
-        rinfo->bios_pll.sclk		= BIOS_IN16(pll_info_block + 0x08);
-        rinfo->bios_pll.mclk		= BIOS_IN16(pll_info_block + 0x0a);
+        rinfo->bios_pll.sclk = BIOS_IN16(pll_info_block + 0x08);
+        rinfo->bios_pll.mclk = BIOS_IN16(pll_info_block + 0x0a);
         rinfo->bios_pll.ref_clk	= BIOS_IN16(pll_info_block + 0x0e);
         rinfo->bios_pll.ref_div	= BIOS_IN16(pll_info_block + 0x10);
-        rinfo->bios_pll.ppll_min	= BIOS_IN32(pll_info_block + 0x12);
-        rinfo->bios_pll.ppll_max	= BIOS_IN32(pll_info_block + 0x16);
+        rinfo->bios_pll.ppll_min = BIOS_IN32(pll_info_block + 0x12);
+        rinfo->bios_pll.ppll_max = BIOS_IN32(pll_info_block + 0x16);
     }
     return 0;
 
@@ -490,7 +486,8 @@ static int radeon_probe_pll_params(struct radeonfb_info *rinfo)
     {
         if ((get_timer() - start_tv) > US_TO_TIMER(10000000UL))    /* 10 sec */
         {
-            timeout=1;
+            timeout = 1;
+            dbg("timeout\r\n");
             break;
         }
     }
@@ -502,7 +499,8 @@ static int radeon_probe_pll_params(struct radeonfb_info *rinfo)
         {
             if ((get_timer() - start_tv) > US_TO_TIMER(1000000UL))   /* 1 sec */
             {
-                timeout=1;
+                timeout = 1;
+                dbg("timeout2\r\n");
                 break;
             }
         }
@@ -512,7 +510,8 @@ static int radeon_probe_pll_params(struct radeonfb_info *rinfo)
             {
                 if ((get_timer() - start_tv) > US_TO_TIMER(10000000UL))    /* 10 sec */
                 {
-                    timeout=1;
+                    timeout = 1;
+                    dbg("timeout3\r\n");
                     break;
                 }
             }
@@ -773,7 +772,10 @@ int radeonfb_check_var(struct fb_var_screeninfo *var, struct fb_info *info)
     }
 
     if (radeon_match_mode(rinfo, &v, var))
+    {
+        dbg("invalid mode\r\n");
         return -1; //-EINVAL;
+    }
 
     switch (v.bits_per_pixel)
     {
@@ -795,6 +797,7 @@ int radeonfb_check_var(struct fb_var_screeninfo *var, struct fb_info *info)
             break;
 
         default:
+            dbg("invalid bits per pixel\r\n");
             return -1; //-EINVAL;
     }
 
@@ -2128,7 +2131,7 @@ int32_t radeonfb_pci_register(int32_t handle, const struct pci_device_id *ent)
     info = framebuffer_alloc(sizeof(struct radeonfb_info));
     if (!info)
     {
-        dbg("could not allocate frame buffer\r\n");
+        dbg("could not allocate frame buffer info\r\n");
         return -1; // -ENOMEM;
     }
 
@@ -2376,7 +2379,7 @@ int32_t radeonfb_pci_register(int32_t handle, const struct pci_device_id *ent)
 #endif
     //rinfo->RageTheatreCrystal = rinfo->RageTheatreTunerPort=rinfo->RageTheatreCompositePort = rinfo->RageTheatreSVideoPort = -1;
     //rinfo->tunerType = -1;
-    return(0);
+    return 0;
 }
 
 #if 0

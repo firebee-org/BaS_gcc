@@ -26,13 +26,8 @@
 #include "exceptions.h"
 #include "driver_mem.h"
 
-#define DEBUG_USBMOUSE
-#ifdef DEBUG_USBMOUSE
-#define dbg(format, arg...) do { xprintf("DEBUG: %s(): " format, __FUNCTION__, ##arg); } while (0)
-#else
-#define dbg(format, arg...) do { ; } while (0)
-#endif /* DEBUG_USBMOUSE */
-#define err(format, arg...) do { xprintf("ERROR: %s(): " format, __FUNCTION__, ##arg); } while (0)
+// #define DEBUG
+#include "debug.h"
 
 extern void ltoa(char *buf, long n, unsigned long base);
 extern void call_mousevec(unsigned char *data, void (**mousevec)(void *));

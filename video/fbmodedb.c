@@ -16,12 +16,8 @@
 #include "bas_printf.h"
 #include "bas_string.h"
 
-#define DBG_MODES
-#ifdef DBG_MODES
-#define dbg(format, arg...) do { xprintf("DEBUG: " format, __FUNCTION__, ##arg); } while (0)
-#else
-#define dbg(format, arg...) do { ; } while (0)
-#endif /* DBG_MODES */
+// #define DEBUG
+#include "debug.h"
 
 #define name_matches(v, s, l) \
     ((v).name && !strncmp((s), (v).name, (l)) && strlen((v).name) == (l))
@@ -29,8 +25,8 @@
     ((v).xres == (x) && (v).yres == (y))
 
 /*
-     *  Standard video mode definitions (taken from XFree86)
-     */
+ *  Standard video mode definitions (taken from XFree86)
+ */
 
 #define DEFAULT_MODEDB_INDEX	0
 
