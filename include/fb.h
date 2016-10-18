@@ -3,11 +3,10 @@
 
 /* Definitions of frame buffers	*/
 
-#define FB_MAJOR		29
-#define FB_MAX			32	/* sufficient for now */
+#define FB_MAJOR                29
+#define FB_MAX                  32	/* sufficient for now */
 
-/* ioctls
-   0x46 is 'F'								*/
+/* ioctls 0x46 is 'F' */
 #define FBIOGET_VSCREENINFO     0x4600
 #define FBIOPUT_VSCREENINFO     0x4601
 #define FBIOGET_FSCREENINFO     0x4602
@@ -17,18 +16,18 @@
 #define FBIO_FREE               0x4614
 
 /* picture format */
-#define PICT_FORMAT(bpp,type,a,r,g,b)	(((bpp) << 24) | ((type) << 16) | ((a) << 12) | ((r) << 8) | ((g) << 4) | ((b)))
+#define PICT_FORMAT(bpp, type, a, r, g, b)  (((bpp) << 24) | ((type) << 16) | ((a) << 12) | ((r) << 8) | ((g) << 4) | ((b)))
 
 /* gray/color formats use a visual index instead of argb */
-#define PICT_VISFORMAT(bpp,type,vi)	(((bpp) << 24) | ((type) << 16) | ((vi)))
-#define PICT_FORMAT_BPP(f)      (((f) >> 24)       )
-#define PICT_FORMAT_TYPE(f)     (((f) >> 16) & 0xff)
-#define PICT_FORMAT_A(f)        (((f) >> 12) & 0x0f)
-#define PICT_FORMAT_R(f)        (((f) >>  8) & 0x0f)
-#define PICT_FORMAT_G(f)        (((f) >>  4) & 0x0f)
-#define PICT_FORMAT_B(f)        (((f)      ) & 0x0f)
-#define PICT_FORMAT_RGB(f)      (((f)      ) & 0xfff)
-#define PICT_FORMAT_VIS(f)      (((f)      ) & 0xffff)
+#define PICT_VISFORMAT(bpp, type, vi)   (((bpp) << 24) | ((type) << 16) | ((vi)))
+#define PICT_FORMAT_BPP(f)              (((f) >> 24)       )
+#define PICT_FORMAT_TYPE(f)             (((f) >> 16) & 0xff)
+#define PICT_FORMAT_A(f)                (((f) >> 12) & 0x0f)
+#define PICT_FORMAT_R(f)                (((f) >>  8) & 0x0f)
+#define PICT_FORMAT_G(f)                (((f) >>  4) & 0x0f)
+#define PICT_FORMAT_B(f)                (((f)      ) & 0x0f)
+#define PICT_FORMAT_RGB(f)              (((f)      ) & 0xfff)
+#define PICT_FORMAT_VIS(f)              (((f)      ) & 0xffff)
 
 #define PICT_TYPE_OTHER         0
 #define PICT_TYPE_A             1
