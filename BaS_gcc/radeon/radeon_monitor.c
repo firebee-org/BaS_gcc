@@ -428,6 +428,7 @@ static void radeon_var_to_panel_info(struct radeonfb_info *rinfo, struct fb_var_
     rinfo->panel_info.hAct_high = (var->sync & FB_SYNC_HOR_HIGH_ACT) != 0;
     rinfo->panel_info.vAct_high = (var->sync & FB_SYNC_VERT_HIGH_ACT) != 0;
     rinfo->panel_info.valid = 1;
+
     /*
      * We use a default of 200ms for the panel power delay,
      * I need to have a real schedule() instead of mdelay's in the panel code.
@@ -577,7 +578,9 @@ void radeon_check_modes(struct radeonfb_info *rinfo, struct mode_option *resolut
         has_default_mode = 1;
         radeon_var_to_panel_info(rinfo, &info->var);
     }
+
 pickup_default:
+
     /*
      * Apply passed-in mode option if any
      */
@@ -587,6 +590,7 @@ pickup_default:
                          info->monspecs.modedb_len, NULL, (resolution->bpp >= 8) ? (unsigned int)resolution->bpp : 8) != 0)
             has_default_mode = 1;
     }
+
     /*
      * Still no mode, let's pick up a default from the db
      */
