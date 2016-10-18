@@ -17,36 +17,24 @@
 #include "fb.h"
 #include "radeonfb.h"
 #include "driver_mem.h"
+#include "bas_string.h"
 
-#define DBG_FBMEM
-#ifdef DBG_FBMEM
-#define dbg(format, arg...) do { xprintf("DEBUG: " format, ##arg); } while (0)
-#else
-#define dbg(format, arg...) do { ; } while (0)
-#endif /* DBG_FBMEM */
+// #define DEBUG
+#include "debug.h"
 
-long mem_cmp(char *p1, char *p2, long size)
-{
-    while(size--)
-    {
-        if (*p1++ != *p2++)
-            return(1);
-    }
-    return(0);
-}
 
 /*
  *  Frame buffer device initialization and setup routines
  */
 
-#define FBPIXMAPSIZE	(1024 * 8)
 
 int fb_pan_display(struct fb_info *info, struct fb_var_screeninfo *var)
 {
     int xoffset = var->xoffset;
     int yoffset = var->yoffset;
     int err;
-    //	DPRINT("fb_pan_display\r\n");
+
+    dbg("\r\n");
     if ((xoffset < 0) || (yoffset < 0)
             || ((xoffset + info->var.xres) > info->var.xres_virtual))
         return -1; //-EINVAL;
@@ -64,15 +52,23 @@ int fb_pan_display(struct fb_info *info, struct fb_var_screeninfo *var)
 int fb_set_var(struct fb_info *info, struct fb_var_screeninfo *var)
 {
     int err;
-    //	DPRINT("fb_set_var\r\n");
+
+    dbg("\r\n");
+
     if (var->activate & FB_ACTIVATE_INV_MODE)
+    {
         /* return 1 if equal */
-        return(!mem_cmp((char *)&info->var, (char *)var, sizeof(struct fb_var_screeninfo)));
+        return !memcmp((char *) &info->var, (char *) var, sizeof(struct fb_var_screeninfo));
+    }
+
     if ((var->activate & FB_ACTIVATE_FORCE)
-            || mem_cmp((char *)&info->var, (char *)var, sizeof(struct fb_var_screeninfo)))
+            || memcmp((char *) &info->var, (char *) var, sizeof(struct fb_var_screeninfo)))
     {
         if ((err = info->fbops->fb_check_var(var, info)))
+        {
             return err;
+        }
+
         if ((var->activate & FB_ACTIVATE_MASK) == FB_ACTIVATE_NOW)
         {
             memcpy(&info->var, var, sizeof(struct fb_var_screeninfo));
@@ -80,12 +76,13 @@ int fb_set_var(struct fb_info *info, struct fb_var_screeninfo *var)
             fb_pan_display(info, &info->var);
         }
     }
+
     return 0;
 }
 
 int fb_blank(struct fb_info *info, int blank)
 {
-    dbg("fb_blank\r\n");
+    dbg("\r\n");
     if (blank > FB_BLANK_POWERDOWN)
         blank = FB_BLANK_POWERDOWN;
     return(info->fbops->fb_blank(blank, info));
@@ -98,11 +95,13 @@ int fb_ioctl(struct fb_info *info, unsigned int cmd, unsigned long arg)
     void *argp = (void *) arg;
     int i;
 
+    dbg("\r\n");
     switch(cmd)
     {
         case FBIOGET_VSCREENINFO:
             memcpy(argp, &info->var, sizeof(var));
             return 0;
+
         case FBIOPUT_VSCREENINFO:
             memcpy(&var, argp, sizeof(var));
             i = fb_set_var(info, &var);
@@ -110,9 +109,11 @@ int fb_ioctl(struct fb_info *info, unsigned int cmd, unsigned long arg)
                 return i;
             memcpy(argp, &var, sizeof(var));
             return 0;
+
         case FBIOGET_FSCREENINFO:
             memcpy(argp, &info->fix, sizeof(fix));
             return 0;
+
         case FBIOPAN_DISPLAY:
             memcpy(&var, argp, sizeof(var));
             i = fb_pan_display(info, &var);
@@ -120,13 +121,17 @@ int fb_ioctl(struct fb_info *info, unsigned int cmd, unsigned long arg)
                 return i;
             memcpy(argp, &var, sizeof(var));
             return 0;
+
         case FBIOBLANK:
             i = fb_blank(info, arg);
             return i;
+
         case FBIO_ALLOC:
             return(offscreen_alloc(info,(long)arg));
+
         case FBIO_FREE:
             return(offscreen_free(info,(long)arg));
+
         default:
             return(info->fbops->fb_ioctl(cmd, arg, info));
     }
@@ -155,6 +160,7 @@ struct fb_info *framebuffer_alloc(unsigned long size)
      */
     extern struct fb_info *info_fb;
 
+    dbg("\r\n");
     return info_fb;
 }
 
@@ -169,6 +175,7 @@ struct fb_info *framebuffer_alloc(unsigned long size)
  */
 void framebuffer_release(struct fb_info *info)
 {
+    dbg("\r\n");
     driver_mem_free(info->par);
 }
 

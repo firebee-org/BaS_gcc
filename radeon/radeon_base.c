@@ -1352,8 +1352,10 @@ static void radeon_timer_func(void)
     struct fb_info *info = info_fb;
     struct radeonfb_info *rinfo = info->par;
     struct fb_var_screeninfo var;
-    uint32_t x, y;
-    int chg, disp;
+    uint32_t x;
+    uint32_t y;
+    int chg;
+    int disp;
 
 #ifdef FIXME_LATER
     static int32_t start_timer;
@@ -1380,19 +1382,21 @@ static void radeon_timer_func(void)
 
     if ((info->screen_mono != NULL) && info->update_mono)
     {
-        int32_t foreground = 255, background = 0;
-        uint8_t *src_buf = (uint8_t *)info->screen_mono;
-        int skipleft = ((int)src_buf & 3) << 3;
+        int32_t foreground = 255;
+        int32_t background = 0;
+        uint8_t *src_buf = (uint8_t *) info->screen_mono;
+        int skipleft = ((int) src_buf & 3) << 3;
         int dst_x = 0;
-        int w = (int)info->var.xres_virtual;
-        int h = (int)info->var.yres_virtual;
+        int w = (int) info->var.xres_virtual;
+        int h = (int) info->var.yres_virtual;
 
-        //		info->fbops->SetClippingRectangle(info,0,0,w-1,h-1);
-        src_buf = (uint8_t*)((int32_t)src_buf & ~3);
-        dst_x -= (int32_t)skipleft;
-        w += (int32_t)skipleft;
-        info->fbops->SetupForScanlineCPUToScreenColorExpandFill(info,(int)foreground,(int)background,3,0xffffffff);
-        info->fbops->SubsequentScanlineCPUToScreenColorExpandFill(info,(int)dst_x,0,w,h,skipleft);
+        // info->fbops->SetClippingRectangle(info,0,0,w-1,h-1);
+
+        src_buf = (uint8_t*) ((int32_t) src_buf & ~3);
+        dst_x -= (int32_t) skipleft;
+        w += (int32_t) skipleft;
+        info->fbops->SetupForScanlineCPUToScreenColorExpandFill(info, (int) foreground, (int) background, 3, 0xffffffff);
+        info->fbops->SubsequentScanlineCPUToScreenColorExpandFill(info, (int) dst_x, 0, w, h, skipleft);
 
         while (--h >= 0)
         {
