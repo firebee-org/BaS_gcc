@@ -236,6 +236,9 @@ init_vec_loop:
 // install lowlevel_isr_handler for the XLBPCI interrupt
         move.l  a1,(INT_SOURCE_XLBPCI + 64) * 4(a0)
 
+// install lowlevel_isr_handler for the XLBARB interrupt
+	move.l	a1,(INT_SOURCE_XLBARB + 64) * 4(a0)
+
 // install lowlevel_isr_handler for the FEC0  interrupt
         move.l  a1,(INT_SOURCE_FEC0 + 64) * 4(a0)
 
