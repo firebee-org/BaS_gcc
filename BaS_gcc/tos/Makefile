@@ -31,6 +31,7 @@ clean:
 	@(cd bascook; make clean)
 	@(cd vmem_test; make clean)
 	@(cd pci_test; make clean)
+	@(cd pci_mem; make clean)
 	@(cd fpga_test; make clean)
 
 
