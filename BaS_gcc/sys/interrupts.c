@@ -430,6 +430,43 @@ bool pciarb_interrupt_handler(void *arg1, void *arg2)
 {
     dbg("PCI ARB interrupt\r\n");
 
+    MCF_PCIARB_PASR |= MCF_PCIARB_PASR_EXTMBK(0x1f) | MCF_PCIARB_PASR_ITLMBK;
+    return true;
+}
+
+bool xlbarb_interrupt_handler(void *arg1, void *arg2)
+{
+    uint32_t status = MCF_XLB_XARB_SR;
+
+    /*
+     * TODO: we should probably issue a bus error when this occors
+     */
+    dbg("XLB arbiter interrupt. XARB_ADRCAP=0x%08lx\r\n", MCF_XLB_XARB_ADRCAP);
+
+    if (status & MCF_XLB_XARB_SR_AT)
+        dbg("address tenure timeout\r\n");
+    if (status & MCF_XLB_XARB_SR_DT)
+        dbg("data tenure timeout\r\n");
+    if (status & MCF_XLB_XARB_SR_BA)
+        dbg("bus activity tenure timeout\r\n");
+    if (status & MCF_XLB_XARB_SR_TTM)
+        dbg("TBST/TSIZ mismatch\r\n");
+    if (status & MCF_XLB_XARB_SR_ECW)
+        dbg("external control word read/write\r\n");
+    if (status & MCF_XLB_XARB_SR_TTR)
+        dbg("TT reserved\r\n");
+    if (status & MCF_XLB_XARB_SR_TTA)
+        dbg("TT address only\r\n");
+    if (status & MCF_XLB_XARB_SR_MM)
+        dbg("multiple masters at priority 0\r\n");
+    if (status & MCF_XLB_XARB_SR_SEA)
+        dbg("slave error acknowledge\r\n");
+
+    /*
+     * acknowledge interrupt
+     */
+    MCF_XLB_XARB_SR = status;       /* rwc bits */
+
     return true;
 }
 
