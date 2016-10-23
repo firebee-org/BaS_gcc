@@ -39,13 +39,8 @@
 #error "unknown machine!"
 #endif /* MACHINE_FIREBEE */
 
-//#define DBG_DMA
-#ifdef DBG_DMA
-#define dbg(format, arg...) do { xprintf("DEBUG: %s(): " format, __FUNCTION__, ##arg); } while (0)
-#else
-#define dbg(format, arg...) do { ; } while (0)
-#endif /* DBG_DMA */
-#define err(format, arg...) do { xprintf("ERROR: %s(): " format, __FUNCTION__, ##arg); } while (0)
+//#define DEBUG
+#include "debug.h"
 
 extern char _SYS_SRAM[];
 #define SYS_SRAM &_SYS_SRAM[0]
