@@ -52,13 +52,8 @@
 #include "pci.h"
 #include "video.h"
 
-//#define BAS_DEBUG
-#if defined(BAS_DEBUG)
-#define dbg(format, arg...) do { xprintf("DEBUG: %s(): " format, __FUNCTION__, ##arg); } while (0)
-#else
-#define dbg(format, arg...) do { ; } while (0)
-#endif
-#define err(format, arg...) do { xprintf("ERROR: %s(): " format, __FUNCTION__, ##arg); } while (0)
+// #define DEBUG
+#include "debug.h"
 
 /* imported routines */
 extern int vec_init();
@@ -356,7 +351,7 @@ void init_isr(void)
     /*
      * register the XLB PCI interrupt handler
      */
-    if (!isr_register_handler(64 + INT_SOURCE_XLBPCI, 7, 0, xlbpci_interrupt_handler, NULL, NULL))
+    if (!isr_register_handler(64 + INT_SOURCE_XLBPCI, 3, 0, xlbpci_interrupt_handler, NULL, NULL))
     {
         dbg("Error: unable to register isr for XLB PCI interrupts\r\n");
     }
@@ -377,6 +372,11 @@ void init_isr(void)
     }
     MCF_PCIARB_PACR = MCF_PCIARB_PACR_EXTMINTEN(0x1f) | /* external master broken interrupt */
                       MCF_PCIARB_PACR_INTMINTEN;        /* internal master broken interrupt */
+
+    if (!isr_register_handler(64 + INT_SOURCE_XLBARB, 7, 1, xlbarb_interrupt_handler, NULL, NULL))
+    {
+        dbg("Error: unable to register isr for XLB ARB interrupts\r\n");
+    }
 }
 
 void BaS(void)
