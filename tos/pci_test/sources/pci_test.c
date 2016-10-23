@@ -72,7 +72,7 @@ void hexdump(uint8_t buffer[], int size)
    while (bp < buffer + size) {
       uint8_t *lbp = bp;
 
-      printf("%08lx  ", (uintptr_t) buffer + line);
+      printf("%08lx  ", (long) buffer + line);
 
       for (i = 0; i < 16; i++) {
          if (bp + i > buffer + size) {

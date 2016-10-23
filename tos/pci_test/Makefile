@@ -73,21 +73,24 @@ all:$(patsubst %,%/$(APP),$(TRGTDIRS))
 #
 define CC_TEMPLATE
 $(1)/objs/%.o:$(SRCDIR)/%.c
-	$(CC) $$(CFLAGS) $(INCLUDE) -c $$< -o $$@
+	@echo CC $$<
+	@$(CC) $$(CFLAGS) $(INCLUDE) -c $$< -o $$@
 
 $(1)/objs/%.o:$(SRCDIR)/%.S
-	$(CC) $$(CFLAGS) $(INCLUDE) -c $$< -o $$@
+	@echo CC $$<
+	@$(CC) $$(CFLAGS) $(INCLUDE) -c $$< -o $$@
 
 $(1)_OBJS=$(patsubst %,$(1)/objs/%,$(OBJS))
 $(1)/$(APP): $$($(1)_OBJS)
-	$(CC) $$(CFLAGS) -o $$@ $(LIBCMINI)/$(1)/startup.o $$($(1)_OBJS) -L$(LIBCMINI)/$(1) $(LIBS)
-	$(STRIP) $$@
+	@echo CC $$@
+	@$(CC) $$(CFLAGS) -o $$@ $(LIBCMINI)/$(1)/startup.o $$($(1)_OBJS) -L$(LIBCMINI)/$(1) $(LIBS)
+	@$(STRIP) $$@
 endef
 $(foreach DIR,$(TRGTDIRS),$(eval $(call CC_TEMPLATE,$(DIR))))
 
 $(DEPEND): $(ASRCS) $(CSRCS)
-	-rm -f $(DEPEND)
-	for d in $(TRGTDIRS);\
+	@-rm -f $(DEPEND)
+	@for d in $(TRGTDIRS);\
 		do $(CC) $(CFLAGS) $(INCLUDE) -M $(ASRCS) $(CSRCS) | sed -e "s#^\(.*\).o:#$$d/objs/\1.o:#" >> $(DEPEND); \
     done
 
