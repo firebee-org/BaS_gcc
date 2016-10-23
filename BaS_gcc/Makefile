@@ -182,15 +182,15 @@ ver:
 	touch include/version.h
 .PHONY: tos
 tos:
-	(cd tos; $(MAKE))
+	@(cd tos; $(MAKE))
 
 .PHONY: clean
 clean:
-	for d in $(TRGTDIRS);\
+	@for d in $(TRGTDIRS);\
 		do rm -f $$d/*.map $$d/*.s19 $$d/*.elf $$d/*.lk $$d/*.a $$d/objs/* $$d/depend;\
 	done
-	rm -f tags
-	(cd tos; make clean)
+	@rm -f tags
+	@(cd tos; make clean)
 
 
 
@@ -224,10 +224,12 @@ firebee/basflash.$(EXE): CFLAGS += -mcpu=5474
 #
 define CC_TEMPLATE
 $(1)/objs/%.o:%.c
-	$(CC) $$(CFLAGS) -D$$(MACHINE) $(INCLUDE) -c $$< -o $$@
+	@echo CC $$<
+	@$(CC) $$(CFLAGS) -D$$(MACHINE) $(INCLUDE) -c $$< -o $$@
 
 $(1)/objs/%.o:%.S
-	$(CC) $$(CFLAGS) -Wa,--bitwise-or -D$$(MACHINE) $(INCLUDE) -c $$< -o $$@
+	@echo CC $$<
+	@$(CC) $$(CFLAGS) -Wa,--bitwise-or -D$$(MACHINE) $(INCLUDE) -c $$< -o $$@
 endef
 $(foreach DIR,$(TRGTDIRS),$(eval $(call CC_TEMPLATE,$(DIR))))
 
@@ -243,7 +245,8 @@ else
 	MACHINE=MACHINE_M5484LITE
 endif
 $(1)/depend:$(SRCS)
-	$(CC) $$(CFLAGS) -D$$(MACHINE) $(INCLUDE) -M $$^ | sed -e "s#^\(.*\).o:#"$(1)"/objs/\1.o:#" > $$@
+	@echo DEPEND
+	@$(CC) $$(CFLAGS) -D$$(MACHINE) $(INCLUDE) -M $$^ | sed -e "s#^\(.*\).o:#"$(1)"/objs/\1.o:#" > $$@
 endef
 $(foreach DIR,$(TRGTDIRS),$(eval $(call DEP_TEMPLATE,$(DIR))))
 
@@ -254,8 +257,9 @@ $(foreach DIR,$(TRGTDIRS),$(eval $(call DEP_TEMPLATE,$(DIR))))
 define AR_TEMPLATE
 $(1)_OBJS=$(patsubst %,$(1)/objs/%,$(OBJS))
 $(1)/$(LIBBAS): $$($(1)_OBJS)
-	$(AR) rv $$@ $$?
-	$(RANLIB) $$@
+	@echo AR $$@
+	@$(AR) r $$@ $$?
+	@$(RANLIB) $$@
 endef
 $(foreach DIR,$(TRGTDIRS),$(eval $(call AR_TEMPLATE,$(DIR))))
 
@@ -264,44 +268,59 @@ ifeq ($(COMPILE_ELF),Y)
 else
 	FORMAT_ELF=0
 endif
+
+define LK_TEMPLATE
+$(1)/$$(LDCFILE): $(LDCSRC)
+	@echo CPP $$<
+	@$(CPP) $(INCLUDE) -DOBJDIR=$(1)/objs -P -DFORMAT_ELF=$(FORMAT_ELF) -D$$(MACHINE) $(LDCSRC) -o $(1)/$$(LDCFILE)
+endef
+$(foreach DIR,$(TRGTDIRS),$(eval $(call LK_TEMPLATE,$(DIR))))
+
 #
 # define pattern rules for binaries
 #
 define EX_TEMPLATE
 # pattern rule for flash
 $(1)_MAPFILE=$(1)/$$(basename $$(FLASH_EXEC)).map
-$(1)/$$(FLASH_EXEC): $(1)/$(LIBBAS) $(LDCSRC)
-	$(CPP) $(INCLUDE) -DOBJDIR=$(1)/objs -P -DFORMAT_ELF=$(FORMAT_ELF) -D$$(MACHINE) $(LDCSRC) -o $(1)/$$(LDCFILE)
-	#$(LD) --oformat $$(FORMAT) -Map $$($(1)_MAPFILE) --cref -T $(1)/$$(LDCFILE) $(LDLIBS) -o $$@
-	$(CC) $$(CFLAGS) -nostdlib -Wl,--oformat -Wl,$$(FORMAT) -Wl,-Map -Wl,$$($(1)_MAPFILE) -Wl,--cref -Wl,-T -Wl,$(1)/$$(LDCFILE) $(LDLIBS) -o $$@
+$(1)/$$(FLASH_EXEC): $(1)/$(LIBBAS) $(1)/$$(LDCFILE)
+	@echo CC $$@
+	@$(CC) $$(CFLAGS) -nostdlib -Wl,--oformat -Wl,$$(FORMAT) -Wl,-Map -Wl,$$($(1)_MAPFILE) -Wl,--cref -Wl,-T -Wl,$(1)/$$(LDCFILE) $(LDLIBS) -o $$@
 ifeq ($(COMPILE_ELF),Y)
-	$(OBJCOPY) -O srec $$@ $$(basename $$@).s19
+	@echo OBJCOPY $$@
+	@$(OBJCOPY) -O srec $$@ $$(basename $$@).s19
 else
-	objcopy -I srec -O elf32-big --alt-machine-code 4 $$@ $$(basename $$@).elf
+	@echo OBJCOPY $$@
+	@objcopy -I srec -O elf32-big --alt-machine-code 4 $$@ $$(basename $$@).elf
 endif
 
 # pattern rule for RAM
 $(1)_MAPFILE_RAM=$(1)/$$(basename $$(RAM_EXEC)).map
-$(1)/$$(RAM_EXEC): $(1)/$(LIBBAS) $(LDCSRC)
-	$(CPP) $(INCLUDE) -DCOMPILE_RAM -DOBJDIR=$(1)/objs -P -DFORMAT_ELF=$(FORMAT_ELF) -D$$(MACHINE) $(LDCSRC) -o $(1)/$$(LDRFILE)
-	#$(LD) $(LDFLAGS) --oformat $$(FORMAT) -Map $$($(1)_MAPFILE_RAM) --cref -T $(1)/$$(LDRFILE) $(LDLIBS) -o $$@
-	$(CC) $$(CFLAGS) -nostdlib -Wl,--oformat -Wl,$$(FORMAT) -Wl,-Map -Wl,$$($(1)_MAPFILE_RAM) -Wl,--cref -Wl,-T -Wl,$(1)/$$(LDRFILE) $(LDLIBS) -o $$@
+$(1)/$$(RAM_EXEC): $(1)/$(LIBBAS) $(1)/$$(LDCFILE)
+	@echo CPP $$@
+	@$(CPP) $(INCLUDE) -DCOMPILE_RAM -DOBJDIR=$(1)/objs -P -DFORMAT_ELF=$(FORMAT_ELF) -D$$(MACHINE) $(LDCSRC) -o $(1)/$$(LDRFILE)
+	@echo CC $$@
+	@$(CC) $$(CFLAGS) -nostdlib -Wl,--oformat -Wl,$$(FORMAT) -Wl,-Map -Wl,$$($(1)_MAPFILE_RAM) -Wl,--cref -Wl,-T -Wl,$(1)/$$(LDRFILE) $(LDLIBS) -o $$@
 ifeq ($(COMPILE_ELF),Y)
-	$(OBJCOPY) -O srec $$@ $$(basename $$@).s19
+	@echo OBJCOPY $$@
+	@$(OBJCOPY) -O srec $$@ $$(basename $$@).s19
 else
-	objcopy -I srec -O elf32-big --alt-machine-code 4 $$@ $$(basename $$@).elf
+	@echo OBJCOPY $$<
+	@objcopy -I srec -O elf32-big --alt-machine-code 4 $$@ $$(basename $$@).elf
 endif
 
 # pattern rule for basflash
 $(1)_MAPFILE_BFL=$(1)/$$(basename $$(BASFLASH_EXEC)).map
 $(1)/$$(BASFLASH_EXEC): $(1)/objs/basflash.o $(1)/objs/basflash_start.o $(1)/$(LIBBAS) $(LDCBFL)
-	$(CPP) $(INCLUDE) -P -DOBJDIR=$(1)/objs -DFORMAT_ELF=$(FORMAT_ELF) -D$$(MACHINE) $(LDCBSRC) -o $(1)/$$(LDCBFS)
-	#$(LD) --oformat $$(FORMAT) -Map $$($(1)_MAPFILE_BFL) --cref -T $(1)/$$(LDCFILE) -L$(1) -lbas $(LDLIBS) -o $$@
-	$(CC) -nostdlib -Wl,--oformat -Wl,$$(FORMAT) -Wl,-Map -Wl,$$($(1)_MAPFILE_BFL) -Wl,--cref -Wl,-T -Wl,$(1)/$$(LDCFILE) -L$(1) -lbas $(LDLIBS) -o $$@
+	@echo CPP $$<
+	@$(CPP) $(INCLUDE) -P -DOBJDIR=$(1)/objs -DFORMAT_ELF=$(FORMAT_ELF) -D$$(MACHINE) $(LDCBSRC) -o $(1)/$$(LDCBFS)
+	@echo CC $$<
+	@$(CC) -nostdlib -Wl,--oformat -Wl,$$(FORMAT) -Wl,-Map -Wl,$$($(1)_MAPFILE_BFL) -Wl,--cref -Wl,-T -Wl,$(1)/$$(LDCFILE) -L$(1) -lbas $(LDLIBS) -o $$@
 ifeq ($(COMPILE_ELF),Y)
-	$(OBJCOPY) -O srec $$@ $$(basename $$@).s19
+	@echo OBJCOPY $$<
+	@$(OBJCOPY) -O srec $$@ $$(basename $$@).s19
 else
-	objcopy -I srec -O elf32-big --alt-machine-code 4 $$@ $$(basename $$@).elf
+	@echo OBJCOPY $$<
+	@objcopy -I srec -O elf32-big --alt-machine-code 4 $$@ $$(basename $$@).elf
 endif
 endef
 $(foreach DIR,$(TRGTDIRS),$(eval $(call EX_TEMPLATE,$(DIR))))

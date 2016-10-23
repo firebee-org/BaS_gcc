@@ -8,29 +8,29 @@
 tos: jtagwait bascook vmem_test pci_test pci_mem fpga_test
 
 jtagwait:
-	$(MAKE) -C $@
+	@$(MAKE) -s -C $@
 
 bascook:
-	$(MAKE) -C $@
+	@$(MAKE) -s -C $@
 
 vmem_test:
-	$(MAKE) -C $@
+	@$(MAKE) -s -C $@
 
 pci_test:
-	$(MAKE) -C $@
+	@$(MAKE) -s -C $@
 
 pci_mem:
-	$(MAKE) -C $@
+	@$(MAKE) -s -C $@
 
 fpga_test:
-	$(MAKE) -C $@
+	@$(MAKE) -s -C $@
 
 .PHONY: clean
 clean:
-	(cd jtagwait; make clean)
-	(cd bascook; make clean)
-	(cd vmem_test; make clean)
-	(cd pci_test; make clean)
-	(cd fpga_test; make clean)
+	@(cd jtagwait; make clean)
+	@(cd bascook; make clean)
+	@(cd vmem_test; make clean)
+	@(cd pci_test; make clean)
+	@(cd fpga_test; make clean)
 
 
