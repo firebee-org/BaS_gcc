@@ -143,52 +143,61 @@ void do_tests(struct pci_native_driver_interface *pci)
     struct pci_rd *rd;
     int flags;
 
-    handle = 0xa0;
+    /*
+     * look for an ATI Radeon video card
+     */
 
-    rd = (*pci->pci_get_resource)(handle);     /* get resource descriptor for ATI graphics card */
-    if (rd != NULL)
+    // handle = 0xd8;
+    handle = (*pci->pci_find_device)(0x5159, 0x1002, 0);
+    if (handle > 0)
     {
-        do
+        rd = (*pci->pci_get_resource)(handle);     /* get resource descriptor for ATI graphics card */
+        if (rd != NULL)
         {
-            flags = rd->flags;
-
-            printf("Start address: 0x%08lx\r\n", rd->start);
-            printf("Length:        0x%08lx\r\n", rd->length);
-            printf("Offset:        0x%08lx\r\n", rd->offset);
-            printf("DMA offset:    0x%08lx\r\n", rd->dmaoffset);
-            printf("FLAGS: %s%s%s%s%s%s%s\r\n",
-                   flags & FLG_IO ? "FLG_IO, " : "",
-                   flags & FLG_ROM ? "FLG_ROM, " : "",
-                   flags & FLG_8BIT ? "FLG_8BIT, " : "",
-                   flags & FLG_16BIT ? "FLG_16BIT, " : "",
-                   flags & FLG_32BIT ? "FLG_32BIT, " : "",
-                   (flags & FLG_ENDMASK) == ORD_MOTOROLA ? "ORD_MOTOROLA" :
-                                              (flags & FLG_ENDMASK) == ORD_INTEL_AS ? "ORD_INTEL_AS" :
-                                              (flags & FLG_ENDMASK) == ORD_INTEL_LS ? "ORD_INTEL_LS" :
-                                              (flags & FLG_ENDMASK) == ORD_UNKNOWN ? "ORD_UNKNOWN" :
-                                              "", "");
-            printf("\r\n");
-
-            if (rd->start != 0L && rd->start == 0x80000000)
+            do
             {
-                hexdump((uint8_t *) rd->start + rd->offset, 64);
+                flags = rd->flags;
 
-                memset((uint8_t *) rd-> start + rd->offset, 0, 128 * MB);
+                printf("Start address: 0x%08lx\r\n", rd->start);
+                printf("Length:        0x%08lx\r\n", rd->length);
+                printf("Offset:        0x%08lx\r\n", rd->offset);
+                printf("DMA offset:    0x%08lx\r\n", rd->dmaoffset);
+                printf("FLAGS: %s%s%s%s%s%s%s\r\n",
+                       flags & FLG_IO ? "FLG_IO, " : "",
+                       flags & FLG_ROM ? "FLG_ROM, " : "",
+                       flags & FLG_8BIT ? "FLG_8BIT, " : "",
+                       flags & FLG_16BIT ? "FLG_16BIT, " : "",
+                       flags & FLG_32BIT ? "FLG_32BIT, " : "",
+                       (flags & FLG_ENDMASK) == ORD_MOTOROLA ? "ORD_MOTOROLA" :
+                                                               (flags & FLG_ENDMASK) == ORD_INTEL_AS ? "ORD_INTEL_AS" :
+                                                                                                       (flags & FLG_ENDMASK) == ORD_INTEL_LS ? "ORD_INTEL_LS" :
+                                                                                                                                               (flags & FLG_ENDMASK) == ORD_UNKNOWN ? "ORD_UNKNOWN" :
+                                                                                                                                                                                      "", "");
+                printf("\r\n");
 
-                printf("memory cleared\r\n");
-                hexdump((uint8_t *) rd->start + rd->offset, 64);
+                if (rd->start != 0L && rd->start == 0x80000000)
+                {
+                    hexdump((uint8_t *) rd->start + rd->offset, 64);
 
-                memset((uint8_t *) rd->start + rd->offset, 0xaa, 128 * MB);
-                hexdump((uint8_t *) rd->start + rd->offset, 64);
-            }
+                    memset((uint8_t *) rd-> start + rd->offset, 0, 64 * MB);
 
-            rd = (struct pci_rd *) (((uintptr_t) rd) + (uintptr_t) rd->next);
-        } while (!(flags & FLG_LAST));
+                    printf("memory cleared\r\n");
+                    hexdump((uint8_t *) rd->start + rd->offset, 64);
+
+                    memset((uint8_t *) rd->start + rd->offset, 0xaa, 64 * MB);
+                    hexdump((uint8_t *) rd->start + rd->offset, 64);
+                }
+
+                rd = (struct pci_rd *) (((uintptr_t) rd) + (uintptr_t) rd->next);
+            } while (!(flags & FLG_LAST));
+        }
+        else
+        {
+            printf("resource descriptor for handle 0x%02x not found\r\n", handle);
+        }
     }
     else
-    {
-        printf("resource descriptor for handle 0x%02x not found\r\n", handle);
-    }
+        fprintf(stderr, "card not found\r\n");
 
     printf("\r\n...finished\r\n");
 }
