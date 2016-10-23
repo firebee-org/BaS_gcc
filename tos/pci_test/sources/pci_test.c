@@ -12,6 +12,9 @@
 
 #define SYSCLK 132000
 
+#define KB  1024UL
+#define MB  (KB * KB)
+
 volatile int32_t time, start, end;
 int i;
 
@@ -166,14 +169,17 @@ void do_tests(struct pci_native_driver_interface *pci)
                                               "", "");
             printf("\r\n");
 
-            if (rd->start != 0L)
+            if (rd->start != 0L && rd->start == 0x80000000)
             {
-                hexdump((uint8_t *) rd->start + rd->offset, 128);
+                hexdump((uint8_t *) rd->start + rd->offset, 64);
 
-                memset((uint8_t *) rd-> start + rd->offset, 0, 128);
+                memset((uint8_t *) rd-> start + rd->offset, 0, 128 * MB);
 
                 printf("memory cleared\r\n");
-                hexdump((uint8_t *) rd->start + rd->offset, 128);
+                hexdump((uint8_t *) rd->start + rd->offset, 64);
+
+                memset((uint8_t *) rd->start + rd->offset, 0xaa, 128 * MB);
+                hexdump((uint8_t *) rd->start + rd->offset, 64);
             }
 
             rd = (struct pci_rd *) (((uintptr_t) rd) + (uintptr_t) rd->next);
