@@ -32,7 +32,7 @@ void add_mem(struct pci_native_driver_interface *pci)
     {
         struct pci_rd *rd;
 
-        printf("ATI device with handle 0x%02x found\r\n", handle);
+        printf("ATI device with handle 0x%02x found\r\n", (unsigned int) handle);
         rd = PCI_GET_RESOURCE(handle);     /* get resource descriptor for ATI graphics card */
         printf("rd=%p\r\n", rd);
         printf("start=%lx, length=%lx, flags=%x\r\n", rd->start, rd->length, rd->flags);
@@ -47,19 +47,19 @@ void add_mem(struct pci_native_driver_interface *pci)
                 if ((err = Maddalt(0x04000000 /* rd->start + 0x7C000000UL */, rd->length)) > 0)
                 {
                     printf("%ld MBytes of additional memory added to system at %p\r\n",
-                           rd->length / 1024 / 1024, 0x04000000 /* rd->start + 0x7C000000 */);
+                           (long) (rd->length / 1024 / 1024), (void *) 0x04000000 /* rd->start + 0x7C000000 */);
                     return;
                 }
                 else
                 {
-                    fprintf(stderr, "Maddalt() returned error code %ld\r\n", err);
+                    fprintf(stderr, "Maddalt() returned error code %ld\r\n", (long) err);
                     exit(1);
                 }
             }
         }
         else
         {
-            fprintf(stderr, "no resource descriptor for handle 0x%02x found", handle);
+            fprintf(stderr, "no resource descriptor for handle 0x%02x found", (unsigned int) handle);
             exit(1);
         }
     }
