@@ -379,6 +379,29 @@ void init_isr(void)
     }
 }
 
+/* Jump into the OS */
+typedef void void_func(void);
+struct rom_header
+{
+    void *initial_sp;
+    void_func *initial_pc;
+};
+
+/*
+ * fix ST RAM header (address 0x0 and 0x4). FreeMiNT uses these vectors on CTRL-ALT-DEL.
+ *
+ * Beware: Newer compilers refuse to dereference pointers to NULL and abort if the following
+ * attribute isn't set.
+ */
+static inline void fix_stram_header() __attribute__((optimize("no-delete-null-pointer-checks")));
+static inline void fix_stram_header()
+{
+    struct rom_header *bas_header = (struct rom_header *) TARGET_ADDRESS;
+    struct rom_header *stram_header = (struct rom_header *) 0x0;
+
+    *stram_header = *bas_header;
+}
+
 void BaS(void)
 {
     uint8_t *src;
@@ -473,14 +496,6 @@ void BaS(void)
 
     srec_execute("BASFLASH.S19");
 
-    /* Jump into the OS */
-    typedef void void_func(void);
-    struct rom_header
-    {
-        void *initial_sp;
-        void_func *initial_pc;
-    };
-
     xprintf("BaS initialization finished, enable interrupts\r\n");
     init_isr();
 
@@ -542,10 +557,7 @@ void BaS(void)
      * like on original STs (where these values reside in ROM) and uses them on
      * CTRL-ALT-DELETE reboots.
      */
-    struct rom_header *bas_header = (struct rom_header *) TARGET_ADDRESS;
-    struct rom_header *stram_header = (struct rom_header *) 0x0;
-
-    *stram_header = *bas_header;
+    fix_stram_header();
 
     xprintf("call EmuTOS\r\n");
     struct rom_header *os_header = (struct rom_header *) TOS;
