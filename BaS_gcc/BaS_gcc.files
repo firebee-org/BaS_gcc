@@ -568,7 +568,6 @@ Doxyfile
 dump.bdm
 Makefile
 mcf5474.gdb
-svn-commit.tmp
 tos/pci_test/include/bas_printf.h
 tos/pci_test/include/bas_string.h
 tos/pci_test/include/driver_vec.h
