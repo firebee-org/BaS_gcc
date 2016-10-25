@@ -22,7 +22,7 @@ EXE=s19
 FORMAT=srec
 endif
 
-CC=$(TCPREFIX)gcc-4.6.4
+CC=$(TCPREFIX)gcc
 LD=$(TCPREFIX)ld
 CPP=$(TCPREFIX)cpp
 OBJCOPY=$(TCPREFIX)objcopy
@@ -182,7 +182,7 @@ ver:
 	touch include/version.h
 .PHONY: tos
 tos:
-	@(cd tos; $(MAKE))
+	@(cd tos; $(MAKE) -s)
 
 .PHONY: clean
 clean:
@@ -190,7 +190,7 @@ clean:
 		do rm -f $$d/*.map $$d/*.s19 $$d/*.elf $$d/*.lk $$d/*.a $$d/objs/* $$d/depend;\
 	done
 	@rm -f tags
-	@(cd tos; make clean)
+	@(cd tos; make -s clean)
 
 
 
