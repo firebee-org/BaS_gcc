@@ -72,28 +72,36 @@ void hexdump(uint8_t buffer[], int size)
    int line = 0;
    uint8_t *bp = buffer;
 
-   while (bp < buffer + size) {
+   while (bp < buffer + size)
+   {
       uint8_t *lbp = bp;
 
       printf("%08lx  ", (long) buffer + line);
 
-      for (i = 0; i < 16; i++) {
-         if (bp + i > buffer + size) {
+      for (i = 0; i < 16; i++)
+      {
+         if (bp + i > buffer + size)
+         {
             break;
          }
          printf("%02x ", (uint8_t) *lbp++);
       }
 
       lbp = bp;
-      for (i = 0; i < 16; i++) {
+      for (i = 0; i < 16; i++)
+      {
          int8_t c = *lbp++;
 
-         if (bp + i > buffer + size) {
+         if (bp + i > buffer + size)
+         {
             break;
          }
-         if (c > ' ' && c < '~') {
+         if (c > ' ' && c < '~')
+         {
             printf("%c", c);
-         } else {
+         }
+         else
+         {
             printf(".");
          }
       }
@@ -266,7 +274,8 @@ void pci_test(void)
 
     ifc = bas_drivers->interfaces;
 
-    do {
+    do
+    {
         struct generic_interface *pci_driver_interface = NULL;
 
         printf("interface type: %ld\r\n", (long) ifc[i].type);
