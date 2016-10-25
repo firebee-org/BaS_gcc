@@ -276,7 +276,54 @@ static struct radeonfb_info rfb;
 
 static struct fb_info fb =
 {
-    .par = &rfb
+    .par = &rfb,
+    .var =
+     {
+        .xres = 640,
+        .yres = 480,
+        .xres_virtual = 640,
+        .yres_virtual = 480,
+        .xoffset = 0,
+        .yoffset = 0,
+        .bits_per_pixel = 8,
+        .grayscale = 0,
+        .red = { 0, 0, 0 },
+        .green = { 0, 0, 0 },
+        .blue = { 0, 0, 0 },
+        .transp = { 0, 0, 0 },
+        .nonstd = 0,
+        .activate = FB_ACTIVATE_ALL,
+        .height = 480,
+        .width = 640,
+        .accel_flags = 0L,
+        .pixclock = 0,
+        .left_margin = 0,
+        .right_margin = 0,
+        .upper_margin = 0,
+        .lower_margin = 0,
+        .hsync_len = 0,
+        .vsync_len = 0,
+        .sync = FB_SYNC_HOR_HIGH_ACT,
+        .vmode = FB_VMODE_CONUPDATE,
+        .rotate = 0,
+        .refresh = 60,
+     },
+    .fix =
+     {
+        "ATI Radeon",
+        0x80000000,
+        0x00800000,
+        FB_TYPE_PLANES,
+        0,
+        FB_VISUAL_PSEUDOCOLOR,
+        1,
+        1,
+        1,
+        640,
+        0x88000000,
+        0x4000,
+        1,
+     },
 };
 
 struct fb_info *info_fb = &fb;
@@ -350,11 +397,12 @@ void video_init(void)
 
                     if (radeonfb_pci_register(handle, board) >= 0)
                     {
-                        xprintf("RADEON video card found and registered\r\n");
+                        fb_set_var(info_fb, &info_fb->var);
+                        inf("RADEON video card found and registered\r\n");
                     }
                     else
                     {
-                        dbg("failed to register RADEON PCI video card\r\n");
+                        err("failed to register RADEON PCI video card\r\n");
                     }
                     return;
                 }
