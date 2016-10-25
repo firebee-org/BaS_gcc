@@ -27,11 +27,11 @@ fpga_test:
 
 .PHONY: clean
 clean:
-	@(cd jtagwait; make clean)
-	@(cd bascook; make clean)
-	@(cd vmem_test; make clean)
-	@(cd pci_test; make clean)
-	@(cd pci_mem; make clean)
-	@(cd fpga_test; make clean)
+	@(cd jtagwait; $(MAKE) -s clean)
+	@(cd bascook; $(MAKE) -s clean)
+	@(cd vmem_test; $(MAKE) -s clean)
+	@(cd pci_test; $(MAKE) -s clean)
+	@(cd pci_mem; $(MAKE) -s clean)
+	@(cd fpga_test; $(MAKE) -s clean)
 
 
