@@ -850,7 +850,8 @@ void RADEONChangeSurfaces(struct fb_info *info)
 
 #endif
 
-/* The FIFO has 64 slots.  This routines waits until at least `entries'
+/*
+ * The FIFO has 64 slots.  This routines waits until at least `entries'
  * of these slots are empty.
  */
 void radeon_wait_for_fifo_function(struct radeonfb_info *rinfo, int entries)
@@ -881,7 +882,9 @@ void radeon_engine_flush(struct radeonfb_info *rinfo)
     }
 }
 
-/* Reset graphics card to known state */
+/*
+ * Reset graphics card to known state
+ */
 void radeon_engine_reset(struct radeonfb_info *rinfo)
 {
     unsigned long clock_cntl_index;
@@ -891,12 +894,14 @@ void radeon_engine_reset(struct radeonfb_info *rinfo)
 
     radeon_engine_flush(rinfo);
     clock_cntl_index = INREG(CLOCK_CNTL_INDEX);
+
     /* Some ASICs have bugs with dynamic-on feature, which are
      * ASIC-version dependent, so we force all blocks on for now
      */
     if (rinfo->has_CRTC2)
     {
         unsigned long tmp;
+
         tmp = INPLL(SCLK_CNTL);
         OUTPLL(SCLK_CNTL, ((tmp & ~DYN_STOP_LAT_MASK) | CP_MAX_DYN_STOP_LAT | SCLK_FORCEON_MASK));
         if (rinfo->family == CHIP_FAMILY_RV200)
@@ -906,21 +911,28 @@ void radeon_engine_reset(struct radeonfb_info *rinfo)
         }
     }
     mclk_cntl = INPLL(MCLK_CNTL);
-    OUTPLL(MCLK_CNTL, (mclk_cntl | FORCEON_MCLKA | FORCEON_MCLKB
-     | FORCEON_YCLKA | FORCEON_YCLKB | FORCEON_MC | FORCEON_AIC));
-    /* Soft resetting HDP thru RBBM_SOFT_RESET register can cause some
+    OUTPLL(MCLK_CNTL, (mclk_cntl | FORCEON_MCLKA
+                                 | FORCEON_MCLKB
+                                 | FORCEON_YCLKA
+                                 | FORCEON_YCLKB
+                                 | FORCEON_MC
+                                 | FORCEON_AIC));
+
+    /*
+     * Soft resetting HDP thru RBBM_SOFT_RESET register can cause some
      * unexpected behaviour on some machines.  Here we use
      * HOST_PATH_CNTL to reset it.
      */
     host_path_cntl = INREG(HOST_PATH_CNTL);
+
     rbbm_soft_reset = INREG(RBBM_SOFT_RESET);
-    if ((rinfo->family == CHIP_FAMILY_R300)
-     || (rinfo->family == CHIP_FAMILY_R350)
-     || (rinfo->family == CHIP_FAMILY_RV350))
+
+    if ((rinfo->family == CHIP_FAMILY_R300) || (rinfo->family == CHIP_FAMILY_R350)
+                                            || (rinfo->family == CHIP_FAMILY_RV350))
     {
         unsigned long tmp;
-        OUTREG(RBBM_SOFT_RESET, (rbbm_soft_reset
-         | SOFT_RESET_CP | SOFT_RESET_HI | SOFT_RESET_E2));
+
+        OUTREG(RBBM_SOFT_RESET, (rbbm_soft_reset | SOFT_RESET_CP | SOFT_RESET_HI | SOFT_RESET_E2));
         INREG(RBBM_SOFT_RESET);
         OUTREG(RBBM_SOFT_RESET, 0);
         tmp = INREG(RB2D_DSTCACHE_MODE);
@@ -929,26 +941,31 @@ void radeon_engine_reset(struct radeonfb_info *rinfo)
     else
     {
         OUTREG(RBBM_SOFT_RESET, (rbbm_soft_reset | SOFT_RESET_CP
-         | SOFT_RESET_HI | SOFT_RESET_SE | SOFT_RESET_RE
-         | SOFT_RESET_PP | SOFT_RESET_E2 | SOFT_RESET_RB));
+                                                 | SOFT_RESET_HI | SOFT_RESET_SE | SOFT_RESET_RE
+                                                 | SOFT_RESET_PP | SOFT_RESET_E2 | SOFT_RESET_RB));
+
         INREG(RBBM_SOFT_RESET);
-        OUTREG(RBBM_SOFT_RESET, (rbbm_soft_reset
-         & (unsigned long) ~(SOFT_RESET_CP | SOFT_RESET_HI | SOFT_RESET_SE
-          | SOFT_RESET_RE | SOFT_RESET_PP | SOFT_RESET_E2 | SOFT_RESET_RB)));
+
+        OUTREG(RBBM_SOFT_RESET, (rbbm_soft_reset & (unsigned long) ~(SOFT_RESET_CP | SOFT_RESET_HI | SOFT_RESET_SE
+                                                                   | SOFT_RESET_RE | SOFT_RESET_PP | SOFT_RESET_E2 | SOFT_RESET_RB)));
         INREG(RBBM_SOFT_RESET);
     }
     OUTREG(HOST_PATH_CNTL, host_path_cntl | HDP_SOFT_RESET);
     INREG(HOST_PATH_CNTL);
     OUTREG(HOST_PATH_CNTL, host_path_cntl);
+
     if ((rinfo->family != CHIP_FAMILY_R300)
      && (rinfo->family != CHIP_FAMILY_R350)
      && (rinfo->family != CHIP_FAMILY_RV350))
-    OUTREG(RBBM_SOFT_RESET, rbbm_soft_reset);
+        OUTREG(RBBM_SOFT_RESET, rbbm_soft_reset);
+
     OUTREG(CLOCK_CNTL_INDEX, clock_cntl_index);
     OUTPLL(MCLK_CNTL, mclk_cntl);
 }
 
-/* Restore the acceleration hardware to its previous state */
+/*
+ * Restore the acceleration hardware to its previous state
+ */
 void radeon_engine_restore(struct radeonfb_info *rinfo)
 {
     BEGIN_ACCEL(1);
@@ -959,26 +976,33 @@ void radeon_engine_restore(struct radeonfb_info *rinfo)
      */
     /* Turn of all automatic flushing - we'll do it all */
     if ((rinfo->family != CHIP_FAMILY_R300)
-     && (rinfo->family != CHIP_FAMILY_R350)
-     && (rinfo->family != CHIP_FAMILY_RV350))
+            && (rinfo->family != CHIP_FAMILY_R350)
+            && (rinfo->family != CHIP_FAMILY_RV350))
         OUTREG(RB2D_DSTCACHE_MODE, 0);
+
     rinfo->fb_local_base = INREG(MC_FB_LOCATION) << 16;
+
     BEGIN_ACCEL(3);
     OUTREG(DEFAULT_PITCH_OFFSET, rinfo->dst_pitch_offset);
     OUTREG(DST_PITCH_OFFSET, rinfo->dst_pitch_offset);
     OUTREG(SRC_PITCH_OFFSET, rinfo->dst_pitch_offset);
+
     BEGIN_ACCEL(1);
     if (rinfo->big_endian)
         OUTREGP(DP_DATATYPE, HOST_BIG_ENDIAN_EN, ~HOST_BIG_ENDIAN_EN);
     else
-    OUTREGP(DP_DATATYPE, 0, ~HOST_BIG_ENDIAN_EN);
+        OUTREGP(DP_DATATYPE, 0, ~HOST_BIG_ENDIAN_EN);
+
     /* Restore SURFACE_CNTL - only the first head contains valid data */
     OUTREG(SURFACE_CNTL, rinfo->state.surface_cntl);
+
     BEGIN_ACCEL(2);
     OUTREG(DEFAULT_SC_TOP_LEFT, 0);
     OUTREG(DEFAULT_SC_BOTTOM_RIGHT, (DEFAULT_SC_RIGHT_MAX | DEFAULT_SC_BOTTOM_MAX));
+
     BEGIN_ACCEL(1);
     OUTREG(DP_GUI_MASTER_CNTL, (rinfo->dp_gui_master_cntl | GMC_BRUSH_SOLID_COLOR | GMC_SRC_DATATYPE_COLOR));
+
     BEGIN_ACCEL(7);
     OUTREG(DST_LINE_START, 0);
     OUTREG(DST_LINE_END, 0);
@@ -987,6 +1011,7 @@ void radeon_engine_restore(struct radeonfb_info *rinfo)
     OUTREG(DP_SRC_FRGD_CLR, 0xffffffff);
     OUTREG(DP_SRC_BKGD_CLR, 0x00000000);
     OUTREG(DP_WRITE_MSK, 0xffffffff);
+
     radeon_wait_for_idle_mmio(rinfo);
 }
 
@@ -994,6 +1019,7 @@ void radeon_engine_restore(struct radeonfb_info *rinfo)
 void radeon_engine_init(struct radeonfb_info *rinfo)
 {
     unsigned long temp;
+
     OUTREG(RB3D_CNTL, 0);
     radeon_engine_reset(rinfo);
     temp = radeon_get_dstbpp(rinfo->depth);
