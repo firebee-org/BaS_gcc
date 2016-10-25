@@ -1657,17 +1657,21 @@ int radeonfb_set_par(struct fb_info *info)
     struct fb_var_screeninfo *mode = &info->var;
     struct radeon_regs *newmode;
     int hTotal, vTotal, hSyncStart, hSyncEnd, vSyncStart, vSyncEnd;
+
     // FIXME: int hSyncPol; this is not used anywhere
     // FIXME: int vSyncPol; this is not used anywhere
     // FIXME: int cSync;	this is not used anywhere
+
     static uint8_t hsync_adj_tab[] = {0, 0x12, 9, 9, 6, 5};
     static uint8_t hsync_fudge_fp[] = {2, 2, 0, 0, 5, 5};
     uint32_t sync, h_sync_pol, v_sync_pol, dotClock, pixClock;
-    int i, freq;
+    int i;
+    int freq;
     int format = 0;
     int nopllcalc = 0;
     int hsync_start;
     int hsync_fudge;
+
     // int bytpp; FIXME: this doesn't seem to be used anywhere
     int hsync_wid, vsync_wid;
     int primary_mon = PRIMARY_MONITOR(rinfo);
@@ -1678,11 +1682,12 @@ int radeonfb_set_par(struct fb_info *info)
     if (!newmode)
         return -1; //-ENOMEM;
 
-    /* We always want engine to be idle on a mode switch, even
+    /*
+     *  We always want engine to be idle on a mode switch, even
      * if we won't actually change the mode
      */
-    dbg("radeonfb: radeonfb_set_par\r\n");
     radeon_engine_idle();
+
     hSyncStart = mode->xres + mode->right_margin;
     hSyncEnd = hSyncStart + mode->hsync_len;
     hTotal = hSyncEnd + mode->left_margin;
@@ -1751,7 +1756,9 @@ int radeonfb_set_par(struct fb_info *info)
     // FIXME: this doesn't seem to be used anywhere hSyncPol = mode->sync & FB_SYNC_HOR_HIGH_ACT ? 0 : 1;
     // FIXME: this doesn't seem to be used anywhere vSyncPol = mode->sync & FB_SYNC_VERT_HIGH_ACT ? 0 : 1;
     // FIXME: this doesn't seem to be used anywhere cSync = mode->sync & FB_SYNC_COMP_HIGH_ACT ? (1 << 4) : 0;
+
     format = radeon_get_dstbpp(depth);
+
     // FIXME: this doesn't seem to be used anywhere bytpp = mode->bits_per_pixel >> 3;
 
     if ((primary_mon == MT_DFP) || (primary_mon == MT_LCD))
@@ -1793,8 +1800,10 @@ int radeonfb_set_par(struct fb_info *info)
         newmode->crtc_v_total_disp = ((vTotal - 1) & 0xffff) | ((mode->yres - 1) << 16);
 
     newmode->crtc_v_sync_strt_wid = (((vSyncStart - 1) & 0xfff) | (vsync_wid << 16) | (v_sync_pol << 23));
+
     /* We first calculate the engine pitch */
     rinfo->pitch = ((mode->xres_virtual * ((mode->bits_per_pixel + 1) / 8) + 0x3f) & ~(0x3f)) >> 6;
+
     /* Then, re-multiply it to get the CRTC pitch */
     newmode->crtc_pitch = (rinfo->pitch << 3) / ((mode->bits_per_pixel + 1) / 8);
     newmode->crtc_pitch |= (newmode->crtc_pitch << 16);
@@ -2134,7 +2143,7 @@ static void radeon_identify_vram(struct radeonfb_info *rinfo)
         case CHIP_FAMILY_R420: dbg("chip type: %s\r\n", "R420"); break;
         default: dbg("chip type: %s\r\n", "UNKNOW"); break;
     }
-    dbg("found %d KB of %d bits wide %s video RAM\r\n", rinfo->video_ram / 1024,
+    inf("found %d KB of %d bits wide %s video RAM\r\n", rinfo->video_ram / 1024,
         rinfo->vram_width, rinfo->vram_ddr ? "DDR " : "SDRAM ");
 }
 
@@ -2148,7 +2157,7 @@ int32_t radeonfb_pci_register(int32_t handle, const struct pci_device_id *ent)
     info = framebuffer_alloc(sizeof(struct radeonfb_info));
     if (!info)
     {
-        dbg("could not allocate frame buffer info\r\n");
+        err("could not allocate frame buffer info\r\n");
         return -1; // -ENOMEM;
     }
 
@@ -2203,14 +2212,6 @@ int32_t radeonfb_pci_register(int32_t handle, const struct pci_device_id *ent)
                         rinfo->big_endian = 1; /* radeon make swapping intel -> motorola */
                         dbg("host bridge is little endian\r\n");
                     }
-#if 0
-                    xprintf("framebuffer dump:\r\n");
-                    hexdump((uint8_t *) rinfo->fb_base_phys, 0x10);
-                    xprintf("change framebuffer contents\r\n");
-                    * (uint32_t *) rinfo->fb_base_phys = 0x01234567;
-                    * (uint32_t *) (rinfo->fb_base_phys + 8) = 0x89abcdef;
-                    hexdump((uint8_t *) rinfo->fb_base_phys, 0x10);
-#endif
                 }
                 else if ((pci_rsc_desc->length >= RADEON_REGSIZE) && (pci_rsc_desc->length < 0x100000))
                 {
@@ -2231,10 +2232,6 @@ int32_t radeonfb_pci_register(int32_t handle, const struct pci_device_id *ent)
                             {
                                 dbg("rinfo->bios_seg[0] (%p) was %x (expected 0xaa55)\r\n",
                                     rinfo->bios_seg_phys, * (uint16_t *) rinfo->bios_seg_phys);
-#if 0
-                                xprintf("bios_seg_phys dump:\r\n");
-                                hexdump((uint8_t *) rinfo->bios_seg_phys, 0x100);
-#endif
                                 rinfo->bios_seg_phys = 0;
                                 return 0;
                             }
@@ -2246,10 +2243,6 @@ int32_t radeonfb_pci_register(int32_t handle, const struct pci_device_id *ent)
                         {
                             rinfo->mmio_base = (void *)(pci_rsc_desc->offset + pci_rsc_desc->start);
                             rinfo->mmio_base_phys = pci_rsc_desc->start;
-#if 0
-                            xprintf("mmio_base dump:\r\n");
-                            hexdump((uint8_t *) rinfo->mmio_base_phys, 0x100);
-#endif
                         }
                     }
                 }
@@ -2260,10 +2253,6 @@ int32_t radeonfb_pci_register(int32_t handle, const struct pci_device_id *ent)
                 {
                     rinfo->io_base = (void *)(pci_rsc_desc->offset + pci_rsc_desc->start);
                     rinfo->io_base_phys = pci_rsc_desc->start;
-#if 0
-                    xprintf("io_base dump:\r\n");
-                    hexdump((uint8_t *) rinfo->io_base_phys, 0x100);
-#endif
                 }
             }
             flags = pci_rsc_desc->flags;
@@ -2277,7 +2266,7 @@ int32_t radeonfb_pci_register(int32_t handle, const struct pci_device_id *ent)
     dbg("map memory regions\r\n");
     if (rinfo->mmio_base == NULL)
     {
-        dbg("cannot map MMIO\r\n");
+        err("cannot map MMIO\r\n");
         framebuffer_release(info);
         return -2; //(-EIO);
     }
@@ -2316,7 +2305,7 @@ int32_t radeonfb_pci_register(int32_t handle, const struct pci_device_id *ent)
     }
     else
     {
-        dbg("could not run VGA bios - rinfo->bios_seg is NULL\r\n");
+        err("could not run VGA bios - rinfo->bios_seg is NULL\r\n");
     }
 
     dbg("fixup display base address \r\n");
@@ -2340,13 +2329,13 @@ int32_t radeonfb_pci_register(int32_t handle, const struct pci_device_id *ent)
     if ((rinfo->fb_base == NULL)
             || ((rinfo->video_ram > rinfo->mapped_vram) && (rinfo->mapped_vram < MIN_MAPPED_VRAM * 2)))
     {
-        dbg("cannot map FB, video ram: %d KB\r\n", rinfo->mapped_vram / 1024);
+        err("cannot map FB, video ram: %d KB\r\n", rinfo->mapped_vram / 1024);
         framebuffer_release(info);
         return -2; //(-EIO);
     }
     else
     {
-        dbg("%d KB of VRAM mapped to %p\r\n", rinfo->mapped_vram / 1024, rinfo->fb_base);
+        inf("%d KB of VRAM mapped to %p\r\n", rinfo->mapped_vram / 1024, rinfo->fb_base);
     }
 
     /* Get informations about the board's PLL */
