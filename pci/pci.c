@@ -1120,13 +1120,14 @@ void init_xlbus_arbiter(void)
      * M2 = Multichannel DMA
      * M3 = PCI target interface
      */
-
+#if 0
     MCF_XLB_XARB_PRIEN = MCF_XLB_XARB_PRIEN_M0 |    /* activate programmed priority for Coldfire core */
                     MCF_XLB_XARB_PRIEN_M2 |         /* activate programmed priority for Multichannel DMA */
                     MCF_XLB_XARB_PRIEN_M3;          /* activate programmed priority for PCI target interface */
     MCF_XLB_XARB_PRI = MCF_XLB_XARB_PRI_M0P(7) |    /* Coldfire core gets lowest */
                     MCF_XLB_XARB_PRI_M2P(5) |       /* Multichannel DMA mid priority */
                     MCF_XLB_XARB_PRI_M3P(3);        /* PCI target interface is highest priority */
+#endif
 }
 
 void init_pci(void)

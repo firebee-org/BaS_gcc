@@ -19,7 +19,7 @@
 #include "driver_mem.h"
 #include "bas_string.h"
 
-// #define DEBUG
+#define DEBUG
 #include "debug.h"
 
 
@@ -37,9 +37,18 @@ int fb_pan_display(struct fb_info *info, struct fb_var_screeninfo *var)
     dbg("\r\n");
     if ((xoffset < 0) || (yoffset < 0)
             || ((xoffset + info->var.xres) > info->var.xres_virtual))
+    {
+        dbg("xoffset=%d, yoffset=%d, xres=%d, xres_virtual = %d\r\n",
+            xoffset, yoffset, info->var.xres, info->var.xres_virtual);
         return -1; //-EINVAL;
+    }
+
     if ((err = info->fbops->fb_pan_display(var, info)))
+    {
+        dbg("fb_pan_display returned %d\r\n", err);
         return err;
+    }
+
     info->var.xoffset = var->xoffset;
     info->var.yoffset = var->yoffset;
     if (var->vmode & FB_VMODE_YWRAP)
@@ -53,11 +62,11 @@ int fb_set_var(struct fb_info *info, struct fb_var_screeninfo *var)
 {
     int err;
 
-    dbg("\r\n");
+    dbg("var->activate = 0x%x\r\n", var->activate);
 
     if (var->activate & FB_ACTIVATE_INV_MODE)
     {
-        /* return 1 if equal */
+        dbg("invalid mode\r\n");
         return !memcmp((char *) &info->var, (char *) var, sizeof(struct fb_var_screeninfo));
     }
 
@@ -66,6 +75,7 @@ int fb_set_var(struct fb_info *info, struct fb_var_screeninfo *var)
     {
         if ((err = info->fbops->fb_check_var(var, info)))
         {
+            dbg("fb_check_var failed\r\n");
             return err;
         }
 

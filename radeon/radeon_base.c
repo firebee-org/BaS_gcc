@@ -62,7 +62,7 @@
 #include "bas_string.h"
 #include "exceptions.h"		/* for set_ipl() */
 
-// #define DEBUG
+#define DEBUG
 #include "debug.h"
 
 extern void run_bios(struct radeonfb_info *rinfo);
@@ -918,13 +918,23 @@ int radeonfb_check_var(struct fb_var_screeninfo *var, struct fb_info *info)
 int radeonfb_pan_display(struct fb_var_screeninfo *var, struct fb_info *info)
 {
     struct radeonfb_info *rinfo = info->par;
-    //	DPRINT("radeonfb: radeonfb_pan_display\r\n");
+    dbg("\r\n");
     if ((var->xoffset + var->xres) > var->xres_virtual)
+    {
+        dbg("xoffset = %d, xres = %d, xres_virtual=%d\r\n",
+            var->xoffset, var->xres, var->xres_virtual);
         return -1; //-EINVAL;
+    }
 
     if (((var->yoffset * var->xres_virtual) + var->xoffset) >=
             (rinfo->mapped_vram - (var->yres * var->xres * (var->bits_per_pixel / 8))))
+    {
+        dbg("yoffset=%d, xres_virtual=%d, mapped_vram=%ld,\r\n",
+            "yres=%d, xres=%d, bpp=%d\r\n",
+            var->yoffset, var->xres_virtual, var->xoffset, rinfo->mapped_vram,
+            var->yres, var->xres, var->bits_per_pixel);
         return -1; //-EINVAL;
+    }
 
     if (rinfo->asleep)
         return 0;
@@ -2126,25 +2136,25 @@ static void radeon_identify_vram(struct radeonfb_info *rinfo)
      */
     switch(rinfo->family)
     {
-        case CHIP_FAMILY_LEGACY: dbg("chip type: %s\r\n", "LEGACY"); break;
-        case CHIP_FAMILY_RADEON: dbg("chip type: %s\r\n", "RADEON"); break;
-        case CHIP_FAMILY_RV100: dbg("chip type: %s\r\n", "RV100"); break;
-        case CHIP_FAMILY_RS100: dbg("chip type: %s\r\n", "RS100"); break;
-        case CHIP_FAMILY_RV200: dbg("chip type: %s\r\n", "RV200"); break;
-        case CHIP_FAMILY_RS200: dbg("chip type: %s\r\n", "RS200"); break;
-        case CHIP_FAMILY_R200: dbg("chip type: %s\r\n", "R200"); break;
-        case CHIP_FAMILY_RV250: dbg("chip type: %s\r\n", "RV250"); break;
-        case CHIP_FAMILY_RS300: dbg("chip type: %s\r\n", "RS300"); break;
-        case CHIP_FAMILY_RV280: dbg("chip type: %s\r\n", "RV280"); break;
-        case CHIP_FAMILY_R300: dbg("chip type: %s\r\n", "R300"); break;
-        case CHIP_FAMILY_R350: dbg("chip type: %s\r\n", "R350"); break;
-        case CHIP_FAMILY_RV350: dbg("chip type: %s\r\n", "RV350"); break;
-        case CHIP_FAMILY_RV380: dbg("chip type: %s\r\n", "RV380"); break;
+        case CHIP_FAMILY_LEGACY: inf("chip type: %s\r\n", "LEGACY"); break;
+        case CHIP_FAMILY_RADEON: inf("chip type: %s\r\n", "RADEON"); break;
+        case CHIP_FAMILY_RV100: inf("chip type: %s\r\n", "RV100"); break;
+        case CHIP_FAMILY_RS100: inf("chip type: %s\r\n", "RS100"); break;
+        case CHIP_FAMILY_RV200: inf("chip type: %s\r\n", "RV200"); break;
+        case CHIP_FAMILY_RS200: inf("chip type: %s\r\n", "RS200"); break;
+        case CHIP_FAMILY_R200: inf("chip type: %s\r\n", "R200"); break;
+        case CHIP_FAMILY_RV250: inf("chip type: %s\r\n", "RV250"); break;
+        case CHIP_FAMILY_RS300: inf("chip type: %s\r\n", "RS300"); break;
+        case CHIP_FAMILY_RV280: inf("chip type: %s\r\n", "RV280"); break;
+        case CHIP_FAMILY_R300: inf("chip type: %s\r\n", "R300"); break;
+        case CHIP_FAMILY_R350: inf("chip type: %s\r\n", "R350"); break;
+        case CHIP_FAMILY_RV350: inf("chip type: %s\r\n", "RV350"); break;
+        case CHIP_FAMILY_RV380: inf("chip type: %s\r\n", "RV380"); break;
         case CHIP_FAMILY_R420: dbg("chip type: %s\r\n", "R420"); break;
-        default: dbg("chip type: %s\r\n", "UNKNOW"); break;
+        default: inf("chip type: %s\r\n", "UNKNOW"); break;
     }
     inf("found %d KB of %d bits wide %s video RAM\r\n", rinfo->video_ram / 1024,
-        rinfo->vram_width, rinfo->vram_ddr ? "DDR " : "SDRAM ");
+        rinfo->vram_width, rinfo->vram_ddr ? "DDR" : "SDRAM");
 }
 
 int32_t radeonfb_pci_register(int32_t handle, const struct pci_device_id *ent)
