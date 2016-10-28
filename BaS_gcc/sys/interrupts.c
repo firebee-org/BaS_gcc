@@ -441,26 +441,26 @@ bool xlbarb_interrupt_handler(void *arg1, void *arg2)
     /*
      * TODO: we should probably issue a bus error when this occors
      */
-    dbg("XLB arbiter interrupt. XARB_ADRCAP=0x%08lx\r\n", MCF_XLB_XARB_ADRCAP);
+    err("XLB arbiter interrupt. XARB_ADRCAP=0x%08lx\r\n", MCF_XLB_XARB_ADRCAP);
 
     if (status & MCF_XLB_XARB_SR_AT)
-        dbg("address tenure timeout\r\n");
+        err("address tenure timeout\r\n");
     if (status & MCF_XLB_XARB_SR_DT)
-        dbg("data tenure timeout\r\n");
+        err("data tenure timeout\r\n");
     if (status & MCF_XLB_XARB_SR_BA)
-        dbg("bus activity tenure timeout\r\n");
+        err("bus activity tenure timeout\r\n");
     if (status & MCF_XLB_XARB_SR_TTM)
-        dbg("TBST/TSIZ mismatch\r\n");
+        err("TBST/TSIZ mismatch\r\n");
     if (status & MCF_XLB_XARB_SR_ECW)
-        dbg("external control word read/write\r\n");
+        err("external control word read/write\r\n");
     if (status & MCF_XLB_XARB_SR_TTR)
-        dbg("TT reserved\r\n");
+        err("TT reserved\r\n");
     if (status & MCF_XLB_XARB_SR_TTA)
-        dbg("TT address only\r\n");
+        err("TT address only\r\n");
     if (status & MCF_XLB_XARB_SR_MM)
-        dbg("multiple masters at priority 0\r\n");
+        err("multiple masters at priority 0\r\n");
     if (status & MCF_XLB_XARB_SR_SEA)
-        dbg("slave error acknowledge\r\n");
+        err("slave error acknowledge\r\n");
 
     /*
      * acknowledge interrupt

@@ -228,7 +228,7 @@ void enable_coldfire_interrupts()
             MCF_GPT_GMS_IEN |
             MCF_GPT_GMS_TMS(1);             /* route GPT0 interrupt on interrupt controller */
     MCF_INTC_ICR62 = MCF_INTC_ICR_IL(7) |
-                     MCF_INTC_ICR_IP(6);    /* interrupt level 7, interrupt priority 7 */
+                     MCF_INTC_ICR_IP(6);    /* interrupt level 7, interrupt priority 6 */
     MCF_INTC_IMRH = 0xbffffffe;             /* psc3 and timer 0 int on */
 #endif
 #endif

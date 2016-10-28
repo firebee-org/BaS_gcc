@@ -7,7 +7,7 @@
 #include "fb.h"
 #include "radeonfb.h"
 
-// #define DEBUG
+#define DEBUG
 #include "debug.h"
 
 #ifdef _USE_VIDEL_
@@ -274,40 +274,42 @@ void videl_screen_init(void)
 
 static struct radeonfb_info rfb;
 
+static struct fb_var_screeninfo default_fb =
+{
+    .xres = 1280,
+    .yres = 1024,
+    .xres_virtual = 2560,
+    .yres_virtual = 2048,
+    .xoffset = 0,
+    .yoffset = 0,
+    .bits_per_pixel = 8,
+    .grayscale = 0,
+    .red = { 0, 0, 0 },
+    .green = { 0, 0, 0 },
+    .blue = { 0, 0, 0 },
+    .transp = { 0, 0, 0 },
+    .nonstd = 0,
+    .activate = FB_ACTIVATE_FORCE | FB_ACTIVATE_NOW,
+    .height = 1024,
+    .width = 1280,
+    .accel_flags = 0L,
+    .pixclock = 70 * 100000000L,
+    .left_margin = 0,
+    .right_margin = 0,
+    .upper_margin = 0,
+    .lower_margin = 0,
+    .hsync_len = 0,
+    .vsync_len = 0,
+    .sync = FB_SYNC_HOR_HIGH_ACT,
+    .vmode = FB_VMODE_CONUPDATE,
+    .rotate = 0,
+    .refresh = 60,
+};
+
 static struct fb_info fb =
 {
     .par = &rfb,
-    .var =
-     {
-        .xres = 640,
-        .yres = 480,
-        .xres_virtual = 640,
-        .yres_virtual = 480,
-        .xoffset = 0,
-        .yoffset = 0,
-        .bits_per_pixel = 8,
-        .grayscale = 0,
-        .red = { 0, 0, 0 },
-        .green = { 0, 0, 0 },
-        .blue = { 0, 0, 0 },
-        .transp = { 0, 0, 0 },
-        .nonstd = 0,
-        .activate = FB_ACTIVATE_FORCE | FB_ACTIVATE_NOW,
-        .height = 480,
-        .width = 640,
-        .accel_flags = 0L,
-        .pixclock = 0,
-        .left_margin = 0,
-        .right_margin = 0,
-        .upper_margin = 0,
-        .lower_margin = 0,
-        .hsync_len = 0,
-        .vsync_len = 0,
-        .sync = FB_SYNC_HOR_HIGH_ACT,
-        .vmode = FB_VMODE_CONUPDATE,
-        .rotate = 0,
-        .refresh = 60,
-     },
+
     .fix =
      {
         "ATI Radeon",
@@ -334,8 +336,8 @@ int16_t ignore_edid;
 struct mode_option resolution =
 {
     .used = 1,
-    .width = 640,
-    .height = 480,
+    .width = 1280,
+    .height = 1024,
     .bpp = 8,
     .freq = 60,
     .flags = MODE_VESA_FLAG
@@ -397,7 +399,7 @@ void video_init(void)
 
                     if (radeonfb_pci_register(handle, board) >= 0)
                     {
-                        fb_set_var(info_fb, &info_fb->var);
+                        fb_set_var(info_fb, &default_fb);
                         inf("RADEON video card found and registered\r\n");
                     }
                     else
