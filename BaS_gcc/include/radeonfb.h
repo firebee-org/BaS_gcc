@@ -1,10 +1,6 @@
 #ifndef __RADEONFB_H__
 #define __RADEONFB_H__
 
-#ifdef CONFIG_FB_RADEON_I2C
-#undef CONFIG_FB_RADEON_I2C
-#endif
-
 #include <bas_string.h>
 #include "pci.h"
 #include "mod_devicetable.h"
@@ -14,6 +10,7 @@
 #include "i2c-algo-bit.h"
 #include "util.h"			/* for swpX() */
 #include "wait.h"
+#include "video.h"
 
 //#include "radeon_theatre.h"
 
@@ -388,7 +385,7 @@ struct radeonfb_info
     int32_t is_IGP;
     int32_t reversed_DAC;
     int32_t reversed_TMDS;
-    struct panel_info	panel_info;
+    struct panel_info panel_info;
     int32_t mon1_type;
     uint8_t *mon1_EDID;
     struct fb_videomode	*mon1_modedb;
@@ -489,17 +486,17 @@ extern uint32_t __INPLL(struct radeonfb_info *rinfo, uint32_t addr);
 extern void __OUTPLL(struct radeonfb_info *rinfo, uint32_t index, uint32_t val);
 extern void __OUTPLLP(struct radeonfb_info *rinfo, uint32_t index, uint32_t val, uint32_t mask);
 
-#define INREG8(addr)		*((uint8_t *)(rinfo->mmio_base + addr))
-#define INREG16(addr)		swpw(*(uint16_t *)(rinfo->mmio_base + addr))
-#define INREG(addr)			swpl(*(uint32_t *)(rinfo->mmio_base + addr))
-#define OUTREG8(addr, val)	(*((uint8_t *)(rinfo->mmio_base + addr)) = val)
-#define OUTREG16(addr, val)	(*((uint16_t *)(rinfo->mmio_base + addr)) = swpw((uint32_t) val))
-#define OUTREG(addr, val)	(*((uint32_t *)(rinfo->mmio_base + addr)) = swpl((uint32_t) val))
+#define INREG8(addr)		*((volatile uint8_t *)(rinfo->mmio_base + addr))
+#define INREG16(addr)		swpw(*(volatile uint16_t *)(rinfo->mmio_base + addr))
+#define INREG(addr)			swpl(*(volatile uint32_t *)(rinfo->mmio_base + addr))
+#define OUTREG8(addr, val)	(*((volatile uint8_t *)(rinfo->mmio_base + addr)) = val)
+#define OUTREG16(addr, val)	(*((volatile uint16_t *)(rinfo->mmio_base + addr)) = swpw((uint32_t) val))
+#define OUTREG(addr, val)	(*((volatile uint32_t *)(rinfo->mmio_base + addr)) = swpl((uint32_t) val))
 
 extern int32_t *tab_funcs_pci;
-#define BIOS_IN8(v)		(* ((uint8_t *) rinfo->bios_seg_phys + v))
-#define BIOS_IN16(v)	(swpw(*(uint16_t *) ((uint8_t *) rinfo->bios_seg_phys + v)))
-#define BIOS_IN32(v)	(swpl(*(uint32_t *) ((uint8_t *) rinfo->bios_seg_phys + v)))
+#define BIOS_IN8(v)		(* ((volatile uint8_t *) rinfo->bios_seg_phys + v))
+#define BIOS_IN16(v)	(swpw(*(volatile uint16_t *) ((uint8_t *) rinfo->bios_seg_phys + v)))
+#define BIOS_IN32(v)	(swpl(*(volatile uint32_t *) ((uint8_t *) rinfo->bios_seg_phys + v)))
 
 #define ADDRREG(addr)			((volatile uint32_t *)(rinfo->mmio_base + (addr)))
 #define OUTREGP(addr, val, mask)	_OUTREGP(rinfo, addr, val, mask)

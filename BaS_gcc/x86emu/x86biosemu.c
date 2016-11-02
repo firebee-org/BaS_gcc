@@ -10,7 +10,7 @@
 #include "pci_ids.h"
 #include "x86pcibios.h"
 
-// #define DEBUG
+#define DEBUG
 #include "debug.h"
 
 #define USE_SDRAM
@@ -112,6 +112,9 @@ static uint16_t inw(struct X86EMU *emu, uint16_t port)
     return val;
 }
 
+#define PC_PCI_INDEX_PORT       0xcf8
+#define PC_PCI_DATA_PORT        0xcfc
+
 static uint32_t inl(struct X86EMU *emu, uint16_t port)
 {
     uint32_t val = 0;
@@ -120,13 +123,12 @@ static uint32_t inl(struct X86EMU *emu, uint16_t port)
     {
         val = swpl(*(uint32_t *)(offset_io + (uint32_t) port));
     }
-    else if (port == 0xCF8)
+    else if (port == PC_PCI_INDEX_PORT)
     {
         val = config_address_reg;
     }
-    else if ((port == 0xCFC) && ((config_address_reg & 0x80000000) != 0))
+    else if ((port == PC_PCI_DATA_PORT) && ((config_address_reg & 0x80000000) != 0))
     {
-        dbg("PCI BIOS access to register %x\r\n", config_address_reg);
         switch (config_address_reg & 0xFC)
         {
             case PCIIDR:
@@ -141,7 +143,7 @@ static uint32_t inl(struct X86EMU *emu, uint16_t port)
                 val = pci_read_config_longword(rinfo_biosemu->handle, config_address_reg & 0xFC);
                 break;
         }
-        dbg("inl(0x%x) = 0x%x\r\n", port, val);
+        // dbg("PCI inl from register %x, value = 0x%08x\r\n", config_address_reg, val);
     }
 
     return val;
@@ -169,19 +171,19 @@ static void outl(struct X86EMU *emu, uint16_t port, uint32_t val)
     {
         *(uint32_t *)(offset_io + (uint32_t) port) = swpl(val);
     }
-    else if (port == 0xCF8)
+    else if (port == PC_PCI_INDEX_PORT)
     {
         config_address_reg = val;
     }
-    else if ((port == 0xCFC) && ((config_address_reg & 0x80000000) !=0))
+    else if ((port == PC_PCI_DATA_PORT) && ((config_address_reg & 0x80000000) !=0))
     {
+        dbg("outl(0x%x, 0x%x) to PCI config space\r\n", port, val);
         if ((config_address_reg & 0xFC) == PCIBAR1)
         {
             offset_port = (uint16_t) val & 0xFFFC;
         }
         else
         {
-            dbg("outl(0x%x, 0x%x) to PCI config space\r\n", port, val);
             pci_write_config_longword(rinfo_biosemu->handle, config_address_reg & 0xFC, val);
         }
     }
@@ -195,7 +197,6 @@ static void do_int(struct X86EMU *emu, int num)
 
     switch (num)
     {
-#ifndef _PC
         case 0x10:
             /* video interrupt */
             /* fall through intentional */
@@ -207,7 +208,23 @@ static void do_int(struct X86EMU *emu, int num)
         case 0x6d:
             /* VGA internal interrupt */
 
-            dbg("int %02xh, AH=0x%02x, AL=0x%02x\r\n", num, emu->x86.register_a.I8_reg.h_reg, emu->x86.register_a.I8_reg.l_reg);
+            dbg("int %02xh, AH=0x%02x, AL=0x%02x\r\n", num,
+                emu->x86.register_a.I8_reg.h_reg,
+                emu->x86.register_a.I8_reg.l_reg);
+
+            if (emu->x86.register_a.I8_reg.h_reg == 0x13)       /* VGA write string */
+            {
+                int num_chars = emu->x86.register_c.I16_reg.x_reg;
+                int seg = emu->x86.register_es;
+                int off = emu->x86.register_bp.I16_reg.x_reg;
+                int str = (seg << 4) + off;
+                int i;
+
+                dbg("string to output at 0x%04x:0x%04x length=0x%04x\r\n", seg, off, num_chars);
+
+                for (i = 0; i < num_chars; i++)
+                    xprintf("%c", * (char *)(0x0100000 + str + i));
+            }
 
             if (getIntVect(emu, num) == 0x0000)
                 err("uninitialised int vector\r\n");
@@ -218,7 +235,7 @@ static void do_int(struct X86EMU *emu, int num)
                 ret = 1;
             }
             break;
-#endif
+
         case 0x15:
             //ret = int15_handler();
             ret = 1;

@@ -4,8 +4,9 @@
 #include "driver_mem.h"
 #include "bas_printf.h"
 #include "bas_string.h"
+#include "video.h"
 
-// #define DEBUG
+#define DEBUG
 #include "debug.h"
 
 #ifndef INT_MAX
@@ -171,33 +172,35 @@ static int radeon_parse_monitor_layout(struct radeonfb_info *rinfo, const char *
         s2[0] = '\0';
     }
 
-    if (strcmp(s1, "CRT"))
+    dbg("s1=%s, s2=%s \r\n", s1, s2);
+
+    if (!strcmp(s1, "CRT"))
     {
         rinfo->mon1_type = MT_CRT;
         dbg("monitor 1 set to CRT\r\n");
     }
-    else if (strcmp(s1, "TMDS"))
+    else if (!strcmp(s1, "TMDS"))
     {
         rinfo->mon1_type = MT_DFP;
         dbg("monitor 1 set to TMDS\r\n");
     }
-    else if (strcmp(s1, "LVDS"))
+    else if (!strcmp(s1, "LVDS"))
     {
         rinfo->mon1_type = MT_LCD;
         dbg("monitor 1 set to LVDS\r\n");
     }
 
-    if (strcmp(s2, "CRT"))
+    if (!strcmp(s2, "CRT"))
     {
         rinfo->mon2_type = MT_CRT;
         dbg("monitor 2 set to CRT\r\n");
     }
-    else if (strcmp(s2, "TMDS"))
+    else if (!strcmp(s2, "TMDS"))
     {
         rinfo->mon2_type = MT_DFP;
         dbg("monitor 2 set to TMDS\r\n");
     }
-    else if (strcmp(s2, "LVDS"))
+    else if (!strcmp(s2, "LVDS"))
     {
         rinfo->mon2_type = MT_LCD;
         dbg("monitor 2 set to LVDS\r\n");
@@ -211,9 +214,12 @@ static int radeon_parse_monitor_layout(struct radeonfb_info *rinfo, const char *
  */
 void radeon_probe_screens(struct radeonfb_info *rinfo, const char *monitor_layout, int ignore_edid)
 {
+
 #ifdef CONFIG_FB_RADEON_I2C
     int ddc_crt2_used = 0;
 #endif
+
+    dbg("monitor_layout=%s\r\n", monitor_layout);
     if (radeon_parse_monitor_layout(rinfo, monitor_layout))
     {
         /*

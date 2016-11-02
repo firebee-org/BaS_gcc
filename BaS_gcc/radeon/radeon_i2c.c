@@ -1,25 +1,30 @@
+#include "video.h"
 #include "radeonfb.h"
-// #include "relocate.h"
 #include "edid.h"
+#include "i2c.h"
 #include "driver_mem.h"
 
+#define DEBUG
+#include "debug.h"
+
+
+#define CONFIG_FB_RADEON_I2C
 #ifdef CONFIG_FB_RADEON_I2C
 
 #define RADEON_DDC 	0x50
-
-extern void mdelay(long msec);
-extern void udelay(long usec);
 
 static void radeon_gpio_setscl(void* data, int state)
 {
     struct radeon_i2c_chan *chan = data;
     struct radeonfb_info *rinfo = chan->rinfo;
     unsigned long val;
+
     val = INREG(chan->ddc_reg) & ~(VGA_DDC_CLK_OUT_EN);
-    if(!state)
+
+    if (!state)
         val |= VGA_DDC_CLK_OUT_EN;
     OUTREG(chan->ddc_reg, val);
-    (void)INREG(chan->ddc_reg);
+    (void) INREG(chan->ddc_reg);
 }
 
 static void radeon_gpio_setsda(void* data, int state)
@@ -27,11 +32,12 @@ static void radeon_gpio_setsda(void* data, int state)
     struct radeon_i2c_chan *chan = data;
     struct radeonfb_info *rinfo = chan->rinfo;
     unsigned long val;
+
     val = INREG(chan->ddc_reg) & ~(VGA_DDC_DATA_OUT_EN);
-    if(!state)
+    if (!state)
         val |= VGA_DDC_DATA_OUT_EN;
     OUTREG(chan->ddc_reg, val);
-    (void)INREG(chan->ddc_reg);
+    (void) INREG(chan->ddc_reg);
 }
 
 static int radeon_gpio_getscl(void* data)
@@ -39,8 +45,9 @@ static int radeon_gpio_getscl(void* data)
     struct radeon_i2c_chan *chan = data;
     struct radeonfb_info *rinfo = chan->rinfo;
     unsigned long val;
+
     val = INREG(chan->ddc_reg);
-    return(val & VGA_DDC_CLK_INPUT) ? 1 : 0;
+    return (val & VGA_DDC_CLK_INPUT) ? 1 : 0;
 }
 
 static int radeon_gpio_getsda(void* data)
@@ -129,8 +136,10 @@ static unsigned char *radeon_do_probe_i2c_edid(struct radeon_i2c_chan *chan)
         return NULL;
 
     msgs[1].buf = buf;
-    if(i2c_transfer(&chan->adapter, msgs, 2) == 2)
+    if (i2c_transfer(&chan->adapter, msgs, 2) == 2)
         return buf;
+    else
+        err("i2c_transfer() failed\r\n");
 
     driver_mem_free(buf);
     return NULL;
@@ -138,14 +147,14 @@ static unsigned char *radeon_do_probe_i2c_edid(struct radeon_i2c_chan *chan)
 
 int32_t radeon_probe_i2c_connector(struct radeonfb_info *rinfo, int32_t conn, uint8_t **out_edid)
 {
-    unsigned long reg = rinfo->i2c[conn-1].ddc_reg;
+    unsigned long reg = rinfo->i2c[conn - 1].ddc_reg;
     unsigned char *edid = NULL;
     int i, j;
-    //  DPRINTVAL("radeonfb: radeon_probe_i2c_connector ", conn);
-    //	DPRINT("\r\n");
+
     OUTREG(reg, INREG(reg) & ~(VGA_DDC_DATA_OUTPUT | VGA_DDC_CLK_OUTPUT));
     OUTREG(reg, INREG(reg) & ~(VGA_DDC_CLK_OUT_EN));
-    (void)INREG(reg);
+    (void) INREG(reg);
+
     for(i = 0; i < 3; i++)
     {
         /* For some old monitors we need the
@@ -153,56 +162,68 @@ int32_t radeon_probe_i2c_connector(struct radeonfb_info *rinfo, int32_t conn, ui
          */
         OUTREG(reg, INREG(reg) & ~(VGA_DDC_DATA_OUT_EN));
         (void)INREG(reg);
-        mdelay(13);
+        wait_ms(13);
+
         OUTREG(reg, INREG(reg) & ~(VGA_DDC_CLK_OUT_EN));
         (void)INREG(reg);
+
         for(j = 0; j < 5; j++)
         {
-            mdelay(10);
-            if(INREG(reg) & VGA_DDC_CLK_INPUT)
+            wait_ms(10);
+            if (INREG(reg) & VGA_DDC_CLK_INPUT)
                 break;
         }
-        if(j == 5)
+
+        if (j == 5)
             continue;
+
         OUTREG(reg, INREG(reg) | VGA_DDC_DATA_OUT_EN);
-        (void)INREG(reg);
-        mdelay(15);
+        (void) INREG(reg);
+        wait_ms(15);
+
         OUTREG(reg, INREG(reg) | VGA_DDC_CLK_OUT_EN);
-        (void)INREG(reg);
-        mdelay(15);
+        (void) INREG(reg);
+        wait_ms(15);
+
         OUTREG(reg, INREG(reg) & ~(VGA_DDC_DATA_OUT_EN));
-        (void)INREG(reg);
-        mdelay(15);
+        (void) INREG(reg);
+        wait_ms(15);
+
         /* Do the real work */
-        edid = radeon_do_probe_i2c_edid(&rinfo->i2c[conn-1]);
+        edid = radeon_do_probe_i2c_edid(&rinfo->i2c[conn - 1]);
         OUTREG(reg, INREG(reg) | (VGA_DDC_DATA_OUT_EN | VGA_DDC_CLK_OUT_EN));
-        (void)INREG(reg);
-        mdelay(15);
+        (void) INREG(reg);
+        wait_ms(15);
         OUTREG(reg, INREG(reg) & ~(VGA_DDC_CLK_OUT_EN));
-        (void)INREG(reg);
+        (void) INREG(reg);
         for(j = 0; j < 10; j++)
         {
-            mdelay(10);
-            if(INREG(reg) & VGA_DDC_CLK_INPUT)
+            wait_ms(10);
+            if (INREG(reg) & VGA_DDC_CLK_INPUT)
                 break;
         }
         OUTREG(reg, INREG(reg) & ~(VGA_DDC_DATA_OUT_EN));
-        (void)INREG(reg);
-        mdelay(15);
+        (void) INREG(reg);
+        wait_ms(15);
+
         OUTREG(reg, INREG(reg) | (VGA_DDC_DATA_OUT_EN | VGA_DDC_CLK_OUT_EN));
-        (void)INREG(reg);
-        if(edid)
+        (void) INREG(reg);
+
+        if (edid)
             break;
     }
     /* Release the DDC lines when done or the Apple Cinema HD display
      * will switch off */
     OUTREG(reg, INREG(reg) & ~(VGA_DDC_CLK_OUT_EN | VGA_DDC_DATA_OUT_EN));
-    (void)INREG(reg);
-    if(out_edid)
+    (void) INREG(reg);
+
+    if (out_edid)
         *out_edid = edid;
-    if(!edid)
+
+    if (!edid)
         return MT_NONE;
-    if(edid[0x14] & 0x80)
+
+    if (edid[0x14] & 0x80)
     {
         /* Fix detection using BIOS tables */
         if(rinfo->is_mobility /*&& conn == ddc_dvi*/ && (INREG(LVDS_GEN_CNTL) & LVDS_ON))

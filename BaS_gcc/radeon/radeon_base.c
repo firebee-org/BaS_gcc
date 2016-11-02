@@ -311,6 +311,7 @@ uint32_t __INPLL(struct radeonfb_info *rinfo, uint32_t addr)
     radeon_pll_errata_after_index(rinfo);
     data = INREG(CLOCK_CNTL_DATA);
     radeon_pll_errata_after_data(rinfo);
+
     return data;
 }
 
@@ -339,7 +340,7 @@ static __inline int round_div(int num, int den)
 
 static __inline uint32_t read_vline_crnt(struct radeonfb_info *rinfo)
 {
-    return((INREG(CRTC_VLINE_CRNT_VLINE) >> 16) & 0x3FF);
+    return (INREG(CRTC_VLINE_CRNT_VLINE) >> 16) & 0x3FF;
 }
 
 static int radeon_map_ROM(struct radeonfb_info *rinfo)
@@ -481,6 +482,7 @@ static int radeon_probe_pll_params(struct radeonfb_info *rinfo)
     uint32_t stop_tv;
     int timeout = 0;
     int ipl;
+    uint32_t vline;
 
     /*
      * Ugh, we cut interrupts, bad bad bad, but we want some precision
@@ -488,15 +490,15 @@ static int radeon_probe_pll_params(struct radeonfb_info *rinfo)
      */
     ipl = set_ipl(0);
 
-    dbg("radeon_probe_pll_params\r\n");
+    dbg("\r\n");
 
     /* Flush PCI buffers ? */
     tmp = INREG16(DEVICE_ID);
 
     start_tv = get_timer();
-    while (read_vline_crnt(rinfo) != 0)
+    while ((vline = read_vline_crnt(rinfo)) != 0)
     {
-        if ((get_timer() - start_tv) > US_TO_TIMER(10000000UL))    /* 10 sec */
+        if ((start_tv - get_timer()) > US_TO_TIMER(10000000UL))    /* 10 sec */
         {
             timeout = 1;
             dbg("timeout\r\n");
@@ -509,7 +511,7 @@ static int radeon_probe_pll_params(struct radeonfb_info *rinfo)
         start_tv = get_timer();
         while (read_vline_crnt(rinfo) == 0)
         {
-            if ((get_timer() - start_tv) > US_TO_TIMER(1000000UL))   /* 1 sec */
+            if ((start_tv - get_timer()) > US_TO_TIMER(1000000UL))   /* 1 sec */
             {
                 timeout = 1;
                 dbg("timeout2\r\n");
@@ -521,7 +523,7 @@ static int radeon_probe_pll_params(struct radeonfb_info *rinfo)
         {
             while (read_vline_crnt(rinfo) != 0)
             {
-                if ((get_timer() - start_tv) > US_TO_TIMER(10000000UL))    /* 10 sec */
+                if ((start_tv - get_timer()) > US_TO_TIMER(10000000UL))    /* 10 sec */
                 {
                     timeout = 1;
                     dbg("timeout3\r\n");
@@ -534,8 +536,11 @@ static int radeon_probe_pll_params(struct radeonfb_info *rinfo)
 
     set_ipl(ipl);
 
-    hz = US_TO_TIMER(1000000.0) / (double)(stop_tv - start_tv);
+    hz = US_TO_TIMER(1000000.0) / (double)(start_tv - stop_tv);
     dbg("hz %d\r\n", (int32_t) hz);
+    OUTREG(CRTC_H_TOTAL_DISP, 640 / 8 - 1);
+    OUTREG(CRTC_V_TOTAL_DISP, 480 - 1);
+    dbg("h_total=%d vtotal=%d\r\n", INREG(CRTC_H_TOTAL_DISP), INREG(CRTC_V_TOTAL_DISP));
 
     hTotal = ((INREG(CRTC_H_TOTAL_DISP) & 0x1ff) + 1) * 8;
     vTotal = ((INREG(CRTC_V_TOTAL_DISP) & 0x3ff) + 1);
@@ -1260,7 +1265,7 @@ static void radeon_write_pll_regs(struct radeonfb_info *rinfo, struct radeon_reg
 {
     int i;
 
-    dbg("radeonfb: radeon_write_pll_regs\r\n");
+    dbg("\r\n");
     radeon_wait_for_fifo(rinfo, 20);
 
 #if 0
@@ -1367,16 +1372,15 @@ static void radeon_timer_func(void)
     int chg;
     int disp;
 
-#ifdef FIXME_LATER
     static int32_t start_timer;
 
     /* delayed LVDS panel power up/down */
     if (rinfo->lvds_timer)
     {
         if (!start_timer)
-            start_timer = *_hz_200;
+            start_timer = get_timer();
 
-        if (((*_hz_200 - start_timer) * 5) >= (int32_t)rinfo->lvds_timer)
+        if (((start_timer - get_timer())) >= (int32_t)rinfo->lvds_timer)
         {
             rinfo->lvds_timer = 0;
             radeon_engine_idle();
@@ -1385,7 +1389,6 @@ static void radeon_timer_func(void)
     }
     else
         start_timer = 0;
-#endif /* FIXME_LATER */
 
     if (rinfo->RenderCallback != NULL)
         rinfo->RenderCallback(rinfo);
@@ -2367,7 +2370,7 @@ int32_t radeonfb_pci_register(int32_t handle, const struct pci_device_id *ent)
     offscreen_init(info);
 
     /* Probe screen types */
-    dbg("probe screen types, monitor_layout: 0x%x\r\n", monitor_layout);
+    dbg("probe screen types, monitor_layout: %s\r\n", monitor_layout);
     radeon_probe_screens(rinfo, monitor_layout, (int) ignore_edid);
 
     /* Build mode list, check out panel native model */
@@ -2393,6 +2396,8 @@ int32_t radeonfb_pci_register(int32_t handle, const struct pci_device_id *ent)
 #else
     install_vbl_timer(radeon_timer_func, 0);
 #endif
+    radeon_timer_func();
+
     //rinfo->RageTheatreCrystal = rinfo->RageTheatreTunerPort=rinfo->RageTheatreCompositePort = rinfo->RageTheatreSVideoPort = -1;
     //rinfo->tunerType = -1;
     return 0;

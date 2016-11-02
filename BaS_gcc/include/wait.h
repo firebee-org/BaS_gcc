@@ -55,4 +55,7 @@ extern bool waitfor(uint32_t us, checker_func condition);
 extern uint32_t get_timer(void);
 extern void wait_ms(uint32_t ms);
 
+#define US_TO_TIMER(a) ((a) * SYSCLK) / 1000000UL
+#define TIMER_TO_US(a) ((a) * 1000000UL) / SYSCLK)
+
 #endif /* _WAIT_H_ */

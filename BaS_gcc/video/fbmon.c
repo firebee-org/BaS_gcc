@@ -31,6 +31,9 @@
 #include "fb.h"
 #include "edid.h"
 
+#define DEBUG
+#include "debug.h"
+
 /*
  * EDID parser
  */
@@ -38,7 +41,6 @@
 #define FBMON_FIX_HEADER 1
 #define FBMON_FIX_INPUT  2
 
-#ifdef CONFIG_FB_MODE_HELPERS
 struct broken_edid {
     unsigned char manufacturer[4];
     unsigned long model;
@@ -148,7 +150,7 @@ static int edid_checksum(unsigned char *edid)
         /* checksum passed, everything's good */
         err = 1;
     if(!err)
-        DPRINT("edid bad checksum\r\n");
+        dbg("edid bad checksum\r\n");
     return err;
 }
 
@@ -163,7 +165,7 @@ static int edid_check_header(unsigned char *edid)
             err = 0;
     }
     if(!err)
-        DPRINT("edid bad header\r\n");
+        dbg("edid bad header\r\n");
     return err;
 }
 
@@ -177,13 +179,11 @@ static void parse_vendor_block(unsigned char *block, struct fb_monspecs *specs)
     specs->serial = block[4] + (block[5] << 8) + (block[6] << 16) + (block[7] << 24);
     specs->year = block[9] + 1990;
     specs->week = block[8];
-    DPRINT("   Manufacturer: ");
-    DPRINT((void *)specs->manufacturer);
-    DPRINTVAL("\r\n   Model: ",specs->model);
-    DPRINTVAL("\r\n   Serial#: ",specs->serial);
-    DPRINTVAL("\r\n   Year: ",specs->year);
-    DPRINTVAL(" Week ",specs->week);
-    DPRINT("\r\n");
+    dbg("   Manufacturer: %s\r\n", specs->manufacturer);
+    dbg("   Model: %s\r\n", specs->model);
+    dbg("   Serial#: %d\r\n", specs->serial);
+    dbg("   Year: %d\r\n", specs->year);
+    dbg("   Week %d\r\n", specs->week);
 }
 
 static void get_dpms_capabilities(unsigned char flags, struct fb_monspecs *specs)
@@ -195,60 +195,63 @@ static void get_dpms_capabilities(unsigned char flags, struct fb_monspecs *specs
         specs->dpms |= FB_DPMS_SUSPEND;
     if(flags & DPMS_STANDBY)
         specs->dpms |= FB_DPMS_STANDBY;
-    DPRINT("      DPMS: Active ");
-    DPRINT((flags & DPMS_ACTIVE_OFF) ? "yes" : "no");
-    DPRINT(", Suspend ");
-    DPRINT((flags & DPMS_SUSPEND) ? "yes" : "no");
-    DPRINT(", Standby ");
-    DPRINT((flags & DPMS_STANDBY) ? "yes\r\n" : "no\r\n");
+    dbg("      DPMS: Active %s\r\n", (flags & DPMS_ACTIVE_OFF) ? "yes" : "no");
+    dbg("      Suspend: %s\r\n", (flags & DPMS_SUSPEND) ? "yes" : "no");
+    dbg("      Standby %s\r\n", (flags & DPMS_STANDBY) ? "yes\r\n" : "no\r\n");
 }
 
 static void get_chroma(unsigned char *block, struct fb_monspecs *specs)
 {
     int tmp;
-    DPRINT("      Chroma\r\n");
+
     /* Chromaticity data */
     tmp = ((block[5] & (3 << 6)) >> 6) | (block[0x7] << 2);
     tmp *= 1000;
     tmp += 512;
     specs->chroma.redx = tmp/1024;
-    DPRINTVAL("         RedX:     ",specs->chroma.redx/10);
+
+    dbg("      Chroma\r\n");
+    dbg("         RedX:     %d\r\n", specs->chroma.redx / 10);
     tmp = ((block[5] & (3 << 4)) >> 4) | (block[0x8] << 2);
     tmp *= 1000;
     tmp += 512;
     specs->chroma.redy = tmp/1024;
-    DPRINTVAL("% RedY:     ",specs->chroma.redy/10);
+
+    dbg("         RedY:     %d\r\n", specs->chroma.redy / 10);
     tmp = ((block[5] & (3 << 2)) >> 2) | (block[0x9] << 2);
     tmp *= 1000;
     tmp += 512;
     specs->chroma.greenx = tmp/1024;
-    DPRINTVAL("%\r\n         GreenX:   ",specs->chroma.greenx/10);
+
+    dbg("         GreenX:   %d\r\n", specs->chroma.greenx / 10);
+
     tmp = (block[5] & 3) | (block[0xa] << 2);
     tmp *= 1000;
     tmp += 512;
-    specs->chroma.greeny = tmp/1024;
-    DPRINTVAL("% GreenY:   ",specs->chroma.greeny/10);
+    specs->chroma.greeny = tmp / 1024;
+    dbg("         GreenY:   %d\r\n", specs->chroma.greeny / 10);
     tmp = ((block[6] & (3 << 6)) >> 6) | (block[0xb] << 2);
     tmp *= 1000;
     tmp += 512;
     specs->chroma.bluex = tmp/1024;
-    DPRINTVAL("%\r\n         BlueX:    ",specs->chroma.bluex/10);
+    dbg("         BlueX:    %d\r\n", specs->chroma.bluex / 10);
     tmp = ((block[6] & (3 << 4)) >> 4) | (block[0xc] << 2);
     tmp *= 1000;
     tmp += 512;
     specs->chroma.bluey = tmp/1024;
-    DPRINTVAL("% BlueY:    ",specs->chroma.bluey/10);
+
+    dbg("         BlueY:    %d\r\n", specs->chroma.bluey / 10);
     tmp = ((block[6] & (3 << 2)) >> 2) | (block[0xd] << 2);
     tmp *= 1000;
     tmp += 512;
     specs->chroma.whitex = tmp/1024;
-    DPRINTVAL("%\r\n         WhiteX:   ",specs->chroma.whitex/10);
+    dbg("         WhiteX:   %d\r\n", specs->chroma.whitex / 10);
+
     tmp = (block[6] & 3) | (block[0xe] << 2);
     tmp *= 1000;
     tmp += 512;
     specs->chroma.whitey = tmp/1024;
-    DPRINTVAL("% WhiteY:   ",specs->chroma.whitey/10);
-    DPRINT("%\r\n");
+    dbg("        WhiteY:   %d\r\n", specs->chroma.whitey / 10);
 }
 
 static int edid_is_serial_block(unsigned char *block)
@@ -317,95 +320,95 @@ static int get_est_timing(unsigned char *block, struct fb_videomode *mode)
     {
         calc_mode_timings(720, 400, 70, &mode[num]);
         mode[num++].flag = FB_MODE_IS_CALCULATED;
-        DPRINT("      720x400@70Hz\r\n");
+        dbg("      720x400@70Hz\r\n");
     }
     if(c&0x40)
     {
         calc_mode_timings(720, 400, 88, &mode[num]);
         mode[num++].flag = FB_MODE_IS_CALCULATED;
-        DPRINT("      720x400@88Hz\r\n");
+        dbg("      720x400@88Hz\r\n");
     }
     if(c&0x20)
     {
         mode[num++] = vesa_modes[3];
-        DPRINT("      640x480@60Hz\r\n");
+        dbg("      640x480@60Hz\r\n");
     }
     if(c&0x10)
     {
         calc_mode_timings(640, 480, 67, &mode[num]);
         mode[num++].flag = FB_MODE_IS_CALCULATED;
-        DPRINT("      640x480@67Hz\r\n");
+        dbg("      640x480@67Hz\r\n");
     }
     if(c&0x08)
     {
         mode[num++] = vesa_modes[4];
-        DPRINT("      640x480@72Hz\r\n");
+        dbg("      640x480@72Hz\r\n");
     }
     if(c&0x04)
     {
         mode[num++] = vesa_modes[5];
-        DPRINT("      640x480@75Hz\r\n");
+        dbg("      640x480@75Hz\r\n");
     }
     if(c&0x02)
     {
         mode[num++] = vesa_modes[7];
-        DPRINT("      800x600@56Hz\r\n");
+        dbg("      800x600@56Hz\r\n");
     }
     if(c&0x01)
     {
         mode[num++] = vesa_modes[8];
-        DPRINT("      800x600@60Hz\r\n");
+        dbg("      800x600@60Hz\r\n");
     }
     c = block[1];
     if(c&0x80)
     {
         mode[num++] = vesa_modes[9];
-        DPRINT("      800x600@72Hz\r\n");
+        dbg("      800x600@72Hz\r\n");
     }
     if(c&0x40)
     {
         mode[num++] = vesa_modes[10];
-        DPRINT("      800x600@75Hz\r\n");
+        dbg("      800x600@75Hz\r\n");
     }
     if(c&0x20)
     {
         calc_mode_timings(832, 624, 75, &mode[num]);
         mode[num++].flag = FB_MODE_IS_CALCULATED;
-        DPRINT("      832x624@75Hz\r\n");
+        dbg("      832x624@75Hz\r\n");
     }
     if(c&0x10)
     {
         mode[num++] = vesa_modes[12];
-        DPRINT("      1024x768@87Hz Interlaced\r\n");
+        dbg("      1024x768@87Hz Interlaced\r\n");
     }
     if(c&0x08)
     {
         mode[num++] = vesa_modes[13];
-        DPRINT("      1024x768@60Hz\r\n");
+        dbg("      1024x768@60Hz\r\n");
     }
     if(c&0x04)
     {
         mode[num++] = vesa_modes[14];
-        DPRINT("      1024x768@70Hz\r\n");
+        dbg("      1024x768@70Hz\r\n");
     }
     if(c&0x02)
     {
         mode[num++] = vesa_modes[15];
-        DPRINT("      1024x768@75Hz\r\n");
+        dbg("      1024x768@75Hz\r\n");
     }
     if(c&0x01)
     {
         mode[num++] = vesa_modes[21];
-        DPRINT("      1280x1024@75Hz\r\n");
+        dbg("      1280x1024@75Hz\r\n");
     }
     c = block[2];
     if(c&0x80)
     {
         mode[num++] = vesa_modes[17];
-        DPRINT("      1152x870@75Hz\r\n");
+        dbg("      1152x870@75Hz\r\n");
     }
-    DPRINTVAL("      Manufacturer's mask: ",c&0x7F);
-    DPRINT("\r\n");
+    dbg("      Manufacturer's mask: 0x%02x\r\n", c & 0x7F);
+
     return num;
 }
 
@@ -424,10 +427,8 @@ static int get_std_timing(unsigned char *block, struct fb_videomode *mode)
         case 3:	yres = (xres * 9)/16;	break;
     }
     refresh = (block[1] & 0x3f) + 60;
-    DPRINTVAL("      ",xres);
-    DPRINTVAL("x",yres);
-    DPRINTVAL("@",refresh);
-    DPRINT("Hz\r\n");
+    dbg("%dx%d@ Hz\r\n",xres, yres, refresh);
+
     for(i = 0; i < VESA_MODEDB_SIZE; i++)
     {
         if(vesa_modes[i].xres == xres && vesa_modes[i].yres == yres
@@ -470,19 +471,19 @@ static void get_detailed_timing(unsigned char *block, struct fb_videomode *mode)
     mode->refresh = PIXEL_CLOCK/((H_ACTIVE + H_BLANKING) * (V_ACTIVE + V_BLANKING));
     mode->vmode = 0;
     mode->flag = FB_MODE_IS_DETAILED;
-    DPRINTVAL("      ",PIXEL_CLOCK/1000000);
-    DPRINTVAL(" MHz ",H_ACTIVE);
-    DPRINTVAL(" ",H_ACTIVE + H_SYNC_OFFSET);
-    DPRINTVAL(" ",H_ACTIVE + H_SYNC_OFFSET + H_SYNC_WIDTH);
-    DPRINTVAL(" ",H_ACTIVE + H_BLANKING);
-    DPRINTVAL(" ",V_ACTIVE);
-    DPRINTVAL(" ",V_ACTIVE + V_SYNC_OFFSET);
-    DPRINTVAL(" ",V_ACTIVE + V_SYNC_OFFSET + V_SYNC_WIDTH);
-    DPRINTVAL(" ",V_ACTIVE + V_BLANKING);
-    DPRINT((HSYNC_POSITIVE) ? " +" : " -");
-    DPRINT("HSync ");
-    DPRINT((VSYNC_POSITIVE) ? "+" : "-");
-    DPRINT("VSync\r\n");
+    dbg("%d MHz 0x%04x 0x%04x 0x%04x 0x%04x 0x%04x 0x%04x 0x%04x\r\n",
+        PIXEL_CLOCK / 1000000,
+        H_ACTIVE,
+        H_ACTIVE + H_SYNC_OFFSET,
+        H_ACTIVE + H_SYNC_OFFSET + H_SYNC_WIDTH,
+        H_ACTIVE + H_BLANKING,
+        V_ACTIVE,
+        V_ACTIVE + V_SYNC_OFFSET,
+        V_ACTIVE + V_SYNC_OFFSET + V_SYNC_WIDTH,
+        V_ACTIVE + V_BLANKING);
+        dbg("Hsync %s Vsync %s\r\n",
+            (HSYNC_POSITIVE) ? " +" : " -",
+            (VSYNC_POSITIVE) ? "+" : "-");
 }
 
 #define MAX_DB_ALLOC 100
@@ -566,14 +567,14 @@ static struct fb_videomode *fb_create_modedb(unsigned char *edid, int *dbsize)
         return NULL;
     }
     *dbsize = 0;
-    DPRINT("   Supported VESA Modes\r\n");
+    dbg("   Supported VESA Modes\r\n");
     block = edid + ESTABLISHED_TIMING_1;
     num += get_est_timing(block, &mode[num]);
-    DPRINT("   Standard Timings\r\n");
+    dbg("   Standard Timings\r\n");
     block = edid + STD_TIMING_DESCRIPTIONS_START;
     for(i = 0; i < STD_TIMING; i++, block += STD_TIMING_DESCRIPTION_SIZE)
         num += get_std_timing(block, &mode[num]);
-    DPRINT("   Detailed Timings\r\n");
+    dbg("   Detailed Timings\r\n");
     block = edid + DETAILED_TIMING_DESCRIPTIONS_START;
     for(i = 0; i < 4; i++, block+= DETAILED_TIMING_DESCRIPTION_SIZE)
     {
@@ -615,10 +616,10 @@ static int fb_get_monitor_limits(unsigned char *edid, struct fb_monspecs *specs)
     int i, retval = 1;
     unsigned char *block;
     block = edid + DETAILED_TIMING_DESCRIPTIONS_START;
-    DPRINT("      Monitor Operating Limits: ");
+    dbg("      Monitor Operating Limits: ");
     for(i = 0; i < 4; i++, block += DETAILED_TIMING_DESCRIPTION_SIZE)
     {
-        if(edid_is_limits_block(block))
+        if (edid_is_limits_block(block))
         {
             specs->hfmin = H_MIN_RATE * 1000;
             specs->hfmax = H_MAX_RATE * 1000;
@@ -627,7 +628,7 @@ static int fb_get_monitor_limits(unsigned char *edid, struct fb_monspecs *specs)
             specs->dclkmax = MAX_PIXEL_CLOCK * 1000000;
             specs->gtf = (GTF_SUPPORT) ? 1 : 0;
             retval = 0;
-            DPRINT("From EDID\r\n");
+            dbg("From EDID\r\n");
             break;
         }
     }
@@ -639,7 +640,7 @@ static int fb_get_monitor_limits(unsigned char *edid, struct fb_monspecs *specs)
         modes = fb_create_modedb(edid, &num_modes);
         if(!modes)
         {
-            DPRINT("None Available\r\n");
+            dbg("None Available\r\n");
             return 1;
         }
         retval = 0;
@@ -661,15 +662,15 @@ static int fb_get_monitor_limits(unsigned char *edid, struct fb_monspecs *specs)
             if(specs->vfmin == 0 || specs->vfmin > hz)
                 specs->vfmin = hz;
         }
-        DPRINT("Extrapolated\r\n");
+        dbg("Extrapolated\r\n");
         fb_destroy_modedb(modes);
     }
-    DPRINTVAL("           H: ",specs->hfmin/1000);
-    DPRINTVAL("-",specs->hfmax/1000);
-    DPRINTVAL("KHz V: ",specs->vfmin);
-    DPRINTVAL("-",specs->vfmax);
-    DPRINTVAL("Hz DCLK: ",specs->dclkmax/1000000);
-    DPRINT("MHz\r\n");
+    dbg("           H: %d - %d kHz V: %d - %d kHz, DCLK: %d MHz\r\n",
+        specs->hfmin / 1000,
+        specs->hfmax / 1000,
+        specs->vfmin,
+        specs->vfmax,
+        specs->dclkmax / 1000000);
     return retval;
 }
 
@@ -683,108 +684,87 @@ static void get_monspecs(unsigned char *edid, struct fb_monspecs *specs)
     if(c)
     {
         specs->input |= FB_DISP_DDI;
-        DPRINT("      Digital Display Input");
+        dbg("      Digital Display Input");
     }
     else
     {
-        DPRINT("      Analog Display Input: Input Voltage - ");
         switch ((block[0] & 0x60) >> 5)
         {
             case 0:
-                DPRINT("0.700V/0.300V");
+                //dbg("      Analog Display Input: Input Voltage - 0.700V/0.300V");
                 specs->input |= FB_DISP_ANA_700_300;
                 break;
             case 1:
-                DPRINT("0.714V/0.286V");
+                //dbg("0.714V/0.286V");
                 specs->input |= FB_DISP_ANA_714_286;
                 break;
             case 2:
-                DPRINT("1.000V/0.400V");
+                //dbg("1.000V/0.400V");
                 specs->input |= FB_DISP_ANA_1000_400;
                 break;
             case 3:
-                DPRINT("0.700V/0.000V");
+                //dbg("0.700V/0.000V");
                 specs->input |= FB_DISP_ANA_700_000;
                 break;
         }
     }
-    DPRINT("\r\n      Sync: ");
+    // dbg("Sync: ");
     c = block[0] & 0x10;
     if(c)
     {
-        DPRINT("      Configurable signal level\r\n");
+        dbg("      Configurable signal level\r\n");
     }
     c = block[0] & 0x0f;
     specs->signal = 0;
     if(c & 0x10)
     {
-        DPRINT("Blank to Blank ");
+        //DPRINT("Blank to Blank ");
         specs->signal |= FB_SIGNAL_BLANK_BLANK;
     }
     if(c & 0x08)
     {
-        DPRINT("Separate ");
+        //DPRINT("Separate ");
         specs->signal |= FB_SIGNAL_SEPARATE;
     }
     if(c & 0x04)
     {
-        DPRINT("Composite ");
+        //DPRINT("Composite ");
         specs->signal |= FB_SIGNAL_COMPOSITE;
     }
     if(c & 0x02)
     {
-        DPRINT("Sync on Green ");
+        //DPRINT("Sync on Green ");
         specs->signal |= FB_SIGNAL_SYNC_ON_GREEN;
     }
     if(c & 0x01)
     {
-        DPRINT("Serration on ");
+        // DPRINT("Serration on ");
         specs->signal |= FB_SIGNAL_SERRATION_ON;
     }
-    DPRINT("\r\n");
     specs->max_x = block[1];
     specs->max_y = block[2];
-    DPRINT("      Max H-size in cm: ");
-    if(specs->max_x)
-    {
-        DPRINTVAL("",specs->max_x);
-        DPRINT("\r\n");
-    }
-    else
-    {
-        DPRINT("variable\r\n");
-    }
-    DPRINT("      Max V-size in cm: ");
-    if(specs->max_y)
-    {
-        DPRINTVAL("",specs->max_y);
-        DPRINT("\r\n");
-    }
-    else
-    {
-        DPRINT("variable\r\n");
-    }
+
     c = block[3];
+
     specs->gamma = c+100;
-    DPRINTVAL("      Gamma: ",specs->gamma/100);
-    DPRINT("\r\n");
+    dbg("      Gamma %d\r\n: ",specs->gamma / 100);
     get_dpms_capabilities(block[4], specs);
     switch ((block[4] & 0x18) >> 3)
     {
         case 0:
-            DPRINT("      Monochrome/Grayscale\r\n");
+            //DPRINT("      Monochrome/Grayscale\r\n");
             specs->input |= FB_DISP_MONO;
             break;
         case 1:
-            DPRINT("      RGB Color Display\r\n");
+            //DPRINT("      RGB Color Display\r\n");
             specs->input |= FB_DISP_RGB;
             break;
         case 2:
-            DPRINT("      Non-RGB Multicolor Display\r\n");
+            //DPRINT("      Non-RGB Multicolor Display\r\n");
             specs->input |= FB_DISP_MULTI;
             break;
         default:
-            DPRINT("      Unknown\r\n");
+            //DPRINT("      Unknown\r\n");
             specs->input |= FB_DISP_UNKNOWN;
             break;
     }
@@ -793,17 +773,17 @@ static void get_monspecs(unsigned char *edid, struct fb_monspecs *specs)
     c = block[4] & 0x7;
     if(c & 0x04)
     {
-        DPRINT("      Default color format is primary\r\n");
+        dbg("      Default color format is primary\r\n");
         specs->misc |= FB_MISC_PRIM_COLOR;
     }
     if(c & 0x02)
     {
-        DPRINT("      First DETAILED Timing is preferred\r\n");
+        dbg("      First DETAILED Timing is preferred\r\n");
         specs->misc |= FB_MISC_1ST_DETAIL;
     }
     if(c & 0x01)
     {
-        DPRINT("      Display is GTF capable\r\n");
+        dbg("      Display is GTF capable\r\n");
         specs->gtf = 1;
     }
 }
@@ -851,7 +831,7 @@ int fb_parse_edid(unsigned char *edid, struct fb_var_screeninfo *var)
             return 0;
         }
     }
-    DPRINT("edid no timing block\r\n");
+    dbg("edid no timing block\r\n");
     return 1;
 }
 
@@ -870,12 +850,11 @@ void fb_edid_to_monspecs(unsigned char *edid, struct fb_monspecs *specs)
     memset((char *)specs, 0, sizeof(struct fb_monspecs));
     specs->version = edid[EDID_STRUCT_VERSION];
     specs->revision = edid[EDID_STRUCT_REVISION];
-    DPRINT("========================================\r\n");
-    DPRINT("Display Information (EDID)\r\n");
-    DPRINT("========================================\r\n");
-    DPRINTVAL("   EDID Version ",specs->version);
-    DPRINTVAL(".",specs->revision);
-    DPRINT("\r\n");
+    dbg("========================================\r\n");
+    dbg("Display Information (EDID)\r\n");
+    dbg("========================================\r\n");
+    dbg("   EDID Version %d.%d\r\n", specs->version, specs->revision);
+
     parse_vendor_block(edid + ID_MANUFACTURER_NAME, specs);
     block = edid + DETAILED_TIMING_DESCRIPTIONS_START;
     for(i = 0; i < 4; i++, block += DETAILED_TIMING_DESCRIPTION_SIZE)
@@ -883,29 +862,29 @@ void fb_edid_to_monspecs(unsigned char *edid, struct fb_monspecs *specs)
         if(edid_is_serial_block(block))
         {
             copy_string(block, specs->serial_no);
-            DPRINT("   Serial Number: ");
-            DPRINT((void *)specs->serial_no);
-            DPRINT("\r\n");
+            //DPRINT("   Serial Number: ");
+            //DPRINT((void *)specs->serial_no);
+            //DPRINT("\r\n");
         }
         else if(edid_is_ascii_block(block))
         {
             copy_string(block, specs->ascii);
-            DPRINT("   ASCII Block: ");
-            DPRINT((void *)specs->ascii);
-            DPRINT("\r\n");
+            //DPRINT("   ASCII Block: ");
+            //DPRINT((void *)specs->ascii);
+            //DPRINT("\r\n");
         }
         else if(edid_is_monitor_block(block))
         {
             copy_string(block, specs->monitor);
-            DPRINT("   Monitor Name: ");
-            DPRINT((void *)specs->monitor);
-            DPRINT("\r\n");
+            //DPRINT("   Monitor Name: ");
+            //DPRINT((void *)specs->monitor);
+            //DPRINT("\r\n");
         }
     }
-    DPRINT("   Display Characteristics:\r\n");
+    //DPRINT("   Display Characteristics:\r\n");
     get_monspecs(edid, specs);
     specs->modedb = fb_create_modedb(edid, (int *)&specs->modedb_len);
-    DPRINT("========================================\r\n");
+    dbg("========================================\r\n");
 }
 
 /*
@@ -1224,29 +1203,6 @@ int fb_get_mode(int flags, unsigned long val, struct fb_var_screeninfo *var, str
     var->upper_margin = (timings.vblank * interlace)/dscan - (var->vsync_len + var->lower_margin);
     return 0;
 }
-
-#else
-
-int fb_parse_edid(unsigned char *edid, struct fb_var_screeninfo *var)
-{
-    return 1;
-}
-
-void fb_edid_to_monspecs(unsigned char *edid, struct fb_monspecs *specs)
-{
-    specs = NULL;
-}
-
-void fb_destroy_modedb(struct fb_videomode *modedb)
-{
-}
-
-int fb_get_mode(int flags, unsigned long val, struct fb_var_screeninfo *var, struct fb_info *info)
-{
-    return -1; // -EINVAL;
-}
-
-#endif /* CONFIG_FB_MODE_HELPERS */
 
 /*
  * fb_validate_mode - validates var against monitor capabilities

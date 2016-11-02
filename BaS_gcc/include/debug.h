@@ -2,6 +2,9 @@
 #define DEBUG_H
 
 #ifdef DEBUG
+#include "bas_types.h"
+#include "bas_printf.h"
+
 #define dbg(format, arg...) do { xprintf("DEBUG (%s()): " format, __FUNCTION__, ##arg);} while(0)
 #else
 #define dbg(format, arg...) do {;} while (0)
