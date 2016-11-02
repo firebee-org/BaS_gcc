@@ -193,6 +193,8 @@ void amd_flash_sector_erase(int n)
 {
     volatile AMD_FLASH_CELL status;
 
+    (void) num_flash_areas;     /* to make compiler happy */
+
     pFlash[0x555] = AMD_FLASH_CMD_DATA(0xAA);
     pFlash[0x2AA] = AMD_FLASH_CMD_DATA(0x55);
     pFlash[0x555] = AMD_FLASH_CMD_DATA(0x80);

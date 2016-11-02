@@ -104,10 +104,13 @@ SECTIONS
                 OBJDIR/x86pcibios.o(.text)
                 OBJDIR/x86biosemu.o(.text)
 
+		OBJDIR/i2c-algo-bit.o(.text)
+
                 OBJDIR/radeon_base.o(.text)
                 OBJDIR/radeon_accel.o(.text)
                 OBJDIR/radeon_cursor.o(.text)
                 OBJDIR/radeon_monitor.o(.text)
+		OBJDIR/radeon_i2c.o(.text)
 
                 OBJDIR/xhdi_sd.o(.text)
                 OBJDIR/xhdi_interface.o(.text)

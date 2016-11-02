@@ -41,6 +41,7 @@ CFLAGS=	-Wall \
 	-O2 \
 	-fomit-frame-pointer \
 	-ffreestanding \
+	-fno-strict-aliasing \
 	-fleading-underscore \
 	-Winline \
 	-Wa,--register-prefix-optional \
@@ -133,6 +134,8 @@ CSRCS= \
 	\
 	videl.c \
 	video.c \
+	\
+	i2c-algo-bit.c \
 	\
 	radeon_base.c \
 	radeon_accel.c \

@@ -4,9 +4,10 @@
 #include "x86pcibios.h"
 #include "x86emu_regs.h"
 #include "bas_printf.h"
+
 extern unsigned short offset_port;
 
-// #define DEBUG
+#define DEBUG
 #include "debug.h"
 
 int x86_pcibios_handler(struct X86EMU *emu)
@@ -77,7 +78,7 @@ int x86_pcibios_handler(struct X86EMU *emu)
             dbg("READ_CONFIG_BYTE bus = %x, devfn = %x, reg = %x\r\n", emu->x86.R_BH, emu->x86.R_BL, emu->x86.R_DI);
             dev = PCI_HANDLE(emu->x86.R_BH, emu->x86.R_BL >> 3, emu->x86.R_BL & 7);
             emu->x86.R_CL = pci_read_config_byte(dev, emu->x86.R_DI);
-            dbg("value = %x\r\n", emu->x86.R_CL);
+            dbg("dev=0x%04x value = 0x%04x\r\n", emu->x86.R_CL);
             emu->x86.R_AH = SUCCESSFUL;
             emu->x86.R_EFLG &= ~FB_CF;	/* clear carry flag */
             ret = 1;
@@ -91,7 +92,7 @@ int x86_pcibios_handler(struct X86EMU *emu)
                 emu->x86.R_CX = offset_port + 1;
             else
                 emu->x86.R_CX = pci_read_config_word(dev, emu->x86.R_DI);
-            dbg("value = %x\r\n", emu->x86.R_CX);
+            dbg("offset_port=0x%04x dev=0x%04x, value = %x\r\n", offset_port, dev, emu->x86.R_CX);
             emu->x86.R_AH = SUCCESSFUL;
             emu->x86.R_EFLG &= ~FB_CF;	/* clear carry flag */
             ret = 1;

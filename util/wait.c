@@ -33,6 +33,21 @@ uint32_t get_timer(void)
 {
     return MCF_SLT_SCNT(0);
 }
+
+static uint32_t timer_value;
+
+void start_timeout(void)
+{
+    timer_value = get_timer();
+}
+
+bool end_timeout(uint32_t msec)
+{
+    msec *= SYSCLK;
+
+    return (get_timer() - timer_value) < msec ? false : true;
+}
+
 /*
  * wait for the specified number of us on slice timer 0. Replaces the original routines that had
  * the number of useconds to wait for hardcoded in their name.

@@ -272,7 +272,14 @@ void videl_screen_init(void)
 
 #endif /* _USE_VIDEL_ */
 
-static struct radeonfb_info rfb;
+static uint8_t mon1_EDID[40];
+static uint8_t mon2_EDID[40];
+
+static struct radeonfb_info rfb =
+{
+    .mon1_EDID = mon1_EDID,
+    .mon2_EDID = mon2_EDID,
+};
 
 static struct fb_var_screeninfo default_fb =
 {
@@ -293,7 +300,7 @@ static struct fb_var_screeninfo default_fb =
     .height = 1024,
     .width = 1280,
     .accel_flags = 0L,
-    .pixclock = 70 * 100000000L,
+    .pixclock = 70 * 10000000L,
     .left_margin = 0,
     .right_margin = 0,
     .upper_margin = 0,
@@ -330,7 +337,7 @@ static struct fb_info fb =
 
 struct fb_info *info_fb = &fb;
 
-const char monitor_layout[1024] = "CRT,CRT";
+const char monitor_layout[1024] = "\0";
 int16_t ignore_edid;
 
 struct mode_option resolution =
@@ -340,7 +347,7 @@ struct mode_option resolution =
     .height = 1024,
     .bpp = 8,
     .freq = 60,
-    .flags = MODE_VESA_FLAG
+    .flags = 0
 };
 int16_t force_measure_pll;
 
@@ -413,7 +420,7 @@ void video_init(void)
         }
         index++;
     } while (handle > 0);
-    xprintf("%s: RADEON video card %sfound and %sregistered\r\n", __FUNCTION__,
+    inf("RADEON video card %sfound and %sregistered\r\n",
                     (radeon_found ? "" : "not "), (radeon_found ? "" : "not "));
 }
 

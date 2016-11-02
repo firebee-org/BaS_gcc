@@ -545,22 +545,6 @@ struct fb_videomode
 
 extern const struct fb_videomode vesa_modes[];
 
-
-/* timer FIXME: doesn't really fit yet to Coldfire timings */
-
-#if defined(MACHINE_FIREBEE)
-#define US_TO_TIMER(a) (((a) * 256) / 5000)
-#define TIMER_TO_US(a) (((a) * 5000) / 256)
-#elif defined(MACHINE_M5484LITE)
-#define US_TO_TIMER(a) ((a) * 100)
-#define TIMER_TO_US(a) ((a) / 100)
-#elif defined(MACHINE_M54455)
-#define US_TO_TIMER(a) (a)
-#define TIMER_TO_US(a) (a)
-#else
-#error Unknown machine!
-#endif
-
 extern void start_timeout(void);
 extern int end_timeout(long msec);
 extern void mdelay(long msec);

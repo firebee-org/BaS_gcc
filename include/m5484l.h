@@ -27,7 +27,7 @@
  *      Author: Markus Fröschle
  */
 
-#define SYSCLK			100000
+#define SYSCLK			100000UL
 
 #define BOOTFLASH_BASE_ADDRESS		0xe0000000
 #define BOOTFLASH_SIZE				0x400000	/* LITEKIT has 4MB flash */

@@ -393,8 +393,8 @@ struct rom_header
  * Beware: Newer compilers refuse to dereference pointers to NULL and abort if the following
  * attribute isn't set.
  */
-static inline void fix_stram_header() __attribute__((optimize("no-delete-null-pointer-checks")));
-static inline void fix_stram_header()
+static void fix_stram_header() __attribute__((optimize("no-delete-null-pointer-checks")));
+static void fix_stram_header()
 {
     struct rom_header *bas_header = (struct rom_header *) TARGET_ADDRESS;
     struct rom_header *stram_header = (struct rom_header *) 0x0;

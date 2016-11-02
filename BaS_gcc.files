@@ -893,3 +893,5 @@ tos/vmem_test/sources/vmem_test.c
 tos/vmem_test/Makefile
 tos/Makefile
 radeon/radeon_i2c.c
+basflash.lk.in
+radeon/i2c-algo-bit.c
