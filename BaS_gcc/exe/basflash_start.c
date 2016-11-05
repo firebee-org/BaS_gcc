@@ -23,8 +23,9 @@
 
 #include <bas_types.h>
 
-static uint32_t ownstack[4096];
-static uint32_t *stackptr = &ownstack[4095];
+#define STACKSIZE   16384
+static uint32_t ownstack[STACKSIZE];
+static uint32_t *stackptr = &ownstack[STACKSIZE - 1];
 
 /*
  * setup our own stack in SDRAM to prevent clashing BaS's in SRAM (size limited).
