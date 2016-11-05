@@ -41,6 +41,7 @@
 #else
 #define TARGET_ADDRESS	BOOTFLASH_BASE_ADDRESS
 #endif /* COMPILE_RAM */
+#define BFL_TARGET_ADDRESS  0x0100000           /* load address for basflash */
 
 #define DRIVER_MEM_BUFFER_SIZE	0x100000
 
