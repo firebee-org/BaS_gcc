@@ -43,7 +43,7 @@ static inline uint16_t swpw(uint16_t w)
  *   swap endianess of val, 32 bits only.
  *   e.g. ABCD => DCBA
  */
-inline uint32_t swpl(uint32_t l)
+static inline uint32_t swpl(uint32_t l)
 {
     return ((l & 0xff000000) >> 24) | ((l & 0x00ff0000) >> 8) |
             ((l & 0x0000ff00) << 8) | (l << 24);
