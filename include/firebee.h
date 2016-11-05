@@ -40,6 +40,7 @@
 #define TARGET_ADDRESS  	(SDRAM_START + SDRAM_SIZE - 0x200000)
 #else
 #define TARGET_ADDRESS  	BOOTFLASH_BASE_ADDRESS
+#define BFL_TARGET_ADDRESS  0x0100000           /* load address for basflash */
 
 #endif /* COMPILE_RAM */
 

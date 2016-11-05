@@ -195,7 +195,7 @@ err_t read_srecords(char *filename, void **start_address, uint32_t *actual_lengt
 
     if ((fres = f_open(&file, filename, FA_READ) == FR_OK))
     {
-        uint8_t line[80];
+        uint8_t line[255];
         int lineno = 0;
         int data_records = 0;
         bool found_block_header = false;
@@ -259,6 +259,7 @@ err_t read_srecords(char *filename, void **start_address, uint32_t *actual_lengt
                         {
                             // xprintf("S7 record (end) found after %d valid data blocks\r\n", data_records);
                             *start_address = (void *) SREC_ADDR32(vector);
+                            xprintf("found start address %p\r\n", *start_address);
                         }
                         break;
 
@@ -333,7 +334,11 @@ static err_t verify(uint8_t *dst, uint8_t *src, size_t length)
     do
     {
         if (*src++ != *dst++)
+        {
+            xprintf("data differs at %p (expected 0x%02x, got 0x%02x)\r\n",
+                    *(src - 1), *(dst - 1));
             return FAIL;
+        }
     } while (src < end);
 
     return OK;
@@ -342,7 +347,7 @@ static err_t verify(uint8_t *dst, uint8_t *src, size_t length)
 /*
  * needed to avoid missing type cast warning below
  */
-static inline err_t srec_memcpy(uint8_t *dst, uint8_t *src, size_t n)
+err_t srec_memcpy(uint8_t *dst, uint8_t *src, size_t n)
 {
     err_t e = OK;
 

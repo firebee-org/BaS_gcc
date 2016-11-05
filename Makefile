@@ -66,7 +66,7 @@ LDCFILE=bas.lk
 LDRFILE=ram.lk
 LDCSRC=bas.lk.in
 LDCBSRC=basflash.lk.in
-LDCBFS=bashflash.lk
+LDCBFS=basflash.lk
 
 # this Makefile can create the BaS to flash or an arbitrary ram address (for BDM debugging). See
 # below for the definition of TARGET_ADDRESS
@@ -315,9 +315,9 @@ endif
 $(1)_MAPFILE_BFL=$(1)/$$(basename $$(BASFLASH_EXEC)).map
 $(1)/$$(BASFLASH_EXEC): $(1)/objs/basflash.o $(1)/objs/basflash_start.o $(1)/$(LIBBAS) $(LDCBFL)
 	@echo CPP $$<
-	@$(CPP) $(INCLUDE) -P -DOBJDIR=$(1)/objs -DFORMAT_ELF=$(FORMAT_ELF) -D$$(MACHINE) $(LDCBSRC) -o $(1)/$$(LDCBFS)
+	$(CPP) $(INCLUDE) -P -DOBJDIR=$(1)/objs -DFORMAT_ELF=$(FORMAT_ELF) -D$$(MACHINE) $(LDCBSRC) -o $(1)/$$(LDCBFS)
 	@echo CC $$<
-	@$(CC) -nostdlib -Wl,--oformat -Wl,$$(FORMAT) -Wl,-Map -Wl,$$($(1)_MAPFILE_BFL) -Wl,--cref -Wl,-T -Wl,$(1)/$$(LDCFILE) -L$(1) -lbas $(LDLIBS) -o $$@
+	@$(CC) -nostdlib -Wl,--oformat -Wl,$$(FORMAT) -Wl,-Map -Wl,$$($(1)_MAPFILE_BFL) -Wl,--cref -Wl,-T -Wl,$(1)/$$(LDCBFS) -L$(1) -lbas $(LDLIBS) -o $$@
 ifeq ($(COMPILE_ELF),Y)
 	@echo OBJCOPY $$<
 	@$(OBJCOPY) -O srec $$@ $$(basename $$@).s19

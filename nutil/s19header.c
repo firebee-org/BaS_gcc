@@ -378,8 +378,3 @@ static err_t verify(uint8_t *dst, uint8_t *src, uint32_t length)
 
     return OK;
 }
-
-void srec_execute(char *flasher_filename)
-{
-}
-
