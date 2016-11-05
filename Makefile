@@ -44,8 +44,8 @@ CFLAGS=	-Wall \
 	-fno-strict-aliasing \
 	-fleading-underscore \
 	-Winline \
-	-Wa,--register-prefix-optional \
-	-g2
+	-Wa,--register-prefix-optional
+
 CFLAGS_OPTIMIZED = -mcpu=5474 \
 		-Wall \
 		-O2 \
