@@ -4,6 +4,9 @@ tos/pci_test/include
 /usr/m68k-atari-mint/include
 /opt/cross-mint/m68k-atari-mint/include
 /opt/gygwin/opt/cross-mint/m68k-atari-mint/include
+/opt/m68k-elf/include
+/opt/cygwin/opt/m68k-elf/include
+/opt/cygwin/opt/m68k-elf/lib/gcc/m68k-elf/4.6.4/include
 dma
 m54455
 sys

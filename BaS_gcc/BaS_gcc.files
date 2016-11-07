@@ -189,7 +189,6 @@ sys/startcf.S
 sys/exceptions.S
 util/bas_printf.c
 util/bas_string.c
-util/printf_helper.S
 util/wait.c
 bas.lk.in
 i2c/i2c.c
@@ -532,7 +531,6 @@ usb/usb_mouse.c
 util/bas_printf.c
 util/bas_string.c
 util/libgcc_helper.S
-util/printf_helper.S
 util/setjmp.S
 util/wait.c
 video/fbmem.c
