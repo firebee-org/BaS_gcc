@@ -8,6 +8,14 @@
 # installation, but allows source level debugging over BDM with a recent gdb (tested with 7.5),
 # the m68k BDM tools from sourceforge (http://bdm.sourceforge.net) and a BDM pod (TBLCF and P&E tested).
 
+VERBOSE=N
+
+ifneq (Y,$(VERBOSE))
+Q=@
+else
+Q=
+endif
+
 # can be either "Y" or "N" (without quotes). "Y" for using the m68k-elf-, "N" for using the m68k-atari-mint
 # toolchain
 COMPILE_ELF=Y
@@ -155,7 +163,6 @@ CSRCS= \
 
 ASRCS= \
 	startcf.S \
-	printf_helper.S \
 	exceptions.S \
 	setjmp.S \
 	xhdi_vec.S \
@@ -183,17 +190,18 @@ lib: $(LIBS)
 .PHONY: ver
 ver:
 	touch include/version.h
+
 .PHONY: tos
 tos:
-	@(cd tos; $(MAKE) -s)
+	$(Q)(cd tos; $(MAKE) -s)
 
 .PHONY: clean
 clean:
-	@for d in $(TRGTDIRS);\
+	$(Q)for d in $(TRGTDIRS);\
 		do rm -f $$d/*.map $$d/*.s19 $$d/*.elf $$d/*.lk $$d/*.a $$d/objs/* $$d/depend;\
 	done
-	@rm -f tags
-	@(cd tos; make -s clean)
+	$(Q)rm -f tags
+	$(Q)(cd tos; make -s clean)
 
 
 
@@ -227,12 +235,12 @@ firebee/basflash.$(EXE): CFLAGS += -mcpu=5474
 #
 define CC_TEMPLATE
 $(1)/objs/%.o:%.c
-	@echo CC $$<
-	@$(CC) $$(CFLAGS) -D$$(MACHINE) $(INCLUDE) -c $$< -o $$@
+	$(Q)echo CC $$<
+	$(Q)$(CC) $$(CFLAGS) -D$$(MACHINE) $(INCLUDE) -c $$< -o $$@
 
 $(1)/objs/%.o:%.S
-	@echo CC $$<
-	@$(CC) $$(CFLAGS) -Wa,--bitwise-or -D$$(MACHINE) $(INCLUDE) -c $$< -o $$@
+	$(Q)echo CC $$<
+	$(Q)$(CC) $$(CFLAGS) -Wa,--bitwise-or -D$$(MACHINE) $(INCLUDE) -c $$< -o $$@
 endef
 $(foreach DIR,$(TRGTDIRS),$(eval $(call CC_TEMPLATE,$(DIR))))
 
@@ -248,8 +256,8 @@ else
 	MACHINE=MACHINE_M5484LITE
 endif
 $(1)/depend:$(SRCS)
-	@echo DEPEND
-	@$(CC) $$(CFLAGS) -D$$(MACHINE) $(INCLUDE) -M $$^ | sed -e "s#^\(.*\).o:#"$(1)"/objs/\1.o:#" > $$@
+	$(Q)echo DEPEND
+	$(Q)$(CC) $$(CFLAGS) -D$$(MACHINE) $(INCLUDE) -M $$^ | sed -e "s#^\(.*\).o:#"$(1)"/objs/\1.o:#" > $$@
 endef
 $(foreach DIR,$(TRGTDIRS),$(eval $(call DEP_TEMPLATE,$(DIR))))
 
@@ -260,9 +268,9 @@ $(foreach DIR,$(TRGTDIRS),$(eval $(call DEP_TEMPLATE,$(DIR))))
 define AR_TEMPLATE
 $(1)_OBJS=$(patsubst %,$(1)/objs/%,$(OBJS))
 $(1)/$(LIBBAS): $$($(1)_OBJS)
-	@echo AR $$@
-	@$(AR) r $$@ $$?
-	@$(RANLIB) $$@
+	$(Q)echo AR $$@
+	$(Q)$(AR) r $$@ $$?
+	$(Q)$(RANLIB) $$@
 endef
 $(foreach DIR,$(TRGTDIRS),$(eval $(call AR_TEMPLATE,$(DIR))))
 
@@ -274,8 +282,8 @@ endif
 
 define LK_TEMPLATE
 $(1)/$$(LDCFILE): $(LDCSRC)
-	@echo CPP $$<
-	@$(CPP) $(INCLUDE) -DOBJDIR=$(1)/objs -P -DFORMAT_ELF=$(FORMAT_ELF) -D$$(MACHINE) $(LDCSRC) -o $(1)/$$(LDCFILE)
+	$(Q)echo CPP $$<
+	$(Q)$(CPP) $(INCLUDE) -DOBJDIR=$(1)/objs -P -DFORMAT_ELF=$(FORMAT_ELF) -D$$(MACHINE) $$< -o $$@
 endef
 $(foreach DIR,$(TRGTDIRS),$(eval $(call LK_TEMPLATE,$(DIR))))
 
@@ -286,44 +294,44 @@ define EX_TEMPLATE
 # pattern rule for flash
 $(1)_MAPFILE=$(1)/$$(basename $$(FLASH_EXEC)).map
 $(1)/$$(FLASH_EXEC): $(1)/$(LIBBAS) $(1)/$$(LDCFILE)
-	@echo CC $$@
-	@$(CC) $$(CFLAGS) -nostdlib -Wl,--oformat -Wl,$$(FORMAT) -Wl,-Map -Wl,$$($(1)_MAPFILE) -Wl,--cref -Wl,-T -Wl,$(1)/$$(LDCFILE) $(LDLIBS) -o $$@
+	$(Q)echo CC $$@
+	$(Q)$(CC) $$(CFLAGS) -nostdlib -Wl,--oformat -Wl,$$(FORMAT) -Wl,-Map -Wl,$$($(1)_MAPFILE) -Wl,--cref -Wl,-T -Wl,$(1)/$$(LDCFILE) $(LDLIBS) -o $$@
 ifeq ($(COMPILE_ELF),Y)
-	@echo OBJCOPY $$@
-	@$(OBJCOPY) -O srec $$@ $$(basename $$@).s19
+	$(Q)echo OBJCOPY $$@
+	$(Q)$(OBJCOPY) -O srec $$@ $$(basename $$@).s19
 else
-	@echo OBJCOPY $$@
-	@objcopy -I srec -O elf32-big --alt-machine-code 4 $$@ $$(basename $$@).elf
+	$(Q)echo OBJCOPY $$@
+	$(Q)objcopy -I srec -O elf32-big --alt-machine-code 4 $$@ $$(basename $$@).elf
 endif
 
 # pattern rule for RAM
 $(1)_MAPFILE_RAM=$(1)/$$(basename $$(RAM_EXEC)).map
 $(1)/$$(RAM_EXEC): $(1)/$(LIBBAS) $(1)/$$(LDCFILE)
-	@echo CPP $$@
-	@$(CPP) $(INCLUDE) -DCOMPILE_RAM -DOBJDIR=$(1)/objs -P -DFORMAT_ELF=$(FORMAT_ELF) -D$$(MACHINE) $(LDCSRC) -o $(1)/$$(LDRFILE)
-	@echo CC $$@
-	@$(CC) $$(CFLAGS) -nostdlib -Wl,--oformat -Wl,$$(FORMAT) -Wl,-Map -Wl,$$($(1)_MAPFILE_RAM) -Wl,--cref -Wl,-T -Wl,$(1)/$$(LDRFILE) $(LDLIBS) -o $$@
+	$(Q)echo CPP $$@
+	$(Q)$(CPP) $(INCLUDE) -DCOMPILE_RAM -DOBJDIR=$(1)/objs -P -DFORMAT_ELF=$(FORMAT_ELF) -D$$(MACHINE) $(LDCSRC) -o $(1)/$$(LDRFILE)
+	$(Q)echo CC $$@
+	$(Q)$(CC) $$(CFLAGS) -nostdlib -Wl,--oformat -Wl,$$(FORMAT) -Wl,-Map -Wl,$$($(1)_MAPFILE_RAM) -Wl,--cref -Wl,-T -Wl,$(1)/$$(LDRFILE) $(LDLIBS) -o $$@
 ifeq ($(COMPILE_ELF),Y)
-	@echo OBJCOPY $$@
-	@$(OBJCOPY) -O srec $$@ $$(basename $$@).s19
+	$(Q)echo OBJCOPY $$@
+	$(Q)$(OBJCOPY) -O srec $$@ $$(basename $$@).s19
 else
-	@echo OBJCOPY $$<
-	@objcopy -I srec -O elf32-big --alt-machine-code 4 $$@ $$(basename $$@).elf
+	$(Q)echo OBJCOPY $$<
+	$(Q)objcopy -I srec -O elf32-big --alt-machine-code 4 $$@ $$(basename $$@).elf
 endif
 
 # pattern rule for basflash
 $(1)_MAPFILE_BFL=$(1)/$$(basename $$(BASFLASH_EXEC)).map
 $(1)/$$(BASFLASH_EXEC): $(1)/objs/basflash.o $(1)/objs/basflash_start.o $(1)/$(LIBBAS) $(LDCBFL)
-	@echo CPP $$<
+	$(Q)echo CPP $$<
 	$(CPP) $(INCLUDE) -P -DOBJDIR=$(1)/objs -DFORMAT_ELF=$(FORMAT_ELF) -D$$(MACHINE) $(LDCBSRC) -o $(1)/$$(LDCBFS)
-	@echo CC $$<
-	@$(CC) -nostdlib -Wl,--oformat -Wl,$$(FORMAT) -Wl,-Map -Wl,$$($(1)_MAPFILE_BFL) -Wl,--cref -Wl,-T -Wl,$(1)/$$(LDCBFS) -L$(1) -lbas $(LDLIBS) -o $$@
+	$(Q)echo CC $$<
+	$(Q)$(CC) -nostdlib -Wl,--oformat -Wl,$$(FORMAT) -Wl,-Map -Wl,$$($(1)_MAPFILE_BFL) -Wl,--cref -Wl,-T -Wl,$(1)/$$(LDCBFS) -L$(1) -lbas $(LDLIBS) -o $$@
 ifeq ($(COMPILE_ELF),Y)
-	@echo OBJCOPY $$<
-	@$(OBJCOPY) -O srec $$@ $$(basename $$@).s19
+	$(Q)echo OBJCOPY $$<
+	$(Q)$(OBJCOPY) -O srec $$@ $$(basename $$@).s19
 else
-	@echo OBJCOPY $$<
-	@objcopy -I srec -O elf32-big --alt-machine-code 4 $$@ $$(basename $$@).elf
+	$(Q)echo OBJCOPY $$<
+	$(Q)objcopy -I srec -O elf32-big --alt-machine-code 4 $$@ $$(basename $$@).elf
 endif
 endef
 $(foreach DIR,$(TRGTDIRS),$(eval $(call EX_TEMPLATE,$(DIR))))
@@ -338,7 +346,7 @@ tags:
 
 .PHONY: printvars
 printvars:
-	@$(foreach V,$(.VARIABLES), $(if $(filter-out environment% default automatic, $(origin $V)),$(warning $V=$($V))))
+	$(Q)$(foreach V,$(.VARIABLES), $(if $(filter-out environment% default automatic, $(origin $V)),$(warning $V=$($V))))
 ifeq (MACHINE_M5484LITE,$$(MACHINE))
 	MNAME=m5484lite
 else ifeq (MACHINE_FIREBEE,$(MACHINE))

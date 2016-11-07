@@ -28,12 +28,14 @@
 #include "ff.h"
 #include "s19reader.h"
 
-#ifdef MACHINE_FIREBEE
+#if defined(MACHINE_FIREBEE)
 #include "firebee.h"
-#endif /* MACHINE_FIREBEE */
-
-#ifdef MACHINE_M5484LITE
+#elif defined(MACHINE_M5484LITE)
 #include "m5484l.h"
+#elif defined(MACHINE_M54455)
+#include "m54455.h"
+#else
+error unknown machine!
 #endif /* MACHINE_M5484LITE */
 
 #define AMD_FLASH_BUS_SHIFT     1
@@ -49,7 +51,7 @@ struct amd_flash_sector_info
 };
 
 /*
- * AM29LV640D flash layout (bottom boot as used in the Firebee )
+ * AM29LV640D flash layout (bottom boot as used in the Firebee)
  */
 static struct amd_flash_sector_info sector[] =
 {

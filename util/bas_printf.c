@@ -59,19 +59,6 @@
 
 static char snil[] = "(nil)";
 
-void xputchar(int c)
-{
-    __asm__ __volatile__
-    (
-            ".extern		printf_helper\n\t"
-            "move.b			%0,d0\n\t"
-            "bsr			printf_helper\n\t"
-            /* output */:
-            /* input */: "r" (c)
-            /* clobber */: "d0","d2","a0","memory"
-    );
-}
-
 static void doprnt(void (*addchar)(int), const char *sfmt, va_list ap)
 {
     char buf[128];

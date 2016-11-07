@@ -21,15 +21,24 @@
 #define _BAS_PRINTF_H_
 #include <stdarg.h>
 #include <stddef.h>
+#include "MCF5475.h"
 
 extern void xvsnprintf(char *str, size_t size, const char *fmt, va_list va);
 extern void xvprintf(const char *fmt, va_list va);
 extern void xprintf(const char *fmt, ...);
 extern void xsnprintf(char *str, size_t size, const char *fmt, ...);
-extern void xputchar(int c);
 extern int sprintf(char *str, const char *format, ...);
 
 
 extern void display_progress(void);
 extern void hexdump(uint8_t buffer[], int size);
+
+static inline void xputchar(int c)
+{
+    while (!(MCF_PSC0_PSCSR & MCF_PSC_PSCSR_TXRDY))
+        ;
+
+    MCF_PSC0_PSCTB_8BIT = (uint8_t) c;
+}
+
 #endif /* _BAS_PRINTF_H_ */
