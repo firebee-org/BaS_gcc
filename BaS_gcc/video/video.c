@@ -283,34 +283,26 @@ static struct radeonfb_info rfb =
 
 static struct fb_var_screeninfo default_fb =
 {
-    .xres = 1280,
-    .yres = 1024,
-    .xres_virtual = 2560,
-    .yres_virtual = 2048,
-    .xoffset = 0,
-    .yoffset = 0,
+    .xres = 640,
+    .yres = 480,
+    .xres_virtual = 640,
+    .yres_virtual = 480,
     .bits_per_pixel = 8,
     .grayscale = 0,
-    .red = { 0, 0, 0 },
-    .green = { 0, 0, 0 },
-    .blue = { 0, 0, 0 },
-    .transp = { 0, 0, 0 },
-    .nonstd = 0,
-    .activate = FB_ACTIVATE_FORCE | FB_ACTIVATE_NOW,
-    .height = 1024,
-    .width = 1280,
-    .accel_flags = 0L,
-    .pixclock = 70 * 10000000L,
-    .left_margin = 0,
-    .right_margin = 0,
-    .upper_margin = 0,
-    .lower_margin = 0,
-    .hsync_len = 0,
-    .vsync_len = 0,
-    .sync = FB_SYNC_HOR_HIGH_ACT,
-    .vmode = FB_VMODE_CONUPDATE,
-    .rotate = 0,
-    .refresh = 60,
+    .red = { .length = 8 },
+    .green = { .length = 8 },
+    .blue = { .length = 8 },
+    .activate = FB_ACTIVATE_NOW,
+    .height = -1,
+    .width = -1,
+    .pixclock = 39721,
+    .left_margin = 40,
+    .right_margin = 24,
+    .upper_margin = 32,
+    .lower_margin = 11,
+    .hsync_len = 96,
+    .vsync_len = 2,
+    .vmode = FB_VMODE_NONINTERLACED,
 };
 
 static struct fb_info fb =
@@ -342,14 +334,14 @@ int16_t ignore_edid;
 
 struct mode_option resolution =
 {
-    .used = 1,
-    .width = 1280,
-    .height = 1024,
+    .used = 0,
+    .width = 640,
+    .height = 480,
     .bpp = 8,
     .freq = 60,
     .flags = 0
 };
-int16_t force_measure_pll;
+int16_t force_measure_pll = 0;
 
 void install_vbl_timer(void *func, int remove)
 {
@@ -406,6 +398,9 @@ void video_init(void)
 
                     if (radeonfb_pci_register(handle, board) >= 0)
                     {
+                        info_fb->fbops->fb_check_modes(info_fb, &resolution);
+
+
                         fb_set_var(info_fb, &default_fb);
                         inf("RADEON video card found and registered\r\n");
                     }

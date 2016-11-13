@@ -28,5 +28,24 @@ enum {
 
 extern int x86_pcibios_handler(struct X86EMU *emu);
 
+
+#define USE_SDRAM
+#define DIRECT_ACCESS
+
+#define MEM_WB(where, what) emu->emu_wrb(emu, where, what)
+#define MEM_WW(where, what) emu->emu_wrw(emu, where, what)
+#define MEM_WL(where, what) emu->emu_wrl(emu, where, what)
+
+#define MEM_RB(where) emu->emu_rdb(emu, where)
+#define MEM_RW(where) emu->emu_rdw(emu, where)
+#define MEM_RL(where) emu->emu_rdl(emu, where)
+
+#define PCI_VGA_RAM_IMAGE_START     0xC0000
+#define PCI_RAM_IMAGE_START         0xD0000
+#define SYS_BIOS                    0xF0000
+#define SIZE_EMU                    0x100000
+#define BIOS_MEM                    0x0UL
+
+
 #endif /* PCI_BIOS_H */
 

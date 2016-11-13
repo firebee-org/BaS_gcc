@@ -423,7 +423,7 @@ void BaS(void)
     xprintf("copy EmuTOS: ");
     /* copy EMUTOS */
     src = (uint8_t *) EMUTOS;
-    dma_memcpy(dst, src, EMUTOS_SIZE);
+    memcpy(dst, src, EMUTOS_SIZE);
     xprintf("finished\r\n");
 
     xprintf("initialize exception vector table: ");

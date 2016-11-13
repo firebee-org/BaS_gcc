@@ -13,23 +13,6 @@
 #define DEBUG
 #include "debug.h"
 
-#define USE_SDRAM
-#define DIRECT_ACCESS
-
-#define MEM_WB(where, what) emu->emu_wrb(emu, where, what)
-#define MEM_WW(where, what) emu->emu_wrw(emu, where, what)
-#define MEM_WL(where, what) emu->emu_wrl(emu, where, what)
-
-#define MEM_RB(where) emu->emu_rdb(emu, where)
-#define MEM_RW(where) emu->emu_rdw(emu, where)
-#define MEM_RL(where) emu->emu_rdl(emu, where)
-
-#define PCI_VGA_RAM_IMAGE_START     0xC0000
-#define PCI_RAM_IMAGE_START         0xD0000
-#define SYS_BIOS                    0xF0000
-#define SIZE_EMU                    0x100000
-
-
 struct rom_header
 {
     uint16_t signature;
@@ -223,7 +206,7 @@ static void do_int(struct X86EMU *emu, int num)
                 dbg("string to output at 0x%04x:0x%04x length=0x%04x\r\n", seg, off, num_chars);
 
                 for (i = 0; i < num_chars; i++)
-                    xprintf("%c", * (char *)(0x0100000 + str + i));
+                    xprintf("%c", * (char *)(BIOS_MEM + str + i));
             }
 
             if (getIntVect(emu, num) == 0x0000)
@@ -291,7 +274,6 @@ void run_bios(struct radeonfb_info *rinfo)
     struct pci_data *rom_data;
     unsigned long rom_size = 0;
     unsigned long image_size = 0;
-    void *biosmem = (void *) 0x0100000; /* when run_bios() is called, SDRAM is valid but not added to the system */
     unsigned long addr;
     unsigned short initialcs;
     unsigned short initialip;
@@ -341,16 +323,16 @@ void run_bios(struct radeonfb_info *rinfo)
 
     if (PCI_CLASS_DISPLAY_VGA == BIOS_IN16((long) &rom_data->class_hi))
     {
-        memset((char *) biosmem, 0, SIZE_EMU);
-        setup_system_bios((char *) biosmem);
+        memset((char *) BIOS_MEM, 0, SIZE_EMU);
+        setup_system_bios((char *) BIOS_MEM);
 
-        dbg("Copying VGA ROM Image from %p to %p (0x%lx bytes)\r\n",
+        dbg("Copyg VGA ROM Image from %p to %p (0x%lx bytes)\r\n",
             (uintptr_t) rinfo->bios_seg + (uintptr_t) rom_header,
-            biosmem + PCI_VGA_RAM_IMAGE_START, rom_size);
+            BIOS_MEM + PCI_VGA_RAM_IMAGE_START, rom_size);
         {
             long bytes_align = (uintptr_t) rom_header & 3;
 
-            ptr = (uint8_t *) biosmem;
+            ptr = (uint8_t *) BIOS_MEM;
             i = (long) rom_header;
             j = PCI_VGA_RAM_IMAGE_START;
 
@@ -368,14 +350,14 @@ void run_bios(struct radeonfb_info *rinfo)
     }
     else
     {
-        memset((uint8_t *) biosmem, 0, SIZE_EMU);
-        setup_system_bios((char *) biosmem);
+        memset((uint8_t *) BIOS_MEM, 0, SIZE_EMU);
+        setup_system_bios((char *) BIOS_MEM);
 
-        dbg("Copying non-VGA ROM Image from %p to %p (0x%lx bytes)\r\n",
+        dbg("Copy non-VGA ROM Image from %p to %p (0x%lx bytes)\r\n",
             (uintptr_t) rinfo->bios_seg + (uintptr_t) rom_header,
-            biosmem + PCI_RAM_IMAGE_START,
+            BIOS_MEM + PCI_RAM_IMAGE_START,
             rom_size);
-        ptr = (uint8_t *) biosmem;
+        ptr = (uint8_t *) BIOS_MEM;
         for (i = (long) rom_header, j = PCI_RAM_IMAGE_START; i < (long) rom_header + rom_size; ptr[j++] = BIOS_IN8(i++));
         addr = PCI_RAM_IMAGE_START;
     }
@@ -386,7 +368,7 @@ void run_bios(struct radeonfb_info *rinfo)
     /*
      * set emulator memory
      */
-    emu.mem_base = biosmem;
+    emu.mem_base = (void *) BIOS_MEM;
     emu.mem_size = SIZE_EMU;
 
     for (i = 0; i < 256; i++)
@@ -447,5 +429,5 @@ void run_bios(struct radeonfb_info *rinfo)
     /*
      * clear emulator memory once we are finished
      */
-    memset((char *) biosmem, 0, SIZE_EMU);
+    memset((char *) BIOS_MEM, 0, SIZE_EMU);
 }

@@ -649,11 +649,11 @@ void basflash(void)
                             /*
                              * load file
                              */
-                            if (srec_load(path) != OK)
-                            {
-                                xprintf("failed to load file %s\r\n", path);
+                            srec_load(path);
+//                            {
+//                                xprintf("failed to load file %s\r\n", path);
                                 // error handling
-                            }
+//                            }
                         }
                     }
                     else

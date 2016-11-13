@@ -360,7 +360,6 @@ static int radeon_map_ROM(struct radeonfb_info *rinfo)
 
     temp = inreg(MPP_TB_CONFIG);
 
-    dbg("temp=%d\r\n", temp);
     temp &= 0x00ffffffu;
     temp |= 0x04 << 24;
     OUTREG(MPP_TB_CONFIG, temp);
@@ -1669,15 +1668,24 @@ int radeonfb_set_par(struct fb_info *info)
     struct radeonfb_info *rinfo = info->par;
     struct fb_var_screeninfo *mode = &info->var;
     struct radeon_regs *newmode;
-    int hTotal, vTotal, hSyncStart, hSyncEnd, vSyncStart, vSyncEnd;
+    int hTotal;
+    int vTotal;
+    int hSyncStart;
+    int hSyncEnd;
+    int vSyncStart;
+    int vSyncEnd;
 
     // FIXME: int hSyncPol; this is not used anywhere
     // FIXME: int vSyncPol; this is not used anywhere
     // FIXME: int cSync;	this is not used anywhere
 
-    static uint8_t hsync_adj_tab[] = {0, 0x12, 9, 9, 6, 5};
-    static uint8_t hsync_fudge_fp[] = {2, 2, 0, 0, 5, 5};
-    uint32_t sync, h_sync_pol, v_sync_pol, dotClock, pixClock;
+    static uint8_t hsync_adj_tab[] = { 0, 0x12, 9, 9, 6, 5 };
+    static uint8_t hsync_fudge_fp[] = { 2, 2, 0, 0, 5, 5 };
+    uint32_t sync;
+    uint32_t h_sync_pol;
+    uint32_t v_sync_pol;
+    uint32_t dotClock;
+    uint32_t pixClock;
     int i;
     int freq;
     int format = 0;
@@ -1686,20 +1694,28 @@ int radeonfb_set_par(struct fb_info *info)
     int hsync_fudge;
 
     // int bytpp; FIXME: this doesn't seem to be used anywhere
-    int hsync_wid, vsync_wid;
+    int hsync_wid;
+    int vsync_wid;
     int primary_mon = PRIMARY_MONITOR(rinfo);
     int depth = var_to_depth(mode);
     int use_rmx = 0;
 
+    dbg("depth=%d\r\n", depth);
+
     newmode = (struct radeon_regs *) driver_mem_alloc(sizeof(struct radeon_regs));
     if (!newmode)
-        return -1; //-ENOMEM;
+    {
+        err("driver_mem_alloc() failed (ret=%p)\r\n", newmode);
+        return -1;
+    }
 
     /*
      *  We always want engine to be idle on a mode switch, even
      * if we won't actually change the mode
      */
     radeon_engine_idle();
+
+    dbg("xres=%d yres=%d\r\n", mode->xres, mode->yres);
 
     hSyncStart = mode->xres + mode->right_margin;
     hSyncEnd = hSyncStart + mode->hsync_len;
@@ -1709,7 +1725,11 @@ int radeonfb_set_par(struct fb_info *info)
     vSyncEnd = vSyncStart + mode->vsync_len;
     vTotal = vSyncEnd + mode->upper_margin;
 
+    dbg("pixel clock = %d\r\n", mode->pixclock);
+
     pixClock = mode->pixclock;
+
+    dbg("sync = %d\r\n", mode->sync);
     sync = mode->sync;
 
     h_sync_pol = sync & FB_SYNC_HOR_HIGH_ACT ? 0 : 1;
@@ -1746,12 +1766,17 @@ int radeonfb_set_par(struct fb_info *info)
 
     dotClock = 1000000000 / pixClock;
     freq = dotClock / 10; /* x100 */
+
+    dbg("dotClock=%ld, freq = %ld\r\n", dotClock, freq);
+
     hsync_wid = (hSyncEnd - hSyncStart) / 8;
 
     if (hsync_wid == 0)
         hsync_wid = 1;
     else if (hsync_wid > 0x3f)	/* max */
         hsync_wid = 0x3f;
+
+    dbg("hsync_wid=%d\r\n", hsync_wid);
 
     if (mode->vmode & FB_VMODE_DOUBLE)
     {
@@ -1766,18 +1791,21 @@ int radeonfb_set_par(struct fb_info *info)
     else if (vsync_wid > 0x1f)	/* max */
         vsync_wid = 0x1f;
 
+    dbg("vsync_wid=%d\r\n", vsync_wid);
+
     // FIXME: this doesn't seem to be used anywhere hSyncPol = mode->sync & FB_SYNC_HOR_HIGH_ACT ? 0 : 1;
     // FIXME: this doesn't seem to be used anywhere vSyncPol = mode->sync & FB_SYNC_VERT_HIGH_ACT ? 0 : 1;
     // FIXME: this doesn't seem to be used anywhere cSync = mode->sync & FB_SYNC_COMP_HIGH_ACT ? (1 << 4) : 0;
 
     format = radeon_get_dstbpp(depth);
+    dbg("format=%d\r\n", format);
 
     // FIXME: this doesn't seem to be used anywhere bytpp = mode->bits_per_pixel >> 3;
 
     if ((primary_mon == MT_DFP) || (primary_mon == MT_LCD))
-        hsync_fudge = hsync_fudge_fp[format-1];
+        hsync_fudge = hsync_fudge_fp[format - 1];
     else
-        hsync_fudge = hsync_adj_tab[format-1];
+        hsync_fudge = hsync_adj_tab[format - 1];
 
     if (mode->vmode & FB_VMODE_DOUBLE)
         hsync_fudge = 0; /* todo: need adjust */
@@ -1961,7 +1989,7 @@ int radeonfb_set_par(struct fb_info *info)
     }
 
     /* Update fix */
-    info->fix.line_length = rinfo->pitch*64;
+    info->fix.line_length = rinfo->pitch * 64;
     info->fix.visual = rinfo->depth == 8 ? FB_VISUAL_PSEUDOCOLOR : FB_VISUAL_DIRECTCOLOR;
     driver_mem_free(newmode);
 
