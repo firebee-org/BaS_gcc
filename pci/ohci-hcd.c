@@ -48,6 +48,8 @@
 #include "bas_string.h"     /* for memset() */
 #include "pci.h"
 #include "interrupts.h"
+
+// #define DEBUG
 #include "debug.h"
 
 #undef OHCI_USE_NPS         /* force NoPowerSwitching mode */
