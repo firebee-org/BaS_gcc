@@ -72,7 +72,7 @@
 /*
  * do a longword read from addr and byteswap the result
  */
-inline uint32_t readl(volatile uint32_t *addr)
+static inline uint32_t readl(volatile uint32_t *addr)
 {
     uint32_t res;
 
@@ -85,7 +85,7 @@ inline uint32_t readl(volatile uint32_t *addr)
 /*
  * byteswap value and write it to address
  */
-inline void writel(uint32_t value, uint32_t *address)
+static inline void writel(uint32_t value, uint32_t *address)
 {
     // dbg("writing %08x to %08x\r\n", value, address);
     * (volatile uint32_t *) address = swpl(value);

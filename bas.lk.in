@@ -85,7 +85,6 @@ SECTIONS
 #if (FORMAT_ELF == 1)
                 OBJDIR/libgcc_helper.o(.text)
 #endif
-                OBJDIR/printf_helper.o(.text)
                 OBJDIR/cache.o(.text)
                 OBJDIR/dma.o(.text)
                 OBJDIR/MCD_dmaApi.o(.text)
