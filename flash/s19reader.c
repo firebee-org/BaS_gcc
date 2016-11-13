@@ -31,7 +31,11 @@
 #include "diskio.h"
 #include "ff.h"
 #include "s19reader.h"
+#include "dma.h"
 #include "cache.h"
+
+#define DEBUG
+#include "debug.h"
 
 /*
  * Yes, I know. The following doesn't really look like code should look like...
@@ -192,6 +196,7 @@ err_t read_srecords(char *filename, void **start_address, uint32_t *actual_lengt
     FRESULT fres;
     FIL file;
     err_t ret = OK;
+    uint32_t length = 0;
 
     if ((fres = f_open(&file, filename, FA_READ) == FR_OK))
     {
@@ -202,11 +207,14 @@ err_t read_srecords(char *filename, void **start_address, uint32_t *actual_lengt
         bool found_block_end = false;
         bool found_block_data = false;
 
+        *actual_length = 0;
+
         while (ret == OK && (uint8_t *) f_gets((char *) line, sizeof(line), &file) != NULL)
         {
             lineno++;
             uint8_t vector[80];
 
+            memset(vector, 0, sizeof(vector));
             line_to_vector(line, vector);	/* vector now contains the decoded contents of line, from line[1] on */
 
             if (line[0] == 'S')
@@ -233,10 +241,11 @@ err_t read_srecords(char *filename, void **start_address, uint32_t *actual_lengt
                     case 2: /* three byte address field data record */
                         if (!found_block_header || found_block_end)
                         {
-                            xprintf("S3 record found before S0 or after S7: S-records corrupt?\r\n");
+                            xprintf("S2 record found before S0 or after S7: S-records corrupt?\r\n");
                             ret = FAIL;
                         }
                         ret = callback((uint8_t *) SREC_ADDR24(vector), SREC_DATA24(vector), SREC_DATA24_SIZE(vector));
+                        length += SREC_DATA24_SIZE(vector);
                         data_records++;
                         break;
 
@@ -246,6 +255,7 @@ err_t read_srecords(char *filename, void **start_address, uint32_t *actual_lengt
                             xprintf("S3 record found before S0 or after S7: S-records corrupt?\r\n");
                             ret = FAIL;
                         }
+                        length += SREC_DATA32_SIZE(vector);
                         ret = callback((uint8_t *) SREC_ADDR32(vector), SREC_DATA32(vector), SREC_DATA32_SIZE(vector));
                         data_records++;
                         break;
@@ -259,7 +269,7 @@ err_t read_srecords(char *filename, void **start_address, uint32_t *actual_lengt
                         {
                             // xprintf("S7 record (end) found after %d valid data blocks\r\n", data_records);
                             *start_address = (void *) SREC_ADDR32(vector);
-                            xprintf("found start address %p\r\n", *start_address);
+                            xprintf("%d blocks read. Found start address %p\r\n", data_records, *start_address);
                         }
                         break;
 
@@ -270,7 +280,7 @@ err_t read_srecords(char *filename, void **start_address, uint32_t *actual_lengt
                         }
                         else
                         {
-                            // xprintf("S7 record (end) found after %d valid data blocks\r\n", data_records);
+                            // xprintf("S8 record (end) found after %d valid data blocks\r\n", data_records);
                             *start_address = (void *) SREC_ADDR24(vector);
                         }
                         break;
@@ -297,6 +307,7 @@ err_t read_srecords(char *filename, void **start_address, uint32_t *actual_lengt
         xprintf("could not open file %s\r\n", filename);
         ret = FILE_OPEN;
     }
+    *actual_length = length;
     return ret;
 }
 
@@ -351,6 +362,9 @@ err_t srec_memcpy(uint8_t *dst, uint8_t *src, size_t n)
 {
     err_t e = OK;
 
+    xprintf(".");
+    dbg("\r\ncopy from %p to %p, length %d", src, dst, n);
+    // dma_memcpy((void *) dst, (void *) src, n);
     memcpy((void *) dst, (void *) src, n);
     return e;
 }
@@ -386,7 +400,7 @@ void srec_execute(char *flasher_filename)
                 if (err == OK)
                 {
                     /* next pass: copy data to destination */
-                    xprintf("OK.\r\ncopy/flash data: ");
+                    xprintf("OK (start address=%p, length = %ld).\r\ncopy data: ", start_address, length);
                     err = read_srecords(flasher_filename, &start_address, &length, srec_memcpy);
                     if (err == OK)
                     {
@@ -396,6 +410,7 @@ void srec_execute(char *flasher_filename)
                         if (err == OK)
                         {
                             xprintf("OK.\r\n");
+
                             typedef void void_func(void);
                             void_func *func;
                             xprintf("target successfully written and verified. Start address: %p\r\n", start_address);

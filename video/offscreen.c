@@ -15,7 +15,8 @@
 #include "bas_string.h"
 #include "fb.h"
 
-#undef DEBUG
+#define DEBUG
+#include "debug.h"
 
 /* MD - Memory Descriptor */
 
@@ -183,13 +184,9 @@ long offscreen_free(struct fb_info *info, long addr)
 {
     MD *p,**q;
     MPB *mpb;
-#ifdef DEBUG
-    char buf[10];
-    Funcs_puts("radeon_offscreen_free(0x");
-    Funcs_ltoa(buf, addr, 16);
-    Funcs_puts(buf);
-    Funcs_puts("\r\n");
-#endif
+
+    dbg("%p\r\n", addr);
+
     //*vblsem = 0;
     mpb = &pmd;
     for (p = *(q = &mpb->mp_mal); p; p = *(q = &p->m_link))
@@ -212,41 +209,27 @@ long offscreen_alloc(struct fb_info *info, long amount)
 {
     long ret;
     MD *m;
-#ifdef DEBUG
-    char buf[10];
-    Funcs_puts("radeon_offscreen_alloc(0x");
-    Funcs_ltoa(buf, amount, 16);
-    Funcs_puts(buf);
-    Funcs_puts(") = 0x");
-#endif
+
+
     // *vblsem = 0;
-    if(amount == -1L)
+    if (amount == -1L)
     {
-        ret = (long)ffit(-1L,&pmd);
+        ret = (long) ffit(-1L, &pmd);
         // *vblsem = 1;
-        return(ret);
+        return ret;
     }
-    if(amount <= 0 )
+    if (amount <= 0 )
     {
         // *vblsem = 1;
         return(0);
     }
-    if((amount & 1))
+    if ((amount & 1))
         amount++;
-    m = ffit(amount,&pmd);
-    if(m == NULL)
+    m = ffit(amount, &pmd);
+    if (m == NULL)
     {
-#ifdef DEBUG
-        Funcs_puts("0\r\n");
-#endif
-        // *vblsem = 1;
         return(0);
     }
-#ifdef DEBUG
-    Funcs_ltoa(buf, m->m_start, 16);
-    Funcs_puts(buf);
-    Funcs_puts("\r\n");
-#endif
     ret = (long)m->m_start;
     // *vblsem = 1;
     return(ret);
@@ -259,36 +242,28 @@ long offscren_reserved(struct fb_info *info)
 
 void offscreen_init(struct fb_info *info)
 {
-#ifdef DEBUG
-    char buf[10];
-#endif
-    long size_screen, max_offscreen_size;
+    long size_screen;
+    long max_offscreen_size;
+
     wrap = (long) info->var.xres_virtual * (long)(info->var.bits_per_pixel / 8);
     size_screen = (long)info->var.yres_virtual * wrap;
-    if(!size_screen)
+    if (!size_screen)
         size_screen = (long)info->screen_size;
+
     pmd.mp_mfl = pmd.mp_rover = &tab_md[0];
     tab_md[0].m_link = (MD *)NULL;
     tab_md[0].m_start = (long)((unsigned long)info->ram_base + (unsigned long)size_screen);
     tab_md[0].m_length = (long)info->ram_size - size_screen;
     tab_md[0].m_own = (void *)1L;
+
     max_offscreen_size = ((long)info->var.xres_virtual * 8192L * (long)(info->var.bits_per_pixel / 8)) - size_screen;
-    if(max_offscreen_size < 0)
+    if (max_offscreen_size < 0)
         max_offscreen_size = 0;
-    if(tab_md[0].m_length > max_offscreen_size)
+    if (tab_md[0].m_length > max_offscreen_size)
         tab_md[0].m_length = max_offscreen_size;
-#ifdef DEBUG
-    Funcs_puts("offscreen_init start 0x");
-    Funcs_ltoa(buf, tab_md[0].m_start, 16);
-    Funcs_puts(buf);
-    Funcs_puts(", length 0x");
-    Funcs_ltoa(buf, tab_md[0].m_length, 16);
-    Funcs_puts(buf);
-    Funcs_puts(", ram_size 0x");
-    Funcs_ltoa(buf, (long)info->ram_size, 16);
-    Funcs_puts(buf);
-    Funcs_puts("\r\n");
-#endif
+
+    dbg("offscreen_init start %p, length 0x%ld, ram size 0x%ld\r\n",
+        tab_md[0].m_start, tab_md[0].m_length, (long) info->ram_size);
     pmd.mp_mal = (MD *)NULL;
 }
 

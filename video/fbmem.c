@@ -82,6 +82,7 @@ int fb_set_var(struct fb_info *info, struct fb_var_screeninfo *var)
         if ((var->activate & FB_ACTIVATE_MASK) == FB_ACTIVATE_NOW)
         {
             memcpy(&info->var, var, sizeof(struct fb_var_screeninfo));
+            dbg("fb_set_par() = %p\r\n", info->fbops->fb_set_par);
             info->fbops->fb_set_par(info);
             fb_pan_display(info, &info->var);
         }

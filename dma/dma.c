@@ -669,9 +669,6 @@ int dma_init(void)
         dma_channel[i].handler = NULL;
     }
 
-    // test
-    dma_memcpy((void *) 0x10000, (void *) 0x03e00000, 0x00100000);  /* copy one megabyte of flash to RAM */
-
     return 0;
 }
 

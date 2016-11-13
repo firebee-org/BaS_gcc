@@ -26,9 +26,8 @@
 
 void *memcpy(void *dst, const void *src, size_t n)
 {
-    uint8_t *to = dst;
-
-    while (to < (uint8_t *) dst + n)
+    void *to = dst;
+    while (size--)
         *to++ = * (uint8_t *) src++;
 
     return dst;
