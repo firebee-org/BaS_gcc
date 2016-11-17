@@ -421,6 +421,7 @@ get_data_segment(struct X86EMU *emu)
     case SYSMODE_SEGOVR_SS | SYSMODE_SEG_DS_SS:
         return emu->x86.R_SS;
     }
+    dbg("unexpected SYSMODE_SEGMASK. Halting.\r\n", emu->x86.mode & SYSMODE_SEGMASK);
     X86EMU_halt_sys(emu);
     return 0L;
 }
@@ -639,6 +640,7 @@ decode_rm_byte_register(struct X86EMU *emu, int reg)
     case 7:
         return &emu->x86.R_BH;
     default:
+        dbg("unexpected register %d\r\n", reg);
         X86EMU_halt_sys(emu);
     }
     return 0L;
@@ -687,6 +689,7 @@ decode_rm_word_register(struct X86EMU *emu, int reg)
     case 7:
         return &emu->x86.R_DI;
     default:
+        dbg("unexpected register %d\r\n", reg);
         X86EMU_halt_sys(emu);
     }
     return 0;
@@ -735,6 +738,7 @@ decode_rm_long_register(struct X86EMU *emu, int reg)
     case 7:
         return &emu->x86.R_EDI;
     default:
+        dbg("unexpected register %d\r\n", reg);
         X86EMU_halt_sys(emu);
     }
     return 0L;
@@ -781,6 +785,7 @@ decode_rh_seg_register(struct X86EMU *emu)
     case 5:
         return &emu->x86.R_GS;
     default:
+        dbg("unexpected register %d\r\n", emu->cur_rh);
         X86EMU_halt_sys(emu);
     }
     return 0;
@@ -904,6 +909,7 @@ decode_rl_address(struct X86EMU *emu)
             offset = emu->x86.R_EDI;
             break;
         default:
+            dbg("unexpected mode %d\r\n", emu->x86.mode & SYSMODE_PREFIX_ADDR);
             X86EMU_halt_sys(emu);
         }
         if (emu->cur_mod == 1)
@@ -948,6 +954,7 @@ decode_rl_address(struct X86EMU *emu)
             offset = emu->x86.R_BX;
             break;
         default:
+            dbg("unexpected register %d\r\n", emu->cur_rl);
             X86EMU_halt_sys(emu);
         }
         if (emu->cur_mod == 1)
@@ -1423,7 +1430,10 @@ common_load_far_pointer(struct X86EMU *emu, uint16_t *seg)
 
     fetch_decode_modrm(emu);
     if (emu->cur_mod == 3)
+    {
+        dbg("unexpected mode %d\r\n", emu->cur_mod);
         X86EMU_halt_sys(emu);
+    }
 
     dstreg = decode_rh_word_register(emu);
     srcoffset = decode_rl_address(emu);
@@ -2099,7 +2109,10 @@ x86emuOp_lea_word_R_M(struct X86EMU *emu)
 
     fetch_decode_modrm(emu);
     if (emu->cur_mod == 3)
+    {
+        dbg("unexpected mode %d\r\n", emu->cur_mod);
         X86EMU_halt_sys(emu);
+    }
 
     destoffset = decode_rl_address(emu);
     if (emu->x86.mode & SYSMODE_PREFIX_ADDR) {
@@ -3134,7 +3147,10 @@ x86emuOp_mov_byte_RM_IMM(struct X86EMU *emu)
 
     fetch_decode_modrm(emu);
     if (emu->cur_rh != 0)
+    {
+        dbg("unexpected mode %d\r\n", emu->cur_rh);
         X86EMU_halt_sys(emu);
+    }
     if (emu->cur_mod != 3) {
         destoffset = decode_rl_address(emu);
         imm = fetch_byte_imm(emu);
@@ -3157,7 +3173,10 @@ x86emuOp32_mov_word_RM_IMM(struct X86EMU *emu)
 
     fetch_decode_modrm(emu);
     if (emu->cur_rh != 0)
+    {
+        dbg("unexpected mode %d\r\n", emu->cur_rh);
         X86EMU_halt_sys(emu);
+    }
 
     if (emu->cur_mod != 3) {
         destoffset = decode_rl_address(emu);
@@ -3178,7 +3197,10 @@ x86emuOp16_mov_word_RM_IMM(struct X86EMU *emu)
 
     fetch_decode_modrm(emu);
     if (emu->cur_rh != 0)
+    {
+        dbg("unexpected mode %d\r\n", emu->cur_rh);
         X86EMU_halt_sys(emu);
+    }
 
     if (emu->cur_mod != 3) {
         destoffset = decode_rl_address(emu);
@@ -3386,6 +3408,7 @@ x86emuOp_aam(struct X86EMU *emu)
     a = fetch_byte_imm(emu);	/* this is a stupid encoding. */
     if (a != 10) {
         /* fix: add base decoding aam_word(uint8_t val, int base a) */
+        dbg("unexpected encoding %d\r\n", a);
         X86EMU_halt_sys(emu);
     }
     /* note the type change here --- returning AL and AH in AX. */
@@ -3403,6 +3426,7 @@ x86emuOp_aad(struct X86EMU *emu)
     a = fetch_byte_imm(emu);
     if (a != 10) {
         /* fix: add base decoding aad_word(uint16_t val, int base a) */
+        dbg("unexpected encoding %d\r\n", a);
         X86EMU_halt_sys(emu);
     }
     emu->x86.R_AX = aad_word(emu, emu->x86.R_AX);
@@ -3742,7 +3766,10 @@ x86emuOp_opcF6_byte_RM(struct X86EMU *emu)
      * cases.  */
     fetch_decode_modrm(emu);
     if (emu->cur_rh == 1)
+    {
+        dbg("unexpected mode %d\r\n", emu->cur_rh);
         X86EMU_halt_sys(emu);
+    }
 
     if (emu->cur_rh == 0) {
         destval = decode_and_fetch_byte_imm8(emu, &srcval);
@@ -3786,7 +3813,10 @@ x86emuOp32_opcF7_word_RM(struct X86EMU *emu)
      * cases.  */
     fetch_decode_modrm(emu);
     if (emu->cur_rh == 1)
+    {
+        dbg("unexpected mode %d\r\n", emu->cur_rh);
         X86EMU_halt_sys(emu);
+    }
 
     if (emu->cur_rh == 0) {
         if (emu->cur_mod != 3) {
@@ -3835,7 +3865,10 @@ x86emuOp16_opcF7_word_RM(struct X86EMU *emu)
      * cases.  */
     fetch_decode_modrm(emu);
     if (emu->cur_rh == 1)
+    {
+        dbg("unexpected encoding %d\r\n", emu->cur_rh);
         X86EMU_halt_sys(emu);
+    }
 
     if (emu->cur_rh == 0) {
         if (emu->cur_mod != 3) {
@@ -4012,7 +4045,10 @@ x86emuOp_opcFF_word_RM(struct X86EMU *emu)
     /* Yet another special case instruction. */
     fetch_decode_modrm(emu);
     if ((emu->cur_mod == 3 && (emu->cur_rh == 3 || emu->cur_rh == 5)) || emu->cur_rh == 7)
+    {
+        dbg("unexpected mode %d, %d\r\n", emu->cur_mod, emu->cur_rh);
         X86EMU_halt_sys(emu);
+    }
     if (emu->cur_rh == 0 || emu->cur_rh == 1 || emu->cur_rh == 6) {
         if (emu->x86.mode & SYSMODE_PREFIX_DATA)
             x86emuOp32_opcFF_word_RM(emu);
@@ -4816,6 +4852,7 @@ X86EMU_exec_one_byte(struct X86EMU * emu)
         emu->x86.mode |= SYSMODE_PREFIX_REPE;
         break;
     case 0xf4:
+        dbg("unexpected op1\r\n");
         X86EMU_halt_sys(emu);
         break;
     case 0xf5:
@@ -4853,6 +4890,7 @@ X86EMU_exec_one_byte(struct X86EMU * emu)
         x86emuOp_opcFF_word_RM(emu);
         break;
     default:
+        dbg("unexpected op1 %d\r\n", op1);
         X86EMU_halt_sys(emu);
         break;
     }
@@ -5340,7 +5378,10 @@ x86emuOp2_32_btX_I(struct X86EMU *emu)
 
     fetch_decode_modrm(emu);
     if (emu->cur_rh < 4)
+    {
+        dbg("unexpected mode %d\r\n", emu->cur_rh);
         X86EMU_halt_sys(emu);
+    }
 
     srcval = decode_and_fetch_long_imm8(emu, &shift);
     bit = shift & 0x1F;
@@ -5370,7 +5411,10 @@ x86emuOp2_16_btX_I(struct X86EMU *emu)
 
     fetch_decode_modrm(emu);
     if (emu->cur_rh < 4)
+    {
+        dbg("unexpected mode %d\r\n", emu->cur_rh);
         X86EMU_halt_sys(emu);
+    }
 
     srcval = decode_and_fetch_word_imm8(emu, &shift);
     bit = shift & 0xF;
@@ -5691,6 +5735,7 @@ X86EMU_exec_two_byte(struct X86EMU * emu)
         /* 0xcf TODO: bswap */
 
     default:
+        dbg("unexpected op2 %d\r\n", op2);
         X86EMU_halt_sys(emu);
         break;
     }
