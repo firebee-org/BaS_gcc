@@ -379,6 +379,7 @@ void run_bios(struct radeonfb_info *rinfo)
 
     initialcs = (addr & 0xf0000) >> 4;
     initialip = (addr + 3) & 0xffff;
+    dbg("initial CS=0x%x, initial IP=0x%x\r\n", initialcs, initialip);
 
     /*
      * set emulator memory
@@ -400,7 +401,10 @@ void run_bios(struct radeonfb_info *rinfo)
     emu.emu_wrb(&emu, 0xffff7, '/');
     emu.emu_wrb(&emu, 0xffffa, '/');
 
-    /* FixME: move PIT init to its own file */
+    /*
+     * FixME: move PIT (programmable interval timer) init to its own file
+     * do we really need this? - don't think it does anything sensible ...
+     */
     outb(&emu, 0x36, 0x43);
     outb(&emu, 0x00, 0x40);
     outb(&emu, 0x00, 0x40);

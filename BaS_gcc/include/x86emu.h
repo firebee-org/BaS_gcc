@@ -122,9 +122,9 @@ struct X86EMU
 
     uint64_t        cur_cycles;
 
-	unsigned int	cur_mod:2;
-	unsigned int	cur_rl:3;
-	unsigned int	cur_rh:3;
+    unsigned int	cur_mod:2;
+    unsigned int	cur_rl:3;
+    unsigned int	cur_rh:3;
     uint32_t        cur_offset;
 
     uint8_t         (*emu_rdb)(struct X86EMU *, uint32_t addr);
@@ -145,14 +145,14 @@ struct X86EMU
 };
 
 
-void	X86EMU_init_default(struct X86EMU *);
+void X86EMU_init_default(struct X86EMU *);
 
 /* decode.c */
 
-void 	X86EMU_exec(struct X86EMU *);
-void	X86EMU_exec_call(struct X86EMU *, uint16_t, uint16_t);
-void	X86EMU_exec_intr(struct X86EMU *, uint8_t);
-void 	X86EMU_halt_sys(struct X86EMU *);
+void X86EMU_exec(struct X86EMU *);
+void X86EMU_exec_call(struct X86EMU *, uint16_t, uint16_t);
+void X86EMU_exec_intr(struct X86EMU *, uint8_t);
+void X86EMU_halt_sys(struct X86EMU *);
 
 
 #endif /* __X86EMU_X86EMU_H */
