@@ -81,6 +81,9 @@ static uint8_t inb(struct X86EMU *emu, uint16_t port)
     {
         val = * (uint8_t *) (offset_io + (uint32_t) port);
     }
+    else
+        dbg("illegal port 0x%x\r\n", port);
+
     return val;
 }
 
@@ -92,6 +95,9 @@ static uint16_t inw(struct X86EMU *emu, uint16_t port)
     {
         val = swpw(*(uint16_t *)(offset_io + (uint32_t) port));
     }
+    else
+        dbg("illegal port 0x%x\r\n", port);
+
     return val;
 }
 
@@ -128,6 +134,8 @@ static uint32_t inl(struct X86EMU *emu, uint16_t port)
         }
         // dbg("PCI inl from register %x, value = 0x%08x\r\n", config_address_reg, val);
     }
+    else
+        dbg("illegal port 0x%x\r\n", port);
 
     return val;
 }
@@ -138,6 +146,8 @@ static void outb(struct X86EMU *emu, uint16_t port, uint8_t val)
     {
         *(uint8_t *)(offset_io + (uint32_t) port) = val;
     }
+    else
+        dbg("illegal port 0x%x\r\n", port);
 }
 
 static void outw(struct X86EMU *emu, uint16_t port, uint16_t val)
@@ -146,6 +156,8 @@ static void outw(struct X86EMU *emu, uint16_t port, uint16_t val)
     {
         *(uint16_t *)(offset_io + (uint32_t) port) = swpw(val);
     }
+    else
+        dbg("illegal port 0x%x\r\n", port);
 }
 
 static void outl(struct X86EMU *emu, uint16_t port, uint32_t val)
@@ -170,6 +182,8 @@ static void outl(struct X86EMU *emu, uint16_t port, uint32_t val)
             pci_write_config_longword(rinfo_biosemu->handle, config_address_reg & 0xFC, val);
         }
     }
+    else
+        dbg("illegal port 0x%x\r\n", port);
 }
 
 /* Interrupt multiplexer */
@@ -240,6 +254,7 @@ static void do_int(struct X86EMU *emu, int num)
             break;
 
         default:
+            dbg("unhandled interrupt 0x%x\r\n", num);
             break;
     }
 
