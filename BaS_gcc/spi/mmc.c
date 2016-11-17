@@ -20,7 +20,7 @@
 
 /* Copyright (C) 2012, mfro, all rights reserved. */
 
-// #define DEBUG_MMC
+// // #define DEBUG_MMC
 #ifdef DEBUG_MMC
 #define debug_printf(format, arg...) do { xprintf("DEBUG: " format "\r\n", ##arg); } while (0)
 #else

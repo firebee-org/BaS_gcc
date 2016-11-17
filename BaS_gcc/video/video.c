@@ -7,7 +7,7 @@
 #include "fb.h"
 #include "radeonfb.h"
 
-#define DEBUG
+// #define DEBUG
 #include "debug.h"
 
 #ifdef _USE_VIDEL_

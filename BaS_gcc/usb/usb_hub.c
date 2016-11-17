@@ -12,7 +12,7 @@
 #include "usb.h"
 #include "usb_hub.h"
 
-// #define DEBUG
+// // #define DEBUG
 #include "debug.h"
 
 static struct usb_hub_device hub_dev[USB_MAX_BUS][USB_MAX_HUB];

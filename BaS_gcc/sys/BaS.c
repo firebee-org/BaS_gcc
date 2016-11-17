@@ -52,7 +52,7 @@
 #include "pci.h"
 #include "video.h"
 
-// #define DEBUG
+// // #define DEBUG
 #include "debug.h"
 
 /* imported routines */

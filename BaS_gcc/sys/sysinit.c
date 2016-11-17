@@ -53,7 +53,7 @@
 #include "usb.h"
 #include "video.h"
 
-// #define DEBUG
+// // #define DEBUG
 #include "debug.h"
 
 #define UNUSED(x) (void)(x)             /* Unused variable         */

@@ -4,7 +4,7 @@
 #include "i2c.h"
 #include "driver_mem.h"
 
-#define DEBUG
+// #define DEBUG
 #include "debug.h"
 
 

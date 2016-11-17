@@ -10,7 +10,7 @@
 #include "pci_ids.h"
 #include "x86pcibios.h"
 
-#define DEBUG
+// #define DEBUG
 #include "debug.h"
 
 struct rom_header

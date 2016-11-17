@@ -34,7 +34,7 @@
 #include "x86emu.h"
 #include "x86emu_regs.h"
 
-#define DEBUG
+// #define DEBUG
 #include "debug.h"
 
 static __inline uint16_t le16dec(const void *buf)

@@ -19,7 +19,7 @@
 #include "driver_mem.h"
 #include "bas_string.h"
 
-#define DEBUG
+// #define DEBUG
 #include "debug.h"
 
 

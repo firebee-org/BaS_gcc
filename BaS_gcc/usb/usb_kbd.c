@@ -27,7 +27,7 @@
 
 #include "usb.h"
 
-//#define DEBUG_USBKBD
+//// #define DEBUG_USBKBD
 #ifdef DEBUG_USBKBD
 #define dbg(format, arg...) do { xprintf("DEBUG: %s(): " format, __FUNCTION__, ##arg); } while (0)
 #else
