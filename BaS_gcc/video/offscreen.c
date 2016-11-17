@@ -245,24 +245,24 @@ void offscreen_init(struct fb_info *info)
     long size_screen;
     long max_offscreen_size;
 
-    wrap = (long) info->var.xres_virtual * (long)(info->var.bits_per_pixel / 8);
-    size_screen = (long)info->var.yres_virtual * wrap;
+    wrap = (long) info->var.xres_virtual * (long) (info->var.bits_per_pixel / 8);
+    size_screen = (long) info->var.yres_virtual * wrap;
     if (!size_screen)
-        size_screen = (long)info->screen_size;
+        size_screen = (long) info->screen_size;
 
     pmd.mp_mfl = pmd.mp_rover = &tab_md[0];
-    tab_md[0].m_link = (MD *)NULL;
-    tab_md[0].m_start = (long)((unsigned long)info->ram_base + (unsigned long)size_screen);
-    tab_md[0].m_length = (long)info->ram_size - size_screen;
+    tab_md[0].m_link = (MD *) NULL;
+    tab_md[0].m_start = (long)((unsigned long) info->ram_base + (unsigned long) size_screen);
+    tab_md[0].m_length = (long) info->ram_size - size_screen;
     tab_md[0].m_own = (void *)1L;
 
-    max_offscreen_size = ((long)info->var.xres_virtual * 8192L * (long)(info->var.bits_per_pixel / 8)) - size_screen;
+    max_offscreen_size = ((long) info->var.xres_virtual * 8192L * (long)(info->var.bits_per_pixel / 8)) - size_screen;
     if (max_offscreen_size < 0)
         max_offscreen_size = 0;
     if (tab_md[0].m_length > max_offscreen_size)
         tab_md[0].m_length = max_offscreen_size;
 
-    dbg("offscreen_init start %p, length 0x%ld, ram size 0x%ld\r\n",
+    dbg("offscreen_init start %p, length %ld, ram size %ld\r\n",
         tab_md[0].m_start, tab_md[0].m_length, (long) info->ram_size);
     pmd.mp_mal = (MD *)NULL;
 }

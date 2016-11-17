@@ -283,10 +283,10 @@ static struct radeonfb_info rfb =
 
 static struct fb_var_screeninfo default_fb =
 {
-    .xres = 640,
-    .yres = 480,
-    .xres_virtual = 640,
-    .yres_virtual = 480,
+    .xres = 1280,
+    .yres = 1024,
+    .xres_virtual = 1280,
+    .yres_virtual = 1024,
     .bits_per_pixel = 8,
     .grayscale = 0,
     .red = { .length = 8 },
@@ -295,14 +295,15 @@ static struct fb_var_screeninfo default_fb =
     .activate = FB_ACTIVATE_NOW,
     .height = -1,
     .width = -1,
-    .pixclock = 39721,
-    .left_margin = 40,
-    .right_margin = 24,
-    .upper_margin = 32,
-    .lower_margin = 11,
-    .hsync_len = 96,
-    .vsync_len = 2,
+    .pixclock = 7407,
+    .left_margin = 256,
+    .right_margin = 32,
+    .upper_margin = 34,
+    .lower_margin = 3,
+    .hsync_len = 144,
+    .vsync_len = 3,
     .vmode = FB_VMODE_NONINTERLACED,
+    .activate = FB_ACTIVATE_ALL | FB_ACTIVATE_FORCE | FB_ACTIVATE_NOW
 };
 
 static struct fb_info fb =
@@ -339,7 +340,7 @@ struct mode_option resolution =
     .height = 480,
     .bpp = 8,
     .freq = 60,
-    .flags = 0
+    .flags = 0,
 };
 int16_t force_measure_pll = 0;
 
