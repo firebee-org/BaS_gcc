@@ -34,6 +34,8 @@
 #include "x86emu.h"
 #include "x86emu_regs.h"
 
+#define DEBUG
+#include "debug.h"
 
 static __inline uint16_t le16dec(const void *buf)
 {
@@ -81,6 +83,7 @@ static uint8_t rdb(struct X86EMU *emu, uint32_t addr)
 {
     if (addr > emu->mem_size - 1)
     {
+        dbg("attempted read outside system memory: 0x%lx. Halt emulator.\r\n", addr);
         X86EMU_halt_sys(emu);
     }
     return emu->mem_base[addr];
@@ -100,6 +103,7 @@ static uint16_t rdw(struct X86EMU *emu, uint32_t addr)
 {
     if (addr > emu->mem_size - 2)
     {
+        dbg("attempted read outside system memory: 0x%lx. Halt emulator.\r\n", addr);
         X86EMU_halt_sys(emu);
     }
     return le16dec(emu->mem_base + addr);
@@ -118,6 +122,7 @@ static uint32_t rdl(struct X86EMU *emu, uint32_t addr)
 {
     if (addr > emu->mem_size - 4)
     {
+        dbg("attempted read outside system memory: 0x%lx. Halt emulator.\r\n", addr);
         X86EMU_halt_sys(emu);
     }
     return le32dec(emu->mem_base + addr);
@@ -135,6 +140,7 @@ static void wrb(struct X86EMU *emu, uint32_t addr, uint8_t val)
 {
     if (addr > emu->mem_size - 1)
     {
+        dbg("attempted write outside system memory: 0x%lx (0x%02x). Halt emulator.\r\n", addr, val);
         X86EMU_halt_sys(emu);
     }
     emu->mem_base[addr] = val;
@@ -152,13 +158,14 @@ static void wrw(struct X86EMU *emu, uint32_t addr, uint16_t val)
 {
     if (addr > emu->mem_size - 2)
     {
+        dbg("attempted write outside system memory: 0x%lx (0x%04x). Halt emulator\r\n", addr, val);
         X86EMU_halt_sys(emu);
     }
     le16enc(emu->mem_base + addr, val);
 }
 /****************************************************************************
 PARAMETERS:
-addr	- Emulator memory address to read
+addr	- Emulator memory address to write
 val		- Value to store
 
 REMARKS:
@@ -168,6 +175,7 @@ static void wrl(struct X86EMU *emu, uint32_t addr, uint32_t val)
 {
     if (addr > emu->mem_size - 4)
     {
+        dbg("attempted write outside system memory: 0x%lx (0x%08x)\r\n", addr, val);
         X86EMU_halt_sys(emu);
     }
     le32enc(emu->mem_base + addr, val);
