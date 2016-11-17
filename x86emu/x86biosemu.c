@@ -401,16 +401,6 @@ void run_bios(struct radeonfb_info *rinfo)
     emu.emu_wrb(&emu, 0xffff7, '/');
     emu.emu_wrb(&emu, 0xffffa, '/');
 
-    /*
-     * FixME: move PIT (programmable interval timer) init to its own file
-     * do we really need this? - don't think it does anything sensible ...
-     */
-    outb(&emu, 0x36, 0x43);
-    outb(&emu, 0x00, 0x40);
-    outb(&emu, 0x00, 0x40);
-
-    //	setup_int_vect();
-
     /* cpu setup */
     emu.x86.R_AX = devfn ? devfn : 0xff;
     emu.x86.R_DX = 0x80;
