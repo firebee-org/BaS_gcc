@@ -6,7 +6,7 @@
 #include "bas_string.h"
 #include "video.h"
 
-#define DEBUG
+// #define DEBUG
 #include "debug.h"
 
 #ifndef INT_MAX

@@ -62,7 +62,7 @@
 #include "bas_string.h"
 #include "exceptions.h"		/* for set_ipl() */
 
-#define DEBUG
+// #define DEBUG
 #include "debug.h"
 
 extern void run_bios(struct radeonfb_info *rinfo);

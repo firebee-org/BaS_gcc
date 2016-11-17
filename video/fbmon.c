@@ -31,7 +31,7 @@
 #include "fb.h"
 #include "edid.h"
 
-#define DEBUG
+// #define DEBUG
 #include "debug.h"
 
 /*

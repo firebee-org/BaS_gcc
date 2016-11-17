@@ -34,7 +34,7 @@
 #include "dma.h"
 #include "cache.h"
 
-#define DEBUG
+// #define DEBUG
 #include "debug.h"
 
 /*

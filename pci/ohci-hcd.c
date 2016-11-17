@@ -49,7 +49,7 @@
 #include "pci.h"
 #include "interrupts.h"
 
-// #define DEBUG
+// // #define DEBUG
 #include "debug.h"
 
 #undef OHCI_USE_NPS         /* force NoPowerSwitching mode */

@@ -37,7 +37,7 @@
 #include "dma.h"
 #include "pci.h"
 
-// #define DEBUG
+// // #define DEBUG
 #include "debug.h"
 
 #ifndef MAX_ISR_ENTRY

@@ -7,7 +7,7 @@
 
 extern unsigned short offset_port;
 
-#define DEBUG
+// #define DEBUG
 #include "debug.h"
 
 int x86_pcibios_handler(struct X86EMU *emu)

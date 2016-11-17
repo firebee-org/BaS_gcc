@@ -1,5 +1,5 @@
 #ifndef DEBUG_H
-#define DEBUG_H
+// #define DEBUG_H
 
 #ifdef DEBUG
 #include "bas_types.h"

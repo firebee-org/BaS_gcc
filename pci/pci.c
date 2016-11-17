@@ -34,7 +34,7 @@
 #include "interrupts.h"
 #include "wait.h"
 
-// #define DEBUG
+// // #define DEBUG
 #include "debug.h"
 
 #define pci_config_wait() do { __asm__ __volatile("tpf" ::: "memory"); } while (0)

@@ -15,7 +15,7 @@
 #include "bas_string.h"
 #include "fb.h"
 
-#define DEBUG
+// #define DEBUG
 #include "debug.h"
 
 /* MD - Memory Descriptor */
