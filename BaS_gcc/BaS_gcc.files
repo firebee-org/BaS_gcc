@@ -893,3 +893,5 @@ tos/Makefile
 radeon/radeon_i2c.c
 basflash.lk.in
 radeon/i2c-algo-bit.c
+util/conout.c
+include/conout.h
