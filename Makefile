@@ -87,8 +87,11 @@ CSRCS= \
 	init_fpga.c \
 	fault_vectors.c \
 	interrupts.c \
+	\
 	bas_printf.c \
 	bas_string.c \
+	conout.c \
+	\
 	BaS.c \
 	cache.c \
 	mmu.c \
