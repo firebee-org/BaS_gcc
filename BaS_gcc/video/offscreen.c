@@ -70,7 +70,9 @@ static void xmfreblk(void *m)
 
 static MD *ffit(long amount, MPB *mp)
 {
-    MD *p,*q,*p1;                    /* free list is composed of MD's */
+    MD *p;
+    MD *q;
+    MD *p1;                             /* free list is composed of MD's */
     int maxflg;
     long maxval;
     if(amount != -1)
@@ -78,102 +80,119 @@ static MD *ffit(long amount, MPB *mp)
 #if 1
         amount += (wrap - 1);
         amount /= wrap;
-        amount  *= wrap;               /* screen line alignment */
+        amount  *= wrap;                /* screen line alignment */
 #else
-        amount += 15;                  /* 16 bytes alignment */
+        amount += 15;                   /* 16 bytes alignment */
         amount &= 0xFFFFFFF0;
 #endif
     }
-    if((q = mp->mp_rover) == 0)      /* get rotating pointer */
+    if ((q = mp->mp_rover) == 0)        /* get rotating pointer */
         return(0) ;
     maxval = 0;
     maxflg = ((amount == -1) ? true : false) ;
     p = q->m_link;                   /* start with next MD */
     do /* search the list for an MD with enough space */
     {
-        if(p == NULL)
+        if (p == NULL)
         {
             /*  at end of list, wrap back to start  */
-            q = (MD *) &mp->mp_mfl;      /*  q => mfl field  */
-            p = q->m_link;               /*  p => 1st MD     */
+            q = (MD *) &mp->mp_mfl;     /*  q => mfl field  */
+            p = q->m_link;              /*  p => 1st MD     */
         }
-        if((!maxflg) && (p->m_length >= amount))
+        if ((!maxflg) && (p->m_length >= amount))
         {
             /*  big enough */
-            if(p->m_length == amount)
-                q->m_link = p->m_link;     /* take the whole thing */
+            if (p->m_length == amount)
+                q->m_link = p->m_link;  /* take the whole thing */
             else
             {
-                /* break it up - 1st allocate a new
-                   MD to describe the remainder */
+                /*
+                 * break it up - 1st allocate a new
+                 * MD to describe the remainder
+                 */
                 p1 = xmgetblk();
-                if(p1 == NULL)
-                    return(NULL);
-                /* init new MD */
+                if (p1 == NULL)
+                    return NULL;
+
+                /*
+                 * init new MD
+                 */
                 p1->m_length = p->m_length - amount;
                 p1->m_start = p->m_start + amount;
                 p1->m_link = p->m_link;
-                p->m_length = amount;      /* adjust allocated block */
+                p->m_length = amount;   /* adjust allocated block */
                 q->m_link = p1;
             }
-            /* link allocate block into allocated list,
-                mark owner of block, & adjust rover  */
+
+            /*
+             * link allocated block into allocated list,
+             * mark owner of block, & adjust rover
+             */
             p->m_link = mp->mp_mal;
             mp->mp_mal = p;
             mp->mp_rover = (q == (MD *) &mp->mp_mfl ? q->m_link : q);
-            return(p);                   /* got some */
+            return p;           /* got some */
         }
-        else if(p->m_length > maxval)
+        else if (p->m_length > maxval)
             maxval = p->m_length;
-        p = ( q=p )->m_link;
+        p = (q = p)->m_link;
     }
-    while(q != mp->mp_rover);
-    /*  return either the max, or 0 (error)  */
-    if(maxflg)
+
+    while (q != mp->mp_rover);
+
+    /*
+     * return either the max, or 0 (error)
+     */
+    if (maxflg)
     {
-        maxval -= 15; /* 16 bytes alignment */
-        if(maxval < 0)
+        maxval -= 15;   /* 16 bytes alignment */
+        if (maxval < 0)
             maxval = 0;
         else
             maxval &= 0xFFFFFFF0;
     }
-    return(maxflg ? (MD *) maxval : 0);
+    return maxflg ? (MD *) maxval : 0;
 }
 
 static void freeit(MD *m, MPB *mp)
 {
-    MD *p, *q;
-    q = NULL;
-    for (p = mp->mp_mfl; p ; p = (q=p) -> m_link)
+    MD *p;
+    MD *q = NULL;
+
+    for (p = mp->mp_mfl; p; p = (q = p) -> m_link)
     {
-        if(m->m_start <= p->m_start)
+        if (m->m_start <= p->m_start)
             break;
     }
     m->m_link = p;
-    if(q)
+    if (q)
         q->m_link = m;
     else
         mp->mp_mfl = m;
-    if(!mp->mp_rover)
+    if (!mp->mp_rover)
         mp->mp_rover = m;
-    if(p)
+    if (p)
     {
-        if(m->m_start + m->m_length == p->m_start)
-        { /* join to higher neighbor */
+        if (m->m_start + m->m_length == p->m_start)
+        {
+            /*
+             * join to higher neighbor
+             */
             m->m_length += p->m_length;
             m->m_link = p->m_link;
-            if(p == mp->mp_rover)
+            if (p == mp->mp_rover)
                 mp->mp_rover = m;
             xmfreblk(p);
         }
     }
-    if(q)
+    if (q)
     {
-        if(q->m_start + q->m_length == m->m_start)
-        { /* join to lower neighbor */
+        if (q->m_start + q->m_length == m->m_start)
+        {
+            /* join to lower neighbor */
             q->m_length += m->m_length;
             q->m_link = m->m_link;
-            if(m == mp->mp_rover)
+            if (m == mp->mp_rover)
                 mp->mp_rover = q;
             xmfreblk(m);
         }
@@ -182,7 +201,8 @@ static void freeit(MD *m, MPB *mp)
 
 long offscreen_free(struct fb_info *info, long addr)
 {
-    MD *p,**q;
+    MD *p;
+    MD **q;
     MPB *mpb;
 
     dbg("%p\r\n", addr);
@@ -202,7 +222,7 @@ long offscreen_free(struct fb_info *info, long addr)
     *q = p->m_link;
     freeit(p,mpb);
     //*vblsem = 1;
-    return(0);
+    return 0;
 }
 
 long offscreen_alloc(struct fb_info *info, long amount)
@@ -237,7 +257,7 @@ long offscreen_alloc(struct fb_info *info, long amount)
 
 long offscren_reserved(struct fb_info *info)
 {
-    return((long) info->ram_base + (long) info->ram_size);
+    return (long) info->ram_base + (long) info->ram_size;
 }
 
 void offscreen_init(struct fb_info *info)
@@ -264,6 +284,6 @@ void offscreen_init(struct fb_info *info)
 
     dbg("offscreen_init start %p, length %ld, ram size %ld\r\n",
         tab_md[0].m_start, tab_md[0].m_length, (long) info->ram_size);
-    pmd.mp_mal = (MD *)NULL;
+    pmd.mp_mal = (MD *) NULL;
 }
 
