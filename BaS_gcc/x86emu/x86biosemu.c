@@ -132,7 +132,6 @@ static uint32_t inl(struct X86EMU *emu, uint16_t port)
                 val = pci_read_config_longword(rinfo_biosemu->handle, config_address_reg & 0xFC);
                 break;
         }
-        // dbg("PCI inl from register %x, value = 0x%08x\r\n", config_address_reg, val);
     }
     else
         dbg("illegal port 0x%x\r\n", port);
@@ -172,7 +171,7 @@ static void outl(struct X86EMU *emu, uint16_t port, uint32_t val)
     }
     else if ((port == PC_PCI_DATA_PORT) && ((config_address_reg & 0x80000000) !=0))
     {
-        dbg("outl(0x%x, 0x%x) to PCI config space\r\n", port, val);
+        dbg("(0x%x, 0x%x) to PCI config space\r\n", port, val);
         if ((config_address_reg & 0xFC) == PCIBAR1)
         {
             offset_port = (uint16_t) val & 0xFFFC;
@@ -186,7 +185,9 @@ static void outl(struct X86EMU *emu, uint16_t port, uint32_t val)
         dbg("illegal port 0x%x\r\n", port);
 }
 
-/* Interrupt multiplexer */
+/*
+ * Interrupt multiplexer
+ */
 
 static void do_int(struct X86EMU *emu, int num)
 {
@@ -219,6 +220,9 @@ static void do_int(struct X86EMU *emu, int num)
 
                 dbg("string to output at 0x%04x:0x%04x length=0x%04x\r\n", seg, off, num_chars);
 
+                /*
+                 * output VGA BIOS version string
+                 */
                 for (i = 0; i < num_chars; i++)
                     xprintf("%c", * (char *)(BIOS_MEM + str + i));
             }
@@ -228,18 +232,15 @@ static void do_int(struct X86EMU *emu, int num)
 
             if (getIntVect(emu, num) == 0xFF065)
             {
-                //ret = int42_handler();
                 ret = 1;
             }
             break;
 
         case 0x15:
-            //ret = int15_handler();
             ret = 1;
             break;
 
         case 0x16:
-            //ret = int16_handler();
             ret = 0;
             break;
 
@@ -249,7 +250,6 @@ static void do_int(struct X86EMU *emu, int num)
             break;
 
         case 0xe6:
-            //ret = intE6_handler();
             ret = 0;
             break;
 
@@ -275,7 +275,7 @@ static int setup_system_bios(void *base_addr)
      * TODO: implement hlt-handler for these
      */
 
-    for (i = 0; i < SIZE_EMU + 4; base[i++] = 0xF4);
+    for (i = 0; i < SIZE_EMU + 4; base[i++] = 0xf4);
 
     return 1;
 }
@@ -341,7 +341,7 @@ void run_bios(struct radeonfb_info *rinfo)
         memset((char *) BIOS_MEM, 0, SIZE_EMU);
         setup_system_bios((char *) BIOS_MEM);
 
-        dbg("Copyg VGA ROM Image from %p to %p (0x%lx bytes)\r\n",
+        dbg("Copy VGA ROM Image from %p to %p (0x%lx bytes)\r\n",
             (uintptr_t) rinfo->bios_seg + (uintptr_t) rom_header,
             BIOS_MEM + PCI_VGA_RAM_IMAGE_START, rom_size);
         {
@@ -420,11 +420,6 @@ void run_bios(struct radeonfb_info *rinfo)
      */
     pushw(&emu, 0xf4f4);    /* hlt; hlt */
 
-    //	pushw(0x10cd);    /* int #0x10 */
-    //	pushw(0x0013);    /* 320 x 200 x 256 colors */
-    // //	pushw(0x000F);    /* 640 x 350 x mono */
-    //	pushw(0xb890);    /* nop, mov ax,#0x13 */
-
     pushw(&emu, emu.x86.R_SS);
     pushw(&emu, emu.x86.R_SP + 2);
 
@@ -433,7 +428,6 @@ void run_bios(struct radeonfb_info *rinfo)
     X86EMU_exec(&emu);
 
     dbg("X86EMU halted\r\n");
-    //	biosfn_set_video_mode(0x13); /* 320 x 200 x 256 colors */
 
     /*
      * clear emulator memory once we are finished
