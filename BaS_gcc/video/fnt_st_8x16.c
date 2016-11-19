@@ -335,3 +335,5 @@ const struct font_head fnt_st_8x16 = {
     0,                  /* struct font * next_font */
     0                   /* UWORD next_seg */
 };
+
+struct font_head *fnt = &fnt_st_8x16;
