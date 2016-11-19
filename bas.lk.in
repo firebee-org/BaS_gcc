@@ -97,6 +97,7 @@ SECTIONS
                 OBJDIR/fbmem.o(.text)
                 OBJDIR/fbmon.o(.text)
                 OBJDIR/fbmodedb.o(.text)
+		OBJDIR/fnt_st_8x16.o(.text)
                 OBJDIR/offscreen.o(.text)
 
                 OBJDIR/x86emu.o(.text)

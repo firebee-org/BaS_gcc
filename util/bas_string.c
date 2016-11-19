@@ -34,6 +34,16 @@ void *memcpy(void *dst, const void *src, size_t n)
     return dst;
 }
 
+void *memmove(void *dst, const void *src, size_t n)
+{
+    uint8_t *to = dst;
+
+    while (to < (uint8_t *) dst + n)
+        *to++ = * (uint8_t *) src++;
+
+    return dst;
+}
+
 void bzero(void *s, size_t n)
 {
     size_t i;

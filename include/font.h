@@ -95,6 +95,6 @@ struct font_head {
 void font_init(void);           /* initialize BIOS font ring */
 void font_set_default(void);    /* choose the default font */
 
-extern const struct font_head *fnt_st_8x16;
+extern struct font_head *fnt;
 
 #endif /* FONT_H */

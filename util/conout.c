@@ -19,15 +19,29 @@
 
 #define  plane_offset   2       /* interleaved planes */
 
-#define v_fnt_st fnt_st_8x16->first_ade
-#define v_fnt_nd fnt_st_8x16->last_ade
-#define v_off_ad fnt_st_8x16->off_table
+#define v_fnt_st fnt->first_ade
+#define v_fnt_nd fnt->last_ade
+#define v_off_ad fnt->off_table
 #define v_bas_ad info_fb->screen_base
 
 uint8_t *v_cur_ad;              /* cursor address */
 int8_t v_stat_0;                /* console status byte */
 uint16_t v_cur_cx;
 uint16_t v_cur_cy;
+int8_t v_cur_tim;
+uint16_t v_cel_mx;
+uint16_t v_cel_my;
+uint16_t v_cel_wr;
+int16_t v_cur_of;
+uint16_t v_cel_ht;
+int8_t v_period;
+const uint16_t *v_fnt_ad;
+int16_t v_fbt_wr;
+int16_t v_col_bg;
+int16_t v_col_fg;
+uint16_t v_fnt_wr;
+
+
 const int16_t v_planes = 8;
 extern struct fb_info *info_fb;
 #define v_lin_wr (info_fb->var.width / 2) /* length of a screen line in words */
