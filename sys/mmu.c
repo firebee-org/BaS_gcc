@@ -3,15 +3,8 @@
 #include "exceptions.h"
 #include "pci.h"
 
-#if defined(MACHINE_FIREBEE)
-#include "firebee.h"
-#elif defined(MACHINE_M5484LITE)
-#include "m5484l.h"
-#elif defined(MACHINE_M54455)
-#include "m54455.h"
-#else
-#error "unknown machine!"
-#endif
+#define DEBUG
+#include "debug.h"
 
 /*
  * mmu.c
@@ -53,14 +46,6 @@
 #else
 #error "unknown machine!"x
 #endif /* MACHINE_FIREBEE */
-
-//#define DBG_MMU
-#ifdef DBG_MMU
-#define dbg(format, arg...) do { xprintf("DEBUG (%s()): " format, __FUNCTION__, ##arg);} while(0)
-#else
-#define dbg(format, arg...) do {;} while (0)
-#endif /* DBG_MMU */
-#define err(format, arg...) do { xprintf("ERROR (%s()): " format, __FUNCTION__, ##arg); } while(0)
 
 /*
  * set ASID register
@@ -310,14 +295,41 @@ int mmu_map_instruction_page(uint32_t virt, uint8_t asid)
     return 1;
 }
 
+struct mmu_page_descriptor_ram pci_descriptor =
+{
+    .cache_mode = CACHE_COPYBACK,
+    .supervisor_protect = 0,
+    .read = 1,
+    .write = 1,
+    .execute = 1,
+    .global = 1,
+    .locked = 0
+};
+
 int mmu_map_data_page(uint32_t virt, uint8_t asid)
 {
     uint16_t ipl;
     const uint32_t size_mask = ~ (SIZE_DEFAULT - 1);            /* pagesize */
     int page_index = (virt & size_mask) / SIZE_DEFAULT;         /* index into page_descriptor array */
-    struct mmu_page_descriptor_ram *page = &pages[page_index];  /* attributes of page to map */
+    struct mmu_page_descriptor_ram *page;
+    uint32_t phys = 0L;
 
-    uint32_t phys = lookup_phys(virt);                           /* virtual to physical translation of page */
+    if (page_index < sizeof(pages) / sizeof(struct mmu_page_descriptor_ram))
+    {
+        page = &pages[page_index];  /* attributes of page to map */
+        phys = lookup_phys(virt);                           /* virtual to physical translation of page */
+    }
+
+    /*
+     * check if we are trying to access PCI space
+     */
+    else if (virt >= PCI_MEMORY_OFFSET && virt <= PCI_MEMORY_OFFSET + PCI_MEMORY_SIZE)
+    {
+        phys = virt;
+        page = &pci_descriptor;
+    };
+
+
 
     if (phys == (uint32_t) -1)
     {
@@ -326,7 +338,7 @@ int mmu_map_data_page(uint32_t virt, uint8_t asid)
         return 0;
     }
 
-#ifdef DBG_MMU
+#ifdef DEBUG
     register int sp asm("sp");
     dbg("page_descriptor: 0x%02x, ssp = 0x%08x\r\n", * (uint8_t *) page, sp);
 #endif /* DBG_MMU */
@@ -355,6 +367,7 @@ int mmu_map_data_page(uint32_t virt, uint8_t asid)
         MCF_MMU_MMUOR_UAA;                  /* update allocation address field */
 
     set_ipl(ipl);
+
     dbg("mapped virt=0x%08x to phys=0x%08x\r\n", virt & size_mask, phys & size_mask);
 
     dbg("DTLB: MCF_MMU_MMUOR = %08x\r\n", MCF_MMU_MMUOR);
@@ -918,7 +931,7 @@ uint32_t mmu_unlock_data_page(uint32_t address, uint32_t size, int asid)
                 MCF_MMU_MMUOR_RW;
         if (MCF_MMU_MMUSR & MCF_MMU_MMUSR_HIT)      /* found */
         {
-#ifdef DBG_MMU
+#ifdef DEBUG
             uint32_t tlb_aa = MCF_MMU_MMUOR >> 16;  /* MMU internal allocation address for TLB */
 #endif /* DBG_MMU */
 
