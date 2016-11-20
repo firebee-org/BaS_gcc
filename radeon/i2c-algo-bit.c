@@ -116,9 +116,11 @@ static void i2c_stop(struct i2c_algo_bit_data *adap)
     sdahi(adap);
 }
 
-/* send a byte without start cond., look for arbitration,
-   check ackn. from slave */
-/* returns:
+/*
+ * send a byte without start cond., look for arbitration,
+ * check ackn. from slave
+ *
+ * returns:
  * 1 if the device acknowledged
  * 0 if the device did not ack
  * -ETIMEDOUT if an error occurred (while raising the scl line)
