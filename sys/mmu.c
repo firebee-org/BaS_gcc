@@ -297,7 +297,7 @@ int mmu_map_instruction_page(uint32_t virt, uint8_t asid)
 
 struct mmu_page_descriptor_ram pci_descriptor =
 {
-    .cache_mode = CACHE_COPYBACK,
+    .cache_mode = CACHE_NOCACHE_PRECISE,
     .supervisor_protect = 0,
     .read = 1,
     .write = 1,
@@ -327,7 +327,9 @@ int mmu_map_data_page(uint32_t virt, uint8_t asid)
     {
         phys = virt;
         page = &pci_descriptor;
-    };
+    }
+    else
+        return 0;
 
 
 

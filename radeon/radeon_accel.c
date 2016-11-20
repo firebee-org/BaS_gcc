@@ -595,8 +595,8 @@ void radeon_subsequent_scanline_cpu_to_screen_color_expand_fill_mmio(struct fb_i
 #else
     BEGIN_ACCEL(4);
 #endif
-    OUT_ACCEL_REG(SC_TOP_LEFT, (y << 16) | ((x+skipleft) & 0xffff));
-    OUT_ACCEL_REG(SC_BOTTOM_RIGHT, ((y+h) << 16) | ((x+w) & 0xffff));
+    OUT_ACCEL_REG(SC_TOP_LEFT, (y << 16) | ((x + skipleft) & 0xffff));
+    OUT_ACCEL_REG(SC_BOTTOM_RIGHT, ((y+h) << 16) | ((x + w) & 0xffff));
     OUT_ACCEL_REG(DST_Y_X, (y << 16) | (x & 0xffff));
     /* Have to pad the width here and use clipping engine */
     OUT_ACCEL_REG(DST_HEIGHT_WIDTH, (h << 16) | ((w + 31) & ~31));
