@@ -16,13 +16,14 @@
 #include "video.h"
 #include "font.h"
 #include "fb.h"
+#include "bas_string.h"
 
 #define  plane_offset   2       /* interleaved planes */
 
 #define v_fnt_st fnt->first_ade
 #define v_fnt_nd fnt->last_ade
 #define v_off_ad fnt->off_table
-#define v_bas_ad info_fb->screen_base
+#define v_bas_ad ((uint8_t *) info_fb->screen_base)
 
 uint8_t *v_cur_ad;              /* cursor address */
 int8_t v_stat_0;                /* console status byte */
@@ -42,7 +43,7 @@ int16_t v_col_fg;
 uint16_t v_fnt_wr;
 
 
-const int16_t v_planes = 8;
+#define v_planes (info_fb->var.bits_per_pixel)
 extern struct fb_info *info_fb;
 #define v_lin_wr (info_fb->var.width / 2) /* length of a screen line in words */
 
