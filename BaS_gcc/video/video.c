@@ -286,7 +286,7 @@ static struct fb_var_screeninfo default_fb =
     .xres = 1280,
     .yres = 1024,
     .xres_virtual = 1280,
-    .yres_virtual = 1024,
+    .yres_virtual = 1024 * 2, /* ensure we have accel offscreen space */
     .bits_per_pixel = 8,
     .grayscale = 0,
     .red = { .length = 8 },
@@ -363,11 +363,6 @@ void video_init(void)
     struct pci_device_id *board;
     int32_t id;
     bool radeon_found = false;
-
-    dbg("\r\n");
-
-    /* FIXME: we currently just return here because the PCI configuration of ATI cards does not (yet) work */
-    //return;
 
     do
     {

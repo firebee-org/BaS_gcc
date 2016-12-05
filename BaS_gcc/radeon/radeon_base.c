@@ -1982,7 +1982,7 @@ int radeonfb_set_par(struct fb_info *info)
 #endif
         memcpy(&rinfo->state, newmode, sizeof(*newmode));
 #ifdef RADEON_TILING
-        rinfo->tilingEnabled = (mode->vmode & (FB_VMODE_DOUBLE | FB_VMODE_INTERLACED)) ? FALSE : TRUE;
+        rinfo->tilingEnabled = (mode->vmode & (FB_VMODE_DOUBLE | FB_VMODE_INTERLACED)) ? false : true;
 #endif
         radeon_write_mode(rinfo, newmode, 0);
         /* (re)initialize the engine */

@@ -3,7 +3,7 @@
 #include "exceptions.h"
 #include "pci.h"
 
-#define DEBUG
+// #define DEBUG
 #include "debug.h"
 
 /*
