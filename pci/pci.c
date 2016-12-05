@@ -506,14 +506,17 @@ int32_t pci_find_device(uint16_t device_id, uint16_t vendor_id, int index)
 static bool match_classcode(uint32_t handle, uint32_t classcode)
 {
     uint8_t find_mask = (classcode >> 24) & 0xff;
-    uint32_t value = swpl(pci_read_config_longword(handle, PCICCR));
+    uint32_t value = pci_read_config_longword(handle, PCICCR);
     int i;
 
-    for (i = 2; i >= 0; i--)        /* loop through mask */
+    dbg("classcode=0x%08x, value=0x%08x\r\n", classcode, value);
+
+    for (i = 0; i < 3; i++)        /* loop through mask */
     {
         if ((find_mask >> i) & 1)
         {
-            if (! (value >> (i * 8)) == (classcode >> (i * 8)))
+            dbg("compare 0x%02x against 0x%02x\r\n", (value >> (i * 8)) & 0xff, (classcode >> (i * 8)) & 0xff);
+            if (! (((value >> (i * 8)) & 0xff) == ((classcode >> (i * 8)) & 0xff)))
                 return false;
         }
     }
