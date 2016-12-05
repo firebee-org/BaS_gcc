@@ -12,6 +12,8 @@
 #include "wait.h"
 #include "video.h"
 
+#define RADEON_TILING
+
 //#include "radeon_theatre.h"
 
 #include "radeon_reg.h"

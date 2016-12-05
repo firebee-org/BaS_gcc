@@ -34,7 +34,7 @@
 #include "interrupts.h"
 #include "wait.h"
 
-// // #define DEBUG
+#define DEBUG
 #include "debug.h"
 
 #define pci_config_wait() do { __asm__ __volatile("tpf" ::: "memory"); } while (0)
@@ -513,81 +513,55 @@ int32_t pci_find_device(uint16_t device_id, uint16_t vendor_id, int index)
  */
 int32_t pci_find_classcode(uint32_t classcode, int index)
 {
-    uint16_t bus;
-    uint16_t device;
-    uint16_t function = 0;
-    uint16_t n = 0;
-    int32_t handle;
+    int i;
+    uint32_t handle;
+    uint32_t ret = PCI_DEVICE_NOT_FOUND;
+    int n = 0;
+    uint8_t find_mask;
+    uint32_t value;
+    int cmp;
+    bool match = false;
 
-    for (bus = 0; bus < 2; bus++)
+    classcode = swpl(classcode);
+    find_mask = classcode & 0xff;
+    classcode >>= 8;
+
+    do
     {
-        for (device = 10; device < 31; device++)
+        for (i = 0; (handle = handles[i]) != -1; i++)
         {
-            uint32_t value;
-            uint8_t htr;
-
-            handle = PCI_HANDLE(bus, device, 0);
-            dbg("check handle %d\r\n", handle);
-
-            value = swpl(pci_read_config_longword(handle, PCIIDR));
-
-            if (value != 0xffffffff)    /* device found */
+            match  = false;
+            for (cmp = 0; cmp < 3; cmp++)
             {
-                value = swpl(pci_read_config_longword(handle, PCICCR));
-
-                dbg("classcode to search for=%x\r\n", classcode);
-                dbg("PCI_CLASSCODE found=%02x\r\n", PCI_CLASS_CODE(value));
-                dbg("PCI_SUBCLASS found=%02x\r\n", PCI_SUBCLASS(value));
-                dbg("PCI_PROG_IF found=%02x\r\n", PCI_PROG_IF(value));
-
-                if ((classcode & (1 << 26) ? ((PCI_CLASS_CODE(value) == (classcode & 0xff))) : true) &&
-                    (classcode & (1 << 25) ? ((PCI_SUBCLASS(value) == ((classcode & 0xff00) >> 8))) : true) &&
-                    (classcode & (1 << 24) ? ((PCI_PROG_IF(value) == ((classcode & 0xff0000) >> 16))) : true))
+                if ((find_mask >> cmp) & 1)
                 {
-                    if (n == index)
+                    value = swpl(pci_read_config_longword(handle, PCICCR));
+                    dbg("compare classcode (0x%x), 0x%x against value (0x%x) 0x%x\r\n",
+                        classcode, (classcode >> (cmp * 8)) & 0xff, value, (value >> (cmp * 8)) & 0xff);
+                    if (((classcode >> (cmp * 8)) & 0xff) == ((value >> (cmp * 8)) & 0xff))
                     {
-                        dbg("found device at handle %d\r\n", handle);
-                        return handle;
+                        if (n == index)
+                            return handle;
+                        n++;
                     }
-                    n++;
-                }
-
-                /*
-                * there is a device at this position, but not the one we are looking for.
-                * Check to see if it is a multi-function device. We need to look "behind" it
-                * for the other functions in that case.
-                */
-                if ((htr = pci_read_config_byte(handle, PCI_LANESWAP_B(PCIHTR))) & 0x80)
-                {
-                    /* yes, this is a multi-function device, look for more functions */
-
-                    for (function = 1; function < 8; function++)
+                    else
                     {
-                        handle = PCI_HANDLE(bus, device, function);
-                        value = pci_read_config_longword(handle, PCIIDR);
-
-                        if (value != 0xffffffff)    /* device found */
-                        {
-                            value = swpl(pci_read_config_longword(handle, PCICCR));
-
-                            if ((classcode & PCI_FIND_BASE_CLASS ? ((PCI_CLASS_CODE(value) == (classcode & 0xff))) : true) &&
-                                (classcode & PCI_FIND_SUB_CLASS ? ((PCI_SUBCLASS(value) == ((classcode & 0xff00) >> 8))) : true) &&
-                                (classcode & PCI_FIND_PROG_IF ? ((PCI_PROG_IF(value) == ((classcode & 0xff0000) >> 16))) : true))
-                            {
-                                if (n == index)
-                                {
-                                    dbg("found device with handle %d\n", handle);
-                                    return handle;
-                                }
-                                n++;
-                            }
-                        }
+                        match = false;
+                        goto next;
                     }
                 }
+                else
+                    match = true;
             }
+
+next:
+            ;
         }
-    }
-    return PCI_DEVICE_NOT_FOUND;
+    } while (n < index);
+
+    if (match)
+        ret = handle;
+    return ret;
 }
 
 int32_t pci_hook_interrupt(int32_t handle, void *handler, void *parameter)

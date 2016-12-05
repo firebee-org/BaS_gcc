@@ -53,7 +53,7 @@
 #include "usb.h"
 #include "video.h"
 
-// // #define DEBUG
+#define DEBUG
 #include "debug.h"
 
 #define UNUSED(x) (void)(x)             /* Unused variable         */
@@ -588,11 +588,11 @@ void init_usb(void)
     int usb_found = 0;
     int index = 0;
 
-    xprintf("USB controller initialization:\r\n");
+    inf("USB controller initialization:\r\n");
 
     do
     {
-        handle = pci_find_classcode(PCI_CLASS_SERIAL_USB | PCI_FIND_BASE_CLASS | PCI_FIND_SUB_CLASS, index++);
+        handle = pci_find_classcode(PCI_CLASS_SERIAL_USB | PCI_FIND_BASE_CLASS | PCI_FIND_SUB_CLASS | PCI_FIND_PROG_IF, index++);
         dbg("handle 0x%02x\r\n", handle);
         if (handle > 0)
         {
