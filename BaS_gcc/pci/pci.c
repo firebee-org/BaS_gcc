@@ -503,6 +503,23 @@ int32_t pci_find_device(uint16_t device_id, uint16_t vendor_id, int index)
     return PCI_DEVICE_NOT_FOUND;
 }
 
+static bool match_classcode(uint32_t handle, uint32_t classcode)
+{
+    uint8_t find_mask = (classcode >> 24) & 0xff;
+    uint32_t value = swpl(pci_read_config_longword(handle, PCICCR));
+    int i;
+
+    for (i = 2; i >= 0; i--)        /* loop through mask */
+    {
+        if ((find_mask >> i) & 1)
+        {
+            if (! (value >> (i * 8)) == (classcode >> (i * 8)))
+                return false;
+        }
+    }
+    return true;
+}
+
 /*
  * pci_find_classcode(uint32_t classcode, int index)
  *
@@ -515,53 +532,19 @@ int32_t pci_find_classcode(uint32_t classcode, int index)
 {
     int i;
     uint32_t handle;
-    uint32_t ret = PCI_DEVICE_NOT_FOUND;
-    int n = 0;
-    uint8_t find_mask;
-    uint32_t value;
-    int cmp;
-    bool match = false;
 
-    classcode = swpl(classcode);
-    find_mask = classcode & 0xff;
-    classcode >>= 8;
+    int n = 0;
 
     do
     {
         for (i = 0; (handle = handles[i]) != -1; i++)
-        {
-            match  = false;
-            for (cmp = 0; cmp < 3; cmp++)
-            {
-                if ((find_mask >> cmp) & 1)
-                {
-                    value = swpl(pci_read_config_longword(handle, PCICCR));
-                    dbg("compare classcode (0x%x), 0x%x against value (0x%x) 0x%x\r\n",
-                        classcode, (classcode >> (cmp * 8)) & 0xff, value, (value >> (cmp * 8)) & 0xff);
-                    if (((classcode >> (cmp * 8)) & 0xff) == ((value >> (cmp * 8)) & 0xff))
-                    {
-                        if (n == index)
-                            return handle;
-                        n++;
-                    }
-                    else
-                    {
-                        match = false;
-                        goto next;
-                    }
-                }
-                else
-                    match = true;
-            }
-
-next:
-            ;
-        }
+            if (match_classcode(handle, classcode) && n == index)
+                return handle;
+            else
+                n++;
     } while (n < index);
 
-    if (match)
-        ret = handle;
-    return ret;
+    return PCI_DEVICE_NOT_FOUND;
 }
 
 int32_t pci_hook_interrupt(int32_t handle, void *handler, void *parameter)
