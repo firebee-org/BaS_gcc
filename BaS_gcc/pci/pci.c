@@ -522,8 +522,8 @@ static bool match_classcode(uint32_t handle, uint32_t classcode)
                 return false;
             else
                 classcode >>= 8;
-            value >>= 8;
         }
+        value >>= 8;
     }
     return true;
 }
