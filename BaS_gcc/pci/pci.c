@@ -511,13 +511,18 @@ static bool match_classcode(uint32_t handle, uint32_t classcode)
 
     dbg("classcode=0x%08x, value=0x%08x\r\n", classcode, value);
 
+    value >>= 8;    /* shift away PCI revision id */
+
     for (i = 0; i < 3; i++)        /* loop through mask */
     {
         if ((find_mask >> i) & 1)
         {
-            dbg("compare 0x%02x against 0x%02x\r\n", (value >> ((i + 1) * 8)) & 0xff, (classcode >> (i * 8)) & 0xff);
-            if (! (((value >> ((i + 1) * 8)) & 0xff) == ((classcode >> (i * 8)) & 0xff)))
+            dbg("compare 0x%02x against 0x%02x\r\n", value  & 0xff, classcode & 0xff);
+            if (! ((value & 0xff) == classcode & 0xff))
                 return false;
+            else
+                classcode >>= 8;
+            value >>= 8;
         }
     }
     return true;
