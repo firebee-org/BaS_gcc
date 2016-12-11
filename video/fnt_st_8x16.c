@@ -307,7 +307,7 @@ static const uint16_t dat_table[] =
     0x0000, 0x0000, 0x1800, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000,
 };
 
-const struct font_head fnt_st_8x16 = {
+static struct font_head fnt_st_8x16 = {
     1,                  /* WORD font_id */
     10,                 /* WORD point */
     "8x16 system font", /* BYTE name[32] */

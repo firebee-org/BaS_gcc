@@ -268,7 +268,7 @@ _std_exc_vec:
         movem.l d0/a5,(sp)                      // save registers
         move.w  8(sp),d0                        // fetch vector
         and.l   #0x3fc,d0                       // mask out vector number
-//#define DBG_EXC
+// #define DBG_EXC
 #ifdef DBG_EXC
         // printout vector number of exception
 

@@ -34,7 +34,7 @@
 #include "interrupts.h"
 #include "wait.h"
 
-#define DEBUG
+// #define DEBUG
 #include "debug.h"
 
 #define pci_config_wait() do { __asm__ __volatile("tpf" ::: "memory"); } while (0)
@@ -48,25 +48,25 @@ static struct pci_class
     char *description;
 } pci_classes[] =
 {
-    { 0x00, "device was built prior definition of the class code field" },
-    { 0x01, "Mass Storage Controller" },
-    { 0x02, "Network Controller" },
-    { 0x03, "Display Controller" },
-    { 0x04, "Multimedia Controller" },
-    { 0x05, "Memory Controller" },
-    { 0x06, "Bridge Device" },
-    { 0x07, "Simple Communication Controller" },
-    { 0x08, "Base System Peripherial" },
-    { 0x09, "Input Device" },
-    { 0x0a, "Docking Station" },
-    { 0x0b, "Processor" },
-    { 0x0c, "Serial Bus Controller" },
-    { 0x0d, "Wireless Controller" },
-    { 0x0e, "Intelligent I/O Controller" },
-    { 0x0f, "Satellite Communication Controller" },
-    { 0x10, "Encryption/Decryption Controller" },
-    { 0x11, "Data Acquisition and Signal Processing Controller" },
-    { 0xff, "Device does not fit any defined class" },
+{ 0x00, "device was built prior definition of the class code field" },
+{ 0x01, "Mass Storage Controller" },
+{ 0x02, "Network Controller" },
+{ 0x03, "Display Controller" },
+{ 0x04, "Multimedia Controller" },
+{ 0x05, "Memory Controller" },
+{ 0x06, "Bridge Device" },
+{ 0x07, "Simple Communication Controller" },
+{ 0x08, "Base System Peripherial" },
+{ 0x09, "Input Device" },
+{ 0x0a, "Docking Station" },
+{ 0x0b, "Processor" },
+{ 0x0c, "Serial Bus Controller" },
+{ 0x0d, "Wireless Controller" },
+{ 0x0e, "Intelligent I/O Controller" },
+{ 0x0f, "Satellite Communication Controller" },
+{ 0x10, "Encryption/Decryption Controller" },
+{ 0x11, "Data Acquisition and Signal Processing Controller" },
+{ 0xff, "Device does not fit any defined class" },
 };
 static int num_pci_classes = sizeof(pci_classes) / sizeof(struct pci_class);
 
@@ -303,10 +303,10 @@ uint8_t pci_read_config_byte(int32_t handle, int offset)
 
     /* initiate PCI configuration access to device */
     MCF_PCI_PCICAR = MCF_PCI_PCICAR_E |             /* enable configuration access special cycle */
-        MCF_PCI_PCICAR_BUSNUM(PCI_BUS_FROM_HANDLE(handle)) |
-        MCF_PCI_PCICAR_DEVNUM(PCI_DEVICE_FROM_HANDLE(handle)) |     /* device number, devices 0 - 9 are reserved */
-        MCF_PCI_PCICAR_FUNCNUM(PCI_FUNCTION_FROM_HANDLE(handle)) |  /* function number */
-        MCF_PCI_PCICAR_DWORD(offset / 4);
+            MCF_PCI_PCICAR_BUSNUM(PCI_BUS_FROM_HANDLE(handle)) |
+            MCF_PCI_PCICAR_DEVNUM(PCI_DEVICE_FROM_HANDLE(handle)) |     /* device number, devices 0 - 9 are reserved */
+            MCF_PCI_PCICAR_FUNCNUM(PCI_FUNCTION_FROM_HANDLE(handle)) |  /* function number */
+            MCF_PCI_PCICAR_DWORD(offset / 4);
 
     NOP();
 
@@ -331,10 +331,10 @@ int32_t pci_write_config_longword(int32_t handle, int offset, uint32_t value)
     /* initiate PCI configuration access to device */
 
     MCF_PCI_PCICAR = MCF_PCI_PCICAR_E |             /* enable configuration access special cycle */
-        MCF_PCI_PCICAR_BUSNUM(PCI_BUS_FROM_HANDLE(handle)) |
-        MCF_PCI_PCICAR_DEVNUM(PCI_DEVICE_FROM_HANDLE(handle)) |     /* device number, devices 0 - 9 are reserved */
-        MCF_PCI_PCICAR_FUNCNUM(PCI_FUNCTION_FROM_HANDLE(handle)) |  /* function number */
-        MCF_PCI_PCICAR_DWORD(offset / 4);
+            MCF_PCI_PCICAR_BUSNUM(PCI_BUS_FROM_HANDLE(handle)) |
+            MCF_PCI_PCICAR_DEVNUM(PCI_DEVICE_FROM_HANDLE(handle)) |     /* device number, devices 0 - 9 are reserved */
+            MCF_PCI_PCICAR_FUNCNUM(PCI_FUNCTION_FROM_HANDLE(handle)) |  /* function number */
+            MCF_PCI_PCICAR_DWORD(offset / 4);
 
     chip_errata_135();
     NOP();
@@ -461,7 +461,7 @@ int32_t pci_find_device(uint16_t device_id, uint16_t vendor_id, int index)
             if (value != 0xffffffff)    /* we have a device at this position */
             {
                 if (vendor_id == 0xffff ||
-                    (PCI_VENDOR_ID(value) == vendor_id && PCI_DEVICE_ID(value) == device_id))
+                        (PCI_VENDOR_ID(value) == vendor_id && PCI_DEVICE_ID(value) == device_id))
                 {
                     if (n == index)
                     {
@@ -486,7 +486,7 @@ int32_t pci_find_device(uint16_t device_id, uint16_t vendor_id, int index)
                         if (value != 0xffffffff)    /* device found */
                         {
                             if (vendor_id == 0xffff ||
-                                ((PCI_VENDOR_ID(value) == vendor_id) && (PCI_DEVICE_ID(value) == device_id)))
+                                    ((PCI_VENDOR_ID(value) == vendor_id) && (PCI_DEVICE_ID(value) == device_id)))
                             {
                                 if (n == index)
                                 {
@@ -509,22 +509,25 @@ static bool match_classcode(uint32_t handle, uint32_t classcode)
     uint32_t value = swpl(pci_read_config_longword(handle, PCICCR));
     int i;
 
-    dbg("classcode=0x%08x, value=0x%08x\r\n", classcode, value);
+    classcode &= 0x00ffffff;
+    value >>= 8;                /* shift away revision id */
 
-    value >>= 8;    /* shift away PCI revision id */
+    //dbg("classcode=0x%08x, value=0x%08x\r\n", classcode, value);
 
     for (i = 0; i < 3; i++)        /* loop through mask */
     {
         if ((find_mask >> i) & 1)
         {
-            dbg("compare 0x%02x against 0x%02x\r\n", value  & 0xff, classcode & 0xff);
-            if (! ((value & 0xff) == classcode & 0xff))
+            //dbg("compare 0x%02x against 0x%02x\r\n", value  & 0xff, classcode & 0xff);
+            if ((value & 0xff) != (classcode & 0xff))
                 return false;
-            else
-                classcode >>= 8;
+            //dbg("match\r\n");
+            classcode >>= 8;
         }
         value >>= 8;
+        //dbg("value=0x%08x\r\n", value);
     }
+    dbg("return true\r\n");
     return true;
 }
 
@@ -540,18 +543,21 @@ int32_t pci_find_classcode(uint32_t classcode, int index)
 {
     int i;
     uint32_t handle;
-
     int n = 0;
 
-    do
+    for (i = 0; (handle = handles[i]) != -1; i++)
     {
-        for (i = 0; (handle = handles[i]) != -1; i++)
-            if (match_classcode(handle, classcode) && n == index)
+        dbg("handle=0x%x, n=%d, index=%d\r\n", handle, n, index);
+        if (match_classcode(handle, classcode))
+        {
+            if (n == index)
                 return handle;
             else
                 n++;
-    } while (n < index);
+        }
+    }
 
+    dbg("not found\r\n");
     return PCI_DEVICE_NOT_FOUND;
 }
 
@@ -840,7 +846,7 @@ static void pci_device_config(uint16_t bus, uint16_t device, uint16_t function)
                 value = swpl(pci_read_config_longword(handle, PCIBAR0 + i)) & ~1;
 
                 dbg("set PCIBAR%d on device 0x%02x to 0x%08x\r\n",
-                        i / 4, handle, value);
+                    i / 4, handle, value);
 
                 /* fill resource descriptor */
                 rd->next = sizeof(struct pci_rd);
@@ -944,9 +950,9 @@ static void pci_device_config(uint16_t bus, uint16_t device, uint16_t function)
     il = pci_read_config_byte(handle, PCI_LANESWAP_B(PCIIPR));
     dbg("device requests interrupts on interrupt pin %d\r\n", il);
 
-    /* enable interrupt on PCI device */
+    /* disable interrupt on PCI device */
 
-    cr &= ~PCICR_INT_DISABLE;
+    cr |= PCICR_INT_DISABLE;
 
     /*
      * enable device memory or I/O access
@@ -967,17 +973,17 @@ static void pci_bridge_config(uint16_t bus, uint16_t device, uint16_t function)
     dbg("handle=%d\r\n", handle);
 
     pci_write_config_longword(handle, PCIBISTR, MCF_PCI_PCICR1_CACHELINESIZE(8) |
-                                      MCF_PCI_PCICR1_LATTIMER(0x20));
+                              MCF_PCI_PCICR1_LATTIMER(0x20));
     pci_write_config_longword(handle, PCIBAR0, swpl(0x40000000));
     pci_write_config_longword(handle, PCIBAR1, 0x0);
     pci_write_config_word(handle, PCI_LANESWAP_W(PCICR), swpw(
-                            (1 << 1)  /* memory space */
-                          | (1 << 2)  /* bus master */
-                          | (1 << 4)  /* memory write and invalidate */
-                          | (1 << 6)  /* parity errors */
-                          | (1 << 8)  /* SERR */
-                          | (1 << 9)  /* fast back-to-back */
-                          ));
+                              (1 << 1)  /* memory space */
+                              | (1 << 2)  /* bus master */
+                              | (1 << 4)  /* memory write and invalidate */
+                              | (1 << 6)  /* parity errors */
+                              | (1 << 8)  /* SERR */
+                              | (1 << 9)  /* fast back-to-back */
+                              ));
 }
 
 /*
@@ -1017,15 +1023,15 @@ void pci_scan(void)
         {
             /* configure memory and I/O for card */
             pci_device_config(PCI_BUS_FROM_HANDLE(handle),
-                        PCI_DEVICE_FROM_HANDLE(handle),
-                        PCI_FUNCTION_FROM_HANDLE(handle));
+                              PCI_DEVICE_FROM_HANDLE(handle),
+                              PCI_FUNCTION_FROM_HANDLE(handle));
         }
         else
         {
             dbg("\r\n");
             pci_bridge_config(PCI_BUS_FROM_HANDLE(handle),
-                        PCI_DEVICE_FROM_HANDLE(handle),
-                        PCI_FUNCTION_FROM_HANDLE(handle));
+                              PCI_DEVICE_FROM_HANDLE(handle),
+                              PCI_FUNCTION_FROM_HANDLE(handle));
         }
         dbg("\r\n");
         handle = pci_find_device(0x0, 0xFFFF, ++index);
@@ -1039,11 +1045,11 @@ void init_eport(void)
     /* configure IRQ1-7 pins on EPORT falling edge triggered */
     MCF_EPORT_EPPAR = MCF_EPORT_EPPAR_EPPA7(MCF_EPORT_EPPAR_FALLING) |
             MCF_EPORT_EPPAR_EPPA6(MCF_EPORT_EPPAR_FALLING) |
-#if defined(MACHINE_FIREBEE)     /* irq5 level triggered on FireBee */
+        #if defined(MACHINE_FIREBEE)     /* irq5 level triggered on FireBee */
             MCF_EPORT_EPPAR_EPPA5(MCF_EPORT_EPPAR_LEVEL) |
-#elif defined(MACHINE_M5484LITE)
+        #elif defined(MACHINE_M5484LITE)
             MCF_EPORT_EPPAR_EPPA5(MCF_EPORT_EPPAR_FALLING) |
-#endif /* MACHINE_FIREBEE */
+        #endif /* MACHINE_FIREBEE */
             MCF_EPORT_EPPAR_EPPA4(MCF_EPORT_EPPAR_FALLING) |
             MCF_EPORT_EPPAR_EPPA3(MCF_EPORT_EPPAR_FALLING) |
             MCF_EPORT_EPPAR_EPPA2(MCF_EPORT_EPPAR_FALLING) |
@@ -1063,15 +1069,15 @@ void init_xlbus_arbiter(void)
     if (clock_ratio == 4)
     {
         MCF_XLB_XARB_CFG = MCF_XLB_XARB_CFG_BA |
-            MCF_XLB_XARB_CFG_DT |
-            MCF_XLB_XARB_CFG_AT |
-            MCF_XLB_XARB_CFG_PLDIS;
+                MCF_XLB_XARB_CFG_DT |
+                MCF_XLB_XARB_CFG_AT |
+                MCF_XLB_XARB_CFG_PLDIS;
     }
     else
     {
         MCF_XLB_XARB_CFG = MCF_XLB_XARB_CFG_BA |
-            MCF_XLB_XARB_CFG_DT |
-            MCF_XLB_XARB_CFG_AT;
+                MCF_XLB_XARB_CFG_DT |
+                MCF_XLB_XARB_CFG_AT;
     }
 
     MCF_XLB_XARB_ADRTO = 0x1fffff;
@@ -1087,11 +1093,11 @@ void init_xlbus_arbiter(void)
      */
 #if 0
     MCF_XLB_XARB_PRIEN = MCF_XLB_XARB_PRIEN_M0 |    /* activate programmed priority for Coldfire core */
-                    MCF_XLB_XARB_PRIEN_M2 |         /* activate programmed priority for Multichannel DMA */
-                    MCF_XLB_XARB_PRIEN_M3;          /* activate programmed priority for PCI target interface */
+            MCF_XLB_XARB_PRIEN_M2 |         /* activate programmed priority for Multichannel DMA */
+            MCF_XLB_XARB_PRIEN_M3;          /* activate programmed priority for PCI target interface */
     MCF_XLB_XARB_PRI = MCF_XLB_XARB_PRI_M0P(7) |    /* Coldfire core gets lowest */
-                    MCF_XLB_XARB_PRI_M2P(5) |       /* Multichannel DMA mid priority */
-                    MCF_XLB_XARB_PRI_M3P(3);        /* PCI target interface is highest priority */
+            MCF_XLB_XARB_PRI_M2P(5) |       /* Multichannel DMA mid priority */
+            MCF_XLB_XARB_PRI_M3P(3);        /* PCI target interface is highest priority */
 #endif
 }
 
@@ -1113,9 +1119,9 @@ void init_pci(void)
      * setup the PCI arbiter
      */
     MCF_PCIARB_PACR = MCF_PCIARB_PACR_INTMPRI   /* internal master priority: high */
-       | MCF_PCIARB_PACR_EXTMPRI(0x0)           /* external master priority: high */
-       | MCF_PCIARB_PACR_INTMINTEN              /* enable "internal master broken" interrupt */
-       | MCF_PCIARB_PACR_EXTMINTEN(0x0f);       /* enable "external master broken" interrupt */
+            | MCF_PCIARB_PACR_EXTMPRI(0x0)           /* external master priority: high */
+            | MCF_PCIARB_PACR_INTMINTEN              /* enable "internal master broken" interrupt */
+            | MCF_PCIARB_PACR_EXTMINTEN(0x0f);       /* enable "external master broken" interrupt */
 
 #if defined(MACHINE_FIREBEE)
     MCF_PAD_PAR_PCIBG = MCF_PAD_PAR_PCIBG_PAR_PCIBG4_TBST |
@@ -1142,31 +1148,31 @@ void init_pci(void)
 #endif /* MACHINE_FIREBEE */
 
     MCF_PCI_PCISCR =  MCF_PCI_PCISCR_M |    /* memory access control enabled */
-        MCF_PCI_PCISCR_B |                  /* bus master enabled */
-        MCF_PCI_PCISCR_M |                  /* mem access enable */
-        MCF_PCI_PCISCR_MA |                 /* clear master abort error */
-        MCF_PCI_PCISCR_MW |                 /* memory write and invalidate enabled */
-        MCF_PCI_PCISCR_PER;                 /* assert PERR on parity error */
+            MCF_PCI_PCISCR_B |                  /* bus master enabled */
+            MCF_PCI_PCISCR_M |                  /* mem access enable */
+            MCF_PCI_PCISCR_MA |                 /* clear master abort error */
+            MCF_PCI_PCISCR_MW |                 /* memory write and invalidate enabled */
+            MCF_PCI_PCISCR_PER;                 /* assert PERR on parity error */
 
 
     /* Setup burst parameters */
     MCF_PCI_PCICR1 = MCF_PCI_PCICR1_CACHELINESIZE(8) |
-                        MCF_PCI_PCICR1_LATTIMER(0x20); /* TODO: test increased latency timer */
+            MCF_PCI_PCICR1_LATTIMER(0x20); /* TODO: test increased latency timer */
 
     MCF_PCI_PCICR2 = MCF_PCI_PCICR2_MINGNT(1) |
-                    MCF_PCI_PCICR2_MAXLAT(32);
+            MCF_PCI_PCICR2_MAXLAT(32);
 
     // MCF_PCI_PCICR2 = 0;      /* this is what Linux does */
 
     /* error signaling */
 
     MCF_PCI_PCIICR = MCF_PCI_PCIICR_TAE |   /* target abort enable */
-        MCF_PCI_PCIICR_IAE;                 /* initiator abort enable */
+            MCF_PCI_PCIICR_IAE;                 /* initiator abort enable */
 
     // MCF_PCI_PCIICR = 0;                      /* this is what Linux does */
 
     MCF_PCI_PCIGSCR |= MCF_PCI_PCIGSCR_SEE |    /* system error interrupt enable */
-                       MCF_PCI_PCIGSCR_PEE;     /* parity error interrupt enable */
+            MCF_PCI_PCIGSCR_PEE;     /* parity error interrupt enable */
     /* Configure Initiator Windows */
 
     /*
@@ -1174,7 +1180,7 @@ void init_pci(void)
      * used for PCI memory access
      */
     MCF_PCI_PCIIW0BTAR = ((PCI_MEMORY_OFFSET + ((PCI_MEMORY_SIZE - 1) >> 8)) & 0xffff0000)
-                          | (PCI_MEMORY_OFFSET >> 16);
+            | (PCI_MEMORY_OFFSET >> 16);
 
     NOP();
     dbg("PCIIW0BTAR=0x%08x\r\n", MCF_PCI_PCIIW0BTAR);
@@ -1184,16 +1190,16 @@ void init_pci(void)
      * used for PCI I/O access
      */
     MCF_PCI_PCIIW1BTAR = ((PCI_IO_OFFSET + ((PCI_IO_SIZE - 1) >> 8)) & 0xffff0000)
-                           | (PCI_IO_OFFSET >> 16);
+            | (PCI_IO_OFFSET >> 16);
     NOP();
     /* initiator window 2 base / translation address register */
     MCF_PCI_PCIIW2BTAR = 0L;   /* not used */
     NOP();
     /* initiator window configuration register */
     MCF_PCI_PCIIWCR = MCF_PCI_PCIIWCR_WINCTRL0_MEMRDLINE |
-                    MCF_PCI_PCIIWCR_WINCTRL1_IO |
-                    MCF_PCI_PCIIWCR_WINCTRL0_E |
-                    MCF_PCI_PCIIWCR_WINCTRL1_E;
+            MCF_PCI_PCIIWCR_WINCTRL1_IO |
+            MCF_PCI_PCIIWCR_WINCTRL0_E |
+            MCF_PCI_PCIIWCR_WINCTRL1_E;
     NOP();
 
     /*
@@ -1244,16 +1250,16 @@ void pci_print_device_abilities(int32_t handle)
     pci_write_config_word(handle, PCICSR, 0xffff);
     value = swpw(pci_read_config_word(handle, PCICSR));
     dbg("IO: %1d MEM: %1d MSTR:%1d SPCC: %1d MEMW: %1d VGAS: %1d PERR: %1d STEP: %1d SERR: %1d FBTB: %1d\r\n",
-            value & PCICSR_IO ? 1 : 0,
-            value & PCICSR_MEMORY ? 1 : 0,
-            value & PCICSR_MASTER ? 1 : 0,
-            value & PCICSR_SPECIAL ? 1 : 0,
-            value & PCICSR_MEMWI ? 1 : 0,
-            value & PCICSR_VGA_SNOOP ? 1 : 0,
-            value & PCICSR_PERR ? 1 : 0,
-            value & PCICSR_STEPPING ? 1 : 0,
-            value & PCICSR_SERR ? 1 : 0,
-            value & PCICSR_FAST_BTOB_E ? 1 : 0);
+        value & PCICSR_IO ? 1 : 0,
+        value & PCICSR_MEMORY ? 1 : 0,
+        value & PCICSR_MASTER ? 1 : 0,
+        value & PCICSR_SPECIAL ? 1 : 0,
+        value & PCICSR_MEMWI ? 1 : 0,
+        value & PCICSR_VGA_SNOOP ? 1 : 0,
+        value & PCICSR_PERR ? 1 : 0,
+        value & PCICSR_STEPPING ? 1 : 0,
+        value & PCICSR_SERR ? 1 : 0,
+        value & PCICSR_FAST_BTOB_E ? 1 : 0);
     pci_write_config_word(handle, PCICSR, saved_value);
 }
 
@@ -1264,15 +1270,15 @@ void pci_print_device_config(int32_t handle)
 
     value = swpw(pci_read_config_word(handle, PCICSR + 2));
     dbg("66M: %1d UDF: %1d FB2B:%1d PERR: %1d TABR: %1d DABR: %1d SERR: %1d PPER: %1d\r\n",
-            value & PCICSR_66MHZ ? 1 : 0,
-            value & PCICSR_UDF ? 1 : 0,
-            value & PCICSR_FAST_BTOB ? 1 : 0,
-            value & PCICSR_DPARITY_ERROR ? 1 : 0,
-            value & PCICSR_T_ABORT_S ? 1 : 0,
-            value & PCICSR_T_ABORT_R ? 1 : 0,
-            value & PCICSR_M_ABORT_R ? 1 : 0,
-            value & PCICSR_S_ERROR_S ? 1 : 0,
-            value & PCICSR_PARITY_ERR ? 1 : 0);
+        value & PCICSR_66MHZ ? 1 : 0,
+        value & PCICSR_UDF ? 1 : 0,
+        value & PCICSR_FAST_BTOB ? 1 : 0,
+        value & PCICSR_DPARITY_ERROR ? 1 : 0,
+        value & PCICSR_T_ABORT_S ? 1 : 0,
+        value & PCICSR_T_ABORT_R ? 1 : 0,
+        value & PCICSR_M_ABORT_R ? 1 : 0,
+        value & PCICSR_S_ERROR_S ? 1 : 0,
+        value & PCICSR_PARITY_ERR ? 1 : 0);
 }
 #endif /* DEBUG_PCI */
 

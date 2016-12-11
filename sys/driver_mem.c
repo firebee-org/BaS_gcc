@@ -11,6 +11,7 @@
  * option any later version.
  */
 
+
 #include <bas_types.h>
 #include "bas_string.h"
 #include "bas_printf.h"
@@ -27,13 +28,8 @@
 #error "unknown machine!"
 #endif
 
-//#define DBG_DM
-#ifdef	DBG_DM
-#define dbg(format, arg...) do { xprintf("DEBUG: %s(): " format, __FUNCTION__, ##arg); } while (0)
-#else
-#define dbg(format, arg...) do { ; } while (0)
-#endif
-#define err(format, arg...) do { xprintf("ERROR: %s(): " format, __FUNCTION__, ##arg); } while (0)
+// #define DEBUG
+#include "debug.h"
 
 extern long offscren_reserved(void);
 
@@ -259,7 +255,7 @@ int32_t driver_mem_free(void *addr)
     freeit(p, mpb);
     set_ipl(level);
 
-    dbg("%s: driver_mem_free(0x%08X)\r\n", __FUNCTION__, addr);
+    dbg("addr=0x%08X)\r\n", addr);
 
     return(0);
 }
@@ -293,7 +289,7 @@ void *driver_mem_alloc(uint32_t amount)
         ret = (void *) m->m_start;
     }
     set_ipl(level);
-    dbg("%s: driver_mem_alloc(%d) = 0x%08X\r\n", __FUNCTION__, amount, ret);
+    dbg("alloc(%d) = 0x%08X\r\n", amount, ret);
 
     return ret;
 }
@@ -304,7 +300,7 @@ int driver_mem_init(void)
 {
     if (use_count == 0)
     {
-        dbg("%s: initialise driver_mem_buffer[] at %p, size 0x%x\r\n", __FUNCTION__, driver_mem_buffer, DRIVER_MEM_BUFFER_SIZE);
+        dbg("initialise driver_mem_buffer[] at %p, size 0x%x\r\n", driver_mem_buffer, DRIVER_MEM_BUFFER_SIZE);
         memset(driver_mem_buffer, 0, DRIVER_MEM_BUFFER_SIZE);
 
         pmd.mp_mfl = pmd.mp_rover = &tab_md[0];
@@ -315,10 +311,10 @@ int driver_mem_init(void)
         pmd.mp_mal = (MD *) NULL;
         memset(driver_mem_buffer, 0, tab_md[0].m_length);
 
-        dbg("%s: uncached driver memory buffer at 0x%08X size %d\r\n", __FUNCTION__, tab_md[0].m_start, tab_md[0].m_length);
+        dbg("uncached driver memory buffer at 0x%08X size %d\r\n", tab_md[0].m_start, tab_md[0].m_length);
     }
     use_count++;
-    dbg("%s: driver_mem now has a use count of %d\r\n", __FUNCTION__, use_count);
+    dbg("driver_mem now has a use count of %d\r\n", use_count);
 
     return 0;
 }
@@ -335,7 +331,7 @@ void driver_mem_release(void)
 #endif
 #endif
     }
-    dbg("%s: driver_mem use count now %d\r\n", __FUNCTION__, use_count);
+    dbg("driver_mem use count now %d\r\n", use_count);
 }
 
 
