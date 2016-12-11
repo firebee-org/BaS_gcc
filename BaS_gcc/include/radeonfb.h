@@ -12,7 +12,7 @@
 #include "wait.h"
 #include "video.h"
 
-#define RADEON_TILING
+// #define RADEON_TILING
 
 //#include "radeon_theatre.h"
 
