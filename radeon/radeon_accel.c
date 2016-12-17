@@ -64,12 +64,15 @@
  *
  */
 
+// #define DEBUG
+#include "debug.h"
+
 #include "fb.h"
 #include "radeonfb.h"
 
 static struct {
-    int rop;
-    int pattern;
+    int32_t rop;
+    int32_t pattern;
 } RADEON_ROP[] = {
     { ROP3_ZERO, ROP3_ZERO }, /* GXclear        */
     { ROP3_DSa,  ROP3_DPa  }, /* Gxand          */
@@ -103,7 +106,7 @@ static struct {
  */
 void radeon_wait_for_idle_mmio(struct radeonfb_info *rinfo)
 {
-    int i = 0;
+    int32_t i = 0;
     /* Wait for the engine to go idle */
     radeon_wait_for_fifo_function(rinfo, 64);
     while(1)
@@ -136,7 +139,7 @@ void RADEONRestoreAccelStateMMIO(struct fb_info *info)
 #endif
 
 /* Setup for XAA SolidFill */
-void radeon_setup_for_solid_fill(struct fb_info *info, int color, int rop, unsigned int planemask)
+void radeon_setup_for_solid_fill(struct fb_info *info, int32_t color, int32_t rop, uint32_t planemask)
 {
     struct radeonfb_info *rinfo = info->par;
     ACCEL_PREAMBLE();
@@ -152,7 +155,7 @@ void radeon_setup_for_solid_fill(struct fb_info *info, int color, int rop, unsig
 }
 
 /* Subsequent XAA SolidFillRect */
-void radeon_subsequent_solid_fill_rect_mmio(struct fb_info *info, int x, int y, int w, int h)
+void radeon_subsequent_solid_fill_rect_mmio(struct fb_info *info, int32_t x, int32_t y, int32_t w, int32_t h)
 {
     struct radeonfb_info *rinfo = info->par;
     ACCEL_PREAMBLE();
@@ -169,7 +172,7 @@ void radeon_subsequent_solid_fill_rect_mmio(struct fb_info *info, int x, int y, 
 }
 
 /* Setup for XAA solid lines */
-void radeon_setup_for_solid_line_mmio(struct fb_info *info, int color, int rop, unsigned int planemask)
+void radeon_setup_for_solid_line_mmio(struct fb_info *info, int32_t color, int32_t rop, uint32_t planemask)
 {
     struct radeonfb_info *rinfo = info->par;
     ACCEL_PREAMBLE();
@@ -189,11 +192,11 @@ void radeon_setup_for_solid_line_mmio(struct fb_info *info, int color, int rop, 
 }
 
 /* Subsequent XAA solid horizontal and vertical lines */
-void radeon_subsequent_solid_hor_vert_line_mmio(struct fb_info *info, int x, int y, int len, int dir)
+void radeon_subsequent_solid_hor_vert_line_mmio(struct fb_info *info, int32_t x, int32_t y, int32_t len, int32_t dir)
 {
     struct radeonfb_info *rinfo = info->par;
-    int w = 1;
-    int h = 1;
+    int32_t w = 1;
+    int32_t h = 1;
     ACCEL_PREAMBLE();
     if (dir == DEGREES_0)
         w = len;
@@ -215,7 +218,7 @@ void radeon_subsequent_solid_hor_vert_line_mmio(struct fb_info *info, int x, int
 
 /* Subsequent XAA solid TwoPointLine line */
 void radeon_subsequent_solid_two_point_line_mmio(struct fb_info *info,
-     int xa, int ya, int xb, int yb, int flags)
+     int32_t xa, int32_t ya, int32_t xb, int32_t yb, int32_t flags)
 {
     struct radeonfb_info *rinfo = info->par;
 
@@ -239,8 +242,8 @@ void radeon_subsequent_solid_two_point_line_mmio(struct fb_info *info,
 /* Setup for XAA dashed lines
  * NOTE: Since we can only accelerate lines with power-of-2 patterns of * length <= 32
  */
-void radeon_setup_for_dashed_line_mmio(struct fb_info *info, int fg, int bg,
-                                        int rop, unsigned int planemask, int length, unsigned char *pattern)
+void radeon_setup_for_dashed_line_mmio(struct fb_info *info, int32_t fg, int32_t bg,
+                                        int32_t rop, uint32_t planemask, int32_t length, unsigned char *pattern)
 {
     struct radeonfb_info *rinfo = info->par;
     unsigned long pat = *(unsigned long *) pattern;
@@ -287,7 +290,7 @@ void radeon_setup_for_dashed_line_mmio(struct fb_info *info, int fg, int bg,
 
 /* Helper function to draw last point for dashed lines */
 static void RADEONDashedLastPelMMIO(struct fb_info *info,
-       int x, int y, int fg)
+       int32_t x, int32_t y, int32_t fg)
 {
     struct radeonfb_info *rinfo = info->par;
     unsigned long dp_gui_master_cntl = rinfo->dp_gui_master_cntl_clip;
@@ -317,7 +320,7 @@ static void RADEONDashedLastPelMMIO(struct fb_info *info,
 }
 
 /* Subsequent XAA dashed line */
-void radeon_subsequent_dashed_two_point_line_mmio(struct fb_info *info, int xa, int ya, int xb, int yb, int flags, int phase)
+void radeon_subsequent_dashed_two_point_line_mmio(struct fb_info *info, int32_t xa, int32_t ya, int32_t xb, int32_t yb, int32_t flags, int32_t phase)
 {
     struct radeonfb_info *rinfo = info->par;
 
@@ -326,9 +329,9 @@ void radeon_subsequent_dashed_two_point_line_mmio(struct fb_info *info, int xa, 
     /* TODO: Check bounds -- RADEON only has 14 bits */
     if (!(flags & OMIT_LAST))
     {
-        int deltax = xa - xb;
-        int deltay = ya - yb;
-        int shift;
+        int32_t deltax = xa - xb;
+        int32_t deltay = ya - yb;
+        int32_t shift;
         if (deltax < 0)
             deltax = -deltax;
         if (deltay < 0)
@@ -363,7 +366,7 @@ void radeon_subsequent_dashed_two_point_line_mmio(struct fb_info *info, int xa, 
  * It should only draw when source != trans_color, this is the opposite
  * of that.
  */
-static void radeon_set_transparency_mmio(struct radeonfb_info *rinfo, int trans_color)
+static void radeon_set_transparency_mmio(struct radeonfb_info *rinfo, int32_t trans_color)
 {
     if (trans_color != -1)
     {
@@ -378,7 +381,7 @@ static void radeon_set_transparency_mmio(struct radeonfb_info *rinfo, int trans_
 
 /* Setup for XAA screen-to-screen copy */
 void radeon_setup_for_screen_to_screen_copy_mmio(struct fb_info *info,
-                    int xdir, int ydir, int rop, unsigned int planemask, int trans_color)
+                    int32_t xdir, int32_t ydir, int32_t rop, uint32_t planemask, int32_t trans_color)
 {
     struct radeonfb_info *rinfo = info->par;
 
@@ -405,7 +408,7 @@ void radeon_setup_for_screen_to_screen_copy_mmio(struct fb_info *info,
 }
 
 /* Subsequent XAA screen-to-screen copy */
-void radeon_subsequent_screen_to_screen_copy_mmio(struct fb_info *info, int xa, int ya, int xb, int yb, int w, int h)
+void radeon_subsequent_screen_to_screen_copy_mmio(struct fb_info *info, int32_t xa, int32_t ya, int32_t xb, int32_t yb, int32_t w, int32_t h)
 {
     struct radeonfb_info *rinfo = info->par;
 
@@ -432,12 +435,12 @@ void radeon_subsequent_screen_to_screen_copy_mmio(struct fb_info *info, int xa, 
 }
 
 /* XAA screen-to-screen copy */
-void radeon_screen_to_screen_copy_mmio(struct fb_info *info, int xa, int ya, int xb, int yb, int w, int h, int rop)
+void radeon_screen_to_screen_copy_mmio(struct fb_info *info, int32_t xa, int32_t ya, int32_t xb, int32_t yb, int32_t w, int32_t h, int32_t rop)
 {
     struct radeonfb_info *rinfo = info->par;
 
-    int xdir = xa - xb;
-    int ydir = ya - yb;
+    int32_t xdir = xa - xb;
+    int32_t ydir = ya - yb;
     ACCEL_PREAMBLE();
     if (xdir < 0)
         xa += w - 1, xb += w - 1;
@@ -473,8 +476,8 @@ void radeon_screen_to_screen_copy_mmio(struct fb_info *info, int xa, int ya, int
  * transparency use `bg == -1'.  This routine is only used if the XAA
  * pixmap cache is turned on.
  */
-void radeon_setup_for_mono_8x8_pattern_fill_mmio(struct fb_info *info, int patternx, int patterny,
-                                                int fg, int bg, int rop, unsigned int planemask)
+void radeon_setup_for_mono_8x8_pattern_fill_mmio(struct fb_info *info, int32_t patternx, int32_t patterny,
+                                                int32_t fg, int32_t bg, int32_t rop, uint32_t planemask)
 {
     struct radeonfb_info *rinfo = info->par;
     unsigned char pattern[8];
@@ -523,8 +526,8 @@ void radeon_setup_for_mono_8x8_pattern_fill_mmio(struct fb_info *info, int patte
 /* Subsequent XAA 8x8 pattern color expansion.  Because they are used in
  * the setup function, `patternx' and `patterny' are not used here.
  */
-void radeon_subsequent_mono_8x8_pattern_fill_rect_mmio(struct fb_info *info, int patternx, int patterny,
-                                                    int x, int y, int w, int h)
+void radeon_subsequent_mono_8x8_pattern_fill_rect_mmio(struct fb_info *info, int32_t patternx, int32_t patterny,
+                                                    int32_t x, int32_t y, int32_t w, int32_t h)
 {
     struct radeonfb_info *rinfo = info->par;
 
@@ -548,7 +551,7 @@ void radeon_subsequent_mono_8x8_pattern_fill_rect_mmio(struct fb_info *info, int
  * `bg == -1'.
  */
 void radeon_setup_for_scanline_cpu_to_screen_color_expand_fill_mmio(struct fb_info *info,
-                                                    int fg, int bg, int rop, unsigned int planemask)
+                                                    int32_t fg, int32_t bg, int32_t rop, uint32_t planemask)
 {
     struct radeonfb_info *rinfo = info->par;
 
@@ -582,7 +585,7 @@ void radeon_setup_for_scanline_cpu_to_screen_color_expand_fill_mmio(struct fb_in
  * called once for each rectangle.
  */
 void radeon_subsequent_scanline_cpu_to_screen_color_expand_fill_mmio(struct fb_info *info,
-                            int x, int y, int w, int h, int skipleft)
+                            int32_t x, int32_t y, int32_t w, int32_t h, int32_t skipleft)
 {
     struct radeonfb_info *rinfo = info->par;
     ACCEL_PREAMBLE();
@@ -609,7 +612,7 @@ void radeon_subsequent_scanline_cpu_to_screen_color_expand_fill_mmio(struct fb_i
 void radeon_subsequent_scanline_mmio(struct fb_info *info, unsigned long *src)
 {
     struct radeonfb_info *rinfo = info->par;
-    int left = rinfo->scanline_words;
+    int32_t left = rinfo->scanline_words;
     volatile unsigned long *d;
     ACCEL_PREAMBLE();
     --rinfo->scanline_h;
@@ -654,8 +657,8 @@ void radeon_subsequent_scanline_mmio(struct fb_info *info, unsigned long *src)
 }
 
 /* Setup for XAA indirect image write */
-void radeon_setup_for_scanline_image_write_mmio(struct fb_info *info, int rop, unsigned int planemask,
-                                                int trans_color, int bpp)
+void radeon_setup_for_scanline_image_write_mmio(struct fb_info *info, int32_t rop, uint32_t planemask,
+                                                int32_t trans_color, int32_t bpp)
 {
     struct radeonfb_info *rinfo = info->par;
 
@@ -686,10 +689,10 @@ void radeon_setup_for_scanline_image_write_mmio(struct fb_info *info, int rop, u
 }
 
 /* Subsequent XAA indirect image write. This is only called once for each rectangle. */
-void radeon_subsequent_scanline_image_write_rect_mmio(struct fb_info *info, int x, int y, int w, int h, int skipleft)
+void radeon_subsequent_scanline_image_write_rect_mmio(struct fb_info *info, int32_t x, int32_t y, int32_t w, int32_t h, int32_t skipleft)
 {
     struct radeonfb_info *rinfo = info->par;
-    int shift = 0; /* 32bpp */
+    int32_t shift = 0; /* 32bpp */
     ACCEL_PREAMBLE();
     if (rinfo->bpp == 8)
         shift = 3;
@@ -713,7 +716,7 @@ void radeon_subsequent_scanline_image_write_rect_mmio(struct fb_info *info, int 
 }
 
 /* Set up the clipping rectangle */
-void radeon_set_clipping_rectangle_mmio(struct fb_info *info, int xa, int ya, int xb, int yb)
+void radeon_set_clipping_rectangle_mmio(struct fb_info *info, int32_t xa, int32_t ya, int32_t xb, int32_t yb)
 {
     struct radeonfb_info *rinfo = info->par;
 
@@ -786,11 +789,11 @@ void radeon_disable_clipping_mmio(struct fb_info *info)
 void RADEONChangeSurfaces(struct fb_info *info)
 {
     struct radeonfb_info *rinfo = info->par;
-    int cpp = rinfo->bpp >> 3;
+    int32_t cpp = rinfo->bpp >> 3;
     /* depth/front/back pitch must be identical (and the same as displayWidth) */
-    int width_bytes = info->var.xres_virtual * cpp;
-    int bufferSize = (((((info->var.yres_virtual + 15) & ~15) * width_bytes) + RADEON_BUFFER_ALIGN) & ~RADEON_BUFFER_ALIGN);
-    unsigned int depth_pattern, color_pattern, swap_pattern, surf_info;
+    int32_t width_bytes = info->var.xres_virtual * cpp;
+    int32_t bufferSize = (((((info->var.yres_virtual + 15) & ~15) * width_bytes) + RADEON_BUFFER_ALIGN) & ~RADEON_BUFFER_ALIGN);
+    uint32_t depth_pattern, color_pattern, swap_pattern, surf_info;
     if (rinfo->big_endian)
     {
         switch(rinfo->bpp)
@@ -854,9 +857,9 @@ void RADEONChangeSurfaces(struct fb_info *info)
  * The FIFO has 64 slots.  This routines waits until at least `entries'
  * of these slots are empty.
  */
-void radeon_wait_for_fifo_function(struct radeonfb_info *rinfo, int entries)
+void radeon_wait_for_fifo_function(struct radeonfb_info *rinfo, int32_t entries)
 {
-    int i;
+    int32_t i;
     while(1)
     {
         for(i = 0; i < RADEON_TIMEOUT; i++)
@@ -873,7 +876,7 @@ void radeon_wait_for_fifo_function(struct radeonfb_info *rinfo, int entries)
 /* Flush all dirty data in the Pixel Cache to memory */
 void radeon_engine_flush(struct radeonfb_info *rinfo)
 {
-    int i;
+    int32_t i;
     OUTREGP(RB2D_DSTCACHE_CTLSTAT, RB2D_DC_FLUSH_ALL, ~RB2D_DC_FLUSH_ALL);
     for(i = 0; i < RADEON_TIMEOUT; i++)
     {

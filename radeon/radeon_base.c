@@ -333,7 +333,7 @@ void __OUTPLLP(struct radeonfb_info *rinfo, uint32_t index, uint32_t val, uint32
     __OUTPLL(rinfo, index, tmp);
 }
 
-static __inline int round_div(int num, int den)
+static __inline int32_t round_div(int32_t num, int32_t den)
 {
     return(num + (den / 2)) / den;
 }
@@ -343,7 +343,7 @@ static __inline uint32_t read_vline_crnt(struct radeonfb_info *rinfo)
     return (INREG(CRTC_VLINE_CRNT_VLINE) >> 16) & 0x3FF;
 }
 
-static int radeon_map_ROM(struct radeonfb_info *rinfo)
+static int32_t radeon_map_ROM(struct radeonfb_info *rinfo)
 {
     uint16_t dptr;
     uint8_t rom_type;
@@ -374,7 +374,7 @@ static int radeon_map_ROM(struct radeonfb_info *rinfo)
     /* Very simple test to make sure it appeared */
     if (BIOS_IN16(0) != 0xaa55)
     {
-        dbg("Invalid ROM signature 0x%04x instead of 0x%04x found\r\n", BIOS_IN16(0), 0xaa55);
+        err("Invalid ROM signature 0x%04x instead of 0x%04x found\r\n", BIOS_IN16(0), 0xaa55);
         goto failed;
     }
 
@@ -410,7 +410,7 @@ static int radeon_map_ROM(struct radeonfb_info *rinfo)
 
     if (BIOS_IN32(dptr) !=  (('R' << 24) | ('I' << 16) | ('C' << 8) | 'P'))
     {
-        dbg("PCI DATA signature in ROM incorrect: %p\r\n", BIOS_IN32(dptr));
+        err("PCI DATA signature in ROM incorrect: %p\r\n", BIOS_IN32(dptr));
         goto anyway;
     }
 
@@ -418,16 +418,16 @@ static int radeon_map_ROM(struct radeonfb_info *rinfo)
     switch(rom_type)
     {
         case 0:
-            dbg("Found Intel x86 BIOS ROM Image\r\n");
+            inf("Found Intel x86 BIOS ROM Image\r\n");
             break;
         case 1:
-            dbg("Found Open Firmware ROM Image\r\n");
+            inf("Found Open Firmware ROM Image\r\n");
             goto failed;
         case 2:
-            dbg("Found HP PA-RISC ROM Image\r\n");
+            inf("Found HP PA-RISC ROM Image\r\n");
             goto failed;
         default:
-            dbg("Found unknown type %d ROM Image\r\n", rom_type);
+            inf("Found unknown type %d ROM Image\r\n", rom_type);
             goto failed;
     }
 
@@ -458,29 +458,29 @@ failed:
 /*
  * Read PLL infos from chip registers
  */
-static int radeon_probe_pll_params(struct radeonfb_info *rinfo)
+static int32_t radeon_probe_pll_params(struct radeonfb_info *rinfo)
 {
     uint8_t ppll_div_sel;
-    unsigned Ns;
-    unsigned Nm;
-    unsigned M;
-    unsigned sclk;
-    unsigned mclk;
-    unsigned tmp;
-    unsigned ref_div;
-    int hTotal;
-    int vTotal;
-    int num;
-    int denom;
-    int m;
-    int n;
+    uint32_t Ns;
+    uint32_t Nm;
+    uint32_t M;
+    uint32_t sclk;
+    uint32_t mclk;
+    uint32_t tmp;
+    uint32_t ref_div;
+    int32_t hTotal;
+    int32_t vTotal;
+    int32_t num;
+    int32_t denom;
+    int32_t m;
+    int32_t n;
     double hz;
     double vclk;
     int32_t xtal;
     uint32_t start_tv;
     uint32_t stop_tv;
-    int timeout = 0;
-    int ipl;
+    int32_t timeout = 0;
+    int32_t ipl;
     uint32_t vline;
 
     /*
@@ -548,7 +548,7 @@ static int radeon_probe_pll_params(struct radeonfb_info *rinfo)
     dbg("vTotal=%d\r\n", vTotal);
 
     vclk = (double) hTotal * (double) vTotal * hz;
-    dbg("vclk=%d\r\n", (int) vclk);
+    dbg("vclk=%d\r\n", (int32_t) vclk);
 
     switch ((INPLL(PPLL_REF_DIV) & 0x30000) >> 16)
     {
@@ -620,7 +620,7 @@ static int radeon_probe_pll_params(struct radeonfb_info *rinfo)
         xtal = 2950;
     else
     {
-        dbg("xtal calculation failed: %d\r\n", xtal);
+        err("xtal calculation failed: %d\r\n", xtal);
         return -1; /* error */
     }
 
@@ -726,7 +726,7 @@ static void radeon_get_pllinfo(struct radeonfb_info *rinfo)
         rinfo->pll.ref_div	= rinfo->bios_pll.ref_div;
         rinfo->pll.ppll_min	= rinfo->bios_pll.ppll_min;
         rinfo->pll.ppll_max	= rinfo->bios_pll.ppll_max;
-        dbg("Retreived PLL infos from BIOS\r\n");
+        inf("Retreived PLL infos from BIOS\r\n");
 
         goto found;
     }
@@ -737,14 +737,14 @@ static void radeon_get_pllinfo(struct radeonfb_info *rinfo)
      */
     if (radeon_probe_pll_params(rinfo) == 0)
     {
-        dbg("Retreived PLL infos from registers\r\n");
+        inf("Retreived PLL infos from registers\r\n");
         goto found;
     }
 
     /*
      * Fall back to already-set defaults...
      */
-    dbg("Used default PLL infos\r\n");
+    inf("Used default PLL infos\r\n");
 
 found:
     /*
@@ -763,7 +763,7 @@ found:
         rinfo->pll.sclk / 100, rinfo->pll.ppll_min, rinfo->pll.ppll_max);
 }
 
-static int var_to_depth(const struct fb_var_screeninfo *var)
+static int32_t var_to_depth(const struct fb_var_screeninfo *var)
 {
     if (var->bits_per_pixel != 16)
         return var->bits_per_pixel;
@@ -771,11 +771,11 @@ static int var_to_depth(const struct fb_var_screeninfo *var)
     return(var->green.length == 5) ? 15 : 16;
 }
 
-int radeonfb_check_var(struct fb_var_screeninfo *var, struct fb_info *info)
+int32_t radeonfb_check_var(struct fb_var_screeninfo *var, struct fb_info *info)
 {
     struct radeonfb_info *rinfo = info->par;
     struct fb_var_screeninfo v;
-    int nom, den;
+    int32_t nom, den;
     uint32_t pitch;
 
     dbg("\r\n");
@@ -783,15 +783,15 @@ int radeonfb_check_var(struct fb_var_screeninfo *var, struct fb_info *info)
     /* clocks over 135 MHz have heat isues with DVI on RV100 */
     if ((rinfo->mon1_type == MT_DFP) && (rinfo->family == CHIP_FAMILY_RV100) && ((100000000 / var->pixclock) > 13500))
     {
-        dbg("mode %d x %d x %d", var->xres, var->yres, var->bits_per_pixel);
-        dbg("rejected, RV100 DVI clock over 135 MHz\r\n");
+        err("mode %d x %d x %d", var->xres, var->yres, var->bits_per_pixel);
+        err("rejected, RV100 DVI clock over 135 MHz\r\n");
 
         return -1; //-EINVAL;
     }
 
     if (radeon_match_mode(rinfo, &v, var))
     {
-        dbg("invalid mode\r\n");
+        err("invalid mode\r\n");
         return -1; //-EINVAL;
     }
 
@@ -815,7 +815,7 @@ int radeonfb_check_var(struct fb_var_screeninfo *var, struct fb_info *info)
             break;
 
         default:
-            dbg("invalid bits per pixel\r\n");
+            err("invalid bits per pixel\r\n");
             return -1; //-EINVAL;
     }
 
@@ -872,7 +872,7 @@ int radeonfb_check_var(struct fb_var_screeninfo *var, struct fb_info *info)
             break;
 
         default:
-            dbg("radeonfb: mode %d x %d x %d rejected, color depth invalid\r\n ",
+            err("radeonfb: mode %d x %d x %d rejected, color depth invalid\r\n ",
                 var->xres, var->yres, var->bits_per_pixel);
             return -1; //-EINVAL;
     }
@@ -891,7 +891,7 @@ int radeonfb_check_var(struct fb_var_screeninfo *var, struct fb_info *info)
 
     if (((v.xres_virtual * v.yres_virtual * nom) / den) > info->screen_size)
     {
-        dbg("mode %d x %d rejected (screen size too small)\r\n", v.xres_virtual, v.yres_virtual);
+        err("mode %d x %d rejected (screen size too small)\r\n", v.xres_virtual, v.yres_virtual);
         return -1; //-EINVAL;
     }
 
@@ -913,14 +913,14 @@ int radeonfb_check_var(struct fb_var_screeninfo *var, struct fb_info *info)
     v.red.msb_right = v.green.msb_right = v.blue.msb_right = 0;
     v.transp.offset = v.transp.length = v.transp.msb_right = 0;
 
-    dbg("using mode %d x %d \r\n", v.xres, v.yres);
+    inf("using mode %d x %d \r\n", v.xres, v.yres);
 
     memcpy(var, &v, sizeof(v));
 
     return 0;
 }
 
-int radeonfb_pan_display(struct fb_var_screeninfo *var, struct fb_info *info)
+int32_t radeonfb_pan_display(struct fb_var_screeninfo *var, struct fb_info *info)
 {
     struct radeonfb_info *rinfo = info->par;
     dbg("\r\n");
@@ -954,7 +954,7 @@ int radeonfb_pan_display(struct fb_var_screeninfo *var, struct fb_info *info)
 
 short mirror;
 
-int radeonfb_ioctl(unsigned int cmd, unsigned long arg, struct fb_info *info)
+int32_t radeonfb_ioctl(uint32_t cmd, uint32_t arg, struct fb_info *info)
 {
     struct radeonfb_info *rinfo = info->par;
     uint32_t tmp;
@@ -1020,7 +1020,7 @@ int32_t radeon_screen_blank(struct radeonfb_info *rinfo, int32_t blank, int32_t 
 {
     uint32_t val;
     uint32_t tmp_pix_clks;
-    int unblank = 0;
+    int32_t unblank = 0;
 
     if (rinfo->lock_blank)
         return 0;
@@ -1135,7 +1135,7 @@ int32_t radeon_screen_blank(struct radeonfb_info *rinfo, int32_t blank, int32_t 
     return(blank == FB_BLANK_NORMAL) ? -1 /* -EINVAL */ : 0;
 }
 
-int radeonfb_blank(int blank, struct fb_info *info)
+int32_t radeonfb_blank(int32_t blank, struct fb_info *info)
 {
     struct radeonfb_info *rinfo = info->par;
 
@@ -1145,8 +1145,8 @@ int radeonfb_blank(int blank, struct fb_info *info)
     return radeon_screen_blank(rinfo, blank, 0);
 }
 
-static int radeon_setcolreg(unsigned regno, unsigned red, unsigned green,
-                            unsigned blue, unsigned transp, struct fb_info *info)
+static int32_t radeon_setcolreg(uint32_t regno, uint32_t red, uint32_t green,
+                            uint32_t blue, uint32_t transp, struct fb_info *info)
 {
     struct radeonfb_info *rinfo = info->par;
     uint32_t pindex;
@@ -1196,12 +1196,12 @@ static int radeon_setcolreg(unsigned regno, unsigned red, unsigned green,
     return 0;
 }
 
-int radeonfb_setcolreg(unsigned regno, unsigned red, unsigned green,
-                       unsigned blue, unsigned transp, struct fb_info *info)
+int32_t radeonfb_setcolreg(uint32_t regno, uint32_t red, uint32_t green,
+                       uint32_t blue, uint32_t transp, struct fb_info *info)
 {
     struct radeonfb_info *rinfo = info->par;
     uint32_t dac_cntl2, vclk_cntl = 0;
-    int rc;
+    int32_t rc;
 
     if (!rinfo->asleep)
     {
@@ -1263,7 +1263,7 @@ static void radeon_save_state(struct radeonfb_info *rinfo, struct radeon_regs *s
 
 static void radeon_write_pll_regs(struct radeonfb_info *rinfo, struct radeon_regs *mode)
 {
-    int i;
+    int32_t i;
 
     dbg("\r\n");
     radeon_wait_for_fifo(rinfo, 20);
@@ -1369,8 +1369,8 @@ static void radeon_timer_func(void)
     struct fb_var_screeninfo var;
     uint32_t x;
     uint32_t y;
-    int chg;
-    int disp;
+    int32_t chg;
+    int32_t disp;
 
     static int32_t start_timer;
 
@@ -1398,22 +1398,22 @@ static void radeon_timer_func(void)
         int32_t foreground = 255;
         int32_t background = 0;
         uint8_t *src_buf = (uint8_t *) info->screen_mono;
-        int skipleft = ((int) src_buf & 3) << 3;
-        int dst_x = 0;
-        int w = (int) info->var.xres_virtual;
-        int h = (int) info->var.yres_virtual;
+        int32_t skipleft = ((int32_t) src_buf & 3) << 3;
+        int32_t dst_x = 0;
+        int32_t w = (int32_t) info->var.xres_virtual;
+        int32_t h = (int32_t) info->var.yres_virtual;
 
         // info->fbops->SetClippingRectangle(info,0,0,w-1,h-1);
 
         src_buf = (uint8_t*) ((int32_t) src_buf & ~3);
         dst_x -= (int32_t) skipleft;
         w += (int32_t) skipleft;
-        info->fbops->SetupForScanlineCPUToScreenColorExpandFill(info, (int) foreground, (int) background, 3, 0xffffffff);
-        info->fbops->SubsequentScanlineCPUToScreenColorExpandFill(info, (int) dst_x, 0, w, h, skipleft);
+        info->fbops->SetupForScanlineCPUToScreenColorExpandFill(info, (int32_t) foreground, (int32_t) background, 3, 0xffffffff);
+        info->fbops->SubsequentScanlineCPUToScreenColorExpandFill(info, (int32_t) dst_x, 0, w, h, skipleft);
 
         while (--h >= 0)
         {
-            info->fbops->SubsequentScanline(info, (unsigned long *) src_buf);
+            info->fbops->SubsequentScanline(info, (uint32_t *) src_buf);
             src_buf += (info->var.xres_virtual >> 3);
         }
 
@@ -1425,7 +1425,7 @@ static void radeon_timer_func(void)
     if ((info->var.xres_virtual != info->var.xres)
             || (info->var.yres_virtual != info->var.yres))
     {
-        int ipl;
+        int32_t ipl;
         ipl = set_ipl(0);
 
         chg = 0;
@@ -1478,8 +1478,8 @@ static void radeon_timer_func(void)
  */
 void radeon_write_mode(struct radeonfb_info *rinfo, struct radeon_regs *mode, int32_t regs_only)
 {
-    int i;
-    int primary_mon = PRIMARY_MONITOR(rinfo);
+    int32_t i;
+    int32_t primary_mon = PRIMARY_MONITOR(rinfo);
 
     dbg("radeonfb: radeon_write_mode\r\n");
 
@@ -1552,8 +1552,8 @@ static void radeon_calc_pll_regs(struct radeonfb_info *rinfo, struct radeon_regs
 {
     static const struct
     {
-        int divider;
-        int bitvalue;
+        int32_t divider;
+        int32_t bitvalue;
     } *post_div,
     post_divs[] =
     {
@@ -1567,8 +1567,8 @@ static void radeon_calc_pll_regs(struct radeonfb_info *rinfo, struct radeon_regs
     { 12, 7 },
     { 0,  0 },
 };
-    int fb_div, pll_output_freq = 0;
-    int uses_dvo = 0;
+    int32_t fb_div, pll_output_freq = 0;
+    int32_t uses_dvo = 0;
 
     /* Check if the DVO port is enabled and sourced from the primary CRTC. I'm
      * not sure which model starts having FP2_GEN_CNTL, I assume anything more
@@ -1588,7 +1588,7 @@ static void radeon_calc_pll_regs(struct radeonfb_info *rinfo, struct radeon_regs
     {
         uint32_t fp2_gen_cntl = INREG(FP2_GEN_CNTL);
         uint32_t disp_output_cntl;
-        int source;
+        int32_t source;
 
         /* FP2 path not enabled */
         if ((fp2_gen_cntl & FP2_ON) == 0)
@@ -1664,21 +1664,21 @@ static void radeon_calc_pll_regs(struct radeonfb_info *rinfo, struct radeon_regs
     regs->ppll_div_3 = fb_div | (post_div->bitvalue << 16);
 }
 
-int radeonfb_set_par(struct fb_info *info)
+int32_t radeonfb_set_par(struct fb_info *info)
 {
     struct radeonfb_info *rinfo = info->par;
     struct fb_var_screeninfo *mode = &info->var;
     struct radeon_regs *newmode;
-    int hTotal;
-    int vTotal;
-    int hSyncStart;
-    int hSyncEnd;
-    int vSyncStart;
-    int vSyncEnd;
+    int32_t hTotal;
+    int32_t vTotal;
+    int32_t hSyncStart;
+    int32_t hSyncEnd;
+    int32_t vSyncStart;
+    int32_t vSyncEnd;
 
-    // FIXME: int hSyncPol; this is not used anywhere
-    // FIXME: int vSyncPol; this is not used anywhere
-    // FIXME: int cSync;	this is not used anywhere
+    // FIXME: int32_t hSyncPol; this is not used anywhere
+    // FIXME: int32_t vSyncPol; this is not used anywhere
+    // FIXME: int32_t cSync;	this is not used anywhere
 
     static uint8_t hsync_adj_tab[] = { 0, 0x12, 9, 9, 6, 5 };
     static uint8_t hsync_fudge_fp[] = { 2, 2, 0, 0, 5, 5 };
@@ -1687,19 +1687,19 @@ int radeonfb_set_par(struct fb_info *info)
     uint32_t v_sync_pol;
     uint32_t dotClock;
     uint32_t pixClock;
-    int i;
-    int freq;
-    int format = 0;
-    int nopllcalc = 0;
-    int hsync_start;
-    int hsync_fudge;
+    int32_t i;
+    int32_t freq;
+    int32_t format = 0;
+    int32_t nopllcalc = 0;
+    int32_t hsync_start;
+    int32_t hsync_fudge;
 
-    // int bytpp; FIXME: this doesn't seem to be used anywhere
-    int hsync_wid;
-    int vsync_wid;
-    int primary_mon = PRIMARY_MONITOR(rinfo);
-    int depth = var_to_depth(mode);
-    int use_rmx = 0;
+    // int32_t bytpp; FIXME: this doesn't seem to be used anywhere
+    int32_t hsync_wid;
+    int32_t vsync_wid;
+    int32_t primary_mon = PRIMARY_MONITOR(rinfo);
+    int32_t depth = var_to_depth(mode);
+    int32_t use_rmx = 0;
 
     dbg("depth=%d\r\n", depth);
 
@@ -1898,7 +1898,7 @@ int radeonfb_set_par(struct fb_info *info)
     newmode->vclk_ecp_cntl = rinfo->init_state.vclk_ecp_cntl;
     if ((primary_mon == MT_DFP) || (primary_mon == MT_LCD))
     {
-        int hRatio, vRatio;
+        int32_t hRatio, vRatio;
         if (mode->xres > rinfo->panel_info.xres)
             mode->xres = rinfo->panel_info.xres;
         if (mode->yres > rinfo->panel_info.yres)
@@ -2051,7 +2051,7 @@ static struct fb_ops radeonfb_ops =
     .WaitVbl = radeon_wait_vbl,
 };
 
-static int radeon_set_fbinfo(struct radeonfb_info *rinfo)
+static int32_t radeon_set_fbinfo(struct radeonfb_info *rinfo)
 {
     struct fb_info *info = rinfo->info;
 
@@ -2066,7 +2066,7 @@ static int radeon_set_fbinfo(struct radeonfb_info *rinfo)
         info->screen_size = MIN_MAPPED_VRAM;
 
     dbg("ram_base %p\r\n", info->screen_base);
-    dbg("ram_size %p\r\n", info->ram_size);
+    dbg("ram_size 0x%08lx\r\n", info->ram_size);
 
     /* Fill fix common fields */
     memcpy(info->fix.id, rinfo->name, sizeof(info->fix.id));
@@ -2182,8 +2182,8 @@ static void radeon_identify_vram(struct radeonfb_info *rinfo)
         case CHIP_FAMILY_R350: inf("chip type: %s\r\n", "R350"); break;
         case CHIP_FAMILY_RV350: inf("chip type: %s\r\n", "RV350"); break;
         case CHIP_FAMILY_RV380: inf("chip type: %s\r\n", "RV380"); break;
-        case CHIP_FAMILY_R420: dbg("chip type: %s\r\n", "R420"); break;
-        default: inf("chip type: %s\r\n", "UNKNOW"); break;
+        case CHIP_FAMILY_R420: inf("chip type: %s\r\n", "R420"); break;
+        default: inf("chip type: %s\r\n", "UNKNOWN"); break;
     }
     inf("found %d KB of %d bits wide %s video RAM\r\n", rinfo->video_ram / 1024,
         rinfo->vram_width, rinfo->vram_ddr ? "DDR" : "SDRAM");
@@ -2302,7 +2302,7 @@ int32_t radeonfb_pci_register(int32_t handle, const struct pci_device_id *ent)
         } while (!(flags & FLG_LAST));
     }
     else
-        dbg("get_resource error\r\n");
+        err("get_resource error\r\n");
 
     /* map the regions */
     dbg("map memory regions\r\n");
@@ -2380,7 +2380,7 @@ int32_t radeonfb_pci_register(int32_t handle, const struct pci_device_id *ent)
     }
     else
     {
-        inf("%d KB of VRAM mapped to %p\r\n", rinfo->mapped_vram / 1024, rinfo->fb_base);
+        inf("%d KB of video RAM mapped to %p\r\n", rinfo->mapped_vram / 1024, rinfo->fb_base);
     }
 
     /* Get informations about the board's PLL */
@@ -2403,7 +2403,7 @@ int32_t radeonfb_pci_register(int32_t handle, const struct pci_device_id *ent)
 
     /* Probe screen types */
     dbg("probe screen types, monitor_layout: %s\r\n", monitor_layout);
-    radeon_probe_screens(rinfo, monitor_layout, (int) ignore_edid);
+    radeon_probe_screens(rinfo, monitor_layout, (int32_t) ignore_edid);
 
     /* Build mode list, check out panel native model */
     dbg("build mode list\r\n");
@@ -2419,7 +2419,7 @@ int32_t radeonfb_pci_register(int32_t handle, const struct pci_device_id *ent)
 
     /* Setup Power Management capabilities */
     //	DPRINT("radeonfb: radeonfb_pci_register: setup power management\r\n");
-    //	radeonfb_pm_init(rinfo, (int)default_dynclk);
+    //	radeonfb_pm_init(rinfo, (int32_t)default_dynclk);
 
     dbg("install VBL timer\r\n");
     rinfo->lvds_timer = 0;

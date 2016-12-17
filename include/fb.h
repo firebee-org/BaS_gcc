@@ -1,6 +1,8 @@
 #ifndef _FB_H
 #define _FB_H
 
+#include "bas_types.h"
+
 /* Definitions of frame buffers	*/
 
 #define FB_MAJOR                29
@@ -183,22 +185,22 @@ extern struct mode_option resolution; /* fVDI */
 struct fb_fix_screeninfo
 {
     char id[16];                    /* identification string eg "TT Builtin" */
-    unsigned long smem_start;       /* Start of frame buffer mem */
+    uint32_t smem_start;       /* Start of frame buffer mem */
     /* (physical address) */
-    unsigned long smem_len;         /* Length of frame buffer mem */
-    unsigned long type;             /* see FB_TYPE_*		*/
-    unsigned long type_aux;         /* Interleave for interleaved Planes */
-    unsigned long visual;           /* see FB_VISUAL_*		*/
-    unsigned short xpanstep;        /* zero if no hardware panning  */
-    unsigned short ypanstep;        /* zero if no hardware panning  */
-    unsigned short ywrapstep;       /* zero if no hardware ywrap    */
-    unsigned long line_length;      /* length of a line in bytes    */
-    unsigned long mmio_start;       /* Start of Memory Mapped I/O   */
+    uint32_t smem_len;         /* Length of frame buffer mem */
+    uint32_t type;             /* see FB_TYPE_*		*/
+    uint32_t type_aux;         /* Interleave for interleaved Planes */
+    uint32_t visual;           /* see FB_VISUAL_*		*/
+    uint16_t xpanstep;        /* zero if no hardware panning  */
+    uint16_t ypanstep;        /* zero if no hardware panning  */
+    uint16_t ywrapstep;       /* zero if no hardware ywrap    */
+    uint32_t line_length;      /* length of a line in bytes    */
+    uint32_t mmio_start;       /* Start of Memory Mapped I/O   */
     /* (physical address) */
-    unsigned long mmio_len;         /* Length of Memory Mapped I/O  */
-    unsigned long accel;            /* Indicate to driver which	*/
+    uint32_t mmio_len;         /* Length of Memory Mapped I/O  */
+    uint32_t accel;            /* Indicate to driver which	*/
     /*  specific chip/card we have	*/
-    unsigned short reserved[3];     /* Reserved for future compatibility */
+    uint16_t reserved[3];     /* Reserved for future compatibility */
 };
 
 /* Interpretation of offset for color fields: All offsets are from the right,
@@ -209,9 +211,9 @@ struct fb_fix_screeninfo
  */
 struct fb_bitfield
 {
-    unsigned long offset;           /* beginning of bitfield	*/
-    unsigned long length;           /* length of bitfield		*/
-    unsigned long msb_right;        /* != 0 : Most significant bit is */
+    uint32_t offset;           /* beginning of bitfield	*/
+    uint32_t length;           /* length of bitfield		*/
+    uint32_t msb_right;        /* != 0 : Most significant bit is */
     /* right */
 };
 
@@ -253,43 +255,43 @@ struct fb_bitfield
 
 struct fb_var_screeninfo
 {
-    unsigned long xres;             /* visible resolution */
-    unsigned long yres;
-    unsigned long xres_virtual;     /* virtual resolution */
-    unsigned long yres_virtual;
-    unsigned long xoffset;          /* offset from virtual to visible */
-    unsigned long yoffset;          /* resolution			*/
+    uint32_t xres;             /* visible resolution */
+    uint32_t yres;
+    uint32_t xres_virtual;     /* virtual resolution */
+    uint32_t yres_virtual;
+    uint32_t xoffset;          /* offset from virtual to visible */
+    uint32_t yoffset;          /* resolution			*/
 
-    unsigned long bits_per_pixel;   /* guess what			*/
-    unsigned long grayscale;        /* != 0 Graylevels instead of colors */
+    uint32_t bits_per_pixel;   /* guess what			*/
+    uint32_t grayscale;        /* != 0 Graylevels instead of colors */
 
     struct fb_bitfield red;         /* bitfield in fb mem if true color, */
     struct fb_bitfield green;       /* else only length is significant */
     struct fb_bitfield blue;
     struct fb_bitfield transp;      /* transparency			*/
 
-    unsigned long nonstd;           /* != 0 Non standard pixel format */
+    uint32_t nonstd;           /* != 0 Non standard pixel format */
 
-    unsigned long activate;         /* see FB_ACTIVATE_*		*/
+    uint32_t activate;         /* see FB_ACTIVATE_*		*/
 
-    unsigned long height;           /* height of picture in mm    */
-    unsigned long width;            /* width of picture in mm     */
+    uint32_t height;           /* height of picture in mm    */
+    uint32_t width;            /* width of picture in mm     */
 
-    unsigned long accel_flags;      /* (OBSOLETE) see fb_info.flags */
+    uint32_t accel_flags;      /* (OBSOLETE) see fb_info.flags */
 
     /* Timing: All values in pixclocks, except pixclock (of course) */
-    unsigned long pixclock;         /* pixel clock in ps (pico seconds) */
-    unsigned long left_margin;      /* time from sync to picture	*/
-    unsigned long right_margin;     /* time from picture to sync	*/
-    unsigned long upper_margin;     /* time from sync to picture	*/
-    unsigned long lower_margin;
-    unsigned long hsync_len;        /* length of horizontal sync	*/
-    unsigned long vsync_len;        /* length of vertical sync	*/
-    unsigned long sync;             /* see FB_SYNC_*		*/
-    unsigned long vmode;            /* see FB_VMODE_*		*/
-    unsigned long rotate;           /* angle we rotate counter clockwise */
-    unsigned long refresh;
-    unsigned long reserved[4];      /* Reserved for future compatibility */
+    uint32_t pixclock;         /* pixel clock in ps (pico seconds) */
+    uint32_t left_margin;      /* time from sync to picture	*/
+    uint32_t right_margin;     /* time from picture to sync	*/
+    uint32_t upper_margin;     /* time from sync to picture	*/
+    uint32_t lower_margin;
+    uint32_t hsync_len;        /* length of horizontal sync	*/
+    uint32_t vsync_len;        /* length of vertical sync	*/
+    uint32_t sync;             /* see FB_SYNC_*		*/
+    uint32_t vmode;            /* see FB_VMODE_*		*/
+    uint32_t rotate;           /* angle we rotate counter clockwise */
+    uint32_t refresh;
+    uint32_t reserved[4];      /* Reserved for future compatibility */
 };
 
 /* VESA Blanking Levels */
@@ -324,11 +326,11 @@ enum
 
 struct fb_vblank
 {
-    unsigned long flags;			/* FB_VBLANK flags */
-    unsigned long count;			/* counter of retraces since boot */
-    unsigned long vcount;			/* current scanline position */
-    unsigned long hcount;			/* current scandot position */
-    unsigned long reserved[4];		/* reserved for future compatibility */
+    uint32_t flags;			/* FB_VBLANK flags */
+    uint32_t count;			/* counter of retraces since boot */
+    uint32_t vcount;			/* current scanline position */
+    uint32_t hcount;			/* current scandot position */
+    uint32_t reserved[4];		/* reserved for future compatibility */
 };
 
 struct vm_area_struct;
@@ -364,65 +366,65 @@ struct file;
 
 struct fb_chroma
 {
-    unsigned long redx;	/* in fraction of 1024 */
-    unsigned long greenx;
-    unsigned long bluex;
-    unsigned long whitex;
-    unsigned long redy;
-    unsigned long greeny;
-    unsigned long bluey;
-    unsigned long whitey;
+    uint32_t redx;	/* in fraction of 1024 */
+    uint32_t greenx;
+    uint32_t bluex;
+    uint32_t whitex;
+    uint32_t redy;
+    uint32_t greeny;
+    uint32_t bluey;
+    uint32_t whitey;
 };
 
 struct fb_monspecs
 {
     struct fb_chroma chroma;
     struct fb_videomode *modedb;	/* mode database */
-    unsigned char  manufacturer[4];	/* Manufacturer */
-    unsigned char  monitor[14];		/* Monitor String */
-    unsigned char  serial_no[14];	/* Serial Number */
-    unsigned char  ascii[14];		/* ? */
-    unsigned long modedb_len;		/* mode database length */
-    unsigned long model;			/* Monitor Model */
-    unsigned long serial;			/* Serial Number - Integer */
-    unsigned long year;				/* Year manufactured */
-    unsigned long week;				/* Week Manufactured */
-    unsigned long hfmin;			/* hfreq lower limit (Hz) */
-    unsigned long hfmax;			/* hfreq upper limit (Hz) */
-    unsigned long dclkmin;			/* pixelclock lower limit (Hz) */
-    unsigned long dclkmax;			/* pixelclock upper limit (Hz) */
-    unsigned short input;			/* display type - see FB_DISP_* */
-    unsigned short dpms;			/* DPMS support - see FB_DPMS_ */
-    unsigned short signal;			/* Signal Type - see FB_SIGNAL_* */
-    unsigned short vfmin;			/* vfreq lower limit (Hz) */
-    unsigned short vfmax;			/* vfreq upper limit (Hz) */
-    unsigned short gamma;			/* Gamma - in fractions of 100 */
-    unsigned short gtf	: 1;		/* supports GTF */
-    unsigned short misc;			/* Misc flags - see FB_MISC_* */
-    unsigned char  version;			/* EDID version... */
-    unsigned char  revision;		/* ...and revision */
-    unsigned char  max_x;			/* Maximum horizontal size (cm) */
-    unsigned char  max_y;			/* Maximum vertical size (cm) */
+    uint8_t  manufacturer[4];	/* Manufacturer */
+    uint8_t  monitor[14];		/* Monitor String */
+    uint8_t  serial_no[14];	/* Serial Number */
+    uint8_t  ascii[14];		/* ? */
+    uint32_t modedb_len;		/* mode database length */
+    uint32_t model;			/* Monitor Model */
+    uint32_t serial;			/* Serial Number - Integer */
+    uint32_t year;				/* Year manufactured */
+    uint32_t week;				/* Week Manufactured */
+    uint32_t hfmin;			/* hfreq lower limit (Hz) */
+    uint32_t hfmax;			/* hfreq upper limit (Hz) */
+    uint32_t dclkmin;			/* pixelclock lower limit (Hz) */
+    uint32_t dclkmax;			/* pixelclock upper limit (Hz) */
+    uint16_t input;			/* display type - see FB_DISP_* */
+    uint16_t dpms;			/* DPMS support - see FB_DPMS_ */
+    uint16_t signal;			/* Signal Type - see FB_SIGNAL_* */
+    uint16_t vfmin;			/* vfreq lower limit (Hz) */
+    uint16_t vfmax;			/* vfreq upper limit (Hz) */
+    uint16_t gamma;			/* Gamma - in fractions of 100 */
+    uint16_t gtf	: 1;		/* supports GTF */
+    uint16_t misc;			/* Misc flags - see FB_MISC_* */
+    uint8_t  version;			/* EDID version... */
+    uint8_t  revision;		/* ...and revision */
+    uint8_t  max_x;			/* Maximum horizontal size (cm) */
+    uint8_t  max_y;			/* Maximum vertical size (cm) */
 };
 
 struct fb_ops
 {
     /* checks var and eventually tweaks if to something supported,
      * DO NOT MODIFY PAR  */
-    int (*fb_check_var)(struct fb_var_screeninfo *var, struct fb_info *info);
+    int32_t (*fb_check_var)(struct fb_var_screeninfo *var, struct fb_info *info);
     /* set the video mode according to info->var */
-    int (*fb_set_par)(struct fb_info *info);
+    int32_t (*fb_set_par)(struct fb_info *info);
     /* set color register */
-    int (*fb_setcolreg)(unsigned regno, unsigned red, unsigned green,
-                        unsigned blue, unsigned transp, struct fb_info *info);
+    int32_t (*fb_setcolreg)(uint32_t regno, uint32_t red, uint32_t green,
+                        uint32_t blue, uint32_t transp, struct fb_info *info);
     /* pan display */
-    int (*fb_pan_display)(struct fb_var_screeninfo *var, struct fb_info *info);
+    int32_t (*fb_pan_display)(struct fb_var_screeninfo *var, struct fb_info *info);
     /* blank display */
-    int (*fb_blank)(int blank, struct fb_info *info);
+    int32_t (*fb_blank)(int32_t blank, struct fb_info *info);
     /* wait for blit idle */
-    int (*fb_sync)(struct fb_info *info);
+    int32_t (*fb_sync)(struct fb_info *info);
     /* perform fb specific ioctl */
-    int (*fb_ioctl)(unsigned int cmd, unsigned long arg, struct fb_info *info);
+    int32_t (*fb_ioctl)(uint32_t cmd, uint32_t arg, struct fb_info *info);
     /* Buildthe modedb for head 1 (head 2 will come later), check panel infos
      * from either BIOS or EDID, and pick up the default mode */
     void (*fb_check_modes)(struct fb_info *info, struct mode_option *resolution);
@@ -432,33 +434,33 @@ struct fb_ops
 #define DEGREES_180	2
 #define DEGREES_270	3
 #define OMIT_LAST	1
-    void (*SetupForSolidFill)(struct fb_info *info, int color, int rop, unsigned int planemask);
-    void (*SubsequentSolidFillRect)(struct fb_info *info, int x, int y, int w, int h);
-    void (*SetupForSolidLine)(struct fb_info *info, int color, int rop, unsigned int planemask);
-    void (*SubsequentSolidHorVertLine)(struct fb_info *info, int x, int y, int len, int dir);
-    void (*SubsequentSolidTwoPointLine)(struct fb_info *info, int xa, int ya, int xb, int yb, int flags);
-    void (*SetupForDashedLine)(struct fb_info *info, int fg, int bg, int rop, unsigned int planemask, int length, unsigned char *pattern);
-    void (*SubsequentDashedTwoPointLine)(struct fb_info *info, int xa, int ya, int xb, int yb, int flags, int phase);
-    void (*SetupForScreenToScreenCopy)(struct fb_info *info, int xdir, int ydir, int rop, unsigned int planemask, int trans_color);
-    void (*SubsequentScreenToScreenCopy)(struct fb_info *info, int xa, int ya, int xb, int yb, int w, int h);
-    void (*ScreenToScreenCopy)(struct fb_info *info, int xa, int ya, int xb, int yb, int w, int h, int rop);
-    void (*SetupForMono8x8PatternFill)(struct fb_info *info, int patternx, int patterny, int fg, int bg, int rop, unsigned int planemask);
-    void (*SubsequentMono8x8PatternFillRect)(struct fb_info *info, int patternx, int patterny, int x, int y, int w, int h);
-    void (*SetupForScanlineCPUToScreenColorExpandFill)(struct fb_info *info, int fg, int bg, int rop, unsigned int planemask);
-    void (*SubsequentScanlineCPUToScreenColorExpandFill)(struct fb_info *info, int x, int y, int w, int h, int skipleft);
-    void (*SubsequentScanline)(struct fb_info *info, unsigned long *buf);
-    void (*SetupForScanlineImageWrite)(struct fb_info *info, int rop, unsigned int planemask, int trans_color, int bpp);
-    void (*SubsequentScanlineImageWriteRect)(struct fb_info *info, int x, int y, int w, int h, int skipleft);
-    void (*SetClippingRectangle)(struct fb_info *info, int xa, int ya, int xb, int yb);
+    void (*SetupForSolidFill)(struct fb_info *info, int32_t color, int32_t rop, uint32_t planemask);
+    void (*SubsequentSolidFillRect)(struct fb_info *info, int32_t x, int32_t y, int32_t w, int32_t h);
+    void (*SetupForSolidLine)(struct fb_info *info, int32_t color, int32_t rop, uint32_t planemask);
+    void (*SubsequentSolidHorVertLine)(struct fb_info *info, int32_t x, int32_t y, int32_t len, int32_t dir);
+    void (*SubsequentSolidTwoPointLine)(struct fb_info *info, int32_t xa, int32_t ya, int32_t xb, int32_t yb, int32_t flags);
+    void (*SetupForDashedLine)(struct fb_info *info, int32_t fg, int32_t bg, int32_t rop, uint32_t planemask, int32_t length, uint8_t *pattern);
+    void (*SubsequentDashedTwoPointLine)(struct fb_info *info, int32_t xa, int32_t ya, int32_t xb, int32_t yb, int32_t flags, int32_t phase);
+    void (*SetupForScreenToScreenCopy)(struct fb_info *info, int32_t xdir, int32_t ydir, int32_t rop, uint32_t planemask, int32_t trans_color);
+    void (*SubsequentScreenToScreenCopy)(struct fb_info *info, int32_t xa, int32_t ya, int32_t xb, int32_t yb, int32_t w, int32_t h);
+    void (*ScreenToScreenCopy)(struct fb_info *info, int32_t xa, int32_t ya, int32_t xb, int32_t yb, int32_t w, int32_t h, int32_t rop);
+    void (*SetupForMono8x8PatternFill)(struct fb_info *info, int32_t patternx, int32_t patterny, int32_t fg, int32_t bg, int32_t rop, uint32_t planemask);
+    void (*SubsequentMono8x8PatternFillRect)(struct fb_info *info, int32_t patternx, int32_t patterny, int32_t x, int32_t y, int32_t w, int32_t h);
+    void (*SetupForScanlineCPUToScreenColorExpandFill)(struct fb_info *info, int32_t fg, int32_t bg, int32_t rop, uint32_t planemask);
+    void (*SubsequentScanlineCPUToScreenColorExpandFill)(struct fb_info *info, int32_t x, int32_t y, int32_t w, int32_t h, int32_t skipleft);
+    void (*SubsequentScanline)(struct fb_info *info, uint32_t *buf);
+    void (*SetupForScanlineImageWrite)(struct fb_info *info, int32_t rop, uint32_t planemask, int32_t trans_color, int32_t bpp);
+    void (*SubsequentScanlineImageWriteRect)(struct fb_info *info, int32_t x, int32_t y, int32_t w, int32_t h, int32_t skipleft);
+    void (*SetClippingRectangle)(struct fb_info *info, int32_t xa, int32_t ya, int32_t xb, int32_t yb);
     void (*DisableClipping)(struct fb_info *info);
-    int (*SetupForCPUToScreenAlphaTexture)(struct fb_info *info,
-                                           int op, unsigned short red, unsigned short green, unsigned short blue, unsigned short alpha, unsigned long maskFormat, unsigned long dstFormat, unsigned char *alphaPtr, int alphaPitch, int width, int height, int flags);
-    int (*SetupForCPUToScreenTexture)(struct fb_info *info, int op, unsigned long srcFormat, unsigned long dstFormat, unsigned char *texPtr, int texPitch, int width, int height, int flags);
-    void (*SubsequentCPUToScreenTexture)(struct fb_info *info, int dstx, int dsty, int srcx, int srcy, int width, int height);
+    int32_t (*SetupForCPUToScreenAlphaTexture)(struct fb_info *info,
+                                           int32_t op, uint16_t red, uint16_t green, uint16_t blue, uint16_t alpha, uint32_t maskFormat, uint32_t dstFormat, uint8_t *alphaPtr, int32_t alphaPitch, int32_t width, int32_t height, int32_t flags);
+    int32_t (*SetupForCPUToScreenTexture)(struct fb_info *info, int32_t op, uint32_t srcFormat, uint32_t dstFormat, uint8_t *texPtr, int32_t texPitch, int32_t width, int32_t height, int32_t flags);
+    void (*SubsequentCPUToScreenTexture)(struct fb_info *info, int32_t dstx, int32_t dsty, int32_t srcx, int32_t srcy, int32_t width, int32_t height);
     /* Cursor functions */
-    void (*SetCursorColors)(struct fb_info *info, int bg, int fg);
-    void (*SetCursorPosition)(struct fb_info *info, int x, int y);
-    void (*LoadCursorImage)(struct fb_info *info, unsigned short *mask, unsigned short *data, int zoom);
+    void (*SetCursorColors)(struct fb_info *info, int32_t bg, int32_t fg);
+    void (*SetCursorPosition)(struct fb_info *info, int32_t x, int32_t y);
+    void (*LoadCursorImage)(struct fb_info *info, uint16_t *mask, uint16_t *data, int32_t zoom);
     void (*HideCursor)(struct fb_info *info);
     void (*ShowCursor)(struct fb_info *info);
     long (*CursorInit)(struct fb_info *info);
@@ -472,9 +474,9 @@ struct fb_info
     struct fb_monspecs monspecs;    /* Current Monitor specs */
     struct fb_videomode *mode;      /* current mode */
     char *screen_base;              /* Virtual address */
-    unsigned long screen_size;
+    uint32_t screen_size;
     char *ram_base;                 /* base vram */
-    unsigned long ram_size;         /* vram size */
+    uint32_t ram_size;         /* vram size */
     char *screen_mono;
     long update_mono;
     struct fb_ops *fbops;
@@ -482,15 +484,15 @@ struct fb_info
 };
 
 /* fbmem.c */
-extern int fb_pan_display(struct fb_info *info, struct fb_var_screeninfo *var);
-extern int fb_set_var(struct fb_info *info, struct fb_var_screeninfo *var);
-extern int fb_blank(struct fb_info *info, int blank);
-extern int fb_ioctl(struct fb_info *info, unsigned int cmd, unsigned long arg);
-extern struct fb_info *framebuffer_alloc(unsigned long size);
+extern int32_t fb_pan_display(struct fb_info *info, struct fb_var_screeninfo *var);
+extern int32_t fb_set_var(struct fb_info *info, struct fb_var_screeninfo *var);
+extern int32_t fb_blank(struct fb_info *info, int32_t blank);
+extern int32_t fb_ioctl(struct fb_info *info, uint32_t cmd, uint32_t arg);
+extern struct fb_info *framebuffer_alloc(uint32_t size);
 extern void framebuffer_release(struct fb_info *info);
 
 /* offscreen.c */
-extern long offscreen_free(struct fb_info *info, long addr);
+extern long offscreen_free(struct fb_info *info, void *addr);
 extern long offscreen_alloc(struct fb_info *info, long amount);
 extern long offscren_reserved(struct fb_info *info);
 extern void offscreen_init(struct fb_info *info);
@@ -511,44 +513,44 @@ extern void offscreen_init(struct fb_info *info);
 #define FB_MODE_IS_FROM_VAR     32
 
 extern void fb_destroy_modedb(struct fb_videomode *modedb);
-extern int fb_parse_edid(unsigned char *edid, struct fb_var_screeninfo *var);
-extern void fb_edid_to_monspecs(unsigned char *edid, struct fb_monspecs *specs);
-extern int fb_get_mode(int flags, unsigned long val, struct fb_var_screeninfo *var, struct fb_info *info);
-extern int fb_validate_mode(const struct fb_var_screeninfo *var, struct fb_info *info);
+extern int32_t fb_parse_edid(uint8_t *edid, struct fb_var_screeninfo *var);
+extern void fb_edid_to_monspecs(uint8_t *edid, struct fb_monspecs *specs);
+extern int32_t fb_get_mode(int32_t flags, uint32_t val, struct fb_var_screeninfo *var, struct fb_info *info);
+extern int32_t fb_validate_mode(const struct fb_var_screeninfo *var, struct fb_info *info);
 
 /* modedb.c */
 #define VESA_MODEDB_SIZE 34
-extern int fb_find_mode(struct fb_var_screeninfo *var,
+extern int32_t fb_find_mode(struct fb_var_screeninfo *var,
                         struct fb_info *info, struct mode_option *resolution ,
-                        const struct fb_videomode *db, unsigned int dbsize,
-                        const struct fb_videomode *default_mode, unsigned int default_bpp);
+                        const struct fb_videomode *db, uint32_t dbsize,
+                        const struct fb_videomode *default_mode, uint32_t default_bpp);
 extern void fb_var_to_videomode(struct fb_videomode *mode, struct fb_var_screeninfo *var);
 extern void fb_videomode_to_var(struct fb_var_screeninfo *var, struct fb_videomode *mode);
-extern int fb_mode_is_equal(struct fb_videomode *mode1, struct fb_videomode *mode2);
+extern int32_t fb_mode_is_equal(struct fb_videomode *mode1, struct fb_videomode *mode2);
 
 struct fb_videomode
 {
-    unsigned short refresh;		/* optional */
-    unsigned short xres;
-    unsigned short yres;
-    unsigned long pixclock;
-    unsigned short left_margin;
-    unsigned short right_margin;
-    unsigned short upper_margin;
-    unsigned short lower_margin;
-    unsigned short hsync_len;
-    unsigned short vsync_len;
-    unsigned short sync;
-    unsigned short vmode;
-    unsigned short flag;
+    uint16_t refresh;		/* optional */
+    uint16_t xres;
+    uint16_t yres;
+    uint32_t pixclock;
+    uint16_t left_margin;
+    uint16_t right_margin;
+    uint16_t upper_margin;
+    uint16_t lower_margin;
+    uint16_t hsync_len;
+    uint16_t vsync_len;
+    uint16_t sync;
+    uint16_t vmode;
+    uint16_t flag;
 };
 
 extern const struct fb_videomode vesa_modes[];
 
 extern void start_timeout(void);
-extern int end_timeout(long msec);
+extern int32_t end_timeout(long msec);
 extern void mdelay(long msec);
-extern void install_vbl_timer(void *func, int remove);
+extern void install_vbl_timer(void *func, int32_t remove);
 extern void uninstall_vbl_timer(void *func);
 
 extern struct fb_info *info_fvdi;

@@ -139,7 +139,7 @@ static unsigned char *radeon_do_probe_i2c_edid(struct radeon_i2c_chan *chan)
     if (i2c_transfer(&chan->adapter, msgs, 2) == 2)
         return buf;
     else
-        err("i2c_transfer() failed\r\n");
+        dbg("i2c_transfer() failed\r\n");
 
     driver_mem_free(buf);
     return NULL;
