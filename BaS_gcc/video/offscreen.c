@@ -199,7 +199,7 @@ static void freeit(MD *m, MPB *mp)
     }
 }
 
-long offscreen_free(struct fb_info *info, long addr)
+long offscreen_free(struct fb_info *info, void *addr)
 {
     MD *p;
     MD **q;

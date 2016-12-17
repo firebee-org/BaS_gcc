@@ -407,10 +407,10 @@ const struct fb_videomode vesa_modes[] =
  *
  */
 
-static int fb_try_mode(struct fb_var_screeninfo *var, struct fb_info *info,
-                       const struct fb_videomode *mode, unsigned int bpp)
+static int32_t fb_try_mode(struct fb_var_screeninfo *var, struct fb_info *info,
+                       const struct fb_videomode *mode, uint32_t bpp)
 {
-    int err = 0;
+    int32_t err = 0;
 
     dbg("Trying mode %d x %d - %d @ %d\r\n", mode->xres, mode->yres, bpp, mode->refresh);
     var->xres = mode->xres;
@@ -470,16 +470,16 @@ static int fb_try_mode(struct fb_var_screeninfo *var, struct fb_info *info,
  *
  */
 
-int fb_find_mode(struct fb_var_screeninfo *var,
+int32_t fb_find_mode(struct fb_var_screeninfo *var,
                  struct fb_info *info, struct mode_option *resolution ,
-                 const struct fb_videomode *db, unsigned int dbsize,
+                 const struct fb_videomode *db, uint32_t dbsize,
                  const struct fb_videomode *default_mode,
-                 unsigned int default_bpp)
+                 uint32_t default_bpp)
 {
-    int i,abs;
-    int res_specified = 0, bpp_specified = 0, refresh_specified = 0;
-    unsigned int xres = 0, yres = 0, bpp = default_bpp, refresh = 0;
-    int yres_specified = 0;
+    int32_t i,abs;
+    int32_t res_specified = 0, bpp_specified = 0, refresh_specified = 0;
+    uint32_t xres = 0, yres = 0, bpp = default_bpp, refresh = 0;
+    int32_t yres_specified = 0;
     unsigned long best, diff;
 
     dbg("fb_find_mode\r\n");
@@ -513,18 +513,18 @@ int fb_find_mode(struct fb_var_screeninfo *var,
     /* Did the user specify a video mode? */
     if (resolution->used) /* fVDI mode */
     {
-        refresh = (unsigned int)resolution->freq;
+        refresh = (uint32_t)resolution->freq;
         if (refresh)
             refresh_specified = 1;
-        bpp = (unsigned int)resolution->bpp;
+        bpp = (uint32_t)resolution->bpp;
         if (resolution->flags & MODE_EMUL_MONO_FLAG)
             bpp = 8;
         if (bpp)
             bpp_specified = 1;
-        yres = (unsigned int)resolution->height;
+        yres = (uint32_t)resolution->height;
         if (yres)
             yres_specified = 1;
-        xres = (unsigned int)resolution->width;
+        xres = (uint32_t)resolution->width;
         if (xres)
             res_specified = 1;
     }

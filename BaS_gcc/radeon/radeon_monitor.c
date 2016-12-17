@@ -212,7 +212,7 @@ static int radeon_parse_monitor_layout(struct radeonfb_info *rinfo, const char *
  * Probe display on both primary and secondary card's connector (if any)
  * by i2c and try to retreive EDID. The algorithm here comes from XFree's * radeon driver
  */
-void radeon_probe_screens(struct radeonfb_info *rinfo, const char *monitor_layout, int ignore_edid)
+void radeon_probe_screens(struct radeonfb_info *rinfo, const char *monitor_layout, int32_t ignore_edid)
 {
 
 #ifdef CONFIG_FB_RADEON_I2C
@@ -661,7 +661,7 @@ static int radeon_compare_modes(const struct fb_var_screeninfo *var,
  * outputs a valid mode matching the passed-in one as closely as possible.
  * We need something better ultimately.
  */
-int radeon_match_mode(struct radeonfb_info *rinfo,
+int32_t radeon_match_mode(struct radeonfb_info *rinfo,
                       struct fb_var_screeninfo *dest,
                       const struct fb_var_screeninfo *src)
 {

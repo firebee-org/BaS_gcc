@@ -78,7 +78,7 @@
     (OUTREG(SURFACE_CNTL, __surface_cntl));
 
 /* Set cursor foreground and background colors */
-void radeon_set_cursor_colors(struct fb_info *info, int bg, int fg)
+void radeon_set_cursor_colors(struct fb_info *info, int32_t bg, int32_t fg)
 {
     struct radeonfb_info *rinfo = info->par;
     unsigned long *pixels = (unsigned long *)((unsigned long) rinfo->fb_base + rinfo->cursor_start);
@@ -110,7 +110,7 @@ void radeon_set_cursor_colors(struct fb_info *info, int bg, int fg)
 /* Set cursor position to (x,y) with offset into cursor bitmap at
  * (xorigin,yorigin)
  */
-void radeon_set_cursor_position(struct fb_info *info, int x, int y)
+void radeon_set_cursor_position(struct fb_info *info, int32_t x, int32_t y)
 {
     struct radeonfb_info *rinfo = info->par;
     struct fb_var_screeninfo *mode = &info->var;
@@ -142,7 +142,7 @@ void radeon_set_cursor_position(struct fb_info *info, int x, int y)
  * Copy cursor image from `image' to video memory.  RADEONSetCursorPosition
  * will be called after this, so we can ignore xorigin and yorigin.
  */
-void radeon_load_cursor_image(struct fb_info *info, unsigned short *mask, unsigned short *data, int zoom)
+void radeon_load_cursor_image(struct fb_info *info, unsigned short *mask, unsigned short *data, int32_t zoom)
 {
     struct radeonfb_info *rinfo = info->par;
     unsigned long *d = (unsigned long *)((unsigned long)rinfo->fb_base+rinfo->cursor_start);

@@ -344,7 +344,7 @@ struct mode_option resolution =
 };
 int16_t force_measure_pll = 0;
 
-void install_vbl_timer(void *func, int remove)
+void install_vbl_timer(void *func, int32_t remove)
 {
     dbg("not implemented\r\n");
 }
