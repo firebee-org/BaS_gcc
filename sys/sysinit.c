@@ -607,7 +607,7 @@ void init_usb(void)
             id = swpl(pci_read_config_longword(handle, PCIIDR));
             pci_class = swpl(pci_read_config_longword(handle, PCIREV));
 
-            if (pci_class == PCI_CLASS_SERIAL_USB_EHCI)
+            if (pci_class >> 8 == PCI_CLASS_SERIAL_USB_EHCI)
             {
                 board = ehci_usb_pci_table;
                 while (board->vendor)
@@ -622,7 +622,7 @@ void init_usb(void)
                     board++;
                 }
             }
-            if (pci_class == PCI_CLASS_SERIAL_USB_OHCI)
+            if (pci_class >> 8 == PCI_CLASS_SERIAL_USB_OHCI)
             {
                 board = ohci_usb_pci_table;
                 while (board->vendor)
@@ -1067,18 +1067,18 @@ void initialize_hardware(void)
     init_ddram();
 
 #if defined(MACHINE_M5484LITE)
-    xprintf("Fire Engine Control register:          %02x\r\n", * (uint8_t *) 0x61000000);
-    xprintf("Fire Engine interrupt register:        %02x\r\n", * (uint8_t *) 0x62000000);
-    xprintf("Fire Engine interrupt mask register:   %02x\r\n", * (uint8_t *) 0x63000000);
-    xprintf("Fire Engine power management register: %02x\r\n", * (uint8_t *) 0x64000000);
-    xprintf("Fire Engine EEPROM SPI register:       %02x\r\n", * (uint8_t *) 0x65000000);
-    xprintf("Fire Engine Flash register:            %02x\r\n", * (uint8_t *) 0x66000000);
-    xprintf("Fire Engine CPLD revision register:    %02x\r\n", * (uint8_t *) 0x67000000);
-    xprintf("Fire Engine Hardware revision register:%02x\r\n", * (uint8_t *) 0x68000000);
+    dbg("Fire Engine Control register:          %02x\r\n", * (uint8_t *) 0x61000000);
+    dbg("Fire Engine interrupt register:        %02x\r\n", * (uint8_t *) 0x62000000);
+    dbg("Fire Engine interrupt mask register:   %02x\r\n", * (uint8_t *) 0x63000000);
+    dbg("Fire Engine power management register: %02x\r\n", * (uint8_t *) 0x64000000);
+    dbg("Fire Engine EEPROM SPI register:       %02x\r\n", * (uint8_t *) 0x65000000);
+    dbg("Fire Engine Flash register:            %02x\r\n", * (uint8_t *) 0x66000000);
+    dbg("Fire Engine CPLD revision register:    %02x\r\n", * (uint8_t *) 0x67000000);
+    dbg("Fire Engine Hardware revision register:%02x\r\n", * (uint8_t *) 0x68000000);
 
-    xprintf("write control register 0x%02x\r\n", 1 << 7);
+    dbg("write control register 0x%02x\r\n", 1 << 7);
     * (uint8_t *) 0x61000000 = 1 << 7;
-    xprintf("Fire Engine Control register:          %02x\r\n", * (uint8_t *) 0x61000000);
+    dbg("Fire Engine Control register:          %02x\r\n", * (uint8_t *) 0x61000000);
 #endif /* MACHINE_M5484LITE */
 
     /*
