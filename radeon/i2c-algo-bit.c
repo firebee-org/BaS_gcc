@@ -34,7 +34,6 @@
 
 extern void start_timeout(void);
 extern int end_timeout(long msec);
-extern void udelay(long usec);
 
 /* --- setting states on the bus with the right timing: ---------------	*/
 
@@ -67,7 +66,7 @@ static inline void scllo(struct i2c_algo_bit_data *adap)
  */
 static inline int sclhi(struct i2c_algo_bit_data *adap)
 {
-    setscl(adap,1);
+    setscl(adap, 1);
     /* Not all adapters have scl sense line... */
     if(adap->getscl == NULL )
     {
@@ -75,14 +74,14 @@ static inline int sclhi(struct i2c_algo_bit_data *adap)
         return 0;
     }
     start_timeout();
-    while(! getscl(adap))
+    while (! getscl(adap))
     {
         /* the hw knows how to read the clock line,
          * so we wait until it actually gets high.
          * This is safer as some chips may hold it low
          * while they are processing data internally.
          */
-        if(end_timeout((long)adap->timeout))
+        if (end_timeout((long)adap->timeout))
             return -110;
     }
     wait_us(adap->udelay);
@@ -101,9 +100,9 @@ void i2c_start(struct i2c_algo_bit_data *adap)
 static void i2c_repstart(struct i2c_algo_bit_data *adap)
 {
     /* scl, sda may not be high */
-    setsda(adap,1);
+    setsda(adap, 1);
     sclhi(adap);
-    wait_ms(adap->udelay);
+    wait_us(adap->udelay);
     sdalo(adap);
     scllo(adap);
 }
@@ -135,11 +134,12 @@ static int i2c_outb(struct i2c_adapter *i2c_adap, char c)
 
     for (i = 7; i >= 0; i--)
     {
-        sb = c & ( 1 << i );
+        sb = c & (1 << i);
         setsda(adap,sb);
-        wait_ms(adap->udelay);
-        if(sclhi(adap)<0)
-        { /* timed out */
+        wait_us(adap->udelay);
+        if (sclhi(adap) < 0)
+        {
+            /* timed out */
             sdahi(adap); /* we don't want to block the net */
 #ifdef DEBUG
             dbg("ETIMEDOUT\r\n");
@@ -156,18 +156,18 @@ static int i2c_outb(struct i2c_adapter *i2c_adap, char c)
     if(sclhi(adap)<0)
     {
         /* timeout */
-#ifdef DEBUG
+
         dbg("ETIMEDOUT\r\n");
-#endif
+
         return -110;
     }
     /* read ack: SDA should be pulled down by slave */
     ack = getsda(adap);	/* ack: sda is pulled low ->success.	 */
     scllo(adap);
-#ifdef DEBUG
+
     dbg("0x%02x, ack=0x%02x\r\n", (unsigned long)(c & 0xff), ack);
-#endif
-    return 0==ack;		/* return 1 if device acked	 */
+
+    return 0 == ack;		/* return 1 if device acked	 */
     /* assert: scl is low (sda undef) */
 }
 
@@ -176,29 +176,26 @@ static int i2c_inb(struct i2c_adapter *i2c_adap)
     /* read byte via i2c port, without start/stop sequence	*/
     /* acknowledge is sent in i2c_read.			*/
     int i;
-    unsigned char indata=0;
+    unsigned char indata = 0;
     struct i2c_algo_bit_data *adap = i2c_adap->algo_data;
     /* assert: scl is low */
     sdahi(adap);
-    for(i=0;i<8;i++)
+    for(i = 0; i < 8; i++)
     {
-        if(sclhi(adap)<0)
+        if (sclhi(adap) < 0)
         {
             /* timeout */
-#ifdef DEBUG
             dbg("i2c_inb TIMEDOUT\r\n");
-#endif
             return -110;
         }
         indata *= 2;
-        if(getsda(adap))
+        if (getsda(adap))
             indata |= 0x01;
         scllo(adap);
     }
     /* assert: scl is low */
-#ifdef DEBUG
     dbg("0x%02x\r\n", (unsigned long)(indata & 0xff));
-#endif
+
     return (int) (indata & 0xff);
 }
 
@@ -208,30 +205,30 @@ static int i2c_inb(struct i2c_adapter *i2c_adap)
  */
 static int test_bus(struct i2c_algo_bit_data *adap)
 {
-    int scl,sda;
-    sda=getsda(adap);
-    scl=(adap->getscl==NULL?1:getscl(adap));
-    if(!scl || !sda )
+    int scl, sda;
+    sda = getsda(adap);
+    scl = (adap->getscl == NULL ? 1 : getscl(adap));
+    if (!scl || !sda )
         goto bailout;
     sdalo(adap);
-    sda=getsda(adap);
-    scl=(adap->getscl==NULL?1:getscl(adap));
-    if(sda !=0 || scl == 0)
+    sda = getsda(adap);
+    scl = (adap->getscl == NULL ? 1 : getscl(adap));
+    if (sda !=0 || scl == 0)
         goto bailout;
     sdahi(adap);
-    sda=getsda(adap);
-    scl=(adap->getscl==NULL?1:getscl(adap));
+    sda = getsda(adap);
+    scl = (adap->getscl == NULL ? 1 : getscl(adap));
     if (sda == 0 || scl ==0)
         goto bailout;
     scllo(adap);
-    sda=getsda(adap);
-    scl=(adap->getscl==NULL?0:getscl(adap));
-    if(scl !=0 || sda == 0)
+    sda = getsda(adap);
+    scl = (adap->getscl == NULL ? 0 : getscl(adap));
+    if (scl !=0 || sda == 0)
         goto bailout;
     sclhi(adap);
-    sda=getsda(adap);
-    scl=(adap->getscl==NULL?1:getscl(adap));
-    if(scl == 0 || sda ==0)
+    sda = getsda(adap);
+    scl = (adap->getscl == NULL ? 1 : getscl(adap));
+    if (scl == 0 || sda ==0)
         goto bailout;
     return 0;
 bailout:
@@ -254,15 +251,15 @@ static inline int try_address(struct i2c_adapter *i2c_adap,
                               unsigned char addr, int retries)
 {
     struct i2c_algo_bit_data *adap = i2c_adap->algo_data;
-    int i,ret = -1;
-    for(i=0;i<=retries;i++)
+    int i, ret = -1;
+    for (i = 0; i <= retries; i++)
     {
-        ret = i2c_outb(i2c_adap,addr);
-        if(ret==1)
+        ret = i2c_outb(i2c_adap, addr);
+        if (ret == 1)
             break;	/* success! */
         i2c_stop(adap);
         wait_us(5);
-        if(i==retries)  /* no success */
+        if (i == retries)  /* no success */
             break;
         i2c_start(adap);
         wait_us(adap->udelay);
@@ -283,7 +280,7 @@ static int sendbytes(struct i2c_adapter *i2c_adap, struct i2c_msg *msg)
     {
         c = *temp;
         retval = i2c_outb(i2c_adap,c);
-        if((retval>0) || (nak_ok && (retval==0)))
+        if ((retval > 0) || (nak_ok && (retval==0)))
         { /* ok or ignored NAK */
             count--;
             temp++;
@@ -292,7 +289,7 @@ static int sendbytes(struct i2c_adapter *i2c_adap, struct i2c_msg *msg)
         else
         { /* arbitration or no acknowledge */
             i2c_stop(adap);
-            return (retval<0)? retval : -110;
+            return (retval < 0)? retval : -110;
             /* got a better one ?? */
         }
     }
@@ -309,7 +306,7 @@ static inline int readbytes(struct i2c_adapter *i2c_adap, struct i2c_msg *msg)
     while(count > 0)
     {
         inval = i2c_inb(i2c_adap);
-        if(inval>=0)
+        if (inval >= 0)
         {
             *temp = inval;
             rdcount++;
@@ -319,15 +316,16 @@ static inline int readbytes(struct i2c_adapter *i2c_adap, struct i2c_msg *msg)
             break;
         temp++;
         count--;
-        if(msg->flags & I2C_M_NO_RD_ACK)
+        if (msg->flags & I2C_M_NO_RD_ACK)
             continue;
-        if( count > 0 )
+        if (count > 0)
             /* send ack */
             sdalo(adap);
         else
             sdahi(adap);	/* neg. ack on last byte */
-        if(sclhi(adap)<0)
-        {	/* timeout */
+        if (sclhi(adap) < 0)
+        {
+            /* timeout */
             sdahi(adap);
             return -1;
         };
@@ -353,38 +351,38 @@ static inline int bit_doAddress(struct i2c_adapter *i2c_adap, struct i2c_msg *ms
     unsigned char addr;
     int ret, retries;
     retries = nak_ok ? 0 : i2c_adap->retries;
-    if(flags & I2C_M_TEN)
+    if (flags & I2C_M_TEN)
     {
         /* a ten bit address */
         addr = 0xf0 | (( msg->addr >> 7) & 0x03);
         /* try extended address code...*/
         ret = try_address(i2c_adap, addr, retries);
-        if((ret != 1) && !nak_ok)
+        if ((ret != 1) && !nak_ok)
             return -1;
         /* the remaining 8 bit address */
         ret = i2c_outb(i2c_adap,msg->addr & 0x7f);
-        if((ret != 1) && !nak_ok)
+        if ((ret != 1) && !nak_ok)
             /* the chip did not ack / xmission error occurred */
             return -1;
-        if(flags & I2C_M_RD)
+        if (flags & I2C_M_RD)
         {
             i2c_repstart(adap);
             /* okay, now switch into reading mode */
             addr |= 0x01;
             ret = try_address(i2c_adap, addr, retries);
-            if ((ret!=1) && !nak_ok)
+            if ((ret != 1) && !nak_ok)
                 return -1;
         }
     }
     else
     {		/* normal 7bit address	*/
-        addr = ( msg->addr << 1 );
-        if(flags & I2C_M_RD )
+        addr = (msg->addr << 1);
+        if (flags & I2C_M_RD )
             addr |= 1;
-        if(flags & I2C_M_REV_DIR_ADDR )
+        if (flags & I2C_M_REV_DIR_ADDR )
             addr ^= 1;
         ret = try_address(i2c_adap, addr, retries);
-        if((ret!=1) && !nak_ok)
+        if ((ret != 1) && !nak_ok)
             return -1;
     }
     return 0;
@@ -403,25 +401,25 @@ static int bit_xfer(struct i2c_adapter *i2c_adap, struct i2c_msg msgs[], int num
         nak_ok = pmsg->flags & I2C_M_IGNORE_NAK;
         if(!(pmsg->flags & I2C_M_NOSTART))
         {
-            if(i)
+            if (i)
                 i2c_repstart(adap);
             ret = bit_doAddress(i2c_adap, pmsg);
-            if((ret != 0) && !nak_ok)
-                return (ret<0) ? ret : -1;
+            if ((ret != 0) && !nak_ok)
+                return (ret < 0) ? ret : -1;
         }
         if(pmsg->flags & I2C_M_RD )
         {
             /* read bytes into buffer*/
             ret = readbytes(i2c_adap, pmsg);
             if(ret < pmsg->len)
-                return (ret<0)? ret : -1;
+                return (ret < 0)? ret : -1;
         }
         else
         {
             /* write bytes from buffer */
             ret = sendbytes(i2c_adap, pmsg);
-            if(ret < pmsg->len )
-                return (ret<0) ? ret : -1;
+            if (ret < pmsg->len )
+                return (ret < 0) ? ret : -1;
         }
     }
     i2c_stop(adap);
@@ -431,7 +429,7 @@ static int bit_xfer(struct i2c_adapter *i2c_adap, struct i2c_msg msgs[], int num
 /* -----exported algorithm data: -------------------------------------	*/
 
 static struct i2c_algorithm i2c_bit_algo = {
-    .master_xfer	= bit_xfer,
+    .master_xfer = bit_xfer,
 };
 
 /*
@@ -440,22 +438,22 @@ static struct i2c_algorithm i2c_bit_algo = {
 int i2c_bit_add_bus(struct i2c_adapter *adap)
 {
     struct i2c_algo_bit_data *bit_adap = adap->algo_data;
-    if(1)
+    if (1)
     {
         int ret = test_bus(bit_adap);
-        if(ret<0)
+        if (ret < 0)
             return -1;
     }
     /* register new adapter to i2c module... */
     adap->algo = &i2c_bit_algo;
-    adap->timeout = 100;	/* default values, should	*/
-    adap->retries = 3;	/* be replaced by defines	*/
+    adap->timeout = 10;         /* default values, should	*/
+    adap->retries = 3;          /* be replaced by defines	*/
     return 0;
 }
 
 int i2c_bit_del_bus(struct i2c_adapter *adap)
 {
-    return(0);
+    return 0;
 }
 
 /* ----------------------------------------------------
@@ -463,12 +461,12 @@ int i2c_bit_del_bus(struct i2c_adapter *adap)
  * ----------------------------------------------------
  */
 
-int i2c_transfer(struct i2c_adapter * adap, struct i2c_msg *msgs, int num)
+int i2c_transfer(struct i2c_adapter *adap, struct i2c_msg *msgs, int num)
 {
     int ret;
-    if(adap->algo->master_xfer)
+    if (adap->algo->master_xfer)
     {
-        ret = adap->algo->master_xfer(adap,msgs,num);
+        ret = adap->algo->master_xfer(adap, msgs, num);
         return ret;
     }
     else
