@@ -435,19 +435,11 @@ bool pciarb_interrupt_handler(void *arg1, void *arg2)
     return true;
 }
 
-bool xlbarb_interrupt_handler(void *arg1, void *arg2, ...)
+bool xlbarb_interrupt_handler(void *arg1, void *arg2)
 {
-    va_list args;
-    int i;
     uint32_t status = MCF_XLB_XARB_SR;
 
     dbg("arg1=0x%08x arg2=0x%08x\r\n", arg1, arg2);
-    va_start(args, arg2);
-    for (i = 0; i < 20; i++)
-    {
-        dbg("arg[%d]=0x%08x\r\n", i, va_arg(args, int));
-    }
-    va_end(args);
 
     /*
      * TODO: we should probably issue a bus error when this occors
