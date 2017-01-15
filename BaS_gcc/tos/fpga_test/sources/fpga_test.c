@@ -19,10 +19,117 @@
 #define SYSCLK 132000
 
 long bas_start = 0xe0000000;
-extern volatile uint32_t _VRAM[];
 
-volatile int32_t time, start, end;
-int i;
+volatile uint16_t *FB_CS1 = (volatile uint16_t *) 0xfff00000; /* "classic" ATARI I/O registers */
+volatile uint32_t *FB_CS2 = (volatile uint32_t *) 0xf0000000; /* FireBee 32 bit I/O registers */
+volatile uint16_t *FB_CS3 = (volatile uint16_t *) 0xf8000000; /* FireBee SRAM */
+volatile uint32_t *FB_CS4 = (volatile uint32_t *) 0x40000000; /* FireBee SD RAM */
+
+bool verify_longaddr(volatile uint32_t * const addr, uint32_t value)
+{
+    *addr = value;
+
+    if (value != *addr)
+        return false;
+
+    return true;
+}
+
+bool verify_long(volatile uint32_t * const addr, uint32_t low_value, uint32_t high_value)
+{
+    uint32_t i;
+
+    for (i = low_value; i <= high_value; i++)
+        if (verify_longaddr(addr, i) == false)
+            return false;
+
+    return true;
+}
+
+void firebee_io_test(void)
+{
+    volatile uint32_t *ACP_VCTR = &FB_CS2[0x100];            /* 0xf000400 */
+    volatile uint32_t *CCR = &FB_CS2[0x101];                 /* 0xf000401 - FireBee mode border color */
+    volatile uint32_t *ATARI_HH = &FB_CS2[0x104];            /* 0xf000410 */
+    volatile uint32_t *ATARI_VH = &FB_CS2[0x105];            /* 0xf000414 */
+    volatile uint32_t *ATARI_HL = &FB_CS2[0x106];            /* 0xf000418 */
+    volatile uint32_t *ATARI_VL = &FB_CS2[0x107];            /* 0xf00041c */
+
+    volatile uint32_t *VIDEO_PLL_CONFIG = &FB_CS2[0x180];    /* 0xf000600 */
+    volatile uint32_t *VIDEO_PLL_RECONFIG = &FB_CS2[0x200];  /* 0xf000800 */
+
+    verify_long(ACP_VCTR, 0, 0x7fffffff);
+    verify_long(CCR, 0, 0x7fffffff);
+    verify_long(ATARI_HH, 0, 0xffffffff);
+    verify_long(ATARI_VH, 0, 0xffffffff);
+    verify_long(ATARI_HL, 0, 0xffffffff);
+    verify_long(ATARI_VL, 0, 0xffffffff);
+
+    verify_long(VIDEO_PLL_CONFIG, 0, 0xffffffff);
+    verify_long(VIDEO_PLL_RECONFIG, 0, 0xffffffff);
+}
+
+bool verify_wordaddr(volatile uint16_t * const addr, uint16_t value)
+{
+    *addr = value;
+
+    if (value != *addr)
+        return false;
+
+    return true;
+}
+
+bool verify_word(volatile uint16_t * const addr, uint16_t low_value, uint16_t high_value)
+{
+    int16_t i;
+
+    for (i = low_value; i <= high_value; i++)
+        if (verify_wordaddr(addr, i) == false)
+            return false;
+
+    return true;
+}
+
+void atari_io_test(void)
+{
+    volatile uint16_t *SYS_CTR = &FB_CS1[0x7c003];           /* 0xffff8006 */
+    volatile uint16_t *VDL_LOF = &FB_CS1[0x7c107];           /* 0xffff820e */
+    volatile uint16_t *VDL_LWD = &FB_CS1[0x7c108];           /* 0xffff8210 */
+    volatile uint16_t *VDL_HHT = &FB_CS1[0x7c141];           /* 0xffff8282 */
+    volatile uint16_t *VDL_HBB = &FB_CS1[0x7c142];           /* 0xffff8284 */
+    volatile uint16_t *VDL_HBE = &FB_CS1[0x7c143];           /* 0xffff8286 */
+    volatile uint16_t *VDL_HDB = &FB_CS1[0x7c144];           /* 0xffff8288 */
+    volatile uint16_t *VDL_HDE = &FB_CS1[0x7c145];           /* 0xffff828a */
+    volatile uint16_t *VDL_HSS = &FB_CS1[0x7c146];           /* 0xffff828c */
+
+    volatile uint16_t *VDL_VFT = &FB_CS1[0x7c151];           /* 0xffff82a2 */
+    volatile uint16_t *VDL_VBB = &FB_CS1[0x7c152];           /* 0xffff82a4 */
+    volatile uint16_t *VDL_VBE = &FB_CS1[0x7c153];           /* 0xffff82a6 */
+    volatile uint16_t *VDL_VDB = &FB_CS1[0x7c154];           /* 0xffff82a8 */
+    volatile uint16_t *VDL_VDE = &FB_CS1[0x7c155];           /* 0xffff82aa */
+    volatile uint16_t *VDL_VSS = &FB_CS1[0x7c156];           /* 0xffff82ac */
+    volatile uint16_t *VDL_VCT = &FB_CS1[0x7c160];           /* 0xffff82c0 */
+    volatile uint16_t *VDL_VMD = &FB_CS1[0x7c161];           /* 0xffff82c2 */
+
+    verify_word(SYS_CTR, 0, 0x7fff);
+    verify_word(VDL_LOF, 0, 0x7fff);
+    verify_word(VDL_LWD, 0, 0x7fff);
+    verify_word(VDL_HHT, 0, 0x7fff);
+    verify_word(VDL_HBB, 0, 0x7fff);
+    verify_word(VDL_HBE, 0, 0x7fff);
+    verify_word(VDL_HDB, 0, 0x7fff);
+    verify_word(VDL_HDE, 0, 0x7fff);
+    verify_word(VDL_HSS, 0, 0x7fff);
+
+    verify_word(VDL_VFT, 0, 0x7fff);
+    verify_word(VDL_VBB, 0, 0x7fff);
+    verify_word(VDL_VBE, 0, 0x7fff);
+    verify_word(VDL_VDB, 0, 0x7fff);
+    verify_word(VDL_VDE, 0, 0x7fff);
+    verify_word(VDL_VSS, 0, 0x7fff);
+    verify_word(VDL_VCT, 0, 0x7fff);
+    verify_word(VDL_VMD, 0, 0x7fff);
+}
 
 void do_tests(void)
 {

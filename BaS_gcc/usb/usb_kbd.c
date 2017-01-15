@@ -27,13 +27,8 @@
 
 #include "usb.h"
 
-//// #define DEBUG_USBKBD
-#ifdef DEBUG_USBKBD
-#define dbg(format, arg...) do { xprintf("DEBUG: %s(): " format, __FUNCTION__, ##arg); } while (0)
-#else
-#define dbg(format, arg...) do { ; } while (0)
-#endif /* DEBUG_USBKBD */
-#define err(format, arg...) do { xprintf("ERROR: %s(): " format, __FUNCTION__, ##arg); } while (0)
+// #define DEBUG
+#include "debug.h"
 
 #ifdef USE_COUNTRYCODE
 static int usb_kbd_get_hid_desc(struct usb_device *dev);
@@ -541,7 +536,7 @@ int usb_kbd_register(struct usb_device *dev)
 {
     if(!kbd_installed && (dev->devnum != -1) && (usb_kbd_probe(dev, 0) == 1))
     { /* Ok, we found a keyboard */
-        //dbg("USB KBD found (iorec: 0x%x, USB: %d, devnum: %d)\r\n", iorec, dev->usbnum, dev->devnum);
+        dbg("USB KBD found (USB: %d, devnum: %d)\r\n", dev->usbnum, dev->devnum);
         num_lock = caps_lock = scroll_lock = old_modifier = 0;
         flags.s = 0;
         kbd_installed = 1;
@@ -809,7 +804,7 @@ static int usb_kbd_translate(unsigned char scancode, unsigned char modifier, int
             flags.b.left_shift_host = 0;
     }
 #ifdef CONFIG_USB_INTERRUPT_POLLING
-    level = asm_set_ipl(7); /* mask interrupts for use call_ikbdvec() */
+    level = set_ipl(7); /* mask interrupts for use call_ikbdvec() */
 #endif
     if(pressed && (flags.b.force_alt_shift))
     {
@@ -841,7 +836,7 @@ static int usb_kbd_translate(unsigned char scancode, unsigned char modifier, int
                 usb_kbd_send_code(0x38); /* ALT */
         }
     }
-    if((keycode !=0) && (keycode <= MAX_VALUE_ATARI))
+    if ((keycode !=0) && (keycode <= MAX_VALUE_ATARI))
         usb_kbd_send_code(pressed ? keycode : keycode | 0x80);
     if(!pressed && (flags.b.force_alt_shift))
     {
@@ -874,9 +869,9 @@ static int usb_kbd_translate(unsigned char scancode, unsigned char modifier, int
         }
     }
 #ifdef CONFIG_USB_INTERRUPT_POLLING
-    asm_set_ipl(level);
+    set_ipl(level);
 #endif
-    if(pressed == 1)
+    if (pressed == 1)
     {
         if(scancode == NUM_LOCK)
         {

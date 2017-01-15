@@ -30,6 +30,7 @@
 #include "ehci.h"
 #include "pci.h"
 
+// #define DEBUG
 #include "debug.h"
 
 static char ehci_inited;

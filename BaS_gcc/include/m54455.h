@@ -33,8 +33,8 @@
 #define BOOTFLASH_SIZE				0x800000
 #define BOOTFLASH_BAM				(BOOTFLASH_SIZE - 1)
 
-#define SDRAM_START					0x00000000	/* start at address 0 */
-#define SDRAM_SIZE					0x8000000
+#define SDRAM_START					0x40000000	/* start at address 40000000 */
+#define SDRAM_SIZE					0x10000000  /* 256 MB */
 
 #ifdef COMPILE_RAM
 #define TARGET_ADDRESS	(SDRAM_START + SDRAM_SIZE - 0x200000)

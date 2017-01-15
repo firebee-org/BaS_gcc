@@ -441,7 +441,7 @@ static void init_fbcs()
      * i.e. it can burst on an 8 bit port up to 4 burst cycles or two on a 16 bit port.
      * Enabling burst on a 32 bit port has no effect (unfortunately).
      */
-    MCF_FBCS4_CSAR = MCF_FBCS_CSAR_BA(0x40000000);      /* video ram area, FB_CS3 not used, decoded on FPGA */
+    MCF_FBCS4_CSAR = MCF_FBCS_CSAR_BA(0x40000000);      /* video ram area, FB_CS4 not used, decoded on FPGA */
     MCF_FBCS4_CSCR = MCF_FBCS_CSCR_PS_32                /* 32 bit port */
         | MCF_FBCS_CSCR_WS(32)                          /* 0 wait states */
         | MCF_FBCS_CSCR_AA                              /* /TA auto acknowledge */
@@ -587,6 +587,11 @@ void init_usb(void)
     int32_t handle;
     int usb_found = 0;
     int index = 0;
+
+    /*
+     * disabled for now
+     */
+    return;
 
     inf("USB controller initialization:\r\n");
 

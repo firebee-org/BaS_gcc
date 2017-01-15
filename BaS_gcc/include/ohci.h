@@ -80,7 +80,7 @@ struct ed
     uint32_t hwHeadP;
     uint32_t hwNextED;
 
-    struct ed *ed_prev;
+    volatile struct ed *ed_prev;
     uint8_t int_period;
     uint8_t int_branch;
     uint8_t int_load;
@@ -91,7 +91,7 @@ struct ed
     struct ed *ed_rm_list;
 
     struct usb_device *usb_dev;
-    void *purb;
+    volatile void *purb;
     uint32_t unused[2];
 } __attribute__((aligned(16)));
 typedef struct ed ed_t;
@@ -145,8 +145,8 @@ struct td
     uint16_t hwPSW[MAXPSW];
     uint8_t unused;
     uint8_t index;
-    struct ed *ed;
-    struct td *next_dl_td;
+    volatile struct ed *ed;
+    volatile struct td *next_dl_td;
     struct usb_device *usb_dev;
     int transfer_len;
     uint32_t data;
@@ -166,7 +166,7 @@ typedef struct td td_t;
 #define NUM_INTS 32	/* part of the OHCI standard */
 struct ohci_hcca
 {
-    uint32_t	int_table[NUM_INTS];	/* Interrupt ED table */
+    volatile uint32_t	int_table[NUM_INTS];	/* Interrupt ED table */
 #if defined(CONFIG_MPC5200)
     uint16_t	pad1;			/* set to 0 on each frame_no change */
     uint16_t	frame_no;		/* current frame number */
@@ -372,7 +372,7 @@ struct virt_root_hub
 #define N_URB_TD 48
 typedef struct
 {
-    ed_t *ed;
+    volatile ed_t *ed;
     uint16_t length;	/* number of tds associated with this request */
     uint16_t td_cnt;	/* number of tds already serviced */
     struct usb_device *dev;
@@ -411,8 +411,8 @@ typedef struct ohci
   /* ---- end of common part ---- */
     int big_endian;           /* PCI BIOS */
     int controller;
-    struct ohci_hcca *hcca_unaligned;
-    struct ohci_hcca *hcca;		/* hcca */
+    volatile struct ohci_hcca *hcca_unaligned;
+    volatile struct ohci_hcca *hcca;		/* hcca */
     td_t *td_unaligned;
     struct ohci_device *ohci_dev_unaligned;
     /* this allocates EDs for all possible endpoints */
@@ -420,7 +420,7 @@ typedef struct ohci
 
     int irq_enabled;
     int stat_irq;
-    int irq;
+    volatile int irq;
     int disabled;			/* e.g. got a UE, we're hung */
     int sleeping;
 #define OHCI_FLAGS_NEC 0x80000000
@@ -428,15 +428,15 @@ typedef struct ohci
 
     uint32_t offset;
     uint32_t dma_offset;
-    struct ohci_regs *regs; /* OHCI controller's memory */
+    volatile struct ohci_regs *regs; /* OHCI controller's memory */
 
-    int ohci_int_load[32];	 /* load of the 32 Interrupt Chains (for load balancing)*/
-    ed_t *ed_rm_list[2];	 /* lists of all endpoints to be removed */
-    ed_t *ed_bulktail;	 /* last endpoint of bulk list */
-    ed_t *ed_controltail;	 /* last endpoint of control list */
+    int ohci_int_load[32];          /* load of the 32 Interrupt Chains (for load balancing)*/
+    volatile ed_t *ed_rm_list[2];   /* lists of all endpoints to be removed */
+    volatile ed_t *ed_bulktail;     /* last endpoint of bulk list */
+    volatile ed_t *ed_controltail;  /* last endpoint of control list */
     int intrstatus;
-    uint32_t hc_control;		/* copy of the hc control reg */
-    uint32_t ndp;          /* copy NDP from roothub_a */
+    uint32_t hc_control;            /* copy of the hc control reg */
+    uint32_t ndp;                   /* copy NDP from roothub_a */
     struct virt_root_hub rh;
 
     const char *slot_name;
@@ -447,9 +447,9 @@ typedef struct ohci
 
 /* hcd */
 /* endpoint */
-static int ep_link(ohci_t * ohci, ed_t * ed);
-static int ep_unlink(ohci_t * ohci, ed_t * ed);
-static ed_t * ep_add_ed(ohci_t * ohci, struct usb_device * usb_dev, uint32_t pipe, int interval, int load);
+static int ep_link(volatile ohci_t * ohci, volatile ed_t *ed);
+static int ep_unlink(volatile ohci_t * ohci, volatile ed_t *ed);
+static ed_t * ep_add_ed(volatile ohci_t * ohci, struct usb_device * usb_dev, uint32_t pipe, int interval, int load);
 
 
 /* we need more TDs than EDs */

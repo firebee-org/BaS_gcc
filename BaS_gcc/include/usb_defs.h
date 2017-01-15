@@ -26,6 +26,7 @@
 #ifndef _USB_DEFS_H_
 #define _USB_DEFS_H_
 
+#define CONFIG_USB_INTERRUPT_POLLING
 /* USB constants */
 
 /* Device and/or Interface Class codes */
