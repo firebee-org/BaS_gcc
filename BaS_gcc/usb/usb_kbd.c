@@ -26,6 +26,7 @@
  */
 
 #include "usb.h"
+#include "exceptions.h"
 
 // #define DEBUG
 #include "debug.h"
@@ -37,7 +38,7 @@ static int usb_kbd_get_hid_desc(struct usb_device *dev);
 /* under TOS Repeat keys are build by timer C so infinite (0) or 1000 is a good value */
 #define REPEAT_RATE 0       // 40 /* 40msec -> 25cps */
 
-#define MAX_VALUE_LOOKUP 0x90 
+#define MAX_VALUE_LOOKUP 0x90
 #define MAX_VALUE_ATARI  0x75
 
 #define NUM_LOCK    0x53
@@ -196,7 +197,7 @@ static unsigned char usb_kbd_to_atari_fr_modifier[] =
     0x00, 0x00, 0x00, 0xEA, 0x00, 0x00, 0x00, 0xEA
 };
 
-static unsigned char usb_kbd_to_atari_fr_unshift[] = 
+static unsigned char usb_kbd_to_atari_fr_unshift[] =
 {
     //                         A(Q)  B     C     D
     0x00, 0x00, 0x00, 0x00, 0x1E, 0x30, 0x2E, 0x20,
@@ -236,7 +237,7 @@ static unsigned char usb_kbd_to_atari_fr_unshift[] =
     0x1D, 0x2A, 0x38, 0x0F,	0x1D, 0x36, 0x00, 0x0F
 };
 
-static unsigned char usb_kbd_to_atari_fr_shift[] = 
+static unsigned char usb_kbd_to_atari_fr_shift[] =
 {
     /* Hexa values, 00: unused => use the Unshift table     */
     /*              FF: invalid => no scancode              */
@@ -406,7 +407,7 @@ static unsigned char usb_kbd_to_atari_de_unshift[] =
     0x1D, 0x2A, 0x38, 0x0F,	0x1D, 0x36, 0x00, 0x0F
 };
 
-static unsigned char usb_kbd_to_atari_de_shift[] = 
+static unsigned char usb_kbd_to_atari_de_shift[] =
 {
     /* Hexa values, 00: unused => use the Unshift table     */
     /*              FF: invalid => no scancode              */
@@ -1026,7 +1027,7 @@ static int usb_kbd_probe(struct usb_device *dev, unsigned int ifnum)
     dbg("USB KBD found, set protocol...\r\n");
 
     /* ok, we found a USB Keyboard, install it */
-#ifdef USE_COUNTRYCODE 
+#ifdef USE_COUNTRYCODE
     if(usb_kbd_get_hid_desc(dev) < 0)
         usb_kbd_hid_desc.bCountryCode = CC_NOT;
 #endif
