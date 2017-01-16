@@ -1119,7 +1119,7 @@ static void fb_timings_dclk(struct __fb_timings *timings)
  * REQUIRES:
  * A valid info->monspecs, otherwise 'safe numbers' will be used.
  */
-int32_t fb_get_mode(int32_t flags, unsigned long val, struct fb_var_screeninfo *var, struct fb_info *info)
+int32_t fb_get_mode(int32_t flags, uint32_t val, struct fb_var_screeninfo *var, struct fb_info *info)
 {
     struct __fb_timings timings;
     unsigned long interlace = 1, dscan = 1;

@@ -6,11 +6,32 @@
 #define RADEON_REGSIZE                         0x4000
 
 #define MM_INDEX                               0x0000  
-#define MM_DATA                                0x0004  
-#define BUS_CNTL                               0x0030  
-#define HI_STAT                                0x004C  
+#define MM_DATA                                0x0004
+#define	RADEON_BIOS_0_SCRATCH                   0x0010
+#define	RADEON_BIOS_1_SCRATCH                   0x0014
+#define	RADEON_BIOS_2_SCRATCH                   0x0018
+#define	RADEON_BIOS_3_SCRATCH                   0x001c
+#define	RADEON_BIOS_4_SCRATCH                   0x0020
+#define	RADEON_BIOS_5_SCRATCH                   0x0024
+#define	RADEON_BIOS_6_SCRATCH                   0x0028
+#define	RADEON_BIOS_7_SCRATCH                   0x002c
+#define BUS_CNTL                               0x0030
 #define BUS_CNTL1                              0x0034
-#define I2C_CNTL_1                             0x0094  
+#define MEM_VGA_WP_SEL                         0x0038
+#define MEM_VGA_RP_SEL                         0x003C
+#define GEN_INT_CNTL                           0x0040
+#define GEN_INT_STATUS                         0x0044
+#define HI_STAT                                0x004C
+#define CRTC_GEN_CNTL                          0x0050
+#define CRTC_EXT_CNTL                          0x0054
+#define DAC_CNTL                               0x0058
+#define CRTC_STATUS                            0x005C
+#define GPIO_VGA_DDC                           0x0060
+#define GPIO_DVI_DDC                           0x0064
+#define GPIO_MONID                             0x0068
+#define GPIO_CRT2_DDC                          0x006c
+
+#define I2C_CNTL_1                             0x0094
 #define CONFIG_CNTL                            0x00E0  
 #define CONFIG_MEMSIZE                         0x00F8  
 #define CONFIG_APER_0_BASE                     0x0100  
@@ -64,9 +85,7 @@
 #define AIC_HI_ADDR                            0x01E0  
 #define AIC_TLB_ADDR                           0x01E4  
 #define AIC_TLB_DATA                           0x01E8  
-#define DAC_CNTL                               0x0058  
 #define DAC_CNTL2                              0x007c
-#define CRTC_GEN_CNTL                          0x0050  
 #define MEM_CNTL                               0x0140  
 #define MC_CNTL                                0x0140
 #define EXT_MEM_CNTL                           0x0144  
@@ -90,8 +109,6 @@
 #define MC_CHIP_IO_OE_CNTL_AB                  0x018C
 #define MC_FB_LOCATION                         0x0148  
 #define HOST_PATH_CNTL                         0x0130  
-#define MEM_VGA_WP_SEL                         0x0038  
-#define MEM_VGA_RP_SEL                         0x003C  
 #define HDP_DEBUG                              0x0138  
 #define SW_SEMAPHORE                           0x013C
 #define TEST_DEBUG_CNTL                        0x0120
@@ -192,9 +209,6 @@
 #define BRUSH_DATA63                 0x157c
 #define BRUSH_SCALE                  0x1470
 #define BRUSH_Y_X                    0x1474
-#define GEN_INT_CNTL                           0x0040  
-#define GEN_INT_STATUS                         0x0044  
-#define CRTC_EXT_CNTL                          0x0054
 #define RB3D_CNTL			                         0x1C3C  
 #define WAIT_UNTIL                             0x1720  
 #define ISYNC_CNTL                             0x1724  
@@ -211,11 +225,6 @@
 #define RBBM_CMDFIFO_DATAL                     0x0E74
 #define RBBM_CMDFIFO_DATAH                     0x0E78  
 #define RBBM_CMDFIFO_STAT                      0x0E7C  
-#define CRTC_STATUS                            0x005C  
-#define GPIO_VGA_DDC                           0x0060  
-#define GPIO_DVI_DDC                           0x0064  
-#define GPIO_MONID                             0x0068  
-#define GPIO_CRT2_DDC                          0x006c
 #define PALETTE_INDEX                          0x00B0  
 #define PALETTE_DATA                           0x00B4  
 #define PALETTE_30_DATA                        0x00B8  
@@ -3324,14 +3333,7 @@
 #define	RB2D_DSTCACHE_CTLSTAT			0x342C
 #define	RB2D_DSTCACHE_MODE			0x3428
 
-#define	RADEON_BIOS_0_SCRATCH			0x0010
-#define	RADEON_BIOS_1_SCRATCH			0x0014
-#define	RADEON_BIOS_2_SCRATCH			0x0018
-#define	RADEON_BIOS_3_SCRATCH			0x001c
-#define	RADEON_BIOS_4_SCRATCH			0x0020
-#define	RADEON_BIOS_5_SCRATCH			0x0024
-#define	RADEON_BIOS_6_SCRATCH			0x0028
-#define	RADEON_BIOS_7_SCRATCH			0x002c
+
 
 #define	CLK_PIN_CNTL				0x0001
 #define	PPLL_CNTL				0x0002

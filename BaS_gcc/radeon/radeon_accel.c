@@ -609,7 +609,7 @@ void radeon_subsequent_scanline_cpu_to_screen_color_expand_fill_mmio(struct fb_i
 /* Subsequent XAA indirect CPU-to-screen color expansion and indirect
  * image write.  This is called once for each scanline.
  */
-void radeon_subsequent_scanline_mmio(struct fb_info *info, unsigned long *src)
+void radeon_subsequent_scanline_mmio(struct fb_info *info, uint32_t *src)
 {
     struct radeonfb_info *rinfo = info->par;
     int32_t left = rinfo->scanline_words;
@@ -620,12 +620,12 @@ void radeon_subsequent_scanline_mmio(struct fb_info *info, unsigned long *src)
     {
         if (left <= 8)
         {
-        /* Last scanline - finish write to DATA_LAST */
+            /* Last scanline - finish write to DATA_LAST */
             if (rinfo->scanline_h == 0)
             {
                 BEGIN_ACCEL(left);
                 /* Unrolling doesn't improve performance */
-                for (d = ADDRREG(HOST_DATA_LAST) - (left - 1); left; --left)
+                for (d = (volatile unsigned long *) ADDRREG(HOST_DATA_LAST) - (left - 1); left; --left)
                     *d++ = *src++;
                 return;
             }
@@ -633,7 +633,7 @@ void radeon_subsequent_scanline_mmio(struct fb_info *info, unsigned long *src)
             {
                 BEGIN_ACCEL(left);
                 /* Unrolling doesn't improve performance */
-                for(d = ADDRREG(HOST_DATA7) - (left - 1); left; --left)
+                for (d = (volatile unsigned long *) ADDRREG(HOST_DATA7) - (left - 1); left; --left)
                     *d++ = *src++;
             }
         }
@@ -641,7 +641,7 @@ void radeon_subsequent_scanline_mmio(struct fb_info *info, unsigned long *src)
         {
             BEGIN_ACCEL(8);
             /* Unrolling doesn't improve performance */
-            d = ADDRREG(HOST_DATA0);
+            d = (volatile unsigned long *) ADDRREG(HOST_DATA0);
             *d++ = *src++;
             *d++ = *src++;
             *d++ = *src++;

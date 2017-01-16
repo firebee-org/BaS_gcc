@@ -211,7 +211,7 @@ long offscreen_free(struct fb_info *info, void *addr)
     mpb = &pmd;
     for (p = *(q = &mpb->mp_mal); p; p = *(q = &p->m_link))
     {
-        if(addr == p->m_start)
+        if (addr == (void *) p->m_start)
             break;
     }
     if(!p)

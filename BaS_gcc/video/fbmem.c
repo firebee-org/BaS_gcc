@@ -99,7 +99,7 @@ int32_t fb_blank(struct fb_info *info, int32_t blank)
     return(info->fbops->fb_blank(blank, info));
 }
 
-int32_t fb_ioctl(struct fb_info *info, uint32_t cmd, unsigned long arg)
+int32_t fb_ioctl(struct fb_info *info, uint32_t cmd, uint32_t arg)
 {
     struct fb_var_screeninfo var;
     struct fb_fix_screeninfo fix;
@@ -162,7 +162,7 @@ int32_t fb_ioctl(struct fb_info *info, uint32_t cmd, unsigned long arg)
  * Returns the new structure, or NULL if an error occured.
  *
  */
-struct fb_info *framebuffer_alloc(unsigned long size)
+struct fb_info *framebuffer_alloc(uint32_t size)
 {
     /* changed for BaS_gcc:
      * we do not allocate anything here anymore, info_fb is statically allocated in video.c

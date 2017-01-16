@@ -68,7 +68,7 @@ extern volatile long _VRAM; /* start address of video ram from linker script */
  * BYT0 = 127.1ms/tick = 7.876Hz   offset 0
  * BYT1 = 496.5us/tick = 2.014kHz  offset 1
  * BYT2 = 1.939us/tick = 515.6kHz  offset 2
- * BYT3 = 7.576ns/tick = 132.00MHz offset 3
+ * BYT3 = 7.576ns/tick = 132.00MHz offset 3/
  * count down!!! 132MHz!!!
  */
 static void init_slt(void)

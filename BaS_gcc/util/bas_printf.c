@@ -1,7 +1,7 @@
 /*
  * tc.printf.c: A public-domain, minimal printf/sprintf routine that prints
- *	       through the putchar() routine.  Feel free to use for
- *	       anything...  -- 7/17/87 Paul Placeway
+ *         through the putchar() routine.  Feel free to use for
+ *         anything...  -- 7/17/87 Paul Placeway
  */
 /*-
  * Copyright (c) 1980, 1991 The Regents of the University of California.
@@ -33,6 +33,7 @@
  */
 
 #include <stdarg.h>
+#include <stdbool.h>
 #include "MCF5475.h"
 #include "bas_printf.h"
 #include "bas_string.h"
@@ -44,20 +45,54 @@
  * The eighth/sixteenth bit of characters is used to prevent recognition,
  * and eventually stripped.
  */
-#define	META		0200
-#define	ASCII		0177
-#define	QUOTE		((char)	0200)	/* Eighth char bit used for 'ing */
-#define	TRIM		0177	/* Mask to strip quote bit */
-#define	UNDER		0000000	/* No extra bits to do both */
-#define	BOLD		0000000	/* Bold flag */
-#define	STANDOUT	META	/* Standout flag */
-#define	LITERAL		0000000	/* Literal character flag */
-#define	ATTRIBUTES	0200	/* The bits used for attributes */
-#define	CHAR		0000177	/* Mask to mask out the character */
+#define META        0200
+#define ASCII       0177
+#define QUOTE       ((char) 0200)   /* Eighth char bit used for 'ing */
+#define TRIM        0177            /* Mask to strip quote bit */
+#define UNDER       0000000         /* No extra bits to do both */
+#define BOLD        0000000         /* Bold flag */
+#define STANDOUT    META            /* Standout flag */
+#define LITERAL     0000000         /* Literal character flag */
+#define ATTRIBUTES  0200            /* The bits used for attributes */
+#define CHAR        0000177         /* Mask to mask out the character */
 
-#define INF	32766		/* should be bigger than any field to print */
+#define INF 32766       /* should be bigger than any field to print */
 
 static char snil[] = "(nil)";
+
+bool conoutstat(void)
+{
+    bool stat;
+
+    stat = MCF_PSC0_PSCSR & MCF_PSC_PSCSR_TXRDY;    /* TX FIFO can take data */
+
+    return stat;
+}
+
+bool coninstat(void)
+{
+    bool stat;
+
+    stat = MCF_PSC0_PSCSR &  MCF_PSC_PSCSR_RXRDY;   /* RX FIFO has data available */
+
+    return stat;
+}
+
+void xputchar(int c)
+{
+    do { ; } while (!conoutstat());
+    MCF_PSC_PSCRB_8BIT(0) = (char) c;
+}
+
+char xgetchar(void)
+{
+    char c;
+
+    do { ; } while (!coninstat());
+    c = MCF_PSC_PSCTB_8BIT(0);
+
+    return c;
+}
 
 static void doprnt(void (*addchar)(int), const char *sfmt, va_list ap)
 {
@@ -408,23 +443,24 @@ void hexdump(uint8_t buffer[], int size)
 {
    int i;
    int line = 0;
-   uint8_t *bp = buffer;
+   volatile uint8_t *bp = buffer;
 
    while (bp < buffer + size) {
-      uint8_t *lbp = bp;
+      volatile uint8_t *lbp = bp;
 
-      xprintf("%08x  ", bp);
+      xprintf("%08x  ", line);
 
       for (i = 0; i < 16; i++) {
+          uint8_t c = *lbp++;
          if (bp + i > buffer + size) {
             break;
          }
-         xprintf("%02x ", (uint8_t) *lbp++);
+         xprintf("%02x ", c);
       }
 
       lbp = bp;
       for (i = 0; i < 16; i++) {
-         int8_t c = *lbp++;
+         volatile int8_t c = *lbp++;
 
          if (bp + i > buffer + size) {
             break;

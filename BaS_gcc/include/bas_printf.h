@@ -29,16 +29,14 @@ extern void xprintf(const char *fmt, ...);
 extern void xsnprintf(char *str, size_t size, const char *fmt, ...);
 extern int sprintf(char *str, const char *format, ...);
 
+extern bool conoutstat(void);
+extern bool coninstat(void);
+extern void xputchar(int c);
+extern char xgetchar(void);
+
 
 extern void display_progress(void);
 extern void hexdump(uint8_t buffer[], int size);
 
-static inline void xputchar(int c)
-{
-    while (!(MCF_PSC0_PSCSR & MCF_PSC_PSCSR_TXRDY))
-        ;
-
-    MCF_PSC0_PSCTB_8BIT = (uint8_t) c;
-}
 
 #endif /* _BAS_PRINTF_H_ */

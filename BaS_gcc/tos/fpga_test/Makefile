@@ -23,8 +23,8 @@ TOPDIR = ../..
 
 LIBCMINI=$(TOPDIR)/../libcmini/libcmini
 
-INCLUDE=-I$(LIBCMINI)/include -nostdlib
-LIBS=-lcmini -nostdlib -lgcc
+INCLUDE=-I$(LIBCMINI)/include -nostdlib -I$(TOPDIR)/include
+LIBS=-lcmini -nostdlib -lgcc -L$(TOPDIR)/firebee -lbas
 CC=$(PREFIX)/bin/gcc
 
 CC=$(CROSSBINDIR)gcc
@@ -51,9 +51,9 @@ INCLUDE+=-I$(INCDIR)
 
 CSRCS=\
 	$(SRCDIR)/fpga_test.c \
-	$(SRCDIR)/bas_printf.c
+	$(SRCDIR)/ser_printf.c
 
-ASRCS=$(SRCDIR)/printf_helper.S
+ASRCS=
 
 COBJS=$(patsubst $(SRCDIR)/%.o,%.o,$(patsubst %.c,%.o,$(CSRCS)))
 AOBJS=$(patsubst $(SRCDIR)/%.o,%.o,$(patsubst %.S,%.o,$(ASRCS)))
