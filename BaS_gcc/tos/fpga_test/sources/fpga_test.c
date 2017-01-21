@@ -73,8 +73,14 @@ bool verify_wordaddr(volatile uint16_t * const addr, uint16_t value)
 {
     *addr = value;
 
+    xprintf("W: 0x%04x R: 0x%04x\r", value, *addr);
+
     if (value != *addr)
+    {
+        xprintf("\r\n");
+
         return false;
+    }
 
     return true;
 }
@@ -85,7 +91,11 @@ bool verify_word(volatile uint16_t * const addr, uint16_t low_value, uint16_t hi
 
     for (i = low_value; i <= high_value; i++)
         if (verify_wordaddr(addr, i) == false)
+        {
+            xprintf("verify of %p failed: 0x%04x written, 0x%04x read\r\n",
+                    addr, i, *addr);
             return false;
+        }
 
     return true;
 }
@@ -111,29 +121,67 @@ void atari_io_test(void)
     volatile uint16_t *VDL_VCT = &FB_CS1[0x7c160];           /* 0xffff82c0 */
     volatile uint16_t *VDL_VMD = &FB_CS1[0x7c161];           /* 0xffff82c2 */
 
-    verify_word(SYS_CTR, 0, 0x7fff);
-    verify_word(VDL_LOF, 0, 0x7fff);
-    verify_word(VDL_LWD, 0, 0x7fff);
-    verify_word(VDL_HHT, 0, 0x7fff);
-    verify_word(VDL_HBB, 0, 0x7fff);
-    verify_word(VDL_HBE, 0, 0x7fff);
-    verify_word(VDL_HDB, 0, 0x7fff);
-    verify_word(VDL_HDE, 0, 0x7fff);
-    verify_word(VDL_HSS, 0, 0x7fff);
+    xprintf("verify SYS_CTR register\r\n");
+    verify_word(SYS_CTR, 0, 0x7f);
 
-    verify_word(VDL_VFT, 0, 0x7fff);
-    verify_word(VDL_VBB, 0, 0x7fff);
-    verify_word(VDL_VBE, 0, 0x7fff);
-    verify_word(VDL_VDB, 0, 0x7fff);
-    verify_word(VDL_VDE, 0, 0x7fff);
-    verify_word(VDL_VSS, 0, 0x7fff);
-    verify_word(VDL_VCT, 0, 0x7fff);
-    verify_word(VDL_VMD, 0, 0x7fff);
+    xprintf("verify LOF register\r\n");
+    verify_word(VDL_LOF, 0, 0x7f);
+
+    xprintf("verify LWD register \r\n");
+    verify_word(VDL_LWD, 0, 0x7f);
+
+    xprintf("verify HHT register\r\n");
+    verify_word(VDL_HHT, 0, 0x7f);
+
+    xprintf("verify HBB register\r\n");
+    verify_word(VDL_HBB, 0, 0x7f);
+
+    xprintf("verify HBE register\r\n");
+    verify_word(VDL_HBE, 0, 0x7f);
+
+    xprintf("verify HDB register\r\n");
+    verify_word(VDL_HDB, 0, 0x7f);
+
+    xprintf("verify HDE register\r\n");
+    verify_word(VDL_HDE, 0, 0x7f);
+
+    xprintf("verify HSS register\r\n");
+    verify_word(VDL_HSS, 0, 0x7f);
+
+
+    xprintf("verify VFT register\r\n");
+    verify_word(VDL_VFT, 0, 0x7f);
+
+    xprintf("verify VBB register\r\n");
+    verify_word(VDL_VBB, 0, 0x7f);
+
+    xprintf("verify VBE register\r\n");
+    verify_word(VDL_VBE, 0, 0x7f);
+
+    xprintf("verify VDB register\r\n");
+    verify_word(VDL_VDB, 0, 0x7f);
+
+    xprintf("verify VDE register\r\n");
+    verify_word(VDL_VDE, 0, 0x7f);
+
+    xprintf("verify VSS register\r\n");
+    verify_word(VDL_VSS, 0, 0x7f);
+
+    xprintf("verify VCT register\r\n");
+    verify_word(VDL_VCT, 0, 0x7f);
+
+    xprintf("verify VMD register\r\n");
+    verify_word(VDL_VMD, 0, 0x7f);
 }
 
 void do_tests(void)
 {
+    xprintf("start tests:\r\n");
+
+    xprintf("ATARI I/O test\r\n");
     atari_io_test();
+
+    xprintf("FireBee I/O test\r\n");
     firebee_io_test();
 }
 
@@ -211,7 +259,7 @@ int main(int argc, char *argv[])
 {
     printf("FPGA JTAG configuration support\r\n");
     printf("test FPGA DDR RAM controller\r\n");
-    printf("\xbd 2014 M. F\x94schle\r\n");
+    printf("\xbd 2014 M. Fr\x94schle\r\n");
 
     printf("You may now savely load a new FPGA configuration through the JTAG interface\r\n"
            "and your Firebee will reboot once finished using that new configuration.\r\n");
