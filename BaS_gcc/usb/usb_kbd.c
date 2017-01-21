@@ -46,14 +46,14 @@ static int usb_kbd_get_hid_desc(struct usb_device *dev);
 #define SCROLL_LOCK 0x47
 
 /* Modifier bits */
-#define LEFT_CNTR		0
+#define LEFT_CNTR       0
 #define LEFT_SHIFT      1
-#define LEFT_ALT		2
-#define LEFT_GUI		3
+#define LEFT_ALT        2
+#define LEFT_GUI        3
 #define RIGHT_CNTR      4
 #define RIGHT_SHIFT     5
-#define RIGHT_ALT		6
-#define RIGHT_GUI		7
+#define RIGHT_ALT       6
+#define RIGHT_GUI       7
 
 /* HID bCountryCode */
 #define CC_NOT 0

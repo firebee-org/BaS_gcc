@@ -23,14 +23,73 @@ long bas_start = 0xe0000000;
 volatile uint16_t *FB_CS1 = (volatile uint16_t *) 0xfff00000; /* "classic" ATARI I/O registers */
 volatile uint32_t *FB_CS2 = (volatile uint32_t *) 0xf0000000; /* FireBee 32 bit I/O registers */
 volatile uint16_t *FB_CS3 = (volatile uint16_t *) 0xf8000000; /* FireBee SRAM */
-volatile uint32_t *FB_CS4 = (volatile uint32_t *) 0x40000000; /* FireBee SD RAM */
+uint32_t *FB_CS4 = (volatile uint32_t *) 0x40000000; /* FireBee SD RAM */
+
+const int sdram_size = 128 * 1024L * 1024L;
+
+bool verify_ddr_ram(uint32_t value)
+{
+    uint32_t *lp;
+    uint16_t *wp;
+    uint8_t *cp;
+
+    lp = FB_CS4;
+
+    /*
+     * write
+     */
+    do
+    {
+        *lp = value;
+    } while (lp++ <= FB_CS4 + sdram_size - 1);
+
+    /*
+     * read
+     */
+    lp = FB_CS4;
+    do
+    {
+        if (*lp != value)
+        {
+            return false;
+        }
+    } while (lp++ <= FB_CS4 + sdram_size - 1);
+
+    wp = (short *) FB_CS4;
+
+    /*
+     * write
+     */
+    do
+    {
+        *wp = (uint16_t) value;
+    } while (cp++ <= (uint16_t *) FB_CS4 + sdram_size - 1);
+
+    wp = (short *) FB_CS4;
+    do
+    {
+        if (*wp != value)
+        {
+            return false;
+        }
+    } while (wp++ <= FB_CS4 + sdram_size - 1);
+
+
+    return true;
+}
 
 bool verify_longaddr(volatile uint32_t * const addr, uint32_t value)
 {
+    uint32_t rvalue;
+
     *addr = value;
 
-    if (value != *addr)
+    if (value != (rvalue = *addr))
+    {
+        xprintf("validation error at %p: written = 0x%08x, read = 0x%08x\r\n", addr, value, rvalue);
+
         return false;
+    }
 
     return true;
 }
@@ -71,11 +130,13 @@ void firebee_io_test(void)
 
 bool verify_wordaddr(volatile uint16_t * const addr, uint16_t value)
 {
+    long rvalue;
     *addr = value;
 
-    xprintf("W: 0x%04x R: 0x%04x\r", value, *addr);
+    if (value != (rvalue = *addr))
+    {
+        xprintf("validation error at %p, wrote 0x%4x, read 0x%4x\r\n", addr, value, rvalue);
 
-    if (value != *addr)
     {
         xprintf("\r\n");
 
