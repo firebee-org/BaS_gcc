@@ -202,6 +202,7 @@ typedef struct romram
     char *name;
 } ROMRAM;
 
+#if defined(MACHINE_FIREBEE)
 static const struct romram flash_areas[] =
 {
 { 0xe0600000, 0x00e00000, "EmuTOS" }, /* EmuTOS */
@@ -209,6 +210,7 @@ static const struct romram flash_areas[] =
 { 0xe0700000, 0x00e00000, "FPGA" }, /* FPGA config */
 };
 static const int num_flash_areas = sizeof(flash_areas) / sizeof(struct romram);
+#endif
 
 #define FLASH_ADDRESS 0xe0000000
 
