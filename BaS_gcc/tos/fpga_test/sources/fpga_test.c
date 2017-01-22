@@ -23,20 +23,19 @@ long bas_start = 0xe0000000;
 volatile uint16_t *FB_CS1 = (volatile uint16_t *) 0xfff00000; /* "classic" ATARI I/O registers */
 volatile uint32_t *FB_CS2 = (volatile uint32_t *) 0xf0000000; /* FireBee 32 bit I/O registers */
 volatile uint16_t *FB_CS3 = (volatile uint16_t *) 0xf8000000; /* FireBee SRAM */
-uint32_t *FB_CS4 = (volatile uint32_t *) 0x40000000; /* FireBee SD RAM */
+uint32_t *FB_CS4 = (uint32_t *) 0x40000000; /* FireBee SD RAM */
 
-const int sdram_size = 128 * 1024L * 1024L;
+const long sdram_size = 128 * 1024L * 1024L;
 
 bool verify_ddr_ram(uint32_t value)
 {
     uint32_t *lp;
     uint16_t *wp;
-    uint8_t *cp;
 
     lp = FB_CS4;
 
     /*
-     * write
+     * write longs
      */
     do
     {
@@ -44,7 +43,7 @@ bool verify_ddr_ram(uint32_t value)
     } while (lp++ <= FB_CS4 + sdram_size - 1);
 
     /*
-     * read
+     * read longs
      */
     lp = FB_CS4;
     do
@@ -55,24 +54,27 @@ bool verify_ddr_ram(uint32_t value)
         }
     } while (lp++ <= FB_CS4 + sdram_size - 1);
 
-    wp = (short *) FB_CS4;
+    wp = (uint16_t *) FB_CS4;
 
     /*
-     * write
+     * write words
      */
     do
     {
         *wp = (uint16_t) value;
-    } while (cp++ <= (uint16_t *) FB_CS4 + sdram_size - 1);
+    } while (wp++ <= (uint16_t *) FB_CS4 + sdram_size - 1);
 
-    wp = (short *) FB_CS4;
+    /*
+     * read words
+     */
+    wp = (uint16_t *) FB_CS4;
     do
     {
         if (*wp != value)
         {
             return false;
         }
-    } while (wp++ <= FB_CS4 + sdram_size - 1);
+    } while (wp++ <= (uint16_t *) FB_CS4 + sdram_size - 1);
 
 
     return true;
@@ -80,13 +82,15 @@ bool verify_ddr_ram(uint32_t value)
 
 bool verify_longaddr(volatile uint32_t * const addr, uint32_t value)
 {
-    uint32_t rvalue;
-
     *addr = value;
 
-    if (value != (rvalue = *addr))
+    xprintf("W: 0x%08x R: 0x%08x\r", value, *addr);
+
+    if (value != *addr)
     {
-        xprintf("validation error at %p: written = 0x%08x, read = 0x%08x\r\n", addr, value, rvalue);
+        xprintf("validation error at %p: written = 0x%08x, read = 0x%08x\r\n", addr, value, *addr);
+
+        xprintf("\r\n");
 
         return false;
     }
@@ -100,8 +104,12 @@ bool verify_long(volatile uint32_t * const addr, uint32_t low_value, uint32_t hi
 
     for (i = low_value; i <= high_value; i++)
         if (verify_longaddr(addr, i) == false)
-            return false;
+        {
+            xprintf("verify of %p failed: 0x%08x written, 0x%08x read\r\n",
+                    addr, i, *addr);
 
+            return false;
+        }
     return true;
 }
 
@@ -117,15 +125,29 @@ void firebee_io_test(void)
     volatile uint32_t *VIDEO_PLL_CONFIG = &FB_CS2[0x180];    /* 0xf000600 */
     volatile uint32_t *VIDEO_PLL_RECONFIG = &FB_CS2[0x200];  /* 0xf000800 */
 
-    verify_long(ACP_VCTR, 0, 0x7fffffff);
-    verify_long(CCR, 0, 0x7fffffff);
-    verify_long(ATARI_HH, 0, 0xffffffff);
-    verify_long(ATARI_VH, 0, 0xffffffff);
-    verify_long(ATARI_HL, 0, 0xffffffff);
-    verify_long(ATARI_VL, 0, 0xffffffff);
+    xprintf("verify ACP_VCTR register\r\n");
+    verify_long(ACP_VCTR, 0, 0x1ff);
 
-    verify_long(VIDEO_PLL_CONFIG, 0, 0xffffffff);
-    verify_long(VIDEO_PLL_RECONFIG, 0, 0xffffffff);
+    xprintf("verify CCR register\r\n");
+    verify_long(CCR, 0, 0x1ff);
+
+    xprintf("verify ATARI_HH register\r\n");
+    verify_long(ATARI_HH, 0, 0x1ff);
+
+    xprintf("verify ATARI_VH register\r\n");
+    verify_long(ATARI_VH, 0, 0x1ff);
+
+    xprintf("verify ATARI_HL register\r\n");
+    verify_long(ATARI_HL, 0, 0x1ff);
+
+    xprintf("verify ATARI_VL register\r\n");
+    verify_long(ATARI_VL, 0, 0x1ff);
+
+    xprintf("verify VIDEO_PLL_CONFIG register\r\n");
+    verify_long(VIDEO_PLL_CONFIG, 0, 0x1ff);
+
+    xprintf("verify VIDEO_PLL_RECONFIG register\r\n");
+    verify_long(VIDEO_PLL_RECONFIG, 0, 0x1ff);
 }
 
 bool verify_wordaddr(volatile uint16_t * const addr, uint16_t value)
@@ -137,7 +159,6 @@ bool verify_wordaddr(volatile uint16_t * const addr, uint16_t value)
     {
         xprintf("validation error at %p, wrote 0x%4x, read 0x%4x\r\n", addr, value, rvalue);
 
-    {
         xprintf("\r\n");
 
         return false;
@@ -183,56 +204,56 @@ void atari_io_test(void)
     volatile uint16_t *VDL_VMD = &FB_CS1[0x7c161];           /* 0xffff82c2 */
 
     xprintf("verify SYS_CTR register\r\n");
-    verify_word(SYS_CTR, 0, 0x7f);
+    verify_word(SYS_CTR, 0, 0x1ff);
 
     xprintf("verify LOF register\r\n");
-    verify_word(VDL_LOF, 0, 0x7f);
+    verify_word(VDL_LOF, 0, 0x1ff);
 
     xprintf("verify LWD register \r\n");
-    verify_word(VDL_LWD, 0, 0x7f);
+    verify_word(VDL_LWD, 0, 0x1ff);
 
     xprintf("verify HHT register\r\n");
-    verify_word(VDL_HHT, 0, 0x7f);
+    verify_word(VDL_HHT, 0, 0x1ff);
 
     xprintf("verify HBB register\r\n");
-    verify_word(VDL_HBB, 0, 0x7f);
+    verify_word(VDL_HBB, 0, 0x1ff);
 
     xprintf("verify HBE register\r\n");
-    verify_word(VDL_HBE, 0, 0x7f);
+    verify_word(VDL_HBE, 0, 0x1ff);
 
     xprintf("verify HDB register\r\n");
-    verify_word(VDL_HDB, 0, 0x7f);
+    verify_word(VDL_HDB, 0, 0x1ff);
 
     xprintf("verify HDE register\r\n");
-    verify_word(VDL_HDE, 0, 0x7f);
+    verify_word(VDL_HDE, 0, 0x1ff);
 
     xprintf("verify HSS register\r\n");
-    verify_word(VDL_HSS, 0, 0x7f);
+    verify_word(VDL_HSS, 0, 0x1ff);
 
 
     xprintf("verify VFT register\r\n");
-    verify_word(VDL_VFT, 0, 0x7f);
+    verify_word(VDL_VFT, 0, 0x1ff);
 
     xprintf("verify VBB register\r\n");
-    verify_word(VDL_VBB, 0, 0x7f);
+    verify_word(VDL_VBB, 0, 0x1ff);
 
     xprintf("verify VBE register\r\n");
-    verify_word(VDL_VBE, 0, 0x7f);
+    verify_word(VDL_VBE, 0, 0x1ff);
 
     xprintf("verify VDB register\r\n");
-    verify_word(VDL_VDB, 0, 0x7f);
+    verify_word(VDL_VDB, 0, 0x1ff);
 
     xprintf("verify VDE register\r\n");
-    verify_word(VDL_VDE, 0, 0x7f);
+    verify_word(VDL_VDE, 0, 0x1ff);
 
     xprintf("verify VSS register\r\n");
-    verify_word(VDL_VSS, 0, 0x7f);
+    verify_word(VDL_VSS, 0, 0x1ff);
 
     xprintf("verify VCT register\r\n");
-    verify_word(VDL_VCT, 0, 0x7f);
+    verify_word(VDL_VCT, 0, 0x1ff);
 
     xprintf("verify VMD register\r\n");
-    verify_word(VDL_VMD, 0, 0x7f);
+    verify_word(VDL_VMD, 0, 0x1ff);
 }
 
 void do_tests(void)
