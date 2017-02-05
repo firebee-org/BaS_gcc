@@ -448,7 +448,7 @@ int main(int argc, char *argv[])
     printf("\xbd 2014 M. Fr\x94schle\r\n");
 
     printf("You may now savely load a new FPGA configuration through the JTAG interface\r\n"
-           "and your Firebee will reboot once finished using that new configuration.\r\n");
+           "and your FireBee will reboot once finished using that new configuration.\r\n");
     if (argc == 2)
     {
         /*
