@@ -281,7 +281,10 @@ void falcon_io_test(void)
     volatile uint16_t *VDL_VMD = &FB_CS1[0x7c161];          /* 0xffff82c2 */
 
     /* ST palette registers */
-    volatile uint8_t *st_palette = (volatile uint8_t *) &FB_CS1[0x7c120];
+    volatile uint8_t *st_palette = (volatile uint8_t *) &FB_CS1[0x7c120];           /* 0xffff8240 */
+
+    /* Falcon palette registers */
+    volatile uint8_t *falcon_palette = (volatile uint8_t *) &FB_CS1[0x7cc00];       /* 0xffff9800 */
 
     xprintf("verify VIDEO_ADR_XX registers\r\n");
     verify_byte(VIDEO_ADR_HI, 0x00, 0xff);
@@ -304,6 +307,13 @@ void falcon_io_test(void)
         xprintf("verify ST palette register %d\r\n", i / 2);
         verify_byte(&st_palette[i], i / 2, i / 2);
         verify_byte(&st_palette[i], i / 2, i / 2);     /* do two consecutive tests here because of RAM latency */
+    }
+
+    for (i = 0; i < 255 * 2; i += 2)
+    {
+        xprintf("verify Falcon palette register %d\r\n", i / 2);
+        verify_byte(&falcon_palette[i], i / 2, i / 2);
+        verify_byte(&falcon_palette[i], i / 2, i / 2);  /* do two consecutive tests here because of FPGA RAM latency */
     }
 
     xprintf("verify LOF register\r\n");

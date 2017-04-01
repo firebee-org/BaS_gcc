@@ -723,7 +723,6 @@ tos/fpga_test/sources/bas_printf.c
 tos/fpga_test/sources/bas_string.c
 tos/fpga_test/sources/fpga_test.c
 tos/fpga_test/sources/printf_helper.S
-tos/fpga_test/sources/vmem_test.c
 tos/fpga_test/Makefile
 tos/jtagwait/include/bas_printf.h
 tos/jtagwait/include/bas_string.h
