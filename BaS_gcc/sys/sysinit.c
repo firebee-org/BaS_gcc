@@ -417,7 +417,9 @@ static void init_fbcs()
 #if defined(MACHINE_FIREBEE) /* FBC setup for FireBee */
     MCF_FBCS1_CSAR = MCF_FBCS_CSAR_BA(0xFFF00000);      /* ATARI I/O address range */
     MCF_FBCS1_CSCR = MCF_FBCS_CSCR_PS_16                /* 16BIT PORT */
-        | MCF_FBCS_CSCR_WS(32)                           /* 8 wait states */
+        | MCF_FBCS_CSCR_WS(32)                          /* 32 wait states */
+        | MCF_FBCS_CSCR_BSTR                            /* burst read enable */
+        | MCF_FBCS_CSCR_BSTW                            /* burst write enable */
         | MCF_FBCS_CSCR_AA;                             /* auto /TA acknowledge */
     MCF_FBCS1_CSMR = MCF_FBCS_CSMR_BAM_1M | MCF_FBCS_CSMR_V;
 
