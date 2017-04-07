@@ -11,12 +11,8 @@
 #include <stddef.h>
 #include "bas_printf.h"
 
-#define DBG_BOOTP
-#ifdef DBG_BOOTP
-#define dbg(format, arg...) do { xprintf("DEBUG: %s(): " format, __FUNCTION__, ##arg); } while (0)
-#else
-#define dbg(format, arg...) do { ; } while (0)
-#endif /* DBG_BOOTP */
+// #define DEBUG
+#include "debug.h"
 
 #define TIMER_NETWORK 3         /* defines GPT3 as timer for this function */
 
