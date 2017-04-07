@@ -32,12 +32,8 @@
 #error Unknown machine!
 #endif
 
-//#define DBG_FEC
-#ifdef DBG_FEC
-#define dbg(format, arg...) do { xprintf("DEBUG: %s(): " format, __FUNCTION__, ##arg); } while (0)
-#else
-#define dbg(format, arg...) do { ; } while (0)
-#endif /* DBG_FEC */
+// #define DEBUG
+#include "debug.h"
 
 
 FEC_EVENT_LOG fec_log[2];
