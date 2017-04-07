@@ -24,12 +24,8 @@
 #error "Unknown machine!"
 #endif
 
-#define DBG_BCM
-#ifdef DBG_BCM
-#define dbg(format, arg...) do { xprintf("DEBUG %s(): " format, __FUNCTION__, ##arg); } while (0)
-#else
-#define dbg(format, arg...) do { ; } while (0)
-#endif /* DBG_BCM */
+// #define DEBUG
+#include "debug.h"
 
 /*
  * Initialize the BCM5222 PHY
