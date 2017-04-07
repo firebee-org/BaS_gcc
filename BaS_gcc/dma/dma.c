@@ -39,7 +39,7 @@
 #error "unknown machine!"
 #endif /* MACHINE_FIREBEE */
 
-//// #define DEBUG
+// #define DEBUG
 #include "debug.h"
 
 extern char _SYS_SRAM[];
