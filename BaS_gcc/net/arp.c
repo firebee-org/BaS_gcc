@@ -11,12 +11,8 @@
 #include <stdbool.h>
 #include <stddef.h>
 
-//#define DBG_ARP
-#ifdef DBG_ARP
-#define dbg(format, arg...) do { xprintf("DEBUG: %s(): " format, __FUNCTION__, ##arg); } while (0)
-#else
-#define dbg(format, arg...) do { ; } while (0)
-#endif /* DBG_ARP */
+//#define DEBUG
+#include "debug.h"
 
 #define TIMER_NETWORK 3
 
