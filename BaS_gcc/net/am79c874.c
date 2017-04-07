@@ -19,13 +19,8 @@
 #error "unknown machine!"
 #endif
 
-//#define DBG_AM79
-#ifdef DBG_AM79
-#define dbg(format, arg...) do { xprintf("DEBUG: " format, ##arg); } while (0)
-#else
-#define dbg(format, arg...) do { ; } while (0)
-#endif /* DBG_AM79 */
-
+#include <debug.h>
+// #define DEBUG
 
 /* Initialize the AM79C874 PHY
  *
