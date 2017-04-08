@@ -369,7 +369,7 @@ zd_word:
 	addq.l	#2,a0
 	bra	zd_end
 
-zd_nal:	cmp.w   #0x3c,d0			// immediate?
+zd_nal:	cmp.w	#0x3c,d0			// immediate?
 	bne	zd_end				// no->
 	btst	#7,d0				// long?
 	beq	zd_end				// no
@@ -530,7 +530,7 @@ irq5_forward:
 	rts					// jump through vector
 
 irq6:
-	irq 0x74,5,0x20
+	irq	0x74,5,0x20
 
 irq7:						// irq7 is tied to PCI INTA# and PCI INTB# on the M5484LITE
 
@@ -549,7 +549,8 @@ irq7:						// irq7 is tied to PCI INTA# and PCI INTB# on the M5484LITE
 irq7text:
 	.data
 	.ascii	"IRQ7!"
-	.dc.b	13,10,0
+	.byte	13,10,0
+	.align	4
 	.text
 #endif /* MACHINE_FIREBEE */
 
@@ -584,10 +585,10 @@ _lowlevel_isr_handler:
 	lsr.l	#2,d0				// move it in place
 	andi.l	#0xff,d0			// mask it out
 	move.l	d0,-(sp)			// push it
-	jsr     _isr_execute_handler		// call the C handler
+	jsr	_isr_execute_handler		// call the C handler
 	addq.l	#4,sp				// adjust stack
 	tst.b	d0				// handled?
-	beq     lowlevel_forward		// no, forward it to TOS
+	beq	lowlevel_forward		// no, forward it to TOS
 
 	movem.l	(sp),d0-d1/a0-a1		// restore registers
 	unlk	a6
