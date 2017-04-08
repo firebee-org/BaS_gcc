@@ -1,10 +1,10 @@
-/*
- * needed for ELF compilation of x86emu which uses 64 bit multiplication and division. This
- * is implemented in libgcc.a. However, the ELF compiler emits leading underscores and libgcc
- * is not compiled like that - we must reimplement the symbols.
- *
- * FIXME: This is a quirk and should be replaced by BaS' own implementation later
- */
+//
+// needed for ELF compilation of x86emu which uses 64 bit multiplication and division. This
+// is implemented in libgcc.a. However, the ELF compiler emits leading underscores and libgcc
+// is not compiled like that - we must reimplement the symbols.
+//
+// FIXME: This is a quirk and should be replaced by BaS' own implementation later
+//
 		.global		___divdi3
 		.extern		__divdi3
 ___divdi3:	jmp		__divdi3
