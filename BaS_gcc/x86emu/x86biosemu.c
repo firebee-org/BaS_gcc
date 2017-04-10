@@ -79,7 +79,7 @@ static uint8_t inb(struct X86EMU *emu, uint16_t port)
 
     if ((port >= offset_port) && (port <= offset_port + 0xff))
     {
-        val = * (uint8_t *) (offset_io + (uint32_t) port);
+        val = * (volatile uint8_t *) (offset_io + (uint32_t) port);
     }
     else
         dbg("illegal port 0x%x\r\n", port);
@@ -93,7 +93,7 @@ static uint16_t inw(struct X86EMU *emu, uint16_t port)
 
     if ((port >= offset_port) && (port <= offset_port + 0xFF))
     {
-        val = swpw(*(uint16_t *)(offset_io + (uint32_t) port));
+        val = swpw(*(volatile uint16_t *)(offset_io + (uint32_t) port));
     }
     else
         dbg("illegal port 0x%x\r\n", port);
@@ -110,7 +110,7 @@ static uint32_t inl(struct X86EMU *emu, uint16_t port)
 
     if ((port >= offset_port) && (port <= offset_port + 0xFF))
     {
-        val = swpl(*(uint32_t *)(offset_io + (uint32_t) port));
+        val = swpl(*(volatile uint32_t *)(offset_io + (uint32_t) port));
     }
     else if (port == PC_PCI_INDEX_PORT)
     {
@@ -143,7 +143,7 @@ static void outb(struct X86EMU *emu, uint16_t port, uint8_t val)
 {
     if ((port >= offset_port) && (port <= offset_port + 0xFF))
     {
-        *(uint8_t *)(offset_io + (uint32_t) port) = val;
+        *(volatile uint8_t *)(offset_io + (uint32_t) port) = val;
     }
     else
         dbg("illegal port 0x%x\r\n", port);
@@ -153,7 +153,7 @@ static void outw(struct X86EMU *emu, uint16_t port, uint16_t val)
 {
     if ((port >= offset_port) && (port <= offset_port + 0xFF))
     {
-        *(uint16_t *)(offset_io + (uint32_t) port) = swpw(val);
+        *(volatile uint16_t *)(offset_io + (uint32_t) port) = swpw(val);
     }
     else
         dbg("illegal port 0x%x\r\n", port);
@@ -163,7 +163,7 @@ static void outl(struct X86EMU *emu, uint16_t port, uint32_t val)
 {
     if ((port >= offset_port) && (port <= offset_port + 0xFF))
     {
-        *(uint32_t *)(offset_io + (uint32_t) port) = swpl(val);
+        *(volatile uint32_t *)(offset_io + (uint32_t) port) = swpl(val);
     }
     else if (port == PC_PCI_INDEX_PORT)
     {
