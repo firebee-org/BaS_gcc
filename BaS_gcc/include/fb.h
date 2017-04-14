@@ -1,7 +1,7 @@
 #ifndef _FB_H
 #define _FB_H
 
-#include "bas_types.h"
+#include <stdint.h>
 
 /* Definitions of frame buffers	*/
 
@@ -484,10 +484,10 @@ struct fb_info
 };
 
 /* fbmem.c */
-extern int32_t fb_pan_display(struct fb_info *info, struct fb_var_screeninfo *var);
-extern int32_t fb_set_var(struct fb_info *info, struct fb_var_screeninfo *var);
-extern int32_t fb_blank(struct fb_info *info, int32_t blank);
-extern int32_t fb_ioctl(struct fb_info *info, uint32_t cmd, uint32_t arg);
+extern int fb_pan_display(struct fb_info *info, struct fb_var_screeninfo *var);
+extern int fb_set_var(struct fb_info *info, struct fb_var_screeninfo *var);
+extern int fb_blank(struct fb_info *info, int blank);
+extern int fb_ioctl(struct fb_info *info, uint32_t cmd, uint32_t arg);
 extern struct fb_info *framebuffer_alloc(uint32_t size);
 extern void framebuffer_release(struct fb_info *info);
 
