@@ -28,6 +28,7 @@
 #include "xhdi_sd.h"
 #include "MCD_dma.h"
 #include "pci.h"
+#include "fb.h"
 
 enum driver_type
 {
@@ -81,7 +82,7 @@ struct xhdi_driver_interface
     uint32_t (*xhdivec)();
 };
 
-#include "fb.h"
+
 
 struct framebuffer_driver_interface
 {
