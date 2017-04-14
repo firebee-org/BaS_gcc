@@ -75,57 +75,57 @@
 	/* Slice timer 0 count register */
 	.equ	MCF_SLT0_SCNT, __MBAR+0x908
 
-	// interrupt sources
-	.equ	INT_SOURCE_EPORT_EPF1,1		// edge port flag 1
-	.equ	INT_SOURCE_EPORT_EPF2,2		// edge port flag 2
-	.equ	INT_SOURCE_EPORT_EPF3,3		// edge port flag 3
-	.equ	INT_SOURCE_EPORT_EPF4,4		// edge port flag 4
-	.equ	INT_SOURCE_EPORT_EPF5,5		// edge port flag 5
-	.equ	INT_SOURCE_EPORT_EPF6,6		// edge port flag 6
-	.equ	INT_SOURCE_EPORT_EPF7,7		// edge port flag 7
-	.equ	INT_SOURCE_USB_EP0ISR,15	// USB endpoint 0 interrupt
-	.equ	INT_SOURCE_USB_EP1ISR,16	// USB endpoint 1 interrupt
-	.equ	INT_SOURCE_USB_EP2ISR,17	// USB endpoint 2 interrupt
-	.equ	INT_SOURCE_USB_EP3ISR,18	// USB endpoint 3 interrupt
-	.equ	INT_SOURCE_USB_EP4ISR,19	// USB endpoint 4 interrupt
-	.equ	INT_SOURCE_USB_EP5ISR,20	// USB endpoint 5 interrupt
-	.equ	INT_SOURCE_USB_EP6ISR,21	// USB endpoint 6 interrupt
-	.equ	INT_SOURCE_USB_USBISR,22	// USB general interrupt
-	.equ	INT_SOURCE_USB_USBAISR,23	// USB core interrupt
-	.equ	INT_SOURCE_USB_ANY,24		// OR of all USB interrupts
-	.equ	INT_SOURCE_USB_DSPI_OVF,25	// DSPI overflow or underflow
-	.equ	INT_SOURCE_USB_DSPI_RFOF,26	// receive FIFO overflow interrupt
-	.equ	INT_SOURCE_USB_DSPI_RFDF,27	// receive FIFO drain interrupt
-	.equ	INT_SOURCE_USB_DSPI_TFUF,28	// transmit FIFO underflow interrupt
-	.equ	INT_SOURCE_USB_DSPI_TCF,29	// transfer complete interrupt
-	.equ	INT_SOURCE_USB_DSPI_TFFF,30	// transfer FIFO fill interrupt
-	.equ	INT_SOURCE_USB_DSPI_EOQF,31	// end of queue interrupt
-	.equ	INT_SOURCE_PSC3,32		// PSC3 interrupt
-	.equ	INT_SOURCE_PSC2,33		// PSC2 interrupt
-	.equ	INT_SOURCE_PSC1,34		// PSC1 interrupt
-	.equ	INT_SOURCE_PSC0,35		// PSC0 interrupt
-	.equ	INT_SOURCE_CTIMERS,36		// combined source for comm timers
-	.equ	INT_SOURCE_SEC,37		// SEC interrupt
-	.equ	INT_SOURCE_FEC1,38		// FEC1 interrupt
-	.equ	INT_SOURCE_FEC0,39		// FEC0 interrupt
-	.equ	INT_SOURCE_I2C,40		// I2C interrupt
-	.equ	INT_SOURCE_PCIARB,41		// PCI arbiter interrupt
-	.equ	INT_SOURCE_CBPCI,42		// COMM bus PCI interrupt
-	.equ	INT_SOURCE_XLBPCI,43		// XLB PCI interrupt
-	.equ	INT_SOURCE_XLBARB,47		// XLBARB to PCI interrupt
-	.equ	INT_SOURCE_DMA,48		// multichannel DMA interrupt
-	.equ	INT_SOURCE_CAN0_ERROR,49	// FlexCAN error interrupt
-	.equ	INT_SOURCE_CAN0_BUSOFF,50	// FlexCAN bus off interrupt
-	.equ	INT_SOURCE_CAN0_MBOR,51		// message buffer ORed interrupt
-	.equ	INT_SOURCE_SLT1,53		// slice timer 1 interrupt
-	.equ	INT_SOURCE_SLT0,54		// slice timer 0 interrupt
-	.equ	INT_SOURCE_CAN1_ERROR,55	// FlexCAN error interrupt
-	.equ	INT_SOURCE_CAN1_BUSOFF,56	// FlexCAN bus off interrupt
-	.equ	INT_SOURCE_CAN1_MBOR,57		// message buffer ORed interrupt
-	.equ	INT_SOURCE_GPT3,59		// GPT3 timer interrupt
-	.equ	INT_SOURCE_GPT2,60		// GPT2 timer interrupt
-	.equ	INT_SOURCE_GPT1,61		// GPT1 timer interrupt
-	.equ	INT_SOURCE_GPT0,62		// GPT0 timer interrupt
+        // interrupt sources
+        .equ    INT_SOURCE_EPORT_EPF1,1         // edge port flag 1
+        .equ    INT_SOURCE_EPORT_EPF2,2         // edge port flag 2
+        .equ    INT_SOURCE_EPORT_EPF3,3         // edge port flag 3
+        .equ    INT_SOURCE_EPORT_EPF4,4         // edge port flag 4
+        .equ    INT_SOURCE_EPORT_EPF5,5         // edge port flag 5
+        .equ    INT_SOURCE_EPORT_EPF6,6         // edge port flag 6
+        .equ    INT_SOURCE_EPORT_EPF7,7         // edge port flag 7
+        .equ    INT_SOURCE_USB_EP0ISR,15        // USB endpoint 0 interrupt
+        .equ    INT_SOURCE_USB_EP1ISR,16        // USB endpoint 1 interrupt
+        .equ    INT_SOURCE_USB_EP2ISR,17        // USB endpoint 2 interrupt
+        .equ    INT_SOURCE_USB_EP3ISR,18        // USB endpoint 3 interrupt
+        .equ    INT_SOURCE_USB_EP4ISR,19        // USB endpoint 4 interrupt
+        .equ    INT_SOURCE_USB_EP5ISR,20        // USB endpoint 5 interrupt
+        .equ    INT_SOURCE_USB_EP6ISR,21        // USB endpoint 6 interrupt
+        .equ    INT_SOURCE_USB_USBISR,22        // USB general interrupt
+        .equ    INT_SOURCE_USB_USBAISR,23       // USB core interrupt
+        .equ    INT_SOURCE_USB_ANY,24           // OR of all USB interrupts
+        .equ    INT_SOURCE_USB_DSPI_OVF,25      // DSPI overflow or underflow
+        .equ    INT_SOURCE_USB_DSPI_RFOF,26     // receive FIFO overflow interrupt
+        .equ    INT_SOURCE_USB_DSPI_RFDF,27     // receive FIFO drain interrupt
+        .equ    INT_SOURCE_USB_DSPI_TFUF,28     // transmit FIFO underflow interrupt
+        .equ    INT_SOURCE_USB_DSPI_TCF,29      // transfer complete interrupt
+        .equ    INT_SOURCE_USB_DSPI_TFFF,30     // transfer FIFO fill interrupt
+        .equ    INT_SOURCE_USB_DSPI_EOQF,31     // end of queue interrupt
+        .equ    INT_SOURCE_PSC3,32              // PSC3 interrupt
+        .equ    INT_SOURCE_PSC2,33              // PSC2 interrupt
+        .equ    INT_SOURCE_PSC1,34              // PSC1 interrupt
+        .equ    INT_SOURCE_PSC0,35              // PSC0 interrupt
+        .equ    INT_SOURCE_CTIMERS,36           // combined source for comm timers
+        .equ    INT_SOURCE_SEC,37               // SEC interrupt
+        .equ    INT_SOURCE_FEC1,38              // FEC1 interrupt
+        .equ    INT_SOURCE_FEC0,39              // FEC0 interrupt
+        .equ    INT_SOURCE_I2C,40               // I2C interrupt
+        .equ    INT_SOURCE_PCIARB,41            // PCI arbiter interrupt
+        .equ    INT_SOURCE_CBPCI,42             // COMM bus PCI interrupt
+        .equ    INT_SOURCE_XLBPCI,43            // XLB PCI interrupt
+	.equ    INT_SOURCE_XLBARB,47            // XLBARB interrupt
+        .equ    INT_SOURCE_DMA,48               // multichannel DMA interrupt
+        .equ    INT_SOURCE_CAN0_ERROR,49        // FlexCAN error interrupt
+        .equ    INT_SOURCE_CAN0_BUSOFF,50       // FlexCAN bus off interrupt
+        .equ    INT_SOURCE_CAN0_MBOR,51         // message buffer ORed interrupt
+        .equ    INT_SOURCE_SLT1,53              // slice timer 1 interrupt
+        .equ    INT_SOURCE_SLT0,54              // slice timer 0 interrupt
+        .equ    INT_SOURCE_CAN1_ERROR,55        // FlexCAN error interrupt
+        .equ    INT_SOURCE_CAN1_BUSOFF,56       // FlexCAN bus off interrupt
+        .equ    INT_SOURCE_CAN1_MBOR,57         // message buffer ORed interrupt
+        .equ    INT_SOURCE_GPT3,59              // GPT3 timer interrupt
+        .equ    INT_SOURCE_GPT2,60              // GPT2 timer interrupt
+        .equ    INT_SOURCE_GPT1,61              // GPT1 timer interrupt
+        .equ    INT_SOURCE_GPT0,62              // GPT0 timer interrupt
 
 // Atari register equates (provided by FPGA)
 	.equ	vbasehi, 0xffff8201
@@ -237,7 +237,7 @@ init_vec_loop:
 	move.l	a1,(INT_SOURCE_XLBPCI + 64) * 4(a0)
 
 // install lowlevel_isr_handler for the XLBARB interrupt
-	move.l	a1,(INT_SOURCE_XLBARB + 64) * 4(a0)
+//	move.l	a1,(INT_SOURCE_XLBARB + 64) * 4(a0)	// FIXME: commented out for testing
 
 // install lowlevel_isr_handler for the FEC0  interrupt
 	move.l	a1,(INT_SOURCE_FEC0 + 64) * 4(a0)
@@ -576,8 +576,8 @@ irq7text:
  * (sp) ->  gcc scratch registers save area
  */
 _lowlevel_isr_handler:
-	subq.l	#4,sp				// extra space
-	link	a6,#-4 * 4			// make room for
+        subq.l	#4,sp                           // extra space
+        link	a6,#-4 * 4                      // make room for
 	movem.l	d0-d1/a0-a1,(sp)		// gcc scratch registers and save them,
 						// other registers will be taken care of by gcc itself
 
@@ -587,7 +587,7 @@ _lowlevel_isr_handler:
 	move.l	d0,-(sp)			// push it
 	jsr	_isr_execute_handler		// call the C handler
 	addq.l	#4,sp				// adjust stack
-	tst.b	d0				// handled?
+	tst.l	d0				// handled?
 	beq	lowlevel_forward		// no, forward it to TOS
 
 	movem.l	(sp),d0-d1/a0-a1		// restore registers
