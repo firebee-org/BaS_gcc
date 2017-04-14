@@ -1,11 +1,12 @@
-#ifndef PCI_BIOS_H
-#define PCI_BIOS_H
+#ifndef _PCI_BIOS_H_
+#define _PCI_BIOS_H_
 
-enum {
+enum
+{
     PCI_BIOS_PRESENT        = 0xB101,
     FIND_PCI_DEVICE         = 0xB102,
     FIND_PCI_CLASS_CODE     = 0xB103,
-	GENERATE_SPECIAL_CYCLE	= 0xB106,
+    GENERATE_SPECIAL_CYCLE	= 0xB106,
     READ_CONFIG_BYTE        = 0xB108,
     READ_CONFIG_WORD        = 0xB109,
     READ_CONFIG_DWORD       = 0xB10A,
@@ -16,14 +17,15 @@ enum {
     SET_PCI_IRQ             = 0xB10F
 };
 
-enum {
+enum
+{
     SUCCESSFUL          = 0x00,
-	FUNC_NOT_SUPPORTED	= 0x81,
-	BAD_VENDOR_ID		= 0x83,
-	DEVICE_NOT_FOUND	= 0x86,
-	BAD_REGISTER_NUMBER	= 0x87,
+    FUNC_NOT_SUPPORTED  = 0x81,
+    BAD_VENDOR_ID       = 0x83,
+    DEVICE_NOT_FOUND    = 0x86,
+    BAD_REGISTER_NUMBER	= 0x87,
     SET_FAILED          = 0x88,
-	BUFFER_TOO_SMALL	= 0x89
+    BUFFER_TOO_SMALL    = 0x89
 };
 
 extern int x86_pcibios_handler(struct X86EMU *emu);
@@ -44,8 +46,8 @@ extern int x86_pcibios_handler(struct X86EMU *emu);
 #define PCI_RAM_IMAGE_START         0xD0000
 #define SYS_BIOS                    0xF0000
 #define SIZE_EMU                    0x100000
-#define BIOS_MEM                    0x0UL
+#define BIOS_MEM                    0x100000UL
 
 
-#endif /* PCI_BIOS_H */
+#endif /* _PCI_BIOS_H_ */
 
