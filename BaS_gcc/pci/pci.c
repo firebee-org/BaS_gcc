@@ -1080,10 +1080,6 @@ void init_xlbus_arbiter(void)
                 MCF_XLB_XARB_CFG_AT;
     }
 
-    MCF_XLB_XARB_ADRTO = 0x1fffff;
-    MCF_XLB_XARB_DATTO = 0x1fffff;
-    MCF_XLB_XARB_BUSTO = 0xffffff;
-
     /*
      * set arbitration priorities for XL bus masters
      *
