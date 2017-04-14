@@ -444,9 +444,8 @@ bool xlbarb_interrupt_handler(void *arg1, void *arg2)
     /*
      * TODO: we should probably issue a bus error when this occors
      */
-    err("XLB arbiter interrupt.\r\n");
-    err("XARB_ADRCAP=0x%08lx\r\n", MCF_XLB_XARB_ADRCAP);
-    err("XARB_SIGCAP=0x%08lx\r\n", MCF_XLB_XARB_SIGCAP);
+    err("XLB arbiter interrupt\r\n");
+    err("captured address: 0x%08lx\r\n", MCF_XLB_XARB_ADRCAP);
 
     MCF_XLB_XARB_ADRCAP = 0x0L;
     MCF_XLB_XARB_SIGCAP = 0x0L;
@@ -475,7 +474,7 @@ bool xlbarb_interrupt_handler(void *arg1, void *arg2)
      */
     MCF_XLB_XARB_SR = status;       /* rwc bits */
 
-    return true;
+    return false;
 }
 
 #if defined(MACHINE_FIREBEE)
