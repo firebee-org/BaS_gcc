@@ -28,7 +28,7 @@
  */
 
 
-int32_t fb_pan_display(struct fb_info *info, struct fb_var_screeninfo *var)
+int fb_pan_display(struct fb_info *info, struct fb_var_screeninfo *var)
 {
     int32_t xoffset = var->xoffset;
     int32_t yoffset = var->yoffset;
@@ -58,7 +58,7 @@ int32_t fb_pan_display(struct fb_info *info, struct fb_var_screeninfo *var)
     return 0;
 }
 
-int32_t fb_set_var(struct fb_info *info, struct fb_var_screeninfo *var)
+int fb_set_var(struct fb_info *info, struct fb_var_screeninfo *var)
 {
     int32_t err;
 
@@ -91,7 +91,7 @@ int32_t fb_set_var(struct fb_info *info, struct fb_var_screeninfo *var)
     return 0;
 }
 
-int32_t fb_blank(struct fb_info *info, int32_t blank)
+int fb_blank(struct fb_info *info, int blank)
 {
     dbg("\r\n");
     if (blank > FB_BLANK_POWERDOWN)
@@ -99,7 +99,7 @@ int32_t fb_blank(struct fb_info *info, int32_t blank)
     return(info->fbops->fb_blank(blank, info));
 }
 
-int32_t fb_ioctl(struct fb_info *info, uint32_t cmd, uint32_t arg)
+int fb_ioctl(struct fb_info *info, uint32_t cmd, uint32_t arg)
 {
     struct fb_var_screeninfo var;
     struct fb_fix_screeninfo fix;
