@@ -285,7 +285,7 @@ static struct fb_var_screeninfo default_fb =
 {
     .xres = 640,
     .yres = 480,
-    .xres_virtual = 640,
+    .xres_virtual = 640 * 2,
     .yres_virtual = 480 * 2, /* ensure we have accel offscreen space */
     .bits_per_pixel = 8,
     .grayscale = 0,
@@ -312,19 +312,19 @@ static struct fb_info fb =
 
     .fix =
      {
-        "ATI Radeon",
-        0x80000000,
-        0x00800000,
-        FB_TYPE_PLANES,
-        0,
-        FB_VISUAL_PSEUDOCOLOR,
-        1,
-        1,
-        1,
-        640,
-        0x88000000,
-        0x4000,
-        1,
+        .id = "ATI Radeon",
+        .smem_start = 0x80000000,
+        .smem_len = 0x00800000,
+        .type = FB_TYPE_PLANES,
+        .type_aux = 0,
+        .visual = FB_VISUAL_PSEUDOCOLOR,
+        .xpanstep = 1,
+        .ypanstep = 1,
+        .ywrapstep = 1,
+        .line_length = 640,
+        .mmio_len = 0x88000000,
+        .accel = 0x4000,
+        .reserved = { 0, 0, 0 },
      },
 };
 
