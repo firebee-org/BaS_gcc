@@ -470,17 +470,24 @@ static int32_t fb_try_mode(struct fb_var_screeninfo *var, struct fb_info *info,
  *
  */
 
-int32_t fb_find_mode(struct fb_var_screeninfo *var,
+int fb_find_mode(struct fb_var_screeninfo *var,
                  struct fb_info *info, struct mode_option *resolution ,
-                 const struct fb_videomode *db, uint32_t dbsize,
+                 const struct fb_videomode *db, unsigned int dbsize,
                  const struct fb_videomode *default_mode,
-                 uint32_t default_bpp)
+                 unsigned int default_bpp)
 {
-    int32_t i,abs;
-    int32_t res_specified = 0, bpp_specified = 0, refresh_specified = 0;
-    uint32_t xres = 0, yres = 0, bpp = default_bpp, refresh = 0;
-    int32_t yres_specified = 0;
-    unsigned long best, diff;
+    int i;
+    int abs;
+    int res_specified = 0;
+    int bpp_specified = 0;
+    int refresh_specified = 0;
+    unsigned int xres = 0;
+    unsigned int yres = 0;
+    unsigned int bpp = default_bpp;
+    unsigned int refresh = 0;
+    int yres_specified = 0;
+    unsigned long best;
+    unsigned long diff;
 
     dbg("fb_find_mode\r\n");
 
@@ -513,18 +520,18 @@ int32_t fb_find_mode(struct fb_var_screeninfo *var,
     /* Did the user specify a video mode? */
     if (resolution->used) /* fVDI mode */
     {
-        refresh = (uint32_t)resolution->freq;
+        refresh = resolution->freq;
         if (refresh)
             refresh_specified = 1;
-        bpp = (uint32_t)resolution->bpp;
+        bpp = resolution->bpp;
         if (resolution->flags & MODE_EMUL_MONO_FLAG)
             bpp = 8;
         if (bpp)
             bpp_specified = 1;
-        yres = (uint32_t)resolution->height;
+        yres = resolution->height;
         if (yres)
             yres_specified = 1;
-        xres = (uint32_t)resolution->width;
+        xres = resolution->width;
         if (xres)
             res_specified = 1;
     }

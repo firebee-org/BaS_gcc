@@ -356,6 +356,15 @@ void init_isr(void)
         dbg("Error: unable to register isr for XLB PCI interrupts\r\n");
     }
 
+
+    /*
+     * initialize arbiter timeout registers
+     */
+    MCF_XLB_XARB_ADRTO = 0x1fffff;
+    MCF_XLB_XARB_DATTO = 0x1fffff;
+    MCF_XLB_XARB_BUSTO = 0xffffff;
+
+
     MCF_XLB_XARB_IMR = MCF_XLB_XARB_IMR_SEAE |          /* slave error acknowledge interrupt */
                        MCF_XLB_XARB_IMR_MME |           /* multiple master at prio 0 interrupt */
                        MCF_XLB_XARB_IMR_TTAE |          /* TT address only interrupt */
@@ -390,7 +399,7 @@ struct rom_header
 /*
  * fix ST RAM header (address 0x0 and 0x4). FreeMiNT uses these vectors on CTRL-ALT-DEL.
  *
- * Beware: Newer compilers refuse to dereference pointers to NULL and abort if the following
+ * Beware: Newer compilers refuse to dereference pointers to NULL and abort (trap #7) if the following
  * attribute isn't set.
  */
 static void fix_stram_header() __attribute__((optimize("no-delete-null-pointer-checks")));
@@ -469,7 +478,7 @@ void BaS(void)
     /*
      * memory setup
      */
-    // memset((void *) 0x200, 0, 0x400);
+    memset((void *) 0x200, 0, 0x400);
 
 #if defined(MACHINE_FIREBEE)
     /* set Falcon bus control register */
@@ -477,6 +486,12 @@ void BaS(void)
 
     * (volatile uint8_t *) 0xffff8007 = 0x48;
 #endif /* MACHINE_FIREBEE */
+
+    /*
+     * FireTOS wants to have the TOS system variables cleared
+     * Do the same for EmuTOS. "warm resets" don't seem to be reliable
+     */
+    memset((void *) 0x400, 0, 0x400);
 
     /* ST RAM */
 
@@ -508,6 +523,7 @@ void BaS(void)
 
     enable_pci_interrupts();
     init_pci();
+
     video_init();
 
     /* initialize USB devices */
@@ -527,11 +543,6 @@ void BaS(void)
         MCF_MMU_MMUCR = 0;  /* MMU off */
         NOP();              /* force pipeline sync */
 
-
-        /*
-         * FireTOS wants to have the TOS system variables cleared
-         */
-        memset((void *) 0x400, 0, 0x400);
 
         /* ST RAM */
 

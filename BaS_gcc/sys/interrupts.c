@@ -474,7 +474,7 @@ bool xlbarb_interrupt_handler(void *arg1, void *arg2)
      */
     MCF_XLB_XARB_SR = status;       /* rwc bits */
 
-    return false;
+    return true;
 }
 
 #if defined(MACHINE_FIREBEE)

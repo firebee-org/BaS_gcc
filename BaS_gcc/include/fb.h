@@ -184,23 +184,23 @@ extern struct mode_option resolution; /* fVDI */
 
 struct fb_fix_screeninfo
 {
-    char id[16];                    /* identification string eg "TT Builtin" */
-    uint32_t smem_start;       /* Start of frame buffer mem */
-    /* (physical address) */
-    uint32_t smem_len;         /* Length of frame buffer mem */
-    uint32_t type;             /* see FB_TYPE_*		*/
-    uint32_t type_aux;         /* Interleave for interleaved Planes */
-    uint32_t visual;           /* see FB_VISUAL_*		*/
-    uint16_t xpanstep;        /* zero if no hardware panning  */
-    uint16_t ypanstep;        /* zero if no hardware panning  */
-    uint16_t ywrapstep;       /* zero if no hardware ywrap    */
-    uint32_t line_length;      /* length of a line in bytes    */
-    uint32_t mmio_start;       /* Start of Memory Mapped I/O   */
-    /* (physical address) */
-    uint32_t mmio_len;         /* Length of Memory Mapped I/O  */
-    uint32_t accel;            /* Indicate to driver which	*/
-    /*  specific chip/card we have	*/
-    uint16_t reserved[3];     /* Reserved for future compatibility */
+    char id[16];                /* identification string eg "TT Builtin" */
+    uint32_t smem_start;        /* Start of frame buffer mem */
+                                /* (physical address) */
+    uint32_t smem_len;          /* Length of frame buffer mem */
+    uint32_t type;              /* see FB_TYPE_*		*/
+    uint32_t type_aux;          /* Interleave for interleaved Planes */
+    uint32_t visual;            /* see FB_VISUAL_*		*/
+    uint16_t xpanstep;          /* zero if no hardware panning  */
+    uint16_t ypanstep;          /* zero if no hardware panning  */
+    uint16_t ywrapstep;         /* zero if no hardware ywrap    */
+    uint32_t line_length;       /* length of a line in bytes    */
+    uint32_t mmio_start;        /* Start of Memory Mapped I/O   */
+                                /* (physical address) */
+    uint32_t mmio_len;          /* Length of Memory Mapped I/O  */
+    uint32_t accel;             /* Indicate to driver which	*/
+                                /*  specific chip/card we have	*/
+    uint16_t reserved[3];       /* Reserved for future compatibility */
 };
 
 /* Interpretation of offset for color fields: All offsets are from the right,
@@ -211,10 +211,10 @@ struct fb_fix_screeninfo
  */
 struct fb_bitfield
 {
-    uint32_t offset;           /* beginning of bitfield	*/
-    uint32_t length;           /* length of bitfield		*/
-    uint32_t msb_right;        /* != 0 : Most significant bit is */
-    /* right */
+    uint32_t offset;            /* beginning of bitfield	*/
+    uint32_t length;            /* length of bitfield		*/
+    uint32_t msb_right;         /* != 0 : Most significant bit is */
+                                /* right */
 };
 
 #define FB_NONSTD_HAM           1   /* Hold-And-Modify (HAM)        */
@@ -237,8 +237,8 @@ struct fb_bitfield
 #define FB_SYNC_EXT             4   /* external sync		*/
 #define FB_SYNC_COMP_HIGH_ACT   8   /* composite sync high active   */
 #define FB_SYNC_BROADCAST       16  /* broadcast video timings      */
-/* vtotal = 144d/288n/576i => PAL  */
-/* vtotal = 121d/242n/484i => NTSC */
+                                    /* vtotal = 144d/288n/576i => PAL  */
+                                    /* vtotal = 121d/242n/484i => NTSC */
 #define FB_SYNC_ON_GREEN        32  /* sync on green */
 
 #define FB_VMODE_NONINTERLACED  0   /* non interlaced */
@@ -255,43 +255,43 @@ struct fb_bitfield
 
 struct fb_var_screeninfo
 {
-    uint32_t xres;             /* visible resolution */
+    uint32_t xres;              /* visible resolution */
     uint32_t yres;
-    uint32_t xres_virtual;     /* virtual resolution */
+    uint32_t xres_virtual;      /* virtual resolution */
     uint32_t yres_virtual;
-    uint32_t xoffset;          /* offset from virtual to visible */
-    uint32_t yoffset;          /* resolution			*/
+    uint32_t xoffset;           /* offset from virtual to visible */
+    uint32_t yoffset;           /* resolution			*/
 
-    uint32_t bits_per_pixel;   /* guess what			*/
-    uint32_t grayscale;        /* != 0 Graylevels instead of colors */
+    uint32_t bits_per_pixel;    /* guess what			*/
+    uint32_t grayscale;         /* != 0 Graylevels instead of colors */
 
-    struct fb_bitfield red;         /* bitfield in fb mem if true color, */
-    struct fb_bitfield green;       /* else only length is significant */
+    struct fb_bitfield red;     /* bitfield in fb mem if true color, */
+    struct fb_bitfield green;   /* else only length is significant */
     struct fb_bitfield blue;
-    struct fb_bitfield transp;      /* transparency			*/
+    struct fb_bitfield transp;  /* transparency			*/
 
-    uint32_t nonstd;           /* != 0 Non standard pixel format */
+    uint32_t nonstd;            /* != 0 Non standard pixel format */
 
-    uint32_t activate;         /* see FB_ACTIVATE_*		*/
+    uint32_t activate;          /* see FB_ACTIVATE_*		*/
 
-    uint32_t height;           /* height of picture in mm    */
-    uint32_t width;            /* width of picture in mm     */
+    uint32_t height;            /* height of picture in mm    */
+    uint32_t width;             /* width of picture in mm     */
 
-    uint32_t accel_flags;      /* (OBSOLETE) see fb_info.flags */
+    uint32_t accel_flags;       /* (OBSOLETE) see fb_info.flags */
 
     /* Timing: All values in pixclocks, except pixclock (of course) */
-    uint32_t pixclock;         /* pixel clock in ps (pico seconds) */
-    uint32_t left_margin;      /* time from sync to picture	*/
-    uint32_t right_margin;     /* time from picture to sync	*/
-    uint32_t upper_margin;     /* time from sync to picture	*/
+    uint32_t pixclock;          /* pixel clock in ps (pico seconds) */
+    uint32_t left_margin;       /* time from sync to picture	*/
+    uint32_t right_margin;      /* time from picture to sync	*/
+    uint32_t upper_margin;      /* time from sync to picture	*/
     uint32_t lower_margin;
-    uint32_t hsync_len;        /* length of horizontal sync	*/
-    uint32_t vsync_len;        /* length of vertical sync	*/
-    uint32_t sync;             /* see FB_SYNC_*		*/
-    uint32_t vmode;            /* see FB_VMODE_*		*/
-    uint32_t rotate;           /* angle we rotate counter clockwise */
+    uint32_t hsync_len;         /* length of horizontal sync	*/
+    uint32_t vsync_len;         /* length of vertical sync	*/
+    uint32_t sync;              /* see FB_SYNC_*		*/
+    uint32_t vmode;             /* see FB_VMODE_*		*/
+    uint32_t rotate;            /* angle we rotate counter clockwise */
     uint32_t refresh;
-    uint32_t reserved[4];      /* Reserved for future compatibility */
+    uint32_t reserved[4];       /* Reserved for future compatibility */
 };
 
 /* VESA Blanking Levels */
@@ -326,11 +326,11 @@ enum
 
 struct fb_vblank
 {
-    uint32_t flags;			/* FB_VBLANK flags */
-    uint32_t count;			/* counter of retraces since boot */
-    uint32_t vcount;			/* current scanline position */
-    uint32_t hcount;			/* current scandot position */
-    uint32_t reserved[4];		/* reserved for future compatibility */
+    uint32_t flags;         /* FB_VBLANK flags */
+    uint32_t count;         /* counter of retraces since boot */
+    uint32_t vcount;        /* current scanline position */
+    uint32_t hcount;        /* current scandot position */
+    uint32_t reserved[4];   /* reserved for future compatibility */
 };
 
 struct vm_area_struct;
@@ -366,7 +366,7 @@ struct file;
 
 struct fb_chroma
 {
-    uint32_t redx;	/* in fraction of 1024 */
+    uint32_t redx;      /* in fraction of 1024 */
     uint32_t greenx;
     uint32_t bluex;
     uint32_t whitex;
@@ -379,32 +379,32 @@ struct fb_chroma
 struct fb_monspecs
 {
     struct fb_chroma chroma;
-    struct fb_videomode *modedb;	/* mode database */
-    uint8_t  manufacturer[4];	/* Manufacturer */
-    uint8_t  monitor[14];		/* Monitor String */
-    uint8_t  serial_no[14];	/* Serial Number */
-    uint8_t  ascii[14];		/* ? */
-    uint32_t modedb_len;		/* mode database length */
-    uint32_t model;			/* Monitor Model */
-    uint32_t serial;			/* Serial Number - Integer */
-    uint32_t year;				/* Year manufactured */
-    uint32_t week;				/* Week Manufactured */
-    uint32_t hfmin;			/* hfreq lower limit (Hz) */
-    uint32_t hfmax;			/* hfreq upper limit (Hz) */
-    uint32_t dclkmin;			/* pixelclock lower limit (Hz) */
-    uint32_t dclkmax;			/* pixelclock upper limit (Hz) */
-    uint16_t input;			/* display type - see FB_DISP_* */
-    uint16_t dpms;			/* DPMS support - see FB_DPMS_ */
-    uint16_t signal;			/* Signal Type - see FB_SIGNAL_* */
-    uint16_t vfmin;			/* vfreq lower limit (Hz) */
-    uint16_t vfmax;			/* vfreq upper limit (Hz) */
-    uint16_t gamma;			/* Gamma - in fractions of 100 */
-    uint16_t gtf	: 1;		/* supports GTF */
-    uint16_t misc;			/* Misc flags - see FB_MISC_* */
-    uint8_t  version;			/* EDID version... */
-    uint8_t  revision;		/* ...and revision */
-    uint8_t  max_x;			/* Maximum horizontal size (cm) */
-    uint8_t  max_y;			/* Maximum vertical size (cm) */
+    struct fb_videomode *modedb;    /* mode database */
+    uint8_t  manufacturer[4];       /* Manufacturer */
+    uint8_t  monitor[14];           /* Monitor String */
+    uint8_t  serial_no[14];         /* Serial Number */
+    uint8_t  ascii[14];             /* ? */
+    uint32_t modedb_len;            /* mode database length */
+    uint32_t model;                 /* Monitor Model */
+    uint32_t serial;                /* Serial Number - Integer */
+    uint32_t year;                  /* Year manufactured */
+    uint32_t week;                  /* Week Manufactured */
+    uint32_t hfmin;                 /* hfreq lower limit (Hz) */
+    uint32_t hfmax;                 /* hfreq upper limit (Hz) */
+    uint32_t dclkmin;               /* pixelclock lower limit (Hz) */
+    uint32_t dclkmax;               /* pixelclock upper limit (Hz) */
+    uint16_t input;                 /* display type - see FB_DISP_* */
+    uint16_t dpms;                  /* DPMS support - see FB_DPMS_ */
+    uint16_t signal;                /* Signal Type - see FB_SIGNAL_* */
+    uint16_t vfmin;                 /* vfreq lower limit (Hz) */
+    uint16_t vfmax;                 /* vfreq upper limit (Hz) */
+    uint16_t gamma;                 /* Gamma - in fractions of 100 */
+    uint16_t gtf	: 1;            /* supports GTF */
+    uint16_t misc;                  /* Misc flags - see FB_MISC_* */
+    uint8_t  version;               /* EDID version... */
+    uint8_t  revision;              /* ...and revision */
+    uint8_t  max_x;                 /* Maximum horizontal size (cm) */
+    uint8_t  max_y;                 /* Maximum vertical size (cm) */
 };
 
 struct fb_ops
@@ -412,22 +412,32 @@ struct fb_ops
     /* checks var and eventually tweaks if to something supported,
      * DO NOT MODIFY PAR  */
     int32_t (*fb_check_var)(struct fb_var_screeninfo *var, struct fb_info *info);
+
     /* set the video mode according to info->var */
     int32_t (*fb_set_par)(struct fb_info *info);
+
     /* set color register */
     int32_t (*fb_setcolreg)(uint32_t regno, uint32_t red, uint32_t green,
                         uint32_t blue, uint32_t transp, struct fb_info *info);
+
     /* pan display */
     int32_t (*fb_pan_display)(struct fb_var_screeninfo *var, struct fb_info *info);
+
     /* blank display */
     int32_t (*fb_blank)(int32_t blank, struct fb_info *info);
+
     /* wait for blit idle */
     int32_t (*fb_sync)(struct fb_info *info);
+
     /* perform fb specific ioctl */
     int32_t (*fb_ioctl)(uint32_t cmd, uint32_t arg, struct fb_info *info);
-    /* Buildthe modedb for head 1 (head 2 will come later), check panel infos
-     * from either BIOS or EDID, and pick up the default mode */
+
+    /*
+     * Build the modedb for head 1 (head 2 will come later), check panel infos
+     * from either BIOS or EDID, and pick up the default mode
+     */
     void (*fb_check_modes)(struct fb_info *info, struct mode_option *resolution);
+
     /* Accel functions */
 #define DEGREES_0	0
 #define DEGREES_90	1
@@ -453,8 +463,10 @@ struct fb_ops
     void (*SubsequentScanlineImageWriteRect)(struct fb_info *info, int32_t x, int32_t y, int32_t w, int32_t h, int32_t skipleft);
     void (*SetClippingRectangle)(struct fb_info *info, int32_t xa, int32_t ya, int32_t xb, int32_t yb);
     void (*DisableClipping)(struct fb_info *info);
-    int32_t (*SetupForCPUToScreenAlphaTexture)(struct fb_info *info,
-                                           int32_t op, uint16_t red, uint16_t green, uint16_t blue, uint16_t alpha, uint32_t maskFormat, uint32_t dstFormat, uint8_t *alphaPtr, int32_t alphaPitch, int32_t width, int32_t height, int32_t flags);
+    int (*SetupForCPUToScreenAlphaTexture)(struct fb_info *info,
+                                           int32_t op, uint16_t red, uint16_t green, uint16_t blue, uint16_t alpha,
+                                           uint32_t maskFormat, uint32_t dstFormat, uint8_t *alphaPtr, int32_t alphaPitch,
+                                           int32_t width, int32_t height, int32_t flags);
     int32_t (*SetupForCPUToScreenTexture)(struct fb_info *info, int32_t op, uint32_t srcFormat, uint32_t dstFormat, uint8_t *texPtr, int32_t texPitch, int32_t width, int32_t height, int32_t flags);
     void (*SubsequentCPUToScreenTexture)(struct fb_info *info, int32_t dstx, int32_t dsty, int32_t srcx, int32_t srcy, int32_t width, int32_t height);
     /* Cursor functions */
@@ -473,10 +485,10 @@ struct fb_info
     struct fb_fix_screeninfo fix;   /* Current fix */
     struct fb_monspecs monspecs;    /* Current Monitor specs */
     struct fb_videomode *mode;      /* current mode */
-    char *screen_base;              /* Virtual address */
+    char *screen_base;              /* virtual address */
     uint32_t screen_size;
     char *ram_base;                 /* base vram */
-    uint32_t ram_size;         /* vram size */
+    uint32_t ram_size;              /* vram size */
     char *screen_mono;
     long update_mono;
     struct fb_ops *fbops;
@@ -520,17 +532,17 @@ extern int32_t fb_validate_mode(const struct fb_var_screeninfo *var, struct fb_i
 
 /* modedb.c */
 #define VESA_MODEDB_SIZE 34
-extern int32_t fb_find_mode(struct fb_var_screeninfo *var,
+extern int fb_find_mode(struct fb_var_screeninfo *var,
                         struct fb_info *info, struct mode_option *resolution ,
-                        const struct fb_videomode *db, uint32_t dbsize,
-                        const struct fb_videomode *default_mode, uint32_t default_bpp);
+                        const struct fb_videomode *db, unsigned int dbsize,
+                        const struct fb_videomode *default_mode, unsigned int default_bpp);
 extern void fb_var_to_videomode(struct fb_videomode *mode, struct fb_var_screeninfo *var);
 extern void fb_videomode_to_var(struct fb_var_screeninfo *var, struct fb_videomode *mode);
-extern int32_t fb_mode_is_equal(struct fb_videomode *mode1, struct fb_videomode *mode2);
+extern int fb_mode_is_equal(struct fb_videomode *mode1, struct fb_videomode *mode2);
 
 struct fb_videomode
 {
-    uint16_t refresh;		/* optional */
+    uint16_t refresh;       /* optional */
     uint16_t xres;
     uint16_t yres;
     uint32_t pixclock;

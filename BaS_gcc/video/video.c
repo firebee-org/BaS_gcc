@@ -342,6 +342,7 @@ struct mode_option resolution =
     .freq = 60,
     .flags = 0,
 };
+
 int16_t force_measure_pll = 0;
 
 void install_vbl_timer(void *func, int32_t remove)
