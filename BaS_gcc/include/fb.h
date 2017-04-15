@@ -188,9 +188,9 @@ struct fb_fix_screeninfo
     uint32_t smem_start;        /* Start of frame buffer mem */
                                 /* (physical address) */
     uint32_t smem_len;          /* Length of frame buffer mem */
-    uint32_t type;              /* see FB_TYPE_*		*/
+    uint32_t type;              /* see FB_TYPE_* */
     uint32_t type_aux;          /* Interleave for interleaved Planes */
-    uint32_t visual;            /* see FB_VISUAL_*		*/
+    uint32_t visual;            /* see FB_VISUAL_* */
     uint16_t xpanstep;          /* zero if no hardware panning  */
     uint16_t ypanstep;          /* zero if no hardware panning  */
     uint16_t ywrapstep;         /* zero if no hardware ywrap    */
@@ -199,7 +199,7 @@ struct fb_fix_screeninfo
                                 /* (physical address) */
     uint32_t mmio_len;          /* Length of Memory Mapped I/O  */
     uint32_t accel;             /* Indicate to driver which	*/
-                                /*  specific chip/card we have	*/
+                                /*  specific chip/card we have */
     uint16_t reserved[3];       /* Reserved for future compatibility */
 };
 
