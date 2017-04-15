@@ -159,104 +159,104 @@ struct pll_info
 struct radeon_regs
 {
     /* Common registers */
-    uint32_t		ovr_clr;
-    uint32_t		ovr_wid_left_right;
-    uint32_t		ovr_wid_top_bottom;
-    uint32_t		ov0_scale_cntl;
-    uint32_t		mpp_tb_config;
-    uint32_t		mpp_gp_config;
-    uint32_t		subpic_cntl;
-    uint32_t		viph_control;
-    uint32_t		i2c_cntl_1;
-    uint32_t		gen_int32_t_cntl;
-    uint32_t		cap0_trig_cntl;
-    uint32_t		cap1_trig_cntl;
-    uint32_t		bus_cntl;
-    uint32_t		surface_cntl;
-    uint32_t		bios_5_scratch;
+    uint32_t ovr_clr;
+    uint32_t ovr_wid_left_right;
+    uint32_t ovr_wid_top_bottom;
+    uint32_t ov0_scale_cntl;
+    uint32_t mpp_tb_config;
+    uint32_t mpp_gp_config;
+    uint32_t subpic_cntl;
+    uint32_t viph_control;
+    uint32_t i2c_cntl_1;
+    uint32_t gen_int_cntl;
+    uint32_t cap0_trig_cntl;
+    uint32_t cap1_trig_cntl;
+    uint32_t bus_cntl;
+    uint32_t surface_cntl;
+    uint32_t bios_5_scratch;
 
     /* Other registers to save for VT switches or driver load/unload */
-    uint32_t		dp_datatype;
-    uint32_t		rbbm_soft_reset;
-    uint32_t		clock_cntl_index;
-    uint32_t		amcgpio_en_reg;
-    uint32_t		amcgpio_mask;
+    uint32_t dp_datatype;
+    uint32_t rbbm_soft_reset;
+    uint32_t clock_cntl_index;
+    uint32_t amcgpio_en_reg;
+    uint32_t amcgpio_mask;
 
     /* Surface/tiling registers */
-    uint32_t		surf_lower_bound[8];
-    uint32_t		surf_upper_bound[8];
-    uint32_t		surf_info[8];
+    uint32_t surf_lower_bound[8];
+    uint32_t surf_upper_bound[8];
+    uint32_t surf_info[8];
 
     /* CRTC registers */
-    uint32_t		crtc_gen_cntl;
-    uint32_t		crtc_ext_cntl;
-    uint32_t		dac_cntl;
-    uint32_t		crtc_h_total_disp;
-    uint32_t		crtc_h_sync_strt_wid;
-    uint32_t		crtc_v_total_disp;
-    uint32_t		crtc_v_sync_strt_wid;
-    uint32_t		crtc_offset;
-    uint32_t		crtc_offset_cntl;
-    uint32_t		crtc_pitch;
-    uint32_t		disp_merge_cntl;
-    uint32_t		grph_buffer_cntl;
-    uint32_t		crtc_more_cntl;
+    uint32_t crtc_gen_cntl;
+    uint32_t crtc_ext_cntl;
+    uint32_t dac_cntl;
+    uint32_t crtc_h_total_disp;
+    uint32_t crtc_h_sync_strt_wid;
+    uint32_t crtc_v_total_disp;
+    uint32_t crtc_v_sync_strt_wid;
+    uint32_t crtc_offset;
+    uint32_t crtc_offset_cntl;
+    uint32_t crtc_pitch;
+    uint32_t disp_merge_cntl;
+    uint32_t grph_buffer_cntl;
+    uint32_t crtc_more_cntl;
 
     /* CRTC2 registers */
-    uint32_t		crtc2_gen_cntl;
-    uint32_t		dac2_cntl;
-    uint32_t		disp_output_cntl;
-    uint32_t		disp_hw_debug;
-    uint32_t		disp2_merge_cntl;
-    uint32_t		grph2_buffer_cntl;
-    uint32_t		crtc2_h_total_disp;
-    uint32_t		crtc2_h_sync_strt_wid;
-    uint32_t		crtc2_v_total_disp;
-    uint32_t		crtc2_v_sync_strt_wid;
-    uint32_t		crtc2_offset;
-    uint32_t		crtc2_offset_cntl;
-    uint32_t		crtc2_pitch;
+    uint32_t crtc2_gen_cntl;
+    uint32_t dac2_cntl;
+    uint32_t disp_output_cntl;
+    uint32_t disp_hw_debug;
+    uint32_t disp2_merge_cntl;
+    uint32_t grph2_buffer_cntl;
+    uint32_t crtc2_h_total_disp;
+    uint32_t crtc2_h_sync_strt_wid;
+    uint32_t crtc2_v_total_disp;
+    uint32_t crtc2_v_sync_strt_wid;
+    uint32_t crtc2_offset;
+    uint32_t crtc2_offset_cntl;
+    uint32_t crtc2_pitch;
 
     /* Flat panel regs */
-    uint32_t 	fp_crtc_h_total_disp;
-    uint32_t		fp_crtc_v_total_disp;
-    uint32_t		fp_gen_cntl;
-    uint32_t		fp2_gen_cntl;
-    uint32_t		fp_h_sync_strt_wid;
-    uint32_t		fp2_h_sync_strt_wid;
-    uint32_t		fp_horz_stretch;
-    uint32_t		fp_panel_cntl;
-    uint32_t		fp_v_sync_strt_wid;
-    uint32_t		fp2_v_sync_strt_wid;
-    uint32_t		fp_vert_stretch;
-    uint32_t		lvds_gen_cntl;
-    uint32_t		lvds_pll_cntl;
-    uint32_t		tmds_crc;
-    uint32_t		tmds_transmitter_cntl;
+    uint32_t fp_crtc_h_total_disp;
+    uint32_t fp_crtc_v_total_disp;
+    uint32_t fp_gen_cntl;
+    uint32_t fp2_gen_cntl;
+    uint32_t fp_h_sync_strt_wid;
+    uint32_t fp2_h_sync_strt_wid;
+    uint32_t fp_horz_stretch;
+    uint32_t fp_panel_cntl;
+    uint32_t fp_v_sync_strt_wid;
+    uint32_t fp2_v_sync_strt_wid;
+    uint32_t fp_vert_stretch;
+    uint32_t lvds_gen_cntl;
+    uint32_t lvds_pll_cntl;
+    uint32_t tmds_crc;
+    uint32_t tmds_transmitter_cntl;
 
     /* Computed values for PLL */
-    uint32_t		dot_clock_freq;
-    uint32_t		pll_output_freq;
-    int32_t		feedback_div;
-    int32_t		post_div;
+    uint32_t dot_clock_freq;
+    uint32_t pll_output_freq;
+    int32_t feedback_div;
+    int32_t post_div;
 
     /* PLL registers */
-    uint32_t		ppll_div_3;
-    uint32_t		ppll_ref_div;
-    uint32_t		vclk_ecp_cntl;
-    uint32_t		clk_cntl_index;
-    uint32_t		htotal_cntl;
+    uint32_t ppll_div_3;
+    uint32_t ppll_ref_div;
+    uint32_t vclk_ecp_cntl;
+    uint32_t clk_cntl_index;
+    uint32_t htotal_cntl;
 
     /* Computed values for PLL2 */
-    uint32_t		dot_clock_freq_2;
-    uint32_t		pll_output_freq_2;
-    int32_t		feedback_div_2;
-    int32_t		post_div_2;
+    uint32_t dot_clock_freq_2;
+    uint32_t pll_output_freq_2;
+    int32_t feedback_div_2;
+    int32_t post_div_2;
 
     /* PLL2 registers */
-    uint32_t		p2pll_ref_div;
-    uint32_t		p2pll_div_0;
-    uint32_t		htotal_cntl2;
+    uint32_t p2pll_ref_div;
+    uint32_t p2pll_div_0;
+    uint32_t htotal_cntl2;
 };
 
 struct panel_info
