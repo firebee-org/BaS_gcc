@@ -1494,9 +1494,9 @@ void radeon_write_mode(struct radeonfb_info *rinfo, struct radeon_regs *mode, in
     /* Apply surface registers */
     for (i = 0; i < 8; i++)
     {
-        OUTREG(SURFACE0_LOWER_BOUND + 0x10*i, mode->surf_lower_bound[i]);
-        OUTREG(SURFACE0_UPPER_BOUND + 0x10*i, mode->surf_upper_bound[i]);
-        OUTREG(SURFACE0_INFO + 0x10*i, mode->surf_info[i]);
+        OUTREG(SURFACE0_LOWER_BOUND + 0x10 * i, mode->surf_lower_bound[i]);
+        OUTREG(SURFACE0_UPPER_BOUND + 0x10 * i, mode->surf_upper_bound[i]);
+        OUTREG(SURFACE0_INFO + 0x10 * i, mode->surf_info[i]);
     }
     OUTREG(CRTC_GEN_CNTL, mode->crtc_gen_cntl);
     OUTREGP(CRTC_EXT_CNTL, mode->crtc_ext_cntl, ~(CRTC_HSYNC_DIS | CRTC_VSYNC_DIS | CRTC_DISPLAY_DIS));
@@ -1557,17 +1557,18 @@ static void radeon_calc_pll_regs(struct radeonfb_info *rinfo, struct radeon_regs
     } *post_div,
     post_divs[] =
     {
-    { 1,  0 },
-    { 2,  1 },
-    { 4,  2 },
-    { 8,  3 },
-    { 3,  4 },
-    { 16, 5 },
-    { 6,  6 },
-    { 12, 7 },
-    { 0,  0 },
-};
-    int32_t fb_div, pll_output_freq = 0;
+        { 1,  0 },
+        { 2,  1 },
+        { 4,  2 },
+        { 8,  3 },
+        { 3,  4 },
+        { 16, 5 },
+        { 6,  6 },
+        { 12, 7 },
+        { 0,  0 },
+    };
+    int32_t fb_div;
+    int32_t pll_output_freq = 0;
     int32_t uses_dvo = 0;
 
     /* Check if the DVO port is enabled and sourced from the primary CRTC. I'm
@@ -1576,7 +1577,7 @@ static void radeon_calc_pll_regs(struct radeonfb_info *rinfo, struct radeon_regs
      */
 #if 1
     /* XXX I had reports of flicker happening with the cinema display
-     * on TMDS1 that seem to be fixed if I also forbit odd dividers in
+     * on TMDS1 that seem to be fixed if I also forbid odd dividers in
      * this case. This could just be a bandwidth calculation issue, I
      * haven't implemented the bandwidth code yet, but in the meantime,
      * forcing uses_dvo to 1 fixes it and shouln't have bad side effects,
