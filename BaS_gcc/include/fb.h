@@ -513,7 +513,7 @@ extern void offscreen_init(struct fb_info *info);
 #define FB_MODE_IS_FROM_VAR     32
 
 extern void fb_destroy_modedb(struct fb_videomode *modedb);
-extern int32_t fb_parse_edid(uint8_t *edid, struct fb_var_screeninfo *var);
+extern int fb_parse_edid(uint8_t *edid, struct fb_var_screeninfo *var);
 extern void fb_edid_to_monspecs(uint8_t *edid, struct fb_monspecs *specs);
 extern int32_t fb_get_mode(int32_t flags, uint32_t val, struct fb_var_screeninfo *var, struct fb_info *info);
 extern int32_t fb_validate_mode(const struct fb_var_screeninfo *var, struct fb_info *info);

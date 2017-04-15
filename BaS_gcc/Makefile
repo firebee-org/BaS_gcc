@@ -8,9 +8,8 @@
 # installation, but allows source level debugging over BDM with a recent gdb (tested with 7.5),
 # the m68k BDM tools from sourceforge (http://bdm.sourceforge.net) and a BDM pod (TBLCF and P&E tested).
 
-VERBOSE=N
 
-ifneq (Y,$(VERBOSE))
+ifneq (yes,$(VERBOSE))
 Q=@
 else
 Q=

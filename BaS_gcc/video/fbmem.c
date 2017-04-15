@@ -46,6 +46,7 @@ int fb_pan_display(struct fb_info *info, struct fb_var_screeninfo *var)
     if ((err = info->fbops->fb_pan_display(var, info)))
     {
         dbg("fb_pan_display returned %d\r\n", err);
+
         return err;
     }
 
@@ -55,6 +56,7 @@ int fb_pan_display(struct fb_info *info, struct fb_var_screeninfo *var)
         info->var.vmode |= FB_VMODE_YWRAP;
     else
         info->var.vmode &= ~FB_VMODE_YWRAP;
+
     return 0;
 }
 
@@ -67,6 +69,7 @@ int fb_set_var(struct fb_info *info, struct fb_var_screeninfo *var)
     if (var->activate & FB_ACTIVATE_INV_MODE)
     {
         dbg("invalid mode\r\n");
+
         return !memcmp((char *) &info->var, (char *) var, sizeof(struct fb_var_screeninfo));
     }
 
@@ -76,6 +79,7 @@ int fb_set_var(struct fb_info *info, struct fb_var_screeninfo *var)
         if ((err = info->fbops->fb_check_var(var, info)))
         {
             dbg("fb_check_var failed\r\n");
+
             return err;
         }
 
@@ -96,7 +100,8 @@ int fb_blank(struct fb_info *info, int blank)
     dbg("\r\n");
     if (blank > FB_BLANK_POWERDOWN)
         blank = FB_BLANK_POWERDOWN;
-    return(info->fbops->fb_blank(blank, info));
+
+    return info->fbops->fb_blank(blank, info);
 }
 
 int fb_ioctl(struct fb_info *info, uint32_t cmd, uint32_t arg)
@@ -111,6 +116,7 @@ int fb_ioctl(struct fb_info *info, uint32_t cmd, uint32_t arg)
     {
         case FBIOGET_VSCREENINFO:
             memcpy(argp, &info->var, sizeof(var));
+
             return 0;
 
         case FBIOPUT_VSCREENINFO:
@@ -119,10 +125,12 @@ int fb_ioctl(struct fb_info *info, uint32_t cmd, uint32_t arg)
             if (i)
                 return i;
             memcpy(argp, &var, sizeof(var));
+
             return 0;
 
         case FBIOGET_FSCREENINFO:
             memcpy(argp, &info->fix, sizeof(fix));
+
             return 0;
 
         case FBIOPAN_DISPLAY:
@@ -131,6 +139,7 @@ int fb_ioctl(struct fb_info *info, uint32_t cmd, uint32_t arg)
             if (i)
                 return i;
             memcpy(argp, &var, sizeof(var));
+
             return 0;
 
         case FBIOBLANK:
@@ -138,13 +147,13 @@ int fb_ioctl(struct fb_info *info, uint32_t cmd, uint32_t arg)
             return i;
 
         case FBIO_ALLOC:
-            return(offscreen_alloc(info, arg));
+            return offscreen_alloc(info, arg);
 
         case FBIO_FREE:
-            return(offscreen_free(info, (void *) arg));
+            return offscreen_free(info, (void *) arg);
 
         default:
-            return(info->fbops->fb_ioctl(cmd, arg, info));
+            return info->fbops->fb_ioctl(cmd, arg, info);
     }
 }
 
@@ -172,6 +181,7 @@ struct fb_info *framebuffer_alloc(uint32_t size)
     extern struct fb_info *info_fb;
 
     dbg("\r\n");
+
     return info_fb;
 }
 
@@ -187,6 +197,7 @@ struct fb_info *framebuffer_alloc(uint32_t size)
 void framebuffer_release(struct fb_info *info)
 {
     dbg("\r\n");
+
     driver_mem_free(info->par);
 }
 
