@@ -475,10 +475,6 @@ void BaS(void)
 
     sd_card_init();
 
-    /*
-     * memory setup
-     */
-    memset((void *) 0x200, 0, 0x400);
 
 #if defined(MACHINE_FIREBEE)
     /* set Falcon bus control register */
@@ -490,6 +486,7 @@ void BaS(void)
     /*
      * FireTOS wants to have the TOS system variables cleared
      * Do the same for EmuTOS. "warm resets" don't seem to be reliable
+     * Exception vector table extends to 0x3ff
      */
     memset((void *) 0x400, 0, 0x400);
 
