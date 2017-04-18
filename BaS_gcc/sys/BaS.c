@@ -468,10 +468,10 @@ void BaS(void)
     /*
      * video setup (25MHz)
      */
-    * (volatile uint32_t *) 0xf0000410 = 0x032002ba;  /* horizontal 640x480 */
-    * (volatile uint32_t *) 0xf0000414 = 0x020c020a;  /* vertical 640x480 */
-    * (volatile uint32_t *) 0xf0000418 = 0x0190015d;  /* horizontal 320x240 */
-    * (volatile uint32_t *) 0xf000041c = 0x020c020a; /* vertical 320x230 */
+    * (volatile uint32_t *) 0xf0000410 = 0x032002ba;    /* horizontal 640 x 480 */
+    * (volatile uint32_t *) 0xf0000414 = 0x020c020a;    /* vertical 640 x 480 */
+    * (volatile uint32_t *) 0xf0000418 = 0x0190015d;    /* horizontal 320 x 240 */
+    * (volatile uint32_t *) 0xf000041c = 0x020c020a;    /* vertical 320 x 240 */
 
     /* fifo on, refresh on, ddrcs and cke on, video dac on */
     * (volatile uint32_t *) 0xf0000400 = 0x01070082;
