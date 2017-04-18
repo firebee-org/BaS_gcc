@@ -52,7 +52,7 @@
 #include "pci.h"
 #include "video.h"
 
-// // #define DEBUG
+// #define DEBUG
 #include "debug.h"
 
 /* imported routines */
@@ -457,21 +457,42 @@ void BaS(void)
     * (volatile uint8_t *) (0xffff8802 - 0) = 0;
 
     xprintf("finished\r\n");
-
-    xprintf("set IDE 0 & 1 to FireBee high speed mode: ");
-    * (volatile uint32_t *) 0xf0040000 &= 0xff00ffff;   /* clear speed bits (= slow mode)*/
-    * (volatile uint32_t *) 0xf0040000 |= 0x00110000;   /* set both units to 1 (=fast mode) */
-    xprintf("finished\r\n");
-
     xprintf("enable video: ");
 
     /*
      * video setup (25MHz)
      */
-    * (volatile uint32_t *) 0xf0000410 = 0x032002ba;    /* horizontal 640 x 480 */
-    * (volatile uint32_t *) 0xf0000414 = 0x020c020a;    /* vertical 640 x 480 */
-    * (volatile uint32_t *) 0xf0000418 = 0x0190015d;    /* horizontal 320 x 240 */
-    * (volatile uint32_t *) 0xf000041c = 0x020c020a;    /* vertical 320 x 240 */
+
+/*
+ * ATARI video modes "modeline"
+ *
+ * horizontal:
+ * high word = h_total
+ * low word = hsync_start
+ *
+ * vertical:
+ * high word = v_total
+ * low word = vsync_start
+ *
+ * can be calculated with umc ("universal modeline generator")
+ *
+ */
+#define ATARI_HH    * (volatile uint32_t *) 0xf0000410
+#define ATARI_VH    * (volatile uint32_t *) 0xff000414
+#define ATARI_HL    * (volatile uint32_t *) 0xff000418
+#define ATARI_VL    * (volatile uint32_t *) 0xff00041c
+
+#ifdef VIDEO_25MHZ
+    ATARI_HH = 0x032002ba;  /* horizontal timing 640 x 480 */
+    ATARI_VH = 0x020c020a;  /* vertical timing 640 x 480 */
+    ATARI_HL = 0x0190015d;  /* horizontal timing 320 x 240 */
+    ATARI_VL = 0x020c020a;  /* vertical timing 320 x 240 */
+#else /* 32 MHz */
+    ATARI_HH = 0x037002ba;  /* horizontal timing 640 x 480 */
+    ATARI_VH = 0x020d020a;  /* vertikal timing 640 x 480 */
+    ATARI_HL = 0x02a001e0;  /* horizontal timing 320 x 240 */
+    ATARI_VL = 0x05a00160;  /* vertikal timing 320 x 240 */
+#endif
 
     /* fifo on, refresh on, ddrcs and cke on, video dac on */
     * (volatile uint32_t *) 0xf0000400 = 0x01070082;
