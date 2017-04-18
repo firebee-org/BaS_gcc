@@ -457,6 +457,12 @@ void BaS(void)
     * (volatile uint8_t *) (0xffff8802 - 0) = 0;
 
     xprintf("finished\r\n");
+
+    xprintf("set IDE 0 & 1 to FireBee high speed mode: ");
+    * (volatile uint32_t *) 0xf0040000 &= 0xff00ffff;   /* clear speed bits (= slow mode)*/
+    * (volatile uint32_t *) 0xf0040000 |= 0x00110000;   /* set both units to 1 (=fast mode) */
+    xprintf("finished\r\n");
+
     xprintf("enable video: ");
 
     /*
