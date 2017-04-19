@@ -467,31 +467,64 @@ void BaS(void)
  * ATARI video modes "modeline"
  *
  * horizontal:
- * high word = h_total
- * low word = hsync_start
+ * high word:   h_total
+ * low word:    hsync_start
  *
  * vertical:
- * high word = v_total
- * low word = vsync_start
+ * high word    v_total
+ * low word     vsync_start
  *
  * can be calculated with umc ("universal modeline generator")
  *
  */
-#define ATARI_HH    * (volatile uint32_t *) 0xf0000410
-#define ATARI_VH    * (volatile uint32_t *) 0xff000414
-#define ATARI_HL    * (volatile uint32_t *) 0xff000418
-#define ATARI_VL    * (volatile uint32_t *) 0xff00041c
+struct atari_video_timing
+{
+    uint16_t total;
+    uint16_t sync_start;
+};
+
+static volatile struct atari_video_timing *hor_640x480 = (volatile struct atari_video_timing *) 0xf0000410;
+static volatile struct atari_video_timing *ver_640x480 = (volatile struct atari_video_timing *) 0xf0000414;
+static volatile struct atari_video_timing *hor_320x240 = (volatile struct atari_video_timing *) 0xf0000418;
+static volatile struct atari_video_timing *ver_320x240 = (volatile struct atari_video_timing *) 0xf000041c;
+
+#define VIDEO_25MHZ
 
 #ifdef VIDEO_25MHZ
+    hor_640x480->total = 0x2ba;
+    hor_640x480->sync_start = 0x2ba;
+    ver_640x480->total = 0x20c;
+    ver_640x480->sync_start = 0x20a;
+
+    hor_320x240->total = 0x190;
+    hor_320x240->sync_start = 0x15d;
+    ver_320x240->total = 0x20c;
+    ver_320x240->sync_start = 0x20a;
+
+#ifdef _NOT_USED_
     ATARI_HH = 0x032002ba;  /* horizontal timing 640 x 480 */
     ATARI_VH = 0x020c020a;  /* vertical timing 640 x 480 */
     ATARI_HL = 0x0190015d;  /* horizontal timing 320 x 240 */
     ATARI_VL = 0x020c020a;  /* vertical timing 320 x 240 */
+*/
+#endif /* _NOT_USED_ */
 #else /* 32 MHz */
+    hor_640x480->total = 0x370;
+    hor_640x480->sync_start = 0x2ba;
+    ver_640x480->total = 0x20d;
+    ver_640x480->sync_start = 0x20a;
+
+    hor_320x240->total = 0x2a0;
+    hor_320x240->sync_start = 0x1e0;
+    ver_320x240->total = 0x5a0;
+    ver_320x240->sync_start = 0x168;
+
+#ifdef _NOT_USED_
     ATARI_HH = 0x037002ba;  /* horizontal timing 640 x 480 */
     ATARI_VH = 0x020d020a;  /* vertikal timing 640 x 480 */
     ATARI_HL = 0x02a001e0;  /* horizontal timing 320 x 240 */
     ATARI_VL = 0x05a00160;  /* vertikal timing 320 x 240 */
+#endif /* _NOT_USED_ */
 #endif
 
     /* fifo on, refresh on, ddrcs and cke on, video dac on */
