@@ -434,10 +434,6 @@ void BaS(void)
     memcpy(dst, src, EMUTOS_SIZE);
     xprintf("finished\r\n");
 
-    xprintf("initialize exception vector table: ");
-    vec_init();
-    xprintf("finished\r\n");
-
     xprintf("flush caches: ");
     flush_and_invalidate_caches();
     xprintf("finished\r\n");
@@ -445,6 +441,11 @@ void BaS(void)
     MCF_MMU_MMUCR = MCF_MMU_MMUCR_EN;           /* MMU on */
     NOP();                                      /* force pipeline sync */
     xprintf("finished\r\n");
+
+    xprintf("initialize exception vector table: ");
+    vec_init();
+    xprintf("finished\r\n");
+
 
 #if defined(MACHINE_FIREBEE)
     xprintf("IDE reset: ");
@@ -457,10 +458,6 @@ void BaS(void)
 
     xprintf("finished\r\n");
     xprintf("enable video: ");
-
-    /*
-     * video setup (25MHz)
-     */
 
 /*
  * ATARI video modes "modeline"
@@ -487,8 +484,6 @@ static volatile struct atari_video_timing *ver_640x480 = (volatile struct atari_
 static volatile struct atari_video_timing *hor_320x240 = (volatile struct atari_video_timing *) 0xf0000418;
 static volatile struct atari_video_timing *ver_320x240 = (volatile struct atari_video_timing *) 0xf000041c;
 
-#define VIDEO_25MHZ
-
 #ifdef VIDEO_25MHZ
     hor_640x480->total = 0x2ba;
     hor_640x480->sync_start = 0x2ba;
@@ -499,14 +494,6 @@ static volatile struct atari_video_timing *ver_320x240 = (volatile struct atari_
     hor_320x240->sync_start = 0x15d;
     ver_320x240->total = 0x20c;
     ver_320x240->sync_start = 0x20a;
-
-#ifdef _NOT_USED_
-    ATARI_HH = 0x032002ba;  /* horizontal timing 640 x 480 */
-    ATARI_VH = 0x020c020a;  /* vertical timing 640 x 480 */
-    ATARI_HL = 0x0190015d;  /* horizontal timing 320 x 240 */
-    ATARI_VL = 0x020c020a;  /* vertical timing 320 x 240 */
-*/
-#endif /* _NOT_USED_ */
 #else /* 32 MHz */
     hor_640x480->total = 0x370;
     hor_640x480->sync_start = 0x2ba;
@@ -517,13 +504,6 @@ static volatile struct atari_video_timing *ver_320x240 = (volatile struct atari_
     hor_320x240->sync_start = 0x1e0;
     ver_320x240->total = 0x5a0;
     ver_320x240->sync_start = 0x168;
-
-#ifdef _NOT_USED_
-    ATARI_HH = 0x037002ba;  /* horizontal timing 640 x 480 */
-    ATARI_VH = 0x020d020a;  /* vertikal timing 640 x 480 */
-    ATARI_HL = 0x02a001e0;  /* horizontal timing 320 x 240 */
-    ATARI_VL = 0x05a00160;  /* vertikal timing 320 x 240 */
-#endif /* _NOT_USED_ */
 #endif
 
     /* fifo on, refresh on, ddrcs and cke on, video dac on */
@@ -541,13 +521,6 @@ static volatile struct atari_video_timing *ver_320x240 = (volatile struct atari_
 
     * (volatile uint8_t *) 0xffff8007 = 0x48;
 #endif /* MACHINE_FIREBEE */
-
-    /*
-     * FireTOS wants to have the TOS system variables cleared
-     * Do the same for EmuTOS. "warm resets" don't seem to be reliable
-     * Exception vector table extends to 0x3ff
-     */
-    memset((void *) 0x400, 0, 0x400);
 
     /* ST RAM */
 
