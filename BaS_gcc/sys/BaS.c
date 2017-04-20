@@ -485,25 +485,25 @@ static volatile struct atari_video_timing *hor_320x240 = (volatile struct atari_
 static volatile struct atari_video_timing *ver_320x240 = (volatile struct atari_video_timing *) 0xf000041c;
 
 #ifdef VIDEO_25MHZ
-    hor_640x480->total = 0x2ba;
-    hor_640x480->sync_start = 0x2ba;
-    ver_640x480->total = 0x20c;
-    ver_640x480->sync_start = 0x20a;
+    hor_640x480->total = 0x320;         /* 800 */
+    hor_640x480->sync_start = 0x2ba;    /* 698 */
+    ver_640x480->total = 0x20c;         /* 524 */
+    ver_640x480->sync_start = 0x20a;    /* 522 */
 
-    hor_320x240->total = 0x190;
-    hor_320x240->sync_start = 0x15d;
-    ver_320x240->total = 0x20c;
-    ver_320x240->sync_start = 0x20a;
+    hor_320x240->total = 0x190;         /* 400 */
+    hor_320x240->sync_start = 0x15d;    /* 349 */
+    ver_320x240->total = 0x20c;         /* 524 */
+    ver_320x240->sync_start = 0x20a;    /* 522 */
 #else /* 32 MHz */
-    hor_640x480->total = 0x370;
-    hor_640x480->sync_start = 0x2ba;
-    ver_640x480->total = 0x20d;
-    ver_640x480->sync_start = 0x20a;
+    hor_640x480->total = 0x370;         /* 880 */
+    hor_640x480->sync_start = 0x2ba;    /* 698 */
+    ver_640x480->total = 0x20d;         /* 525 */
+    ver_640x480->sync_start = 0x20a;    /* 522 */
 
-    hor_320x240->total = 0x2a0;
-    hor_320x240->sync_start = 0x1e0;
-    ver_320x240->total = 0x5a0;
-    ver_320x240->sync_start = 0x168;
+    hor_320x240->total = 0x2a0;         /* 672 */
+    hor_320x240->sync_start = 0x1e0;    /* 480 */
+    ver_320x240->total = 0x5a0;         /* 480 */
+    ver_320x240->sync_start = 0x160;    /* 352 */
 #endif
 
     /* fifo on, refresh on, ddrcs and cke on, video dac on */
