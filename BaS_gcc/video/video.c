@@ -227,10 +227,10 @@ void videl_screen_init(void)
     /* TODO: VEC_HBL = int_hbl; */
     /* TODO: VEC_VBL = int_vbl; */
 
-/*
- * first, see what we're connected to, and set the
- * resolution / video mode appropriately
- */
+    /*
+     * first, see what we're connected to, and set the
+     * resolution / video mode appropriately
+     */
     monitor_type = MON_COLOR;
     xprintf("monitor_type = %d\r\n", monitor_type);
 

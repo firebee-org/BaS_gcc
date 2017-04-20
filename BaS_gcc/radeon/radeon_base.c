@@ -2052,7 +2052,7 @@ static struct fb_ops radeonfb_ops =
     .WaitVbl = radeon_wait_vbl,
 };
 
-static int32_t radeon_set_fbinfo(struct radeonfb_info *rinfo)
+static int radeon_set_fbinfo(struct radeonfb_info *rinfo)
 {
     struct fb_info *info = rinfo->info;
 
@@ -2082,6 +2082,7 @@ static int32_t radeon_set_fbinfo(struct radeonfb_info *rinfo)
     info->fix.mmio_start = rinfo->mmio_base_phys;
     info->fix.mmio_len = RADEON_REGSIZE;
     info->fix.accel = FB_ACCEL_ATI_RADEON;
+
     return 0;
 }
 
@@ -2384,8 +2385,8 @@ int32_t radeonfb_pci_register(int32_t handle, const struct pci_device_id *ent)
         inf("%d KB of video RAM mapped to %p\r\n", rinfo->mapped_vram / 1024, rinfo->fb_base);
     }
 
-    /* Get informations about the board's PLL */
-    dbg("get informations about the board's PLL\r\n");
+    /* Get information about the board's PLL */
+    dbg("get information about the board's PLL\r\n");
     radeon_get_pllinfo(rinfo);
 
 #ifdef CONFIG_FB_RADEON_I2C
@@ -2404,7 +2405,7 @@ int32_t radeonfb_pci_register(int32_t handle, const struct pci_device_id *ent)
 
     /* Probe screen types */
     dbg("probe screen types, monitor_layout: %s\r\n", monitor_layout);
-    radeon_probe_screens(rinfo, monitor_layout, (int32_t) ignore_edid);
+    radeon_probe_screens(rinfo, monitor_layout, ignore_edid);
 
     /* Build mode list, check out panel native model */
     dbg("build mode list\r\n");
@@ -2418,10 +2419,6 @@ int32_t radeonfb_pci_register(int32_t handle, const struct pci_device_id *ent)
     radeon_save_state(rinfo, &rinfo->init_state);
     memcpy(&rinfo->state, &rinfo->init_state, sizeof(struct radeon_regs));
 
-    /* Setup Power Management capabilities */
-    //	DPRINT("radeonfb: radeonfb_pci_register: setup power management\r\n");
-    //	radeonfb_pm_init(rinfo, (int32_t)default_dynclk);
-
     dbg("install VBL timer\r\n");
     rinfo->lvds_timer = 0;
 
@@ -2432,8 +2429,6 @@ int32_t radeonfb_pci_register(int32_t handle, const struct pci_device_id *ent)
 #endif
     radeon_timer_func();
 
-    //rinfo->RageTheatreCrystal = rinfo->RageTheatreTunerPort=rinfo->RageTheatreCompositePort = rinfo->RageTheatreSVideoPort = -1;
-    //rinfo->tunerType = -1;
     return 0;
 }
 
