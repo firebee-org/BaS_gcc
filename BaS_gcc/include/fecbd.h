@@ -40,9 +40,9 @@
  */
 typedef struct
 {
-	uint16_t status;  /* control and status */
-	uint16_t length;  /* transfer length */
-	uint8_t  *data;   /* buffer address */
+    uint16_t status;  /* control and status */
+    uint16_t length;  /* transfer length */
+    uint8_t  *data;   /* buffer address */
 } FECBD;
 
 /*

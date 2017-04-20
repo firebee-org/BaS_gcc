@@ -27,24 +27,24 @@
  *      Author: Markus Fröschle
  */
 
-#define SYSCLK			132000		/* NOTE: 132 _is_ correct. 133 _is_ wrong. Do not change! */
+#define SYSCLK          132000      /* NOTE: 132 _is_ correct. 133 _is_ wrong. Do not change! */
 
-#define BOOTFLASH_BASE_ADDRESS		0xE0000000
-#define BOOTFLASH_SIZE				0x800000                /* FireBee has 8 MByte Flash */
-#define BOOTFLASH_BAM				(BOOTFLASH_SIZE - 1)
+#define BOOTFLASH_BASE_ADDRESS      0xE0000000
+#define BOOTFLASH_SIZE              0x800000                /* FireBee has 8 MByte Flash */
+#define BOOTFLASH_BAM               (BOOTFLASH_SIZE - 1)
 
-#define SDRAM_START					0x00000000	/* start at address 0 */
-#define SDRAM_SIZE					0x20000000	/* 512 MB on the Firebee */
+#define SDRAM_START                 0x00000000	/* start at address 0 */
+#define SDRAM_SIZE                  0x20000000	/* 512 MB on the Firebee */
 
 #ifdef COMPILE_RAM
-#define TARGET_ADDRESS  	(SDRAM_START + SDRAM_SIZE - 0x200000)
+#define TARGET_ADDRESS              (SDRAM_START + SDRAM_SIZE - 0x200000)
 #else
-#define TARGET_ADDRESS  	BOOTFLASH_BASE_ADDRESS
-#define BFL_TARGET_ADDRESS  0x0100000           /* load address for basflash */
+#define TARGET_ADDRESS              BOOTFLASH_BASE_ADDRESS
+#define BFL_TARGET_ADDRESS          0x0100000           /* load address for basflash */
 
 #endif /* COMPILE_RAM */
 
-#define DRIVER_MEM_BUFFER_SIZE   	0x100000
+#define DRIVER_MEM_BUFFER_SIZE      0x100000
 
 #define EMUTOS_BASE_ADDRESS	0xe0600000
 

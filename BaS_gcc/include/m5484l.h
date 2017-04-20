@@ -27,24 +27,24 @@
  *      Author: Markus Fröschle
  */
 
-#define SYSCLK			100000UL
+#define SYSCLK                      100000UL
 
-#define BOOTFLASH_BASE_ADDRESS		0xe0000000
-#define BOOTFLASH_SIZE				0x400000	/* LITEKIT has 4MB flash */
-#define BOOTFLASH_BAM				(BOOTFLASH_SIZE - 1)
+#define BOOTFLASH_BASE_ADDRESS      0xe0000000
+#define BOOTFLASH_SIZE              0x400000	/* LITEKIT has 4MB flash */
+#define BOOTFLASH_BAM               (BOOTFLASH_SIZE - 1)
 
-#define SDRAM_START					0x00000000	/* start at address 0 */
-#define SDRAM_SIZE					0x4000000  	/* 64 MB on the LITEKIT */
+#define SDRAM_START                 0x00000000	/* start at address 0 */
+#define SDRAM_SIZE                  0x4000000  	/* 64 MB on the LITEKIT */
 
 #ifdef COMPILE_RAM
-#define TARGET_ADDRESS	(SDRAM_START + SDRAM_SIZE - 0x200000)
+#define TARGET_ADDRESS              (SDRAM_START + SDRAM_SIZE - 0x200000)
 #else
-#define TARGET_ADDRESS	BOOTFLASH_BASE_ADDRESS
+#define TARGET_ADDRESS              BOOTFLASH_BASE_ADDRESS
 #endif /* COMPILE_RAM */
-#define BFL_TARGET_ADDRESS  0x0100000           /* load address for basflash */
+#define BFL_TARGET_ADDRESS          0x0100000           /* load address for basflash */
 
-#define DRIVER_MEM_BUFFER_SIZE	0x100000
+#define DRIVER_MEM_BUFFER_SIZE      0x100000
 
-#define EMUTOS_BASE_ADDRESS 	0xe0100000
+#define EMUTOS_BASE_ADDRESS         0xe0100000
 
 #endif /* _M5484L_H_ */

@@ -35,7 +35,6 @@
 #include "sd_card.h"
 #include "wait.h"
 
-#include "diskio.h"
 #include "ff.h"
 #include "s19reader.h"
 #include "mmu.h"
