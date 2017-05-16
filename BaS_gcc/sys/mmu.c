@@ -480,6 +480,15 @@ void mmu_init(void)
             pages[i].execute = 0;
             pages[i].global = 1;
         }
+        else if (addr >= 0xfff00000UL && addr <= 0xffffffffUL)        /* Falcon I/O area on the Firebee */
+        {
+            pages[i].cache_mode = CACHE_NOCACHE_PRECISE;
+            pages[i].supervisor_protect = 1;
+            pages[i].read = 1;
+            pages[i].write = 1;
+            pages[i].execute = 0;
+            pages[i].global = 1;
+        }
         else if (addr >= 0x0UL && addr < 0x00e00000UL)          /* ST-RAM, potential video memory */
         {
             pages[i].cache_mode = CACHE_WRITETHROUGH;

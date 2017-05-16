@@ -415,7 +415,7 @@ void BaS(void)
     uint8_t *src;
     uint8_t *dst = (uint8_t *) TOS;
 
-#if defined(MACHINE_FIREBEE)        /* LITE board has no pic and (currently) no nvram */
+#if defined(MACHINE_FIREBEE)                    /* LITE board has no pic and (currently) no nvram */
     pic_init();
     nvram_init();
 #endif /* MACHINE_FIREBEE */
@@ -446,6 +446,8 @@ void BaS(void)
     vec_init();
     xprintf("finished\r\n");
 
+
+    memset((void *) 0x0200, 0x0, 0x0400);
 
 #if defined(MACHINE_FIREBEE)
     xprintf("IDE reset: ");
@@ -483,6 +485,8 @@ static volatile struct atari_video_timing *hor_640x480 = (volatile struct atari_
 static volatile struct atari_video_timing *ver_640x480 = (volatile struct atari_video_timing *) 0xf0000414;
 static volatile struct atari_video_timing *hor_320x240 = (volatile struct atari_video_timing *) 0xf0000418;
 static volatile struct atari_video_timing *ver_320x240 = (volatile struct atari_video_timing *) 0xf000041c;
+
+#undef VIDEO_25MHZ
 
 #ifdef VIDEO_25MHZ
     hor_640x480->total = 0x320;         /* 800 */
