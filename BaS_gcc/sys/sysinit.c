@@ -406,7 +406,7 @@ static void init_fbcs()
     /* Flash */
     MCF_FBCS0_CSAR = MCF_FBCS_CSAR_BA(BOOTFLASH_BASE_ADDRESS);    /* flash base address */
     MCF_FBCS0_CSCR = MCF_FBCS_CSCR_PS_16 |              /* 16 bit word access */
-            MCF_FBCS_CSCR_WS(8)|                        /* 6 wait states */
+            MCF_FBCS_CSCR_WS(4)|                        /* 4 wait states */
             MCF_FBCS_CSCR_AA |                          /* auto /TA acknowledge */
             MCF_FBCS_CSCR_ASET(1) |                     /* assert chip select on second rising edge after address assertion */
             MCF_FBCS_CSCR_RDAH(1);                      /* chip errata SECF077 */
@@ -415,26 +415,26 @@ static void init_fbcs()
 
 
 #if defined(MACHINE_FIREBEE) /* FBC setup for FireBee */
-    MCF_FBCS1_CSAR = MCF_FBCS_CSAR_BA(0xFFF00000);      /* ATARI I/O address range */
+    MCF_FBCS1_CSAR = MCF_FBCS_CSAR_BA(0xFFF80000);      /* ATARI I/O address range */
     MCF_FBCS1_CSCR = MCF_FBCS_CSCR_PS_16                /* 16BIT PORT */
-        | MCF_FBCS_CSCR_WS(32)                          /* 32 wait states */
-//        | MCF_FBCS_CSCR_BSTR                            /* burst read enable */
-//        | MCF_FBCS_CSCR_BSTW                            /* burst write enable */
+        | MCF_FBCS_CSCR_WS(16)                          /* 16 wait states */
         | MCF_FBCS_CSCR_AA;                             /* auto /TA acknowledge */
-    MCF_FBCS1_CSMR = MCF_FBCS_CSMR_BAM_1M | MCF_FBCS_CSMR_V;
+    MCF_FBCS1_CSMR = MCF_FBCS_CSMR_BAM_512K | MCF_FBCS_CSMR_V;
 
     MCF_FBCS2_CSAR = MCF_FBCS_CSAR_BA(0xF0000000);      /* Firebee new I/O address range */
     MCF_FBCS2_CSCR = MCF_FBCS_CSCR_PS_32                /* 32BIT PORT */
-        | MCF_FBCS_CSCR_WS(32)                           /* 4 wait states */
+        | MCF_FBCS_CSCR_WS(8)                           /* 8 wait states */
         | MCF_FBCS_CSCR_AA;                             /* auto /TA acknowledge */
     MCF_FBCS2_CSMR = (MCF_FBCS_CSMR_BAM_128M            /* F000'0000-F7FF'FFFF */
               | MCF_FBCS_CSMR_V);
 
-    MCF_FBCS3_CSAR = MCF_FBCS_CSAR_BA(0xF8000000);      /* Firebee SRAM */
+    MCF_FBCS3_CSAR = MCF_FBCS_CSAR_BA(0xfff00000);      /* IDE address range for burst mode */
     MCF_FBCS3_CSCR = MCF_FBCS_CSCR_PS_16                /* 16 bit port */
-        | MCF_FBCS_CSCR_WS(32)                          /* 0 wait states */
+        | MCF_FBCS_CSCR_WS(16)                          /* 16 wait states */
+        | MCF_FBCS_CSCR_BSTR                            /* burst read enable */
+        | MCF_FBCS_CSCR_BSTW                            /* burst write enable */
         | MCF_FBCS_CSCR_AA;                             /* auto /TA acknowledge */
-    MCF_FBCS3_CSMR = (MCF_FBCS_CSMR_BAM_64M             /* F800'0000-FBFF'FFFF */
+    MCF_FBCS3_CSMR = (MCF_FBCS_CSMR_BAM_512K             /* F800'0000-FBFF'FFFF */
               | MCF_FBCS_CSMR_V);
 
     /*
