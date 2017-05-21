@@ -87,7 +87,7 @@ void wait_for_jtag(void)
 int main(int argc, char *argv[])
 {
     printf("\033E\r\nFPGA JTAG configuration support\r\n");
-    printf("\xbd 2014 M. Fr\x94schle\r\n");
+    printf("\xbd 2014 M. Froeschle\r\n");
 
     printf("You may now savely load a new FPGA configuration through the JTAG interface\r\n"
            "and your Firebee will reboot once finished using that new configuration.\r\n");
