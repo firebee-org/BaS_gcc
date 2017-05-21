@@ -447,7 +447,7 @@ void BaS(void)
     xprintf("finished\r\n");
 
 
-    memset((void *) 0x0200, 0x0, 0x0400);
+    memset((void *) 0x0400, 0x0, 0x0400);
 
 #if defined(MACHINE_FIREBEE)
     xprintf("IDE reset: ");
@@ -461,30 +461,30 @@ void BaS(void)
     xprintf("finished\r\n");
     xprintf("enable video: ");
 
-/*
- * ATARI video modes "modeline"
- *
- * horizontal:
- * high word:   h_total
- * low word:    hsync_start
- *
- * vertical:
- * high word    v_total
- * low word     vsync_start
- *
- * can be calculated with umc ("universal modeline generator")
- *
- */
-struct atari_video_timing
-{
-    uint16_t total;
-    uint16_t sync_start;
-};
+    /*
+    * ATARI video modes "modeline"
+    *
+    * horizontal:
+    * high word:   h_total
+    * low word:    hsync_start
+    *
+    * vertical:
+    * high word    v_total
+    * low word     vsync_start
+    *
+    * can be calculated with umc ("universal modeline generator")
+    *
+    */
+    struct atari_video_timing
+    {
+        uint16_t total;
+        uint16_t sync_start;
+    };
 
-static volatile struct atari_video_timing *hor_640x480 = (volatile struct atari_video_timing *) 0xf0000410;
-static volatile struct atari_video_timing *ver_640x480 = (volatile struct atari_video_timing *) 0xf0000414;
-static volatile struct atari_video_timing *hor_320x240 = (volatile struct atari_video_timing *) 0xf0000418;
-static volatile struct atari_video_timing *ver_320x240 = (volatile struct atari_video_timing *) 0xf000041c;
+    static volatile struct atari_video_timing *hor_640x480 = (volatile struct atari_video_timing *) 0xf0000410;
+    static volatile struct atari_video_timing *ver_640x480 = (volatile struct atari_video_timing *) 0xf0000414;
+    static volatile struct atari_video_timing *hor_320x240 = (volatile struct atari_video_timing *) 0xf0000418;
+    static volatile struct atari_video_timing *ver_320x240 = (volatile struct atari_video_timing *) 0xf000041c;
 
 #undef VIDEO_25MHZ
 
