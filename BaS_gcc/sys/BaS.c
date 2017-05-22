@@ -432,6 +432,8 @@ void BaS(void)
     /* copy EMUTOS */
     src = (uint8_t *) EMUTOS;
     memcpy(dst, src, EMUTOS_SIZE);
+    /* do a second copy to FPGA RAM exclusively for the blitter */
+    memcpy(dst + 0x40000000, src, EMUTOS_SIZE);
     xprintf("finished\r\n");
 
     xprintf("flush caches: ");
