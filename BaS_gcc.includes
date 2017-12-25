@@ -1,0 +1,5 @@
+include
+tos/jtagwait/include
+tos/pci_mem/include
+tos/pci_test/include
+tos/vmem_test/include
