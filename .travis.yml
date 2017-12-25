@@ -34,9 +34,9 @@ script:
   - make clean
   - make all
   # Add README.txt
-  - .travis/generate-readme.sh >release-archives/README.md
+  #- .travis/generate-readme.sh >release-archives/README.md
   # Display resulting tree
-  - ls -l release-archives
+  #- ls -l release-archives
 
 deploy:
   skip_cleanup: true
