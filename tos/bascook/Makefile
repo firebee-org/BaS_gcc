@@ -23,10 +23,11 @@ TOPDIR= ../..
 
 BAS_INCLUDE=-I$(TOPDIR)/../BaS_gcc/include
 
-LIBCMINI=$(TOPDIR)/../libcmini/libcmini
+#LIBCMINI=$(TOPDIR)/../libcmini/libcmini
 
-INCLUDE=-I$(LIBCMINI)/include $(BAS_INCLUDE) -nostdlib
-LIBS=-lcmini -nostdlib -lgcc
+#INCLUDE=-I$(LIBCMINI)/include $(BAS_INCLUDE) -nostdlib
+INCLUDE=$(BAS_INCLUDE)
+#LIBS=-lcmini -nostdlib -lgcc
 CC=$(PREFIX)/bin/gcc
 
 CC=$(CROSSBINDIR)gcc
@@ -77,7 +78,7 @@ $(1)/objs/%.o:$(SRCDIR)/%.S
 $(1)_OBJS=$(patsubst %,$(1)/objs/%,$(OBJS))
 $(1)/$(APP): $$($(1)_OBJS)
 	@echo CC $$<
-	@$(CC) $$(CFLAGS) -o $$@ $(LIBCMINI)/m5475/startup.o $$($(1)_OBJS) -L$(LIBCMINI)/m5475 $(LIBS)
+	@$(CC) $$(CFLAGS) -o $$@ $$($(1)_OBJS)
 	@$(STRIP) $$@
 endef
 $(foreach DIR,$(TRGTDIRS),$(eval $(call CC_TEMPLATE,$(DIR))))
