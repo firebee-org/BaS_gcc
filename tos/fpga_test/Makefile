@@ -21,10 +21,10 @@ endif
 DEPEND=depend
 TOPDIR = ../..
 
-LIBCMINI=$(TOPDIR)/../libcmini/libcmini
+#LIBCMINI=$(TOPDIR)/../libcmini/libcmini
 
-INCLUDE=-I$(LIBCMINI)/include -nostdlib -I$(TOPDIR)/include
-LIBS=-lcmini -nostdlib -lgcc -L$(TOPDIR)/firebee -lbas
+#INCLUDE=-I$(LIBCMINI)/include -nostdlib -I$(TOPDIR)/include
+LIBS=-L$(TOPDIR)/firebee -lbas
 CC=$(PREFIX)/bin/gcc
 
 CC=$(CROSSBINDIR)gcc
@@ -59,7 +59,7 @@ COBJS=$(patsubst $(SRCDIR)/%.o,%.o,$(patsubst %.c,%.o,$(CSRCS)))
 AOBJS=$(patsubst $(SRCDIR)/%.o,%.o,$(patsubst %.S,%.o,$(ASRCS)))
 OBJS=$(COBJS) $(AOBJS)
 
-TRGTDIRS=./m5475 ./m5475/mshort
+TRGTDIRS=./m5475
 OBJDIRS=$(patsubst %,%/objs,$(TRGTDIRS))
 
 #
@@ -84,7 +84,7 @@ $(1)/objs/%.o:$(SRCDIR)/%.S
 $(1)_OBJS=$(patsubst %,$(1)/objs/%,$(OBJS))
 $(1)/$(APP): $$($(1)_OBJS)
 	@echo CC $$@
-	@$(CC) $$(CFLAGS) -o $$@ $(LIBCMINI)/$(1)/startup.o $$($(1)_OBJS) -L$(LIBCMINI)/$(1) $(LIBS)
+	@$(CC) $$(CFLAGS) -o $$@ $$($(1)_OBJS) $(LIBS)
 	#$(STRIP) $$@
 endef
 $(foreach DIR,$(TRGTDIRS),$(eval $(call CC_TEMPLATE,$(DIR))))
