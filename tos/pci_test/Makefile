@@ -59,7 +59,7 @@ COBJS=$(patsubst $(SRCDIR)/%.o,%.o,$(patsubst %.c,%.o,$(CSRCS)))
 AOBJS=$(patsubst $(SRCDIR)/%.o,%.o,$(patsubst %.S,%.o,$(ASRCS)))
 OBJS=$(COBJS) $(AOBJS)
 
-TRGTDIRS=./m5475 ./m5475/mshort
+TRGTDIRS=./m5475
 OBJDIRS=$(patsubst %,%/objs,$(TRGTDIRS))
 
 #
