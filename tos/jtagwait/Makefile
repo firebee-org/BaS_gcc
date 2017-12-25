@@ -1,3 +1,9 @@
+ifneq (yes,$(VERBOSE)) 
+  Q=@
+else
+  Q=
+endif
+
 CROSS=Y
 
 CROSSBINDIR_IS_Y=m68k-atari-mint-
@@ -21,10 +27,10 @@ endif
 DEPEND=depend
 TOPDIR = ../..
 
-LIBCMINI=$(TOPDIR)/../libcmini/libcmini
+#LIBCMINI=$(TOPDIR)/../libcmini/libcmini
 
-INCLUDE=-I$(LIBCMINI)/include -nostdlib
-LIBS=-lcmini -nostdlib -lgcc
+#INCLUDE=-I$(LIBCMINI)/include -nostdlib
+#LIBS=-lcmini -nostdlib -lgcc
 CC=$(PREFIX)/bin/gcc
 
 CC=$(CROSSBINDIR)gcc
@@ -35,8 +41,7 @@ APP=jtagwait.prg
 TEST_APP=$(APP)
 
 CFLAGS=\
-	-O0\
-	-g\
+	-msoft-float \
 	-Wl,-Map,mapfile\
 	-Wl,--defsym -Wl,__MBAR=0xff000000\
 	-Wl,--defsym -Wl,__MMUBAR=0xff040000\
@@ -58,7 +63,7 @@ COBJS=$(patsubst $(SRCDIR)/%.o,%.o,$(patsubst %.c,%.o,$(CSRCS)))
 AOBJS=$(patsubst $(SRCDIR)/%.o,%.o,$(patsubst %.S,%.o,$(ASRCS)))
 OBJS=$(COBJS) $(AOBJS)
 
-TRGTDIRS=./m5475 ./m5475/mshort
+TRGTDIRS=./m5475
 OBJDIRS=$(patsubst %,%/objs,$(TRGTDIRS))
 
 #
@@ -74,30 +79,30 @@ all:$(patsubst %,%/$(APP),$(TRGTDIRS))
 define CC_TEMPLATE
 $(1)/objs/%.o:$(SRCDIR)/%.c
 	@echo CC $$<
-	@$(CC) $$(CFLAGS) $(INCLUDE) -c $$< -o $$@
+	$(Q)$(CC) $$(CFLAGS) $(INCLUDE) -c $$< -o $$@
 
 $(1)/objs/%.o:$(SRCDIR)/%.S
 	@echo CC $$<
-	@$(CC) $$(CFLAGS) $(INCLUDE) -c $$< -o $$@
+	$(Q)$(CC) $$(CFLAGS) $(INCLUDE) -c $$< -o $$@
 
 $(1)_OBJS=$(patsubst %,$(1)/objs/%,$(OBJS))
 $(1)/$(APP): $$($(1)_OBJS)
 	@echo CC $$@
-	@$(CC) $$(CFLAGS) -o $$@ $(LIBCMINI)/$(1)/startup.o $$($(1)_OBJS) -L$(LIBCMINI)/$(1) $(LIBS)
-	@$(STRIP) $$@
+	$(Q)$(CC) $$(CFLAGS) -o $$@ $$($(1)_OBJS) $(LIBS)
+	$(Q)$(STRIP) $$@
 endef
 $(foreach DIR,$(TRGTDIRS),$(eval $(call CC_TEMPLATE,$(DIR))))
 
 $(DEPEND): $(ASRCS) $(CSRCS)
-	@-rm -f $(DEPEND)
-	@for d in $(TRGTDIRS);\
+	$(Q)-rm -f $(DEPEND)
+	$(Q)for d in $(TRGTDIRS);\
 		do $(CC) $(CFLAGS) $(INCLUDE) -M $(ASRCS) $(CSRCS) | sed -e "s#^\(.*\).o:#$$d/objs/\1.o:#" >> $(DEPEND); \
     done
 
 
 clean:
-	@rm -f $(patsubst %,%/objs/*.o,$(TRGTDIRS)) $(patsubst %,%/$(APP),$(TRGTDIRS))
-	@rm -f $(DEPEND) mapfile
+	$(Q)rm -f $(patsubst %,%/objs/*.o,$(TRGTDIRS)) $(patsubst %,%/$(APP),$(TRGTDIRS))
+	$(Q)rm -f $(DEPEND) mapfile
 
 .PHONY: printvars
 printvars:

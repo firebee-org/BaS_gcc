@@ -86,10 +86,10 @@ void wait_for_jtag(void)
 
 int main(int argc, char *argv[])
 {
-    printf("\033E\r\nFPGA JTAG configuration support\r\n");
-    printf("\xbd 2014 M. Fr\x94schle\r\n");
+    Cconws("\033E\r\nFPGA JTAG configuration support\r\n");
+    Cconws("\xbd 2014 M. Fr\x94schle\r\n");
 
-    printf("You may now savely load a new FPGA configuration through the JTAG interface\r\n"
+    Cconws("You may now savely load a new FPGA configuration through the JTAG interface\r\n"
            "and your Firebee will reboot once finished using that new configuration.\r\n");
     if (argc == 2)
     {
@@ -109,11 +109,11 @@ int main(int argc, char *argv[])
              */
             bas_start = (long) addr;
 
-            printf("BaS start address set to %p\r\n", (void *) bas_start);
+            //printf("BaS start address set to %p\r\n", (void *) bas_start);
         }
         else
         {
-            printf("\r\nNote: BaS start address %p not valid. Stick to %p.\r\n", addr, (void *) bas_start);
+            //printf("\r\nNote: BaS start address %p not valid. Stick to %p.\r\n", addr, (void *) bas_start);
         }
     }
     Supexec(wait_for_jtag);
