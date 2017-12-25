@@ -86,7 +86,7 @@ $(1)/objs/%.o:$(SRCDIR)/%.S
 $(1)_OBJS=$(patsubst %,$(1)/objs/%,$(OBJS))
 $(1)/$(APP): $$($(1)_OBJS)
 	@echo CC $$@
-	@$(CC) $$(CFLAGS) -o $$@ $$($(1)_OBJS) $(LIBS)
+	@$(CC) $$(CFLAGS) -o $$@ $$($(1)_OBJS) -lc $(LIBS)
 	#$(STRIP) $$@
 endef
 $(foreach DIR,$(TRGTDIRS),$(eval $(call CC_TEMPLATE,$(DIR))))
