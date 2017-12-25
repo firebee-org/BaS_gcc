@@ -24,6 +24,8 @@ TOPDIR = ../..
 #LIBCMINI=$(TOPDIR)/../libcmini/libcmini
 
 #INCLUDE=-I$(LIBCMINI)/include -nostdlib -I$(TOPDIR)/include
+INCLUDE=-I$(TOPDIR)/include
+
 LIBS=-L$(TOPDIR)/firebee -lbas
 CC=$(PREFIX)/bin/gcc
 
