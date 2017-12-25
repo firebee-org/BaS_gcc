@@ -1,0 +1,77 @@
+#!/usr/local/bin/bdmctrl 
+#
+# m548x board initialization for bdmctrl 
+#
+open $1
+reset
+wait
+
+# set VBR
+write-ctrl 0x0801 0x00000000
+dump-register VBR
+
+# Turn on MBAR at 0x1000_0000
+write-ctrl 0x0C0F 0x10000000
+dump-register MBAR
+
+# Turn on RAMBAR0 at address 2000_0000 
+write-ctrl 0x0C04 0x20000007
+
+# Turn on RAMBAR1 at address FF10_1000 (disabled - not mapped by bdm currently)
+write-ctrl 0x0C05 0x20001001
+
+#
+# Init CS0 (BootFLASH @ FF80_0000 - FFBF_FFFF 4Mbytes)
+write 0xFF000500 0xFF800000 4
+write 0xFF000508 0x00100D80 4
+write 0xFF000504 0x003F0001 4
+
+# SDRAM Initialization @ 0000_0000 - 03FF_FFFF 64 Mbytes
+write 0xFF000004 0x000002AA 4 # SDRAMDS configuration
+write 0xFF000020 0x00000019 4 # SDRAM CS0 configuration (128Mbytes 0000_0000 - 07FF_FFFF)
+write 0xFF000024 0x08000000 4 # SDRAM CS1 configuration (128Mbytes 0800_0000 - 0FFF_FFFF)
+write 0xFF000028 0x10000000 4 # SDRAM CS2 configuration (128Mbytes 1000_0000 - 17FF_FFFF)
+write 0xFF00002C 0x18000000 4 # SDRAM CS3 configuration (128Mbytes 1800_0000 - 1FFF_FFFF)
+write 0xFF000108 0x73711630 4 # SDCFG1
+write 0xFF00010C 0x46370000 4 # SDCFG2
+
+write 0xFF000104 0xE10B0002 4 # SDCR + IPALL
+write 0xFF000100 0x40010000 4 # SDMR (write to LEMR)
+write 0xFF000100 0x058D0000 4 # SDMR (write to LMR)
+sleep 100
+write 0xFF000104 0xE10D0002 4 # SDCR + IPALL
+write 0xFF000104 0xE10D0004 4 # SDCR + IREF (first refresh)
+write 0xFF000104 0xE10D0004 4 # SDCR + IREF (first refresh)
+write 0xFF000100 0x018D0000 4 # SDMR (write to LMR)
+write 0xFF000104 0x710D0F00 4 # SDCR (lock SDMR and enable refresh)
+sleep 10
+
+
+# use system sdram as flashlib scratch area.
+# TODO: plugin flashing seems to work o.k. now for smaller binaries, while it doesn't for larger ones (EmuTOS) yet.
+# This seems to be related to large flash buffers and PC-relative adressing of the plugin
+#flash-plugin 0x1000 0xf000 flash29.plugin
+# notify flashlib that we have flash at address 0xE0000000, length 0x7FFFFF, plugin is flash29
+flash 0xFF800000
+#flash-plugin 0x1000 0xf000 flashintelc3.plugin
+
+# Erase flash from 0xFF800000 to 0xFFBFFFFF (reserved space for bas)
+#
+# contrary to documentation, it seems we need to erase-wait after each sector
+
+erase 0xFF800000 0
+erase 0xFF800000 1
+erase 0xFF800000 2
+erase 0xFF800000 3
+erase 0xFF800000 4
+erase 0xFF800000 5
+erase 0xFF800000 6
+erase 0xFF800000 7
+erase 0xFF800000 8
+erase 0xFF800000 9
+erase 0xFF800000 10
+erase 0xFF800000 11
+erase 0xFF800000 12
+erase 0xFF800000 13
+load -v m548xlite_dbug_flash.elf
+wait
