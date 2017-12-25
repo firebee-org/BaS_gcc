@@ -84,7 +84,6 @@ $(1)/objs/%.o:$(SRCDIR)/%.S
 $(1)_OBJS=$(patsubst %,$(1)/objs/%,$(OBJS))
 $(1)/$(APP): $$($(1)_OBJS)
 	@echo CC $$@
-	#@$(CC) $$(CFLAGS) -o $$@ $(LIBCMINI)/$(1)/startup.o $$($(1)_OBJS) -L$(LIBCMINI)/$(1) $(LIBS)
 	@$(CC) $$(CFLAGS) -o $$@ $$($(1)_OBJS) $(LIBS)
 	#@$(STRIP) $$@
 endef
