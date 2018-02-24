@@ -20,12 +20,12 @@
 
 #define SYSCLK 132000
 
-long bas_start = 0xe0000000;
+static long bas_start = 0xe0000000;
 
-volatile uint16_t * const FB_CS1 = (volatile uint16_t * const) 0xfff00000; /* "classic" ATARI I/O registers */
-volatile uint32_t *FB_CS2 = (volatile uint32_t *) 0xf0000000; /* FireBee 32 bit I/O registers */
-volatile uint16_t *FB_CS3 = (volatile uint16_t *) 0xf8000000; /* FireBee SRAM */
-volatile uint32_t *FB_CS4 = (uint32_t *) 0x40000000; /* FireBee SD RAM */
+static volatile uint16_t * const FB_CS1 = (volatile uint16_t * const) 0xfff00000; /* "classic" ATARI I/O registers */
+static volatile uint32_t * const FB_CS2 = (volatile uint32_t * const) 0xf0000000; /* FireBee 32 bit I/O registers */
+static volatile uint16_t * const FB_CS3 = (volatile uint16_t * const) 0xf8000000; /* FireBee SRAM */
+static volatile uint32_t * const FB_CS4 = (uint32_t * const) 0x40000000; /* FireBee SD RAM */
 
 const long sdram_size = 128 * 1024L * 1024L;
 
