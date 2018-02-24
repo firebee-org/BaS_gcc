@@ -20,7 +20,7 @@
 
 #define SYSCLK 132000
 
-static long bas_start = 0xe0000000;
+static unsigned long bas_start = 0xe0000000;
 
 static volatile uint16_t * const FB_CS1 = (volatile uint16_t * const) 0xfff00000; /* "classic" ATARI I/O registers */
 static volatile uint32_t * const FB_CS2 = (volatile uint32_t * const) 0xf0000000; /* FireBee 32 bit I/O registers */
@@ -477,7 +477,7 @@ int main(int argc, char *argv[])
             /*
              * seems to be a valid address
              */
-            bas_start = (long) addr;
+            bas_start = (unsigned long) addr;
 
             printf("BaS start address set to %p\r\n", (void *) bas_start);
         }
