@@ -27,7 +27,7 @@ static volatile uint32_t * const FB_CS2 = (volatile uint32_t * const) 0xf0000000
 static volatile uint16_t * const FB_CS3 = (volatile uint16_t * const) 0xf8000000; /* FireBee SRAM */
 static volatile uint32_t * const FB_CS4 = (uint32_t * const) 0x40000000; /* FireBee SD RAM */
 
-const long sdram_size = 128 * 1024L * 1024L;
+static const long sdram_size = 128 * 1024L * 1024L;
 
 static void init_ddr_ram(void)
 {
@@ -64,7 +64,7 @@ static void init_ddr_ram(void)
 }
 
 
-bool verify_ddr_ram(uint32_t value)
+static bool verify_ddr_ram(uint32_t value)
 {
     volatile uint32_t *lp;
     volatile uint16_t *wp;
@@ -114,7 +114,7 @@ bool verify_ddr_ram(uint32_t value)
     return true;
 }
 
-bool verify_longaddr(volatile uint32_t * const addr, uint32_t value)
+static bool verify_longaddr(volatile uint32_t * const addr, uint32_t value)
 {
     *addr = value;
 
@@ -132,7 +132,7 @@ bool verify_longaddr(volatile uint32_t * const addr, uint32_t value)
     return true;
 }
 
-bool verify_long(volatile uint32_t * const addr, uint32_t low_value, uint32_t high_value)
+static bool verify_long(volatile uint32_t * const addr, uint32_t low_value, uint32_t high_value)
 {
     uint32_t i;
 
@@ -147,7 +147,7 @@ bool verify_long(volatile uint32_t * const addr, uint32_t low_value, uint32_t hi
     return true;
 }
 
-void firebee_io_test(void)
+static void firebee_io_test(void)
 {
     volatile uint32_t *ACP_VCTR = &FB_CS2[0x100];            /* 0xf000400 */
     volatile uint32_t *CCR = &FB_CS2[0x101];                 /* 0xf000401 - FireBee mode border color */
@@ -184,7 +184,7 @@ void firebee_io_test(void)
     verify_long(VIDEO_PLL_RECONFIG, 0, 0x1ff);
 }
 
-bool verify_wordaddr(volatile uint16_t * const addr, uint16_t value)
+static bool verify_wordaddr(volatile uint16_t * const addr, uint16_t value)
 {
     long rvalue;
     *addr = value;
@@ -201,7 +201,7 @@ bool verify_wordaddr(volatile uint16_t * const addr, uint16_t value)
     return true;
 }
 
-bool verify_word(volatile uint16_t * const addr, uint16_t low_value, uint16_t high_value)
+static bool verify_word(volatile uint16_t * const addr, uint16_t low_value, uint16_t high_value)
 {
     uint16_t i;
 
@@ -216,7 +216,7 @@ bool verify_word(volatile uint16_t * const addr, uint16_t low_value, uint16_t hi
     return true;
 }
 
-bool verify_byteaddr(volatile uint8_t * const addr, uint8_t value)
+static bool verify_byteaddr(volatile uint8_t * const addr, uint8_t value)
 {
     uint8_t rvalue;
     *addr = value;
@@ -233,7 +233,7 @@ bool verify_byteaddr(volatile uint8_t * const addr, uint8_t value)
     return true;
 }
 
-bool verify_byte(volatile uint8_t * const addr, uint8_t low_value, uint8_t high_value)
+static bool verify_byte(volatile uint8_t * const addr, uint8_t low_value, uint8_t high_value)
 {
     int8_t i;
 
@@ -248,7 +248,7 @@ bool verify_byte(volatile uint8_t * const addr, uint8_t low_value, uint8_t high_
     return true;
 }
 
-void falcon_io_test(void)
+static void falcon_io_test(void)
 {
     int i;
 
@@ -368,7 +368,7 @@ void falcon_io_test(void)
     verify_word(VDL_VMD, 0, 0x1ff);
 }
 
-void do_tests(void)
+static void do_tests(void)
 {
     xprintf("start tests:\r\n");
 
@@ -384,7 +384,7 @@ void do_tests(void)
 }
 
 
-void wait_for_jtag(void)
+static void wait_for_jtag(void)
 {
     long i;
 
