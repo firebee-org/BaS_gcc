@@ -21,9 +21,9 @@ endif
 DEPEND=depend
 TOPDIR = ../..
 
-#LIBCMINI=$(TOPDIR)/../libcmini/libcmini
+LIBCMINI=$(TOPDIR)/../libcmini
 
-#INCLUDE=-I$(LIBCMINI)/include -nostdlib -I$(TOPDIR)/include
+INCLUDE=-I$(LIBCMINI)/include -nostdlib -I$(TOPDIR)/include
 INCLUDE=-I$(TOPDIR)/include
 
 LIBS=-L$(TOPDIR)/firebee -lbas
