@@ -213,13 +213,12 @@ tos/bascook/sources/bascook.c
 tos/bascook/bascook.prg
 tos/bascook/depend
 tos/bascook/mapfile
+tos/fpga_test/Makefile
 tos/fpga_test/m5475/mshort/fpga_test.prg
 tos/fpga_test/m5475/fpga_test.prg
 tos/fpga_test/sources/fpga_test.c
 tos/fpga_test/sources/ser_printf.c
 tos/fpga_test/sources/vmem_test.c
-tos/fpga_test/depend
-tos/fpga_test/mapfile
 tos/jtagwait/include/bas_printf.h
 tos/jtagwait/include/bas_string.h
 tos/jtagwait/include/driver_vec.h
