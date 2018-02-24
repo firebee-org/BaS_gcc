@@ -382,7 +382,7 @@ void xaddchar(int c)
         *xstring++ = (char) c;
 }
 
-int sprintf(char *str, const char *format, ...)
+int xsprintf(char *str, const char *format, ...)
 {
     va_list va;
     va_start(va, format);

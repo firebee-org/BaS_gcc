@@ -52,8 +52,7 @@ INCDIR=include
 INCLUDE+=-I$(INCDIR)
 
 CSRCS=\
-	$(SRCDIR)/fpga_test.c \
-	$(SRCDIR)/ser_printf.c
+	$(SRCDIR)/fpga_test.c
 
 ASRCS=
 
