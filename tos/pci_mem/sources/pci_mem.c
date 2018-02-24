@@ -3,6 +3,7 @@
 #include <mint/osbind.h>
 #include <stdint.h>
 #include <stdbool.h>
+#include <stdlib.h>
 
 #include "MCF5475.h"
 #include "driver_vec.h"

@@ -2,6 +2,7 @@
 #include <string.h>
 #include <mint/osbind.h>
 #include <stdint.h>
+#include <stdlib.h>
 #include <stdbool.h>
 
 #include "MCF5475.h"

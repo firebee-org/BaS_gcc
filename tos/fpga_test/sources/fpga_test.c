@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <mint/osbind.h>
 #include <stdint.h>
 #include <stdbool.h>
@@ -20,7 +21,7 @@
 
 long bas_start = 0xe0000000;
 
-volatile uint16_t *FB_CS1 = (volatile uint16_t *) 0xfff00000; /* "classic" ATARI I/O registers */
+volatile uint16_t * const FB_CS1 = (volatile uint16_t * const) 0xfff00000; /* "classic" ATARI I/O registers */
 volatile uint32_t *FB_CS2 = (volatile uint32_t *) 0xf0000000; /* FireBee 32 bit I/O registers */
 volatile uint16_t *FB_CS3 = (volatile uint16_t *) 0xf8000000; /* FireBee SRAM */
 volatile uint32_t *FB_CS4 = (uint32_t *) 0x40000000; /* FireBee SD RAM */

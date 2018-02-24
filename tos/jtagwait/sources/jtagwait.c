@@ -2,6 +2,7 @@
 #include <mint/osbind.h>
 #include <stdint.h>
 #include <stdbool.h>
+#include <stdlib.h>
 
 #include "bas_printf.h"
 #include "MCF5475.h"
@@ -86,11 +87,11 @@ void wait_for_jtag(void)
 
 int main(int argc, char *argv[])
 {
-    Cconws("\033E\r\nFPGA JTAG configuration support\r\n");
-    Cconws("\xbd 2014 M. Fr\x94schle\r\n");
+    (void) Cconws("\033E\r\nFPGA JTAG configuration support\r\n");
+    (void) Cconws("\xbd 2014 M. Fr\x94schle\r\n");
 
-    Cconws("You may now savely load a new FPGA configuration through the JTAG interface\r\n"
-           "and your Firebee will reboot once finished using that new configuration.\r\n");
+    (void) Cconws("You may now savely load a new FPGA configuration through the JTAG interface\r\n"
+                  "and your Firebee will reboot once finished using that new configuration.\r\n");
     if (argc == 2)
     {
         /*
