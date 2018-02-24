@@ -419,7 +419,7 @@ static err_t simulate()
     return ret;
 }
 
-static err_t flash(uint8_t *dst, uint8_t *src, uint32_t length)
+static err_t flash(uint8_t *dst, uint8_t *src, size_t length)
 {
     err_t ret = OK;
 
