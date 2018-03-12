@@ -66,8 +66,8 @@ struct hci
   /* ---- end of common part ---- */
 };
 
-static struct usb_device *usb_dev;
-int bus_index;
+static struct usb_device *usb_dev = NULL;
+int bus_index = 0;
 static int dev_index[USB_MAX_BUS];
 static struct hci *controller_priv[USB_MAX_BUS];
 static int asynch_allowed;
