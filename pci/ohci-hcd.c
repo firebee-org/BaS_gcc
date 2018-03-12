@@ -2176,7 +2176,7 @@ static void hc_free_buffers(volatile ohci_t *ohci)
 int ohci_usb_lowlevel_init(int32_t handle, const struct pci_device_id *ent, void **priv)
 {
     uint32_t usb_base_addr = 0xFFFFFFFF;
-    volatile ohci_t *ohci = &gohci[pci_handle2index(handle)];
+    ohci_t *ohci = &gohci[pci_handle2index(handle)];
     struct pci_rd *pci_rsc_desc = pci_get_resource(handle); /* USB OHCI */
 
     if (handle && (ent != NULL))
