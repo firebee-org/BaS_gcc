@@ -59,7 +59,8 @@ void *memset(void *s, int c, size_t n)
     do
     {
         *dst++ = c;
-    } while ((dst - (uint8_t *) s) < n);
+        n--;
+    } while (n);
 
     return s;
 }
