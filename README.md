@@ -17,4 +17,5 @@ The FireBee can also run FreeMiNT (a preemptive multitasking extension to TOS).
 
 BaS_gcc aims to fully support native EmuTOS + native FreeMiNT on the FireBee.
 
-https://travis-ci.org/firebee-org/BaS_gcc
+https://travis-ci.org/firebee-org/BaS_gcc.svg?branch=master
+
