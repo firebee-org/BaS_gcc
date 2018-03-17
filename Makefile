@@ -17,7 +17,7 @@ endif
 
 # can be either "Y" or "N" (without quotes). "Y" for using the m68k-elf-, "N" for using the m68k-atari-mint
 # toolchain
-COMPILE_ELF=N
+COMPILE_ELF=Y
 
 ifeq (Y,$(COMPILE_ELF))
 TCPREFIX=m68k-elf-
@@ -183,7 +183,7 @@ LIBBAS=libbas.a
 
 LIBS=$(patsubst %,%/$(LIBBAS),$(TRGTDIRS))
 
-all: ver fls ram bfl lib tos
+all: ver fls ram bfl lib 
 fls: $(patsubst %,%/$(FLASH_EXEC),$(TRGTDIRS))
 ram: $(patsubst %,%/$(RAM_EXEC),$(TRGTDIRS))
 bfl: $(patsubst %,%/$(BASFLASH_EXEC),$(TRGTDIRS))

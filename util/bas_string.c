@@ -59,7 +59,7 @@ void *memset(void *s, int c, size_t n)
     do
     {
         *dst++ = c;
-    } while (n--);
+    } while (--n);
 
     return s;
 }
