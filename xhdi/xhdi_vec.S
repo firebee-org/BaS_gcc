@@ -50,7 +50,7 @@ _xhdi_vec:
 
 	.bss
 _old_vector:
-	.ds.l   1
+	.long   1
 
 	.text
 

@@ -17,7 +17,7 @@ endif
 
 # can be either "Y" or "N" (without quotes). "Y" for using the m68k-elf-, "N" for using the m68k-atari-mint
 # toolchain
-COMPILE_ELF=Y
+COMPILE_ELF=N
 
 ifeq (Y,$(COMPILE_ELF))
 TCPREFIX=m68k-elf-
@@ -298,7 +298,7 @@ $(1)_MAPFILE=$(1)/$$(basename $$(FLASH_EXEC)).map
 $(1)/$$(FLASH_EXEC): $(1)/$(LIBBAS) $(1)/$$(LDCFILE)
 	$(Q)echo CC $$@
 	$(Q)$(CC) $$(CFLAGS) -nostdlib -Wl,--oformat -Wl,$$(FORMAT) -Wl,-Map -Wl,$$($(1)_MAPFILE) -Wl,--cref -Wl,-T -Wl,$(1)/$$(LDCFILE) $(LDLIBS) -o $$@
-ifeq ($(COMPILE_ELF),N)
+ifeq ($(COMPILE_ELF),Y)
 	$(Q)echo OBJCOPY $$@
 	$(Q)$(OBJCOPY) -O srec $$@ $$(basename $$@).s19
 else
@@ -313,7 +313,7 @@ $(1)/$$(RAM_EXEC): $(1)/$(LIBBAS) $(1)/$$(LDCFILE)
 	$(Q)$(CPP) $(INCLUDE) -DCOMPILE_RAM -DOBJDIR=$(1)/objs -P -DFORMAT_ELF=$(FORMAT_ELF) -D$$(MACHINE) $(LDCSRC) -o $(1)/$$(LDRFILE)
 	$(Q)echo CC $$@
 	$(Q)$(CC) $$(CFLAGS) -nostdlib -Wl,--oformat -Wl,$$(FORMAT) -Wl,-Map -Wl,$$($(1)_MAPFILE_RAM) -Wl,--cref -Wl,-T -Wl,$(1)/$$(LDRFILE) $(LDLIBS) -o $$@
-ifeq ($(COMPILE_ELF),N)
+ifeq ($(COMPILE_ELF),Y)
 	$(Q)echo OBJCOPY $$@
 	$(Q)$(OBJCOPY) -O srec $$@ $$(basename $$@).s19
 else
@@ -328,7 +328,7 @@ $(1)/$$(BASFLASH_EXEC): $(1)/objs/basflash.o $(1)/objs/basflash_start.o $(1)/$(L
 	$(CPP) $(INCLUDE) -P -DOBJDIR=$(1)/objs -DFORMAT_ELF=$(FORMAT_ELF) -D$$(MACHINE) $(LDCBSRC) -o $(1)/$$(LDCBFS)
 	$(Q)echo CC $$<
 	$(Q)$(CC) -nostdlib -Wl,--oformat -Wl,$$(FORMAT) -Wl,-Map -Wl,$$($(1)_MAPFILE_BFL) -Wl,--cref -Wl,-T -Wl,$(1)/$$(LDCBFS) -L$(1) -lbas $(LDLIBS) -o $$@
-ifeq ($(COMPILE_ELF),N)
+ifeq ($(COMPILE_ELF),Y)
 	$(Q)echo OBJCOPY $$<
 	$(Q)$(OBJCOPY) -O srec $$@ $$(basename $$@).s19
 else
