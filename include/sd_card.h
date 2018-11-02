@@ -42,4 +42,8 @@ extern void sd_card_init(void);
 //#define CT_SDC		(CT_SD1|CT_SD2)	/* SD */
 #define CT_BLOCK	0x08		/* Block addressing */
 
+/*  SD error code bits */
+#define SD_ERR_IDLE_STATE       0x01
+#define SD_ERR_ILLEGAL_CMD      0x04
+
 #endif /* _SD_CARD_H_ */
