@@ -385,7 +385,7 @@ bool pic_interrupt_handler(void *arg1, void *arg2)
         volatile uint8_t *rtc_data = (uint8_t *) 0xffff8963;
         int index = 0;
 
-        err("PIC interrupt: requesting RTC data\r\n");
+        inf("PIC interrupt: requesting RTC data\r\n");
 
         write_pic_byte(0x82);     // header byte to PIC
         do
