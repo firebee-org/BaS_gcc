@@ -424,7 +424,7 @@ DSTATUS disk_initialize(uint8_t drv)
                 while (MCF_SLT_SCNT(0) - target > 0)
                 {
                     res = send_cmd(ACMD41, 1UL << 30);	/* Wait for end of initialization with ACMD41(HCS) */
-                    if (res != 0xff)
+                    if ((res & SD_ERR_IDLE_STATE) == 0)
                         break;
                 }
                 debug_printf("res = %d\r\n", res);
