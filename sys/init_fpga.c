@@ -45,6 +45,8 @@ extern uint8_t _FPGA_CONFIG[];
 extern uint8_t _FPGA_CONFIG_SIZE[];
 #define FPGA_FLASH_DATA_SIZE    ((uint32_t) &_FPGA_CONFIG_SIZE[0])
 
+#define ACP_FPGA_DATE_REG       *(volatile uint32_t *)(0xF0040100)
+
 /*
  * flag located in processor SRAM1 that indicates that the FPGA configuration has
  * been loaded through the onboard JTAG interface.
@@ -85,6 +87,16 @@ void config_gpio_for_jtag_config(void)
      */
 }
 
+void show_fpga_date(void)
+{
+   uint32_t date = ACP_FPGA_DATE_REG;
+   uint8_t day = (uint8_t)(date >> 24 & 0xffL);
+   uint8_t month = (uint8_t)(date >> 16 & 0xffL);
+   uint16_t year = (uint16_t)(date & 0xffffL);
+
+   xprintf("FPGA date: %02x/%02x/%04x (dd/mm/yyyy) \r\n", day, month, year);
+}
+
 /*
  * load FPGA
  */
@@ -104,6 +116,8 @@ bool init_fpga(void)
         /* reset the flag so that next boot will load config again from flash */
         // _FPGA_JTAG_LOADED = 0;
         // _FPGA_JTAG_VALID = 0;
+
+        show_fpga_date();
 
         return true;
     }
@@ -191,6 +205,8 @@ bool init_fpga(void)
         _FPGA_JTAG_VALID = VALID_JTAG;
 
         xprintf("SRAM now set to FPGA load skip\r\n");
+
+        show_fpga_date();
 
         return true;
     }
