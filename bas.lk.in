@@ -83,6 +83,7 @@ SECTIONS
                 OBJDIR/bas_printf.o(.text)
                 OBJDIR/bas_string.o(.text)
 		OBJDIR/conout.o(.text)
+                OBJDIR/ide.o(.text)
 #if (FORMAT_ELF == 1)
                 OBJDIR/libgcc_helper.o(.text)
 #endif

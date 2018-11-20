@@ -204,6 +204,7 @@ sys/cache.c
 sys/driver_mem.c
 sys/exceptions.S
 sys/fault_vectors.c
+sys/ide.c
 sys/init_fpga.c
 sys/interrupts.c
 sys/mmu.c

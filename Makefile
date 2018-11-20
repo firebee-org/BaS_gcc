@@ -110,6 +110,7 @@ CSRCS= \
 	dspi.c \
 	driver_vec.c \
 	driver_mem.c \
+	ide.c \
 	\
 	MCD_dmaApi.c \
 	MCD_tasks.c \

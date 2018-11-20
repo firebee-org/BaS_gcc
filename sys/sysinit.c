@@ -415,13 +415,13 @@ static void init_fbcs()
 
 
 #if defined(MACHINE_FIREBEE) /* FBC setup for FireBee */
-    MCF_FBCS1_CSAR = MCF_FBCS_CSAR_BA(0xFFF00000);      /* ATARI I/O address range */
+    MCF_FBCS1_CSAR = MCF_FBCS_CSAR_BA(0xFFF80000);      /* ATARI I/O address range */
     MCF_FBCS1_CSCR = MCF_FBCS_CSCR_PS_16                /* 16BIT PORT */
         | MCF_FBCS_CSCR_WS(32)                          /* 32 wait states */
 //        | MCF_FBCS_CSCR_BSTR                            /* burst read enable */
 //        | MCF_FBCS_CSCR_BSTW                            /* burst write enable */
         | MCF_FBCS_CSCR_AA;                             /* auto /TA acknowledge */
-    MCF_FBCS1_CSMR = MCF_FBCS_CSMR_BAM_1M | MCF_FBCS_CSMR_V;
+    MCF_FBCS1_CSMR = MCF_FBCS_CSMR_BAM_512K | MCF_FBCS_CSMR_V;
 
     MCF_FBCS2_CSAR = MCF_FBCS_CSAR_BA(0xF0000000);      /* Firebee new I/O address range */
     MCF_FBCS2_CSCR = MCF_FBCS_CSCR_PS_32                /* 32BIT PORT */
@@ -430,12 +430,14 @@ static void init_fbcs()
     MCF_FBCS2_CSMR = (MCF_FBCS_CSMR_BAM_128M            /* F000'0000-F7FF'FFFF */
               | MCF_FBCS_CSMR_V);
 
-    MCF_FBCS3_CSAR = MCF_FBCS_CSAR_BA(0xF8000000);      /* Firebee SRAM */
-    MCF_FBCS3_CSCR = MCF_FBCS_CSCR_PS_16                /* 16 bit port */
-        | MCF_FBCS_CSCR_WS(32)                          /* 0 wait states */
-        | MCF_FBCS_CSCR_AA;                             /* auto /TA acknowledge */
-    MCF_FBCS3_CSMR = (MCF_FBCS_CSMR_BAM_64M             /* F800'0000-FBFF'FFFF */
-              | MCF_FBCS_CSMR_V);
+    MCF_FBCS3_CSAR = MCF_FBCS_CSAR_BA(0xFFF00000);      /* IDE I/O address BURST! */
+    MCF_FBCS3_CSCR = MCF_FBCS_CSCR_PS_16                /* 16BIT PORT */
+                    | MCF_FBCS_CSCR_WS(16)              /* 16 wait states */
+                    | MCF_FBCS_CSCR_BSTR                /* Burst read enable */
+                    | MCF_FBCS_CSCR_BSTW                /* Burst write enable */
+                    | MCF_FBCS_CSCR_AA;                 /* auto /TA acknowledge */
+    MCF_FBCS3_CSMR = (MCF_FBCS_CSMR_BAM_512K            /* FFF0'0000-FFF7'FFFF */
+                    | MCF_FBCS_CSMR_V);
 
     /*
      * Note: burst read/write settings of the following FBCS are purely "cosmetical".
