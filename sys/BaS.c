@@ -56,6 +56,7 @@
 
 /* imported routines */
 extern int vec_init();
+extern void set_ide_access_mode(void);
 
 /* Symbols from the linker script */
 extern uint8_t _STRAM_END[];
@@ -387,6 +388,19 @@ void init_isr(void)
     }
 }
 
+void ide_init(void)
+{
+    /* IDE reset */
+    * (volatile uint8_t *) (0xffff8802 - 2) = 14;
+    * (volatile uint8_t *) (0xffff8802 - 0) = 0x80;
+    wait(1);
+
+    * (volatile uint8_t *) (0xffff8802 - 0) = 0;
+
+    set_ide_access_mode();
+}
+
+
 /* Jump into the OS */
 typedef void void_func(void);
 struct rom_header
@@ -450,14 +464,8 @@ void BaS(void)
     memset((void *) 0x0200, 0x0, 0x0400);
 
 #if defined(MACHINE_FIREBEE)
-    xprintf("IDE reset: ");
-    /* IDE reset */
-    * (volatile uint8_t *) (0xffff8802 - 2) = 14;
-    * (volatile uint8_t *) (0xffff8802 - 0) = 0x80;
-    wait(1);
-
-    * (volatile uint8_t *) (0xffff8802 - 0) = 0;
-
+    xprintf("IDE reset: \r\n");
+    ide_init();
     xprintf("finished\r\n");
     xprintf("enable video: ");
 
