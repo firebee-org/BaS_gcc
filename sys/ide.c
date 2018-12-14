@@ -151,6 +151,8 @@ void set_ide_access_mode(void)
     wait_ms(10);
 
     /* CF 0xFFF00000, IDE 0xFFF00040, IDE INT ON, SCSI INT OFF, SPEED SLOW */
+    ACP_CONFIG_REG &= (!ACP_CONFIG_REG_CF_ADDR & !ACP_CONFIG_REG_IDE_ADDR);
+    wait_ms(10);
     ACP_CONFIG_REG |= (ACP_CONFIG_REG_IDE_INT | ACP_CONFIG_REG_SPEED_U1 | ACP_CONFIG_REG_SPEED_U0);
     wait_ms(10);
 
