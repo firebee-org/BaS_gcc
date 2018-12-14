@@ -393,7 +393,7 @@ void ide_init(void)
     /* IDE reset */
     * (volatile uint8_t *) (0xffff8802 - 2) = 14;
     * (volatile uint8_t *) (0xffff8802 - 0) = 0x80;
-    wait(1);
+    wait_ms(1);
 
     * (volatile uint8_t *) (0xffff8802 - 0) = 0;
 
