@@ -165,6 +165,6 @@ void set_ide_access_mode(void)
     pio_cycle_time = test_drive(IDE_2ND_INTERFACE);
     speed = get_speed(pio_cycle_time);
 #endif
-    speed = 0x0f; /* -1 (drive or card not present) */
+    speed = 11; /* 0b1011 (default access (3) mode not wait (+8)) */
     ACP_CONFIG_REG = (ACP_CONFIG_REG & 0xff0fffff) | (speed << 20);
 };
