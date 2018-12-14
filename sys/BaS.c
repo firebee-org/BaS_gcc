@@ -452,11 +452,6 @@ void BaS(void)
     flush_and_invalidate_caches();
     xprintf("finished\r\n");
 
-    xprintf("enable MMU: ");
-    MCF_MMU_MMUCR = MCF_MMU_MMUCR_EN;           /* MMU on */
-    NOP();                                      /* force pipeline sync */
-    xprintf("finished\r\n");
-
     xprintf("initialize exception vector table: ");
     vec_init();
     xprintf("finished\r\n");
@@ -467,6 +462,11 @@ void BaS(void)
 #if defined(MACHINE_FIREBEE)
     xprintf("IDE reset: \r\n");
     ide_init();
+    xprintf("finished\r\n");
+
+    xprintf("enable MMU: ");
+    MCF_MMU_MMUCR = MCF_MMU_MMUCR_EN;           /* MMU on */
+    NOP();                                      /* force pipeline sync */
     xprintf("finished\r\n");
 
     xprintf("enable video: ");
