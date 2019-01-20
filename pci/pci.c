@@ -139,7 +139,7 @@ int32_t pci_call_interrupt_chain(int32_t handle, int32_t data)
     {
         if (interrupts[i].handle == handle)
         {
-            interrupts[i].handler(data);
+            interrupts[i].handler(interrupts[i].parameter);
 
             return 1;
         }
