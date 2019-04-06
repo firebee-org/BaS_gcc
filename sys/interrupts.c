@@ -442,7 +442,7 @@ bool xlbarb_interrupt_handler(void *arg1, void *arg2)
     dbg("arg1=0x%08x arg2=0x%08x\r\n", arg1, arg2);
 
     /*
-     * TODO: we should probably issue a bus error when this occors
+     * TODO: we should probably issue a bus error when this occurs
      */
     err("XLB arbiter interrupt\r\n");
     err("captured address: 0x%08lx\r\n", MCF_XLB_XARB_ADRCAP);
