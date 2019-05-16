@@ -25,6 +25,8 @@
 #include "firebee.h"
 #elif defined(MACHINE_M5484LITE)
 #include "m5484l.h"
+#elif defined(MACHINE_M5475EVB)
+#include "m5475e.h"
 #endif /* MACHINE_FIREBEE */
 
 	.extern	__SUP_SP

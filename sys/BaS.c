@@ -252,7 +252,7 @@ void enable_pci_interrupts()
             FBEE_INTR_PCI_INTC |
             FBEE_INTR_PCI_INTD;
             ;
-#elif defined(MACHINE_M5484LITE)
+#elif defined(MACHINE_M5484LITE) || defined(MACHINE_M5475EVB)
     /*
      * MCF 5484 interrupts are configured at the CPLD for the FireEngine
      */
@@ -281,7 +281,7 @@ void disable_coldfire_interrupts()
 
 
 NIF nif1;
-#if defined(MACHINE_M5484LITE)
+#if defined(MACHINE_M5484LITE) || defined(MACHINE_M5475EVB)
     /*
      * on the MCF 5484 LITEKIT, the second FEC interface is usable
      */
