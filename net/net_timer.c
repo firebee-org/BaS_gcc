@@ -23,6 +23,8 @@
 #include "firebee.h"
 #elif defined(MACHINE_M5484LITE)
 #include "m5484l.h"
+#elif defined(MACHINE_M5475EVB)
+#include "m5475e.h"
 #elif defined(MACHINE_M54455)
 #include "m54455.h"
 #else

@@ -41,6 +41,8 @@
 #include "firebee.h"
 #elif defined(MACHINE_M5484LITE)
 #include "m5484l.h"
+#elif defined(MACHINE_M5475EVB)
+#include "m5475e.h"
 #elif defined(MACHINE_M54455)
 #include "m54455.h"
 #else
@@ -135,7 +137,7 @@ static void init_gpio(void)
             MCF_PAD_PAR_PCIBG_PAR_PCIBG2_PCIBG2 |
             MCF_PAD_PAR_PCIBG_PAR_PCIBG1_PCIBG1 |
             MCF_PAD_PAR_PCIBG_PAR_PCIBG0_PCIBG0;
-#elif defined(MACHINE_M5484LITE)
+#elif defined(MACHINE_M5484LITE) || defined(MACHINE_M5475EVB)
     MCF_PAD_PAR_PCIBG = MCF_PAD_PAR_PCIBG_PAR_PCIBG4_PCIBG4 |
             MCF_PAD_PAR_PCIBG_PAR_PCIBG3_PCIBG3 |
             MCF_PAD_PAR_PCIBG_PAR_PCIBG2_PCIBG2 |
@@ -157,7 +159,7 @@ static void init_gpio(void)
             MCF_PAD_PAR_PCIBR_PAR_PCIBR2_PCIBR2 |
             MCF_PAD_PAR_PCIBR_PAR_PCIBR1_PCIBR1 |
             MCF_PAD_PAR_PCIBR_PAR_PCIBR0_PCIBR0;
-#elif defined(MACHINE_M5484LITE)
+#elif defined(MACHINE_M5484LITE) || defined(MACHINE_M5475EVB)
     MCF_PAD_PAR_PCIBR = MCF_PAD_PAR_PCIBR_PAR_PCIBR4_PCIBR4 |
             MCF_PAD_PAR_PCIBR_PAR_PCIBR3_PCIBR3 |
             MCF_PAD_PAR_PCIBR_PAR_PCIBR2_PCIBR2 |
@@ -221,7 +223,7 @@ static void init_serial(void)
     MCF_PSC0_PSCSICR = 0;       /* PSC control register: select UART mode */
     MCF_PSC0_PSCCSR = 0xDD;     /* use TX and RX baud rate from PSC timer */
     MCF_PSC0_PSCCTUR = 0x00;    /* =\ */
-#if defined(MACHINE_FIREBEE)
+#if defined(MACHINE_FIREBEE) || defined(MACHINE_M5475EVB)
     MCF_PSC0_PSCCTLR = 36;      /* divide sys_clk by 36 => BAUD RATE = 115200 bps */
 #endif
 #if defined(MACHINE_M5484LITE)
@@ -339,7 +341,7 @@ static bool init_ddram(void)
         MCF_SDRAMC_SDMR = 0x008D0000;   /* SDMR (write to LMR) */
         MCF_SDRAMC_SDCR = 0x710D0F00;   /* SDCR (lock SDMR and enable refresh) */
 
-#elif defined(MACHINE_M5484LITE)
+#elif defined(MACHINE_M5484LITE) || defined(MACHINE_M5475EVB)
         MCF_SDRAMC_CS0CFG = 0x00000019; /* SDRAM CS0 configuration (64 Mbytes 0000_0000 - 03FF_FFFF) */
         MCF_SDRAMC_CS1CFG = 0x00000000; /* SDRAM CS1 configuration - off */
         MCF_SDRAMC_CS2CFG = 0x00000000; /* SDRAM CS2 configuration - off */
@@ -462,7 +464,7 @@ static void init_fbcs()
         | MCF_FBCS_CSCR_RDAH(1);                /* chip errata SECF077 */
     MCF_FBCS5_CSMR = MCF_FBCS_CSMR_BAM_1G;
         //| MCF_FBCS_CSMR_V;
-#elif defined(MACHINE_M5484LITE)
+#elif defined(MACHINE_M5484LITE) || defined(MACHINE_M5475EVB)
     /* disable other FBCS for now */
     MCF_FBCS1_CSMR = 0;
     MCF_FBCS2_CSMR = 0;
@@ -996,6 +998,8 @@ void initialize_hardware(void)
     "Firebee"
 #elif MACHINE_M5484LITE
     "m5484 LITEKIT"
+#elif MACHINE_M5475EVB
+    "m5475 EVB"
 #else
     "unknown platform"
 #endif
@@ -1075,7 +1079,7 @@ void initialize_hardware(void)
     init_fbcs();
     init_ddram();
 
-#if defined(MACHINE_M5484LITE)
+#if defined(MACHINE_M5484LITE) || defined(MACHINE_M5475EVB)
     dbg("Fire Engine Control register:          %02x\r\n", * (uint8_t *) 0x61000000);
     dbg("Fire Engine interrupt register:        %02x\r\n", * (uint8_t *) 0x62000000);
     dbg("Fire Engine interrupt mask register:   %02x\r\n", * (uint8_t *) 0x63000000);
