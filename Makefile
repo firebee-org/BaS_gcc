@@ -250,7 +250,7 @@ $(foreach DIR,$(TRGTDIRS),$(eval $(call CC_TEMPLATE,$(DIR))))
 # rules for depend
 define DEP_TEMPLATE
 ifneq (clean,$$(MAKECMDGOALS))
-include $(1)/depend
+-include $(1)/depend
 endif
 
 ifeq (firebee,$(1))
@@ -319,7 +319,7 @@ ifeq ($(COMPILE_ELF),Y)
 	$(Q)$(OBJCOPY) -O srec $$@ $$(basename $$@).s19
 else
 	$(Q)echo OBJCOPY $$<
-	$(Q)objcopy -I srec -O elf32-big --alt-machine-code 4 $$@ $$(basename $$@).elf
+	- $(Q)objcopy -I srec -O elf32-big --alt-machine-code 4 $$@ $$(basename $$@).elf
 endif
 
 # pattern rule for basflash
