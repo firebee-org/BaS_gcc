@@ -573,7 +573,7 @@ static void init_video_ddr(void) {
     NOP();
 
     /* FIXME: what's this? */
-    _VRAM = 0000070022; /* load MR dll on */
+    _VRAM = 0x00070022; /* load MR dll on */
     NOP();
 
     * (uint32_t *) 0xf0000400 = 0x01070082; /* fifo on, refresh on, ddrcs und cke on, video dac on, Falcon shift mode on */
