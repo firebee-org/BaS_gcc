@@ -62,7 +62,7 @@ CFLAGS_OPTIMIZED = -mcpu=5474 \
 		-Wa,--register-prefix-optional
 LDFLAGS=
 
-TRGTDIRS= ./firebee ./m54455 ./m5484lite
+TRGTDIRS= ./firebee ./m54455 ./m5484lite ./m5475evb
 OBJDIRS=$(patsubst %, %/objs,$(TRGTDIRS))
 TOOLDIR=util
 
@@ -210,26 +210,32 @@ clean:
 
 # flags for targets
 m5484lite/bas.$(EXE): MACHINE=MACHINE_M5484LITE
+m5475evb/bas.$(EXE): MACHINE=MACHINE_M5475EVB
 m54455/bas.$(EXE): MACHINE=MACHINE_M54455
 firebee/bas.$(EXE): MACHINE=MACHINE_FIREBEE
 
 m5484lite/ram.$(EXE): MACHINE=MACHINE_M5484LITE
+m5475evb/ram.$(EXE): MACHINE=MACHINE_M5475EVB
 m54455/ram.$(EXE): MACHINE=MACHINE_M54455
 firebee/ram.$(EXE): MACHINE=MACHINE_FIREBEE
 
 m5484lite/basflash.$(EXE): MACHINE=MACHINE_M5484LITE
+m5475evb/basflash.$(EXE): MACHINE=MACHINE_M5475EVB
 m54455/basflash.$(EXE): MACHINE=MACHINE_M54455
 firebee/basflash.$(EXE): MACHINE=MACHINE_FIREBEE
 
 m5484lite/bas.$(EXE): CFLAGS += -mcpu=5484
+m5475evb/bas.$(EXE): CFLAGS += -mcpu=5474
 m54455/bas.$(EXE): CFLAGS += -mcpu=54455 -msoft-float
 firebee/bas.$(EXE): CFLAGS += -mcpu=5474
 
 m5484lite/ram.$(EXE): CFLAGS += -mcpu=5484
+m5475evb/ram.$(EXE): CFLAGS += -mcpu=5474
 m54455/ram.$(EXE): CFLAGS += -mcpu=54455 -msoft-float
 firebee/ram.$(EXE): CFLAGS += -mcpu=5474
 
 m5484lite/basflash.$(EXE): CFLAGS += -mcpu=5484
+m5475evb/basflash.$(EXE): CFLAGS += -mcpu=5474
 m54455/basflash.$(EXE): CFLAGS += -mcpu=54455 -msoft-float
 firebee/basflash.$(EXE): CFLAGS += -mcpu=5474
 
@@ -352,6 +358,8 @@ printvars:
 	$(Q)$(foreach V,$(.VARIABLES), $(if $(filter-out environment% default automatic, $(origin $V)),$(warning $V=$($V))))
 ifeq (MACHINE_M5484LITE,$$(MACHINE))
 	MNAME=m5484lite
+else ifeq (MACHINE_M5475EVB,$$(MACHINE))
+	MNAME=m5475evb
 else ifeq (MACHINE_FIREBEE,$(MACHINE))
 	MNAME=firebee
 endif

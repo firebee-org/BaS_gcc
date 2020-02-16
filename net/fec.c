@@ -19,13 +19,15 @@
 #include "util.h"
 #include "wait.h"
 #include "am79c874.h"
-//#include "bcm5222.h"
+#include "bcm5222.h"
 #include <stdbool.h>
 
 #if defined(MACHINE_FIREBEE)
 #include "firebee.h"
 #elif defined(MACHINE_M5484LITE)
 #include "m5484l.h"
+#elif defined(MACHINE_M5475EVB)
+#include "m5475e.h"
 #elif defined(MACHINE_M54455)
 #include "m54455.h"
 #else
@@ -1356,8 +1358,8 @@ void fec_eth_setup(uint8_t ch, uint8_t trcvr, uint8_t speed, uint8_t duplex, con
             dbg("PHY init completed\r\n");
         else
             dbg("PHY init failed\r\n");
-#elif defined(MACHINE_M548X)
-        bcm_5222_init(0, 0, speed, duplex);
+#elif defined(MACHINE_M5484LITE) || defined(MACHINE_M5475EVB)
+        bcm5222_init(0, 0, speed, duplex);
 #else
         fec_mii_init(ch, SYSCLK / 1000);
 #endif /* MACHINE_FIREBEE */

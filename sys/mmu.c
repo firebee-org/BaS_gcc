@@ -41,6 +41,8 @@
 #include "firebee.h"
 #elif defined(MACHINE_M5484LITE)
 #include "m5484l.h"
+#elif defined(MACHINE_M5475EVB)
+#include "m5475e.h"
 #elif defined(MACHINE_M54455)
 #include "m54455.h"
 #else
@@ -188,7 +190,7 @@ static struct virt_to_phys translation[] =
     { 0x00f00000, 0x00100000, 0xff000000 },     /* map Falcon I/O area to FPGA */
     { 0x01000000, 0x1f000000, 0x00000000 },     /* map rest of ram virt = phys */
 };
-#elif defined(MACHINE_M5484LITE)
+#elif defined(MACHINE_M5484LITE) || defined(MACHINE_M5475EVB)
 static struct virt_to_phys translation[] =
 {
     /* virtual  , length    , offset    */
@@ -527,7 +529,7 @@ void mmu_init(void)
         }
         pages[i].locked = 0;                /* not locked */
 
-#elif defined(MACHINE_M5484LITE)
+#elif defined(MACHINE_M5484LITE) || defined(MACHINE_M5475EVB)
         if (addr >= 0x60000000UL && addr < 0x70000000UL)        /* Compact Flash on the m5484lite */
         {
             pages[i].cache_mode = CACHE_NOCACHE_PRECISE;
@@ -631,7 +633,7 @@ void mmu_init(void)
             ACR_ADMSK(0x7f) |                       /* cover 2GB area from 0x80000000 to 0xffffffff */
             // ACR_BA(PCI_MEMORY_OFFSET));             /* (equals area from 3 to 4 GB */
             ACR_BA(0xe0000000));
-#elif defined(MACHINE_M5484LITE)
+#elif defined(MACHINE_M5484LITE) || defined(MACHINE_M5475EVB)
             ACR_ADMSK(0x7f) |                       /* cover 2 GB area from 0x80000000 to 0xffffffff */
             // ACR_BA(PCI_MEMORY_OFFSET));
             ACR_BA(0xe0000000));
@@ -649,7 +651,7 @@ void mmu_init(void)
             ACR_CM(0) |
 #if defined(MACHINE_FIREBEE)
             ACR_CM(ACR_CM_CACHEABLE_WT) |
-#elif defined(MACHINE_M5484LITE)
+#elif defined(MACHINE_M5484LITE) || defined(MACHINE_M5475EVB)
             ACR_CM(ACR_CM_CACHEABLE_WT) |
 #elif defined(MACHINE_M54455)
             ACR_CM(ACR_CM_CACHEABLE_WT) |
@@ -708,7 +710,7 @@ void mmu_init(void)
     flags.execute = 0;
     flags.locked = 1;
     mmu_map_page(0x00f00000, 0xfff00000, MMU_PAGE_SIZE_1M, 0, &flags);
-#elif defined(MACHINE_M5484LITE)
+#elif defined(MACHINE_M5484LITE) || defined(MACHINE_M5475EVB)
     /*
      * Map m5484LITE CPLD access
      */

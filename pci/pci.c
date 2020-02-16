@@ -1047,7 +1047,7 @@ void init_eport(void)
             MCF_EPORT_EPPAR_EPPA6(MCF_EPORT_EPPAR_FALLING) |
         #if defined(MACHINE_FIREBEE)     /* irq5 level triggered on FireBee */
             MCF_EPORT_EPPAR_EPPA5(MCF_EPORT_EPPAR_LEVEL) |
-        #elif defined(MACHINE_M5484LITE)
+        #elif defined(MACHINE_M5484LITE) || defined(MACHINE_M5475EVB)
             MCF_EPORT_EPPAR_EPPA5(MCF_EPORT_EPPAR_FALLING) |
         #endif /* MACHINE_FIREBEE */
             MCF_EPORT_EPPAR_EPPA4(MCF_EPORT_EPPAR_FALLING) |
@@ -1130,7 +1130,7 @@ void init_pci(void)
             MCF_PAD_PAR_PCIBR_PAR_PCIBR2_PCIBR2 |
             MCF_PAD_PAR_PCIBR_PAR_PCIBR1_PCIBR1 |
             MCF_PAD_PAR_PCIBR_PAR_PCIBR0_PCIBR0;
-#elif defined(MACHINE_M5484LITE)
+#elif defined(MACHINE_M5484LITE) || defined(MACHINE_M5475EVB)
     MCF_PAD_PAR_PCIBG = MCF_PAD_PAR_PCIBG_PAR_PCIBG0_PCIBG0 |
             MCF_PAD_PAR_PCIBG_PAR_PCIBG1_PCIBG1 |
             MCF_PAD_PAR_PCIBG_PAR_PCIBG2_PCIBG2 |
