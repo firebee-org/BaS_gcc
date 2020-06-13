@@ -52,6 +52,9 @@ From a pure user's perspective (mainly using FireTOS, probably): very little (yo
   
   The benefit: it is more compatible. If you have a TOS program that switches two screen buffers back and forth, for example, BaS has to map in and out FPGA memory pages using the MMU and needs to copy screen contents from Coldfire memory to FPGA memory and back behind the scenes (because your innocent TOS program has prepared the second screen in what it thought was ST RAM which in fact wasn't). While this works (somehow) it will result in strange delays during video address switching. BaS_gcc just does the same as an original Falcon and since all ST RAM is FPGA RAM, there is nothing to copy around.
 
+- BaS_gcc only requires freely available OpenSource tools and no legacy toolchain (FreeScale CodeWarrior) to build as BaS does.
+  These tools are available for all major platforms (Windows, Linux, Mac OS), and BaS_gcc has been tested to compile fine on all of these, so you are not limited to any specific configurations
+
 - BaS_gcc enables (fast) networking using EmuTOS + FreeMiNT because it provides the ColdFire MDMA (multi channel DMA) and a suitable FEC driver. This way, you have a fully native OpenSource ColdFire environment without any slowdown through m68k emulation. Of course "legacy" (TOS) programs have to be compiled for this environment or can only used with m68k emulation (https://github.com/vinriviere/68kemu , for example), but if you intend to use the FireBee for new development, this is the fastest setup you can get with full access for all sources compilable with open source toolchains. A true OpenSorce environment.
 
 [![Build Status](https://travis-ci.org/firebee-org/BaS_gcc.svg?branch=master)](https://travis-ci.org/firebee-org/BaS_gcc)
