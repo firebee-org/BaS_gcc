@@ -18,7 +18,7 @@ The FireBee can also run FreeMiNT (a preemptive multitasking extension to TOS).
 BaS_gcc aims to fully supports native EmuTOS + native FreeMiNT on the FireBee.
 
 
-###### How to build:
+## How to build:
 
 - checkout a copy of the BaS_gcc sources to your local machine
 - make sure you have a suitable gcc toolchain available. This could be either an m68k-atari-mint toolchain or an m68k-elf gcc toolchain (see switches in the toplevel Makefile).
@@ -27,7 +27,7 @@ BaS_gcc aims to fully supports native EmuTOS + native FreeMiNT on the FireBee.
 - for the m5484lite board files will reside in the m5475evb directory
 - for the m54455 FreeScale evaluation board, files (not functional yet) are in the respective directory
 
-###### How to flash:
+## How to flash:
 
 These files can be flashed with either Didier Méquinon's flasher available from the firebee.org home page or any BDM hardware (urgently recommended as this is the only "parachute" available if something goes wrong during flashing). Personally, I'm using a parallel P&E flash solution that came with my m5484lite board and the BDM tools from here: https://sourceforge.net/projects/bdm/ since they are supported under Linux (my favorite) and also support the TBLCF (another, USB based open source BDM solution). See the firebee.org home page for more information.
 
@@ -38,7 +38,7 @@ Note that this does not apply when flashing from FireTOS which is safe (as FireT
 Bottom line: if you want to flash BaS_gcc with Didier's tool, do it from FireTOS ONLY! 
 Unless you have a BDM device (which I'd personally recommend under all circumstances anyway), that is.
 
-###### What do I gain using BaS_gcc compared to "original" BaS?
+## What do I gain using BaS_gcc compared to "original" BaS?
 
 From a pure user's perspective (mainly using FireTOS, probably): very little (you won't see much difference). From a developer's (my, personal and - of course biased) perspective: a lot.
 
