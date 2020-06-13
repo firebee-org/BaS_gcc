@@ -1,0 +1,6 @@
+#!/usr/local/bin/bdmctrl -D2 -v9 -d9
+#
+# firebee board reset
+
+open $1
+reset
