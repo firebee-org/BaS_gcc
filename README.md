@@ -31,12 +31,9 @@ BaS_gcc aims to fully supports native EmuTOS + native FreeMiNT on the FireBee.
 
 These files can be flashed with either Didier Méquinon's flasher available from the firebee.org home page or any BDM hardware (urgently recommended as this is the only "parachute" available if something goes wrong during flashing). Personally, I'm using a parallel P&E flash solution that came with my m5484lite board and the BDM tools from here: https://sourceforge.net/projects/bdm/ since they are supported under Linux (my favorite) and also support the TBLCF (another, USB based open source BDM solution). See the firebee.org home page for more information.
 
-**WARNING: with BaS_gcc installed, do not try to flash anything from EmuTOS with Didier's flasher tool if you do not have a BDM pod. This will not work currently and leave you with a bricked Firebee. This is not EmuTOS' fault but a "feature" (rather a missing one) of BaS_gcc that currently does not run from RAM (it could, but this has been disabled for now for the sake of easier debugging). It runs from flash and its (required) interrupt handlers reside there as well. Didier's flasher tool does not disable interrupts while flashing, so you will most likely run into a situation where Didier's flasher tool erased the flash to rewrite it and (innocent) EmuTOS will try to call an interrupt handler that is not there. Unfortunately, there is no way to remedy from this situation other than BDM.**
-
-Note that this does not apply when flashing from FireTOS which is safe (as FireTOS replaces BaS_gcc's interrupt handlers with it's own copy in RAM).
-
-Bottom line: if you want to flash BaS_gcc with Didier's tool, do it from FireTOS ONLY! 
-Unless you have a BDM device (which I'd personally recommend under all circumstances anyway), that is.
+# ALL-CLEAR
+The warning I had here before is superfluous. The problem has been fixed with R_0_9_4.
+That means you can now savely flash BaS_gcc from EmuTOS using `FLASH_CF.PRG`
 
 ## What do I gain using BaS_gcc compared to "original" BaS?
 
