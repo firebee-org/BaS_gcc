@@ -184,7 +184,7 @@ LIBBAS=libbas.a
 
 LIBS=$(patsubst %,%/$(LIBBAS),$(TRGTDIRS))
 
-all: ver fls ram bfl lib 
+all: ver fls ram bfl lib
 fls: $(patsubst %,%/$(FLASH_EXEC),$(TRGTDIRS))
 ram: $(patsubst %,%/$(RAM_EXEC),$(TRGTDIRS))
 bfl: $(patsubst %,%/$(BASFLASH_EXEC),$(TRGTDIRS))
