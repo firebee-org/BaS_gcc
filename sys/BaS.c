@@ -50,6 +50,7 @@
 #include "net_timer.h"
 #include "pci.h"
 #include "video.h"
+#include "driver_mem.h"
 
 // #define DEBUG
 #include "debug.h"
@@ -69,6 +70,377 @@ extern uint8_t _EMUTOS[];
 #define EMUTOS ((uint32_t)_EMUTOS) /* where EmuTOS is stored in flash */
 extern uint8_t _EMUTOS_SIZE[];
 #define EMUTOS_SIZE ((uint32_t)_EMUTOS_SIZE) /* size of EmuTOS, in bytes */
+
+bool fpga_configured = false;           /* for FPGA JTAG configuration */
+
+extern volatile long _VRAM; /* start address of video ram from linker script */
+
+
+#if defined(MACHINE_FIREBEE)
+
+static bool i2c_transfer_finished(void)
+{
+    if (MCF_I2C_I2SR & MCF_I2C_I2SR_IIF)
+        return true;
+
+    return false;
+}
+
+static void wait_i2c_transfer_finished(void)
+{
+    waitfor(1000, i2c_transfer_finished);      /* wait until interrupt bit has been set */
+    MCF_I2C_I2SR &= ~MCF_I2C_I2SR_IIF;          /* clear interrupt bit (byte transfer finished */
+}
+
+static bool i2c_bus_free(void)
+{
+    return (MCF_I2C_I2SR & MCF_I2C_I2SR_IBB);
+}
+
+/*
+ * TFP410 (DVI) on
+ */
+static void dvi_on(void)
+{
+    uint8_t receivedByte;
+    uint8_t dummyByte;          /* only used for a dummy read */
+    int num_tries = 0;
+
+    xprintf("DVI digital video output initialization: ");
+
+    MCF_I2C_I2FDR = 0x3c;       /* divide system clock by 1280: 100kHz standard */
+
+    do
+    {
+        /* disable all i2c interrupt routing targets */
+        MCF_I2C_I2ICR = 0x0;    // ~(MCF_I2C_I2ICR_IE | MCF_I2C_I2ICR_RE | MCF_I2C_I2ICR_TE | MCF_I2C_I2ICR_BNBE);
+
+        /* disable i2c, disable i2c interrupts, slave, receive, i2c = acknowledge, no repeat start */
+        MCF_I2C_I2CR = 0x0;
+
+        /* repeat start, transmit acknowledge */
+        MCF_I2C_I2CR = MCF_I2C_I2CR_RSTA | MCF_I2C_I2CR_TXAK;
+
+        receivedByte = MCF_I2C_I2DR;                /* read a byte */
+        MCF_I2C_I2SR = 0x0;                         /* clear status register */
+        MCF_I2C_I2CR = 0x0;                         /* clear control register */
+
+        MCF_I2C_I2ICR = MCF_I2C_I2ICR_IE;           /* route i2c interrupts to cpu */
+
+        /* i2c enable, master mode, transmit acknowledge */
+        MCF_I2C_I2CR = MCF_I2C_I2CR_IEN | MCF_I2C_I2CR_MSTA | MCF_I2C_I2CR_MTX;
+
+        MCF_I2C_I2DR = 0x7a;                        /* send data: address of TFP410 */
+        wait_i2c_transfer_finished();
+
+        if (MCF_I2C_I2SR & MCF_I2C_I2SR_RXAK)       /* next try if no acknowledge */
+            goto try_again;
+
+        MCF_I2C_I2DR = 0x00;                        /* send data: SUB ADRESS 0 */
+        wait_i2c_transfer_finished();
+
+        MCF_I2C_I2CR |= MCF_I2C_I2CR_RSTA;          /* repeat start */
+        MCF_I2C_I2DR = 0x7b;                        /* begin read */
+
+        wait_i2c_transfer_finished();
+        if (MCF_I2C_I2SR & MCF_I2C_I2SR_RXAK)       /* next try if no acknowledge */
+            goto try_again;
+
+#ifdef _NOT_USED_
+        MCH_I2C_I2CR &= ~MCF_I2C_I2CR_MTX;          /* FIXME: not clear where this came from ... */
+#endif /* _NOT_USED_ */
+        MCF_I2C_I2CR &= 0xef;                       /* ... this actually disables the I2C module... */
+        dummyByte = MCF_I2C_I2DR;                   /* dummy read */
+
+        wait_i2c_transfer_finished();
+
+        MCF_I2C_I2CR |= MCF_I2C_I2CR_TXAK;          /* transmit acknowledge enable */
+        receivedByte = MCF_I2C_I2DR;                /* read a byte */
+
+        wait_i2c_transfer_finished();
+
+        MCF_I2C_I2CR = MCF_I2C_I2CR_IEN;            /* stop */
+
+        dummyByte = MCF_I2C_I2DR; // dummy read
+
+        if (receivedByte != 0x4c)
+            goto try_again;
+
+        MCF_I2C_I2CR = 0x0; // stop
+        MCF_I2C_I2SR = 0x0; // clear sr
+
+        waitfor(10000, i2c_bus_free);
+
+        MCF_I2C_I2CR = 0xb0; // on tx master
+        MCF_I2C_I2DR = 0x7A;
+
+        wait_i2c_transfer_finished();
+
+        if (MCF_I2C_I2SR & MCF_I2C_I2SR_RXAK)
+            goto try_again;
+
+        MCF_I2C_I2DR = 0x08; // SUB ADRESS 8
+
+        wait_i2c_transfer_finished();
+
+        MCF_I2C_I2DR = 0xbf; // ctl1: power on, T:M:D:S: enable
+
+        wait_i2c_transfer_finished();
+
+        MCF_I2C_I2CR = 0x80; // stop
+        dummyByte = MCF_I2C_I2DR; // dummy read
+        MCF_I2C_I2SR = 0x0; // clear sr
+
+        waitfor(10000, i2c_bus_free);
+
+        MCF_I2C_I2CR = 0xb0;
+        MCF_I2C_I2DR = 0x7A;
+
+        wait_i2c_transfer_finished();
+
+        if (MCF_I2C_I2SR & MCF_I2C_I2SR_RXAK)
+            goto try_again;
+
+        MCF_I2C_I2DR = 0x08; // SUB ADRESS 8
+
+        wait_i2c_transfer_finished();
+
+        MCF_I2C_I2CR |= 0x4; // repeat start
+        MCF_I2C_I2DR = 0x7b; // beginn read
+
+        wait_i2c_transfer_finished();
+
+        if (MCF_I2C_I2SR & MCF_I2C_I2SR_RXAK)
+            goto try_again;
+
+        MCF_I2C_I2CR &= 0xef; // switch to rx
+        dummyByte = MCF_I2C_I2DR; // dummy read
+
+        wait_i2c_transfer_finished();
+        MCF_I2C_I2CR |= 0x08; // txak=1
+
+        wait(50);
+
+        receivedByte = MCF_I2C_I2DR;
+
+        wait_i2c_transfer_finished();
+
+        MCF_I2C_I2CR = 0x80; // stop
+
+        dummyByte = MCF_I2C_I2DR; // dummy read
+
+try_again:
+        num_tries++;
+    } while ((receivedByte != 0xbf) && (num_tries < 10));
+
+    if (num_tries >= 10)
+    {
+        xprintf("FAILED!\r\n");
+    }
+    else
+    {
+        xprintf("finished\r\n");
+    }
+
+    (void) dummyByte;           /* Avoid warning */
+}
+
+
+/*
+ * AC97
+ */
+static void init_ac97(void)
+{
+    // PSC2: AC97 ----------
+    int i;
+    int zm;
+    int va;
+    int vb;
+    int vc;
+
+    xprintf("AC97 sound chip initialization: ");
+    MCF_PAD_PAR_PSC2 = MCF_PAD_PAR_PSC2_PAR_RTS2_RTS    // PSC2=TX,RX BCLK,CTS->AC'97
+           | MCF_PAD_PAR_PSC2_PAR_CTS2_BCLK
+             | MCF_PAD_PAR_PSC2_PAR_TXD2
+             | MCF_PAD_PAR_PSC2_PAR_RXD2;
+    MCF_PSC2_PSCMR1 = 0x0;
+    MCF_PSC2_PSCMR2 = 0x0;
+    MCF_PSC2_PSCIMR = 0x0300;
+    MCF_PSC2_PSCSICR = 0x03;    //AC97
+    MCF_PSC2_PSCRFCR = 0x0f000000;
+    MCF_PSC2_PSCTFCR = 0x0f000000;
+    MCF_PSC2_PSCRFAR = 0x00F0;
+    MCF_PSC2_PSCTFAR = 0x00F0;
+
+    for (zm = 0; zm < 100000; zm++) // wiederholen bis synchron
+    {
+        MCF_PSC2_PSCCR = 0x20;
+        MCF_PSC2_PSCCR = 0x30;
+        MCF_PSC2_PSCCR = 0x40;
+        MCF_PSC2_PSCCR = 0x05;
+
+        // MASTER VOLUME -0dB
+        MCF_PSC2_PSCTB_AC97 = 0xE0000000;   //START SLOT1 + SLOT2, FIRST FRAME
+        MCF_PSC2_PSCTB_AC97 = 0x02000000;   //SLOT1:WR REG MASTER VOLUME adr 0x02
+
+        for (i = 2; i < 13; i++)
+        {
+            MCF_PSC2_PSCTB_AC97 = 0x0;  //SLOT2-12:WR REG ALLES 0
+        }
+
+        // read register
+        MCF_PSC2_PSCTB_AC97 = 0xc0000000;   //START SLOT1 + SLOT2, FIRST FRAME
+        MCF_PSC2_PSCTB_AC97 = 0x82000000;   //SLOT1:master volume
+
+        for (i = 2; i < 13; i++)
+        {
+            MCF_PSC2_PSCTB_AC97 = 0x00000000;   //SLOT2-12:RD REG ALLES 0
+        }
+        wait(50);
+
+        va = MCF_PSC2_PSCTB_AC97;
+        if ((va & 0x80000fff) == 0x80000800) {
+            vb = MCF_PSC2_PSCTB_AC97;
+            vc = MCF_PSC2_PSCTB_AC97;
+
+            /* FIXME: that looks more than suspicious (Fredi?) */
+            /* fixed with parentheses to avoid compiler warnings, but this looks still more than wrong to me */
+            if (((va & 0xE0000fff) == 0xE0000800) & (vb == 0x02000000) & (vc == 0x00000000)) {
+                goto livo;
+            }
+        }
+    }
+    xprintf(" NOT");
+livo:
+    // AUX VOLUME ->-0dB
+    MCF_PSC2_PSCTB_AC97 = 0xE0000000;   //START SLOT1 + SLOT2, FIRST FRAME
+    MCF_PSC2_PSCTB_AC97 = 0x16000000;   //SLOT1:WR REG AUX VOLUME adr 0x16
+    MCF_PSC2_PSCTB_AC97 = 0x06060000;   //SLOT1:VOLUME
+    for (i = 3; i < 13; i++) {
+        MCF_PSC2_PSCTB_AC97 = 0x0;  //SLOT2-12:WR REG ALLES 0
+    }
+
+    // line in VOLUME +12dB
+    MCF_PSC2_PSCTB_AC97 = 0xE0000000;   //START SLOT1 + SLOT2, FIRST FRAME
+    MCF_PSC2_PSCTB_AC97 = 0x10000000;   //SLOT1:WR REG MASTER VOLUME adr 0x02
+    for (i = 2; i < 13; i++) {
+        MCF_PSC2_PSCTB_AC97 = 0x0;  //SLOT2-12:WR REG ALLES 0
+    }
+    // cd in VOLUME 0dB
+    MCF_PSC2_PSCTB_AC97 = 0xE0000000;   //START SLOT1 + SLOT2, FIRST FRAME
+    MCF_PSC2_PSCTB_AC97 = 0x12000000;   //SLOT1:WR REG MASTER VOLUME adr 0x02
+    for (i = 2; i < 13; i++) {
+        MCF_PSC2_PSCTB_AC97 = 0x0;  //SLOT2-12:WR REG ALLES 0
+    }
+    // mono out VOLUME 0dB
+    MCF_PSC2_PSCTB_AC97 = 0xE0000000;   //START SLOT1 + SLOT2, FIRST FRAME
+    MCF_PSC2_PSCTB_AC97 = 0x06000000;   //SLOT1:WR REG MASTER VOLUME adr 0x02
+    MCF_PSC2_PSCTB_AC97 = 0x00000000;   //SLOT1:WR REG MASTER VOLUME adr 0x02
+    for (i = 3; i < 13; i++) {
+        MCF_PSC2_PSCTB_AC97 = 0x0;  //SLOT2-12:WR REG ALLES 0
+    }
+    MCF_PSC2_PSCTFCR |= MCF_PSC_PSCTFCR_WFR;    //set EOF
+    MCF_PSC2_PSCTB_AC97 = 0x00000000;   //last data
+    xprintf(" finished\r\n");
+}
+#endif /* MACHINE_FIREBEE */
+
+#ifdef MACHINE_FIREBEE
+static void wait_pll(void)
+{
+    int32_t trgt = MCF_SLT0_SCNT - 100000;
+    do
+    {
+        ;
+    } while ((* (volatile int16_t *) 0xf0000800 < 0) && MCF_SLT0_SCNT > trgt);
+}
+
+static volatile uint8_t *pll_base = (volatile uint8_t *) 0xf0000600;
+
+static void init_pll(void)
+{
+    xprintf("FPGA PLL initialization: ");
+
+    wait_pll();
+    * (volatile uint16_t *) (pll_base + 0x48) = 27;     /* loopfilter  r */
+
+    wait_pll();
+    * (volatile uint16_t *) (pll_base + 0x08) = 1;      /* charge pump 1 */
+
+    wait_pll();
+    * (volatile uint16_t *) (pll_base + 0x00) = 12;     /* N counter high = 12 */
+
+    wait_pll();
+    * (volatile uint16_t *) (pll_base + 0x40) = 12;     /* N counter low = 12 */
+
+    wait_pll();
+    * (volatile uint16_t *) (pll_base + 0x114) = 1;     /* ck1 bypass */
+
+    wait_pll();
+    * (volatile uint16_t *) (pll_base + 0x118) = 1;     /* ck2 bypass */
+
+    wait_pll();
+    * (volatile uint16_t *) (pll_base + 0x11c) = 1;     /* ck3 bypass */
+
+    wait_pll();
+    * (volatile uint16_t *) (pll_base + 0x10) = 1;      /* ck0 high  = 1 */
+
+    wait_pll();
+    * (volatile uint16_t *) (pll_base + 0x50) = 1;      /* ck0 low = 1 */
+
+    wait_pll();
+    * (volatile uint16_t *) (pll_base + 0x144) = 1;     /* M odd division */
+
+    wait_pll();
+    * (volatile uint16_t *) (pll_base + 0x44) = 1;      /* M low = 1 */
+
+    wait_pll();
+    * (volatile uint16_t *) (pll_base + 0x04) = 145;    /* M high = 145 = 146 MHz */
+
+    wait_pll();
+
+    * (volatile uint8_t *) 0xf0000800 = 0;              /* set */
+
+    xprintf("finished\r\n");
+}
+
+/*
+ * INIT VIDEO DDR RAM
+ */
+static void init_video_ddr(void) {
+    xprintf("init video RAM: ");
+
+    * (volatile uint16_t *) 0xf0000400 = 0xb;   /* set cke = 1, cs=1, config = 1 */
+    NOP();
+
+    _VRAM = 0x00050400; /* IPALL */
+    NOP();
+
+    _VRAM = 0x00072000; /* load EMR pll on */
+    NOP();
+
+    _VRAM = 0x00070122; /* load MR: reset pll, cl=2, burst=4lw */
+    NOP();
+
+    _VRAM = 0x00050400; /* IPALL */
+    NOP();
+
+    _VRAM = 0x00060000; /* auto refresh */
+    NOP();
+
+    _VRAM = 0x00060000; /* auto refresh */
+    NOP();
+
+    /* FIXME: what's this? */
+    _VRAM = 0x00070022; /* load MR dll on */
+    NOP();
+
+    * (uint32_t *) 0xf0000400 = 0x01070082; /* fifo on, refresh on, ddrcs und cke on, video dac on, Falcon shift mode on */
+
+    xprintf("finished\r\n");
+}
+#endif /* MACHINE_FIREBEE */
+
 
 /*
  * check if it is possible to transfer data to PIC
@@ -429,10 +801,18 @@ void BaS(void)
     uint8_t *src;
     uint8_t *dst = (uint8_t *) TOS;
 
-#if defined(MACHINE_FIREBEE)                    /* LITE board has no pic and (currently) no nvram */
+#if defined(MACHINE_FIREBEE)        // initialize FireBee specific hardware components */
+    fpga_configured = init_fpga();
+
+    init_pll();
+    init_video_ddr();
+    dvi_on();
+    init_ac97();
     pic_init();
     nvram_init();
 #endif /* MACHINE_FIREBEE */
+
+    driver_mem_init();
 
     xprintf("initialize MMU: ");
     mmu_init();
