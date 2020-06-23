@@ -959,36 +959,6 @@ static void clear_bss_segment(void)
 
 void initialize_hardware(void)
 {
-    /* Test for FireTOS switch: DIP switch #5 up */
-#ifdef _NOT_USED_ // #if defined(MACHINE_FIREBEE)
-    if (!(DIP_SWITCH & (1 << 6))) {
-        /* Minimal hardware initialization */
-        init_gpio();
-        init_serial();
-        init_slt();
-        init_fbcs();
-        init_ddram();
-        init_fpga();
-
-        /* Validate ST RAM */
-        * (volatile uint32_t *) 0x42e = STRAM_END;  /* phystop TOS system variable */
-        * (volatile uint32_t *) 0x420 = 0x752019f3; /* memvalid TOS system variable */
-        * (volatile uint32_t *) 0x43a = 0x237698aa; /* memval2 TOS system variable */
-        * (volatile uint32_t *) 0x51a = 0x5555aaaa; /* memval3 TOS system variable */
-
-        /* TT-RAM */
-
-        xprintf("FASTRAM_END = %p\r\n", FASTRAM_END);
-        * (uint32_t *) 0x5a4 = FASTRAM_END; /* ramtop TOS system variable */
-        * (uint32_t *) 0x5a8 = 0x1357bd13;  /* ramvalid TOS system variable */
-
-        /* Jump into FireTOS */
-        typedef void void_func(void);
-        void_func* FireTOS = (void_func*) FIRETOS;
-        FireTOS();  // Should never return
-        return;
-    }
-#endif /* MACHINE_FIREBEE */
     init_gpio();
     init_serial();
 
@@ -1098,12 +1068,6 @@ void initialize_hardware(void)
      * install (preliminary) exception vectors
      */
     setup_vectors();
-
-#ifdef _NOT_USED_
-    /* make sure the handlers are called */
-    __asm__ __volatile__("dc.w 0xafff");  /* should trigger a line-A exception */
-#endif /* _NOT_USED_ */
-
 
     /*
      * save the planet (and reduce case heat): disable clocks of unused SOC modules
