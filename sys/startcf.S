@@ -71,6 +71,6 @@ _rom_entry:
 	andi.l	#0xfefbfeff,d0			// Clear invalidate bits
 	move.l	d0,_rt_cacr
 
-	// initialize any hardware specific issues
+	// early initialization of any hardware needed before BaS() execution
 	bra	_initialize_hardware
 
