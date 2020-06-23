@@ -53,6 +53,8 @@
 #include "video.h"
 #include "driver_mem.h"
 
+#include "version.h"
+
 // #define DEBUG
 #include "debug.h"
 
@@ -871,6 +873,34 @@ void BaS(void)
 {
     uint8_t *src;
     uint8_t *dst = (uint8_t *) TOS;
+
+    /*
+     * install (preliminary) exception vectors
+     */
+    setup_vectors();
+
+    xprintf("\n\n");
+    xprintf("%s BASIS system (BaS) v %d.%d (%s, %s)\r\n\r\n",
+#if defined(MACHINE_FIREBEE)
+    "Firebee"
+#elif MACHINE_M5484LITE
+    "m5484 LITEKIT"
+#elif MACHINE_M5475EVB
+    "m5475 EVB"
+#else
+    "unknown platform"
+#endif
+    , MAJOR_VERSION, MINOR_VERSION, __DATE__, __TIME__);
+
+    /*
+     * Determine cause(s) of Reset
+     */
+    if (MCF_SIU_RSR & MCF_SIU_RSR_RST)
+        xprintf("Reset. Cause: External Reset\r\n");
+    if (MCF_SIU_RSR & MCF_SIU_RSR_RSTWD)
+        xprintf("Reset. Cause: Watchdog Timer Reset\n");
+    if (MCF_SIU_RSR & MCF_SIU_RSR_RSTJTG)
+        xprintf("Reset. Cause: BDM/JTAG Reset\r\n");
 
 #if defined(MACHINE_FIREBEE)        // initialize FireBee specific hardware components */
     fpga_configured = init_fpga();

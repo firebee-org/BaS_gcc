@@ -35,7 +35,6 @@
 #include "bas_types.h"
 #include "wait.h"
 #include "util.h"
-#include "version.h"
 
 #if defined(MACHINE_FIREBEE)
 #include "firebee.h"
@@ -64,10 +63,8 @@
  */
 static void init_slt(void)
 {
-    xprintf("slice timer initialization: ");
     MCF_SLT0_STCNT = 0xffffffff;
     MCF_SLT0_SCR = MCF_SLT_SCR_TEN | MCF_SLT_SCR_RUN;   /* enable and run continuously */
-    xprintf("finished\r\n");
 }
 
 /*
@@ -259,7 +256,6 @@ static void init_serial(void)
     MCF_PSC3_PSCCR = 0x05;
 #endif /* MACHINE_FIREBEE */
 
-    xprintf("\r\nserial interfaces initialization: finished\r\n");
 }
 
 /********************************************************************/
@@ -267,8 +263,6 @@ static void init_serial(void)
 /********************************************************************/
 static bool init_ddram(void)
 {
-    xprintf("SDRAM controller initialization: ");
-
     /*
      * Check to see if the SDRAM has already been initialized
      * by a run control tool
@@ -376,13 +370,7 @@ static bool init_ddram(void)
 
 #endif /* MACHINE_FIREBEE */
 
-        xprintf("finished\r\n");
-
         return true;
-    }
-    else
-    {
-        xprintf("skipped. Already initialized (running from RAM)\r\n");
     }
     return false;
 }
@@ -392,8 +380,6 @@ static bool init_ddram(void)
  */
 static void init_fbcs()
 {
-    xprintf("FlexBus chip select registers initialization: ");
-
     /* Flash */
     MCF_FBCS0_CSAR = MCF_FBCS_CSAR_BA(BOOTFLASH_BASE_ADDRESS);    /* flash base address */
     MCF_FBCS0_CSCR = MCF_FBCS_CSCR_PS_16 |              /* 16 bit word access */
@@ -471,8 +457,6 @@ static void init_fbcs()
     MCF_FBCS5_CSMR = MCF_FBCS_CSMR_BAM_256M |           /* maps 0x60000000 to 0x68000000 */
                      MCF_FBCS_CSMR_V;
 #endif /* MACHINE_FIREBEE */
-
-    xprintf("finished\r\n");
 }
 
 
@@ -510,36 +494,16 @@ static void clear_bss_segment(void)
     extern uint8_t _BAS_BSS_END[];
     uint8_t *BAS_BSS_END = &_BAS_BSS_END[0];
 
-    bzero(BAS_BSS_START, BAS_BSS_END - BAS_BSS_START + 1);
+    int i;
+
+    for (i = 0; i < BAS_BSS_END - BAS_BSS_START + 1; i++)
+        BAS_BSS_START[i] = 0;
 }
 
 void initialize_hardware(void)
 {
     init_gpio();
     init_serial();
-
-    xprintf("\n\n");
-    xprintf("%s BASIS system (BaS) v %d.%d (%s, %s)\r\n\r\n",
-#if defined(MACHINE_FIREBEE)
-    "Firebee"
-#elif MACHINE_M5484LITE
-    "m5484 LITEKIT"
-#elif MACHINE_M5475EVB
-    "m5475 EVB"
-#else
-    "unknown platform"
-#endif
-    , MAJOR_VERSION, MINOR_VERSION, __DATE__, __TIME__);
-
-    /*
-     * Determine cause(s) of Reset
-     */
-    if (MCF_SIU_RSR & MCF_SIU_RSR_RST)
-        xprintf("Reset. Cause: External Reset\r\n");
-    if (MCF_SIU_RSR & MCF_SIU_RSR_RSTWD)
-        xprintf("Reset. Cause: Watchdog Timer Reset\n");
-    if (MCF_SIU_RSR & MCF_SIU_RSR_RSTJTG)
-        xprintf("Reset. Cause: BDM/JTAG Reset\r\n");
 
     /*
      * Clear the Reset Status Register
@@ -548,54 +512,6 @@ void initialize_hardware(void)
                     | MCF_SIU_RSR_RSTWD
                     | MCF_SIU_RSR_RSTJTG);
 
-    /*
-     * Determine which processor we are running on
-     */
-    xprintf("JTAGID: ");
-    switch (MCF_SIU_JTAGID & MCF_SIU_JTAGID_PROCESSOR)
-    {
-        case MCF_SIU_JTAGID_MCF5485:
-            xprintf("MCF5485");
-            break;
-        case MCF_SIU_JTAGID_MCF5484:
-            xprintf("MCF5484");
-            break;
-        case MCF_SIU_JTAGID_MCF5483:
-            xprintf("MCF5483");
-            break;
-        case MCF_SIU_JTAGID_MCF5482:
-            xprintf("MCF5482");
-            break;
-        case MCF_SIU_JTAGID_MCF5481:
-            xprintf("MCF5481");
-            break;
-        case MCF_SIU_JTAGID_MCF5480:
-            xprintf("MCF5480");
-            break;
-        case MCF_SIU_JTAGID_MCF5475:
-            xprintf("MCF5475");
-            break;
-        case MCF_SIU_JTAGID_MCF5474:
-            xprintf("MCF5474");
-            break;
-        case MCF_SIU_JTAGID_MCF5473:
-            xprintf("MCF5473");
-            break;
-        case MCF_SIU_JTAGID_MCF5472:
-            xprintf("MCF5472");
-            break;
-        case MCF_SIU_JTAGID_MCF5471:
-            xprintf("MCF5471");
-            break;
-        case MCF_SIU_JTAGID_MCF5470:
-            xprintf("MCF5470");
-            break;
-    }
-
-    /*
-     * Determine the processor revision
-     */
-    xprintf(" (revision %d)\r\n", ((MCF_SIU_JTAGID & MCF_SIU_JTAGID_REV) >> 28));
 
     /* make sure MMU is disabled */
     MCF_MMU_MMUCR = 0;  /* MMU off */
@@ -606,24 +522,8 @@ void initialize_hardware(void)
     init_ddram();
 
 #if defined(MACHINE_M5484LITE) || defined(MACHINE_M5475EVB)
-    dbg("Fire Engine Control register:          %02x\r\n", * (uint8_t *) 0x61000000);
-    dbg("Fire Engine interrupt register:        %02x\r\n", * (uint8_t *) 0x62000000);
-    dbg("Fire Engine interrupt mask register:   %02x\r\n", * (uint8_t *) 0x63000000);
-    dbg("Fire Engine power management register: %02x\r\n", * (uint8_t *) 0x64000000);
-    dbg("Fire Engine EEPROM SPI register:       %02x\r\n", * (uint8_t *) 0x65000000);
-    dbg("Fire Engine Flash register:            %02x\r\n", * (uint8_t *) 0x66000000);
-    dbg("Fire Engine CPLD revision register:    %02x\r\n", * (uint8_t *) 0x67000000);
-    dbg("Fire Engine Hardware revision register:%02x\r\n", * (uint8_t *) 0x68000000);
-
-    dbg("write control register 0x%02x\r\n", 1 << 7);
     * (uint8_t *) 0x61000000 = 1 << 7;
-    dbg("Fire Engine Control register:          %02x\r\n", * (uint8_t *) 0x61000000);
 #endif /* MACHINE_M5484LITE */
-
-    /*
-     * install (preliminary) exception vectors
-     */
-    setup_vectors();
 
     /*
      * save the planet (and reduce case heat): disable clocks of unused SOC modules
@@ -646,12 +546,17 @@ void initialize_hardware(void)
 
     /* the following only makes sense _after_ DDRAM has been initialized */
     clear_bss_segment();
-    xprintf(".bss segment cleared\r\n");
 
     if (BAS_LMA != BAS_IN_RAM)
     {
-        xprintf("copy BaS to RAM\r\n");
-        memcpy((void *) BAS_IN_RAM, BAS_LMA, BAS_SIZE);
+        int i;
+
+        /* although tempting, do not use memcpy() here */
+
+        for (i = 0; i < BAS_SIZE; i++)
+        {
+            BAS_IN_RAM[i] = BAS_LMA[i];
+        }
 
         /* we have copied a code area, so flush the caches */
         flush_and_invalidate_caches();

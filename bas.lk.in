@@ -19,234 +19,320 @@
 
 MEMORY
 {
-   bas_rom (ROMFLAGS) : ORIGIN = TARGET_ADDRESS, LENGTH = 0x00100000
-   /*
-    * target to copy BaS data segment to. 1M should be enough for now
-    */
-   bas_ram (WX) : ORIGIN = SDRAM_START + SDRAM_SIZE - 0x00200000, LENGTH = 0x00100000
-   /*
-    * driver_ram is an uncached, reserved memory area for drivers (e.g. USB) that need this type of memory
-    */
-   driver_ram (WX) : ORIGIN = SDRAM_START + SDRAM_SIZE - 0x00100000, LENGTH = 0x00100000
+    bas_rom (ROMFLAGS) : ORIGIN = TARGET_ADDRESS, LENGTH = 0x00100000
+    /*
+     * target to copy BaS code + data segment to. 1M should be enough for now
+     */
+    bas_ram (WX) : ORIGIN = SDRAM_START + SDRAM_SIZE - 0x00200000, LENGTH = 0x00100000
+    /*
+     * driver_ram is an uncached, reserved memory area for drivers (e.g. USB) that need this type of memory
+     */
+    driver_ram (WX) : ORIGIN = SDRAM_START + SDRAM_SIZE - 0x00100000, LENGTH = 0x00100000
 }
 
 SECTIONS
-{
-        /* BaS in ROM */
-        .text :
-        {
-                OBJDIR/startcf.o(.text) /* this one is the entry point so it must be the first */
+{    
+    .driver_memory :
+    {
+        . = ALIGN(4);
+        driver_mem = .;
+        . = . + DRIVER_MEM_BUFFER_SIZE;
+    } > driver_ram
 
-                OBJDIR/sysinit.o(.text)
-                OBJDIR/fault_vectors.o(.text)
-#ifdef MACHINE_FIREBEE
-                OBJDIR/init_fpga.o(.text)
-#endif /* MACHINE_FIREBEE */
-                OBJDIR/wait.o(.text)
-                OBJDIR/exceptions.o(.text)
-                OBJDIR/setjmp.o(.text)
-                OBJDIR/driver_vec.o(.text)
-                OBJDIR/interrupts.o(.text)
-                OBJDIR/mmu.o(.text)
+    _driver_mem_buffer = driver_mem;
 
-                OBJDIR/BaS.o(.text)
-                OBJDIR/pci.o(.text)
-                . = ALIGN(16);
-                OBJDIR/pci_errata.o(.text)
-                OBJDIR/pci_wrappers.o(.text)
-                OBJDIR/usb.o(.text)
-                OBJDIR/driver_mem.o(.text)
-                OBJDIR/usb_hub.o(.text)
-                OBJDIR/usb_mouse.o(.text)
-                OBJDIR/usb_kbd.o(.text)
-                OBJDIR/ohci-hcd.o(.text)
-                OBJDIR/ehci-hcd.o(.text)
-                OBJDIR/wait.o(.text)
+    /* BaS in ROM */
+    .text :
+    {
+        OBJDIR/startcf.o(.text) /* this one is the entry point so it must be the first */
 
-                OBJDIR/nbuf.o(.text)
-                OBJDIR/net_timer.o(.text)
-                OBJDIR/queue.o(.text)
-                OBJDIR/nif.o(.text)
-                OBJDIR/fecbd.o(.text)
-                OBJDIR/fec.o(.text)
-                OBJDIR/am79c874.o(.text)
-                OBJDIR/bcm5222.o(.text)
-                OBJDIR/ip.o(.text)
-                OBJDIR/udp.o(text)
-                OBJDIR/bootp.o(text)
-                OBJDIR/tftp.o(text)
-                OBJDIR/arp.o(text)
+        OBJDIR/sysinit.o(.text)
+        OBJDIR/fault_vectors.o(.text)
 
-                OBJDIR/unicode.o(.text)
-                OBJDIR/mmc.o(.text)
-                OBJDIR/ff.o(.text)
-                OBJDIR/sd_card.o(.text)
-                OBJDIR/s19reader.o(.text)
-                OBJDIR/bas_printf.o(.text)
-                OBJDIR/bas_string.o(.text)
-		OBJDIR/conout.o(.text)
-                OBJDIR/ide.o(.text)
-#if (FORMAT_ELF == 1)
-                OBJDIR/libgcc_helper.o(.text)
-#endif
-                OBJDIR/cache.o(.text)
-                OBJDIR/dma.o(.text)
-                OBJDIR/MCD_dmaApi.o(.text)
-                OBJDIR/MCD_tasks.o(.text)
-                OBJDIR/MCD_tasksInit.o(.text)
-
-                OBJDIR/video.o(.text)
-                OBJDIR/videl.o(.text)
-                OBJDIR/fbmem.o(.text)
-                OBJDIR/fbmon.o(.text)
-                OBJDIR/fbmodedb.o(.text)
-		OBJDIR/fnt_st_8x16.o(.text)
-                OBJDIR/offscreen.o(.text)
-
-                OBJDIR/x86emu.o(.text)
-                OBJDIR/x86emu_util.o(.text)
-                OBJDIR/x86pcibios.o(.text)
-                OBJDIR/x86biosemu.o(.text)
-
-		OBJDIR/i2c-algo-bit.o(.text)
-
-                OBJDIR/radeon_base.o(.text)
-                OBJDIR/radeon_accel.o(.text)
-                OBJDIR/radeon_cursor.o(.text)
-                OBJDIR/radeon_monitor.o(.text)
-		OBJDIR/radeon_i2c.o(.text)
-
-                OBJDIR/xhdi_sd.o(.text)
-                OBJDIR/xhdi_interface.o(.text)
-                OBJDIR/xhdi_vec.o(.text)
 
 #ifdef COMPILE_RAM
-                /*
-                 * if we compile to RAM anyway, there is no need to copy anything
-                 */
-                . = ALIGN(4);
-                __BAS_DATA_START = .;
-                *(.data)
-                __BAS_DATA_END = .;
-                __BAS_BSS_START = .;
-                *(.bss)
-                __BAS_BSS_END = .;
-#endif /* COMPILE_RAM */
+#ifdef MACHINE_FIREBEE
+        OBJDIR/init_fpga.o(.text)
+#endif /* MACHINE_FIREBEE */
+        OBJDIR/wait.o(.text)
+        OBJDIR/exceptions.o(.text)
+        OBJDIR/setjmp.o(.text)
+        OBJDIR/driver_vec.o(.text)
+        OBJDIR/interrupts.o(.text)
+        OBJDIR/mmu.o(.text)
 
+        OBJDIR/BaS.o(.text)
+        OBJDIR/pci.o(.text)
+        . = ALIGN(16);
+        OBJDIR/pci_errata.o(.text)
+        OBJDIR/pci_wrappers.o(.text)
+        OBJDIR/usb.o(.text)
+        OBJDIR/driver_mem.o(.text)
+        OBJDIR/usb_hub.o(.text)
+        OBJDIR/usb_mouse.o(.text)
+        OBJDIR/usb_kbd.o(.text)
+        OBJDIR/ohci-hcd.o(.text)
+        OBJDIR/ehci-hcd.o(.text)
+        OBJDIR/wait.o(.text)
+
+        OBJDIR/nbuf.o(.text)
+        OBJDIR/net_timer.o(.text)
+        OBJDIR/queue.o(.text)
+        OBJDIR/nif.o(.text)
+        OBJDIR/fecbd.o(.text)
+        OBJDIR/fec.o(.text)
+        OBJDIR/am79c874.o(.text)
+        OBJDIR/bcm5222.o(.text)
+        OBJDIR/ip.o(.text)
+        OBJDIR/udp.o(text)
+        OBJDIR/bootp.o(text)
+        OBJDIR/tftp.o(text)
+        OBJDIR/arp.o(text)
+
+        OBJDIR/unicode.o(.text)
+        OBJDIR/mmc.o(.text)
+        OBJDIR/ff.o(.text)
+        OBJDIR/sd_card.o(.text)
+        OBJDIR/s19reader.o(.text)
+        OBJDIR/bas_printf.o(.text)
+        OBJDIR/bas_string.o(.text)
+        OBJDIR/conout.o(.text)
+        OBJDIR/ide.o(.text)
 #if (FORMAT_ELF == 1)
-                *(.eh_frame)
-                *(.rodata)
-                *(.rodata.*)
-#endif
-        } > bas_rom
+        OBJDIR/libgcc_helper.o(.text)
+#endif /* FORMAT_ELF */
+        OBJDIR/cache.o(.text)
+        OBJDIR/dma.o(.text)
+        OBJDIR/MCD_dmaApi.o(.text)
+        OBJDIR/MCD_tasks.o(.text)
+        OBJDIR/MCD_tasksInit.o(.text)
 
+        OBJDIR/video.o(.text)
+        OBJDIR/videl.o(.text)
+        OBJDIR/fbmem.o(.text)
+        OBJDIR/fbmon.o(.text)
+        OBJDIR/fbmodedb.o(.text)
+        OBJDIR/fnt_st_8x16.o(.text)
+        OBJDIR/offscreen.o(.text)
+
+        OBJDIR/x86emu.o(.text)
+        OBJDIR/x86emu_util.o(.text)
+        OBJDIR/x86pcibios.o(.text)
+        OBJDIR/x86biosemu.o(.text)
+
+        OBJDIR/i2c-algo-bit.o(.text)
+
+        OBJDIR/radeon_base.o(.text)
+        OBJDIR/radeon_accel.o(.text)
+        OBJDIR/radeon_cursor.o(.text)
+        OBJDIR/radeon_monitor.o(.text)
+        OBJDIR/radeon_i2c.o(.text)
+
+        OBJDIR/xhdi_sd.o(.text)
+        OBJDIR/xhdi_interface.o(.text)
+        OBJDIR/xhdi_vec.o(.text)
+
+        /*
+         * if we compile to RAM anyway, there is no need to copy anything
+         */
+        . = ALIGN(4);
+        _BAS_DATA_START = .;
+        *(.data)
+        __BAS_DATA_END = .;
+        __BAS_BSS_START = .;
+        *(.bss)
+        __BAS_BSS_END = .;
+#endif /* COMPILE_RAM */
+    } > bas_rom
 
 #if (TARGET_ADDRESS == BOOTFLASH_BASE_ADDRESS)
-        /*
-         * put BaS .data and .bss segments to flash, but relocate it to RAM after initialize_hardware() ran
-         */
-        .bas :
-        AT (ALIGN(ADDR(.text) + SIZEOF(.text), 4))
-        {
-                . = ALIGN(4);       /* same alignment than AT() statement! */
-                __BAS_DATA_START = .;
-                *(.data)
-                __BAS_DATA_END = .;
-                __BAS_BSS_START = .;
-                *(.bss)
-                __BAS_BSS_END = .;
 
-                . = ALIGN(16);
-        } > bas_ram
+    /*
+     * put BaS .data and .bss segments to flash, but relocate it to RAM after initialize_hardware() ran
+     */
+    _driver_mem_buffer = driver_mem;
+    .bas : AT (ALIGN(ADDR(.text) + SIZEOF(.text), 4))
+    {
+        _BAS_IN_RAM = .;
+
+#ifdef MACHINE_FIREBEE
+        OBJDIR/init_fpga.o(.text)
+#endif /* MACHINE_FIREBEE */
+        OBJDIR/wait.o(.text)
+        OBJDIR/exceptions.o(.text)
+        OBJDIR/setjmp.o(.text)
+        OBJDIR/driver_vec.o(.text)
+        OBJDIR/interrupts.o(.text)
+        OBJDIR/mmu.o(.text)
+
+        OBJDIR/BaS.o(.text)
+        OBJDIR/pci.o(.text)
+        . = ALIGN(16);
+        OBJDIR/pci_errata.o(.text)
+        OBJDIR/pci_wrappers.o(.text)
+        OBJDIR/usb.o(.text)
+        OBJDIR/driver_mem.o(.text)
+        OBJDIR/usb_hub.o(.text)
+        OBJDIR/usb_mouse.o(.text)
+        OBJDIR/usb_kbd.o(.text)
+        OBJDIR/ohci-hcd.o(.text)
+        OBJDIR/ehci-hcd.o(.text)
+        OBJDIR/wait.o(.text)
+
+        OBJDIR/nbuf.o(.text)
+        OBJDIR/net_timer.o(.text)
+        OBJDIR/queue.o(.text)
+        OBJDIR/nif.o(.text)
+        OBJDIR/fecbd.o(.text)
+        OBJDIR/fec.o(.text)
+        OBJDIR/am79c874.o(.text)
+        OBJDIR/bcm5222.o(.text)
+        OBJDIR/ip.o(.text)
+        OBJDIR/udp.o(text)
+        OBJDIR/bootp.o(text)
+        OBJDIR/tftp.o(text)
+        OBJDIR/arp.o(text)
+
+        OBJDIR/unicode.o(.text)
+        OBJDIR/mmc.o(.text)
+        OBJDIR/ff.o(.text)
+        OBJDIR/sd_card.o(.text)
+        OBJDIR/s19reader.o(.text)
+        OBJDIR/bas_printf.o(.text)
+        OBJDIR/bas_string.o(.text)
+        OBJDIR/conout.o(.text)
+        OBJDIR/ide.o(.text)
+#if (FORMAT_ELF == 1)
+        OBJDIR/libgcc_helper.o(.text)
 #endif
+        OBJDIR/cache.o(.text)
+        OBJDIR/dma.o(.text)
+        OBJDIR/MCD_dmaApi.o(.text)
+        OBJDIR/MCD_tasks.o(.text)
+        OBJDIR/MCD_tasksInit.o(.text)
 
-        .driver_memory :
-        {
-                . = ALIGN(4);
-                _driver_mem_buffer = .;
-                //. = . + DRIVER_MEM_BUFFER_SIZE;
-        } > driver_ram
+        OBJDIR/video.o(.text)
+        OBJDIR/videl.o(.text)
+        OBJDIR/fbmem.o(.text)
+        OBJDIR/fbmon.o(.text)
+        OBJDIR/fbmodedb.o(.text)
+        OBJDIR/fnt_st_8x16.o(.text)
+        OBJDIR/offscreen.o(.text)
 
-        /*
-         * Global memory map
-         */
+        OBJDIR/x86emu.o(.text)
+        OBJDIR/x86emu_util.o(.text)
+        OBJDIR/x86pcibios.o(.text)
+        OBJDIR/x86biosemu.o(.text)
 
-        /* SDRAM Initialization */
-        ___SDRAM                = SDRAM_START;
-        ___SDRAM_SIZE           = SDRAM_SIZE;
-        _SDRAM_VECTOR_TABLE     = ___SDRAM;
+        OBJDIR/i2c-algo-bit.o(.text)
 
-        /* ST-RAM */
-        __STRAM                 = ___SDRAM;
-        __STRAM_END             = __TOS;
+        OBJDIR/radeon_base.o(.text)
+        OBJDIR/radeon_accel.o(.text)
+        OBJDIR/radeon_cursor.o(.text)
+        OBJDIR/radeon_monitor.o(.text)
+        OBJDIR/radeon_i2c.o(.text)
 
-        /* TOS */
-        __TOS                   = 0x00e00000;
+        OBJDIR/xhdi_sd.o(.text)
+        OBJDIR/xhdi_interface.o(.text)
+        OBJDIR/xhdi_vec.o(.text)
 
-        /* FastRAM */
-        __FASTRAM               = 0x10000000;
-        __TARGET_ADDRESS        = TARGET_ADDRESS;
+        . = ALIGN(4);       /* same alignment than AT() statement! */
+        __BAS_DATA_START = .;
+        *(.data)
+#if (FORMAT_ELF == 1)
+        *(.eh_frame)
+        *(.rodata)
+        *(.rodata.*)
+#endif
+        __BAS_DATA_END = .;
+        __BAS_BSS_START = .;
+        *(.bss)
+        __BAS_BSS_END = .;
+
+        . = ALIGN(16);
+    } > bas_ram
+#endif /* compile to RAM (copy after sysinit())
+
+    /*
+     * Global memory map
+     */
+
+    /* SDRAM Initialization */
+    ___SDRAM                = SDRAM_START;
+    ___SDRAM_SIZE           = SDRAM_SIZE;
+    _SDRAM_VECTOR_TABLE     = ___SDRAM;
+
+    /* ST-RAM */
+    __STRAM                 = ___SDRAM;
+    __STRAM_END             = __TOS;
+
+    /* TOS */
+    __TOS                   = 0x00e00000;
+
+    /* FastRAM */
+    __FASTRAM               = 0x10000000;
+    __TARGET_ADDRESS        = TARGET_ADDRESS;
 
 #if TARGET_ADDRESS == BOOTFLASH_BASE_ADDRESS
-        __FASTRAM_END           = __BAS_IN_RAM;
+    __FASTRAM_END           = __BAS_IN_RAM;
 #else
-        __FASTRAM_END           = TARGET_ADDRESS;
+    __FASTRAM_END           = TARGET_ADDRESS;
 #endif
-        __FASTRAM_SIZE          = __FASTRAM_END - __FASTRAM;
+    __FASTRAM_SIZE          = __FASTRAM_END - __FASTRAM;
 
-        /* Init CS0 (BootFLASH @ E000_0000 - E07F_FFFF 8Mbytes) */
-        ___BOOT_FLASH           = BOOTFLASH_BASE_ADDRESS;
-        ___BOOT_FLASH_SIZE      = BOOTFLASH_SIZE;
+    /* Init CS0 (BootFLASH @ E000_0000 - E07F_FFFF 8Mbytes) */
+    ___BOOT_FLASH           = BOOTFLASH_BASE_ADDRESS;
+    ___BOOT_FLASH_SIZE      = BOOTFLASH_SIZE;
 
 #if TARGET_ADDRESS == BOOTFLASH_BASE_ADDRESS
-        /* BaS */
-        __BAS_LMA               = LOADADDR(.bas);
-        __BAS_IN_RAM            = ADDR(.bas);
-        __BAS_SIZE              = SIZEOF(.bas);
+    /* BaS */
+    __BAS_LMA               = LOADADDR(.bas);
+    __BAS_IN_RAM            = ADDR(.bas);
+    __BAS_SIZE              = SIZEOF(.bas);
 #else
-        /* BaS is already in RAM - no need to copy anything */
-        __BAS_IN_RAM            = __FASTRAM_END;
-        __BAS_SIZE              = 0;
-        __BAS_LMA               = __BAS_IN_RAM;
+    /* BaS is already in RAM - no need to copy anything */
+    __BAS_IN_RAM            = __FASTRAM_END;
+    __BAS_SIZE              = 0;
+    __BAS_LMA               = __BAS_IN_RAM;
 #endif
 
-        /* Other flash components */
-        __FIRETOS               = 0xe0400000;
-        __EMUTOS                = EMUTOS_BASE_ADDRESS;
-        __EMUTOS_SIZE           = 0x00100000;
+    /* Other flash components */
+    __FIRETOS               = 0xe0400000;
+    __EMUTOS                = EMUTOS_BASE_ADDRESS;
+    __EMUTOS_SIZE           = 0x00100000;
 
-        /* where FPGA data lives in flash */
-        __FPGA_CONFIG       = 0xe0700000;
-        __FPGA_CONFIG_SIZE  = 0x100000;
+    /* where FPGA data lives in flash */
+    __FPGA_CONFIG       = 0xe0700000;
+    __FPGA_CONFIG_SIZE  = 0x100000;
 
-        /* VIDEO RAM BASIS */
-        __VRAM                  = 0x60000000;
+    /* VIDEO RAM BASIS */
+    __VRAM                  = 0x60000000;
 
-        /* Memory mapped registers */
-        __MBAR                  = 0xFF000000;
+    /* Memory mapped registers */
+    __MBAR                  = 0xFF000000;
 
-        /* 32KB on-chip System SRAM */
-        __SYS_SRAM              = __MBAR + 0x10000;
-        __SYS_SRAM_SIZE         = 0x00008000;
+    /* 32KB on-chip System SRAM */
+    __SYS_SRAM              = __MBAR + 0x10000;
+    __SYS_SRAM_SIZE         = 0x00008000;
 
-        /* MMU memory mapped registers */
-        __MMUBAR                = 0xFF040000;
+    /* MMU memory mapped registers */
+    __MMUBAR                = 0xFF040000;
 
 #if !defined(MACHINE_M54455)        /* MCF54455 does not have RAMBAR0 and RAMBAR1 registers */
-        /*
-         * 4KB on-chip Core SRAM0: -> exception table
-         */
-        __RAMBAR0               = 0xFF100000;
-        __RAMBAR0_SIZE          = 0x00001000;
+    /*
+     * 4KB on-chip Core SRAM0: -> exception table
+     */
+    __RAMBAR0               = 0xFF100000;
+    __RAMBAR0_SIZE          = 0x00001000;
 
-        /* 4KB on-chip Core SRAM1 */
-        __RAMBAR1               = 0xFF101000;
-        __RAMBAR1_SIZE          = 0x00001000;
-        __SUP_SP                = __RAMBAR1 + __RAMBAR1_SIZE - 4;
+    /* 4KB on-chip Core SRAM1 */
+    __RAMBAR1               = 0xFF101000;
+    __RAMBAR1_SIZE          = 0x00001000;
+    __SUP_SP                = __RAMBAR1 + __RAMBAR1_SIZE - 4;
 #else
-        __RAMBAR0               = 0x80000000;   /* RAMBAR must be between 0x80000000 on MCF54455 */
-        __RAMBAR0_SIZE          = 0x1000;
-        __SUP_SP                = __RAMBAR0 + __RAMBAR0_SIZE + 0x1000 - 4;
+    __RAMBAR0               = 0x80000000;   /* RAMBAR must be between 0x80000000 on MCF54455 */
+    __RAMBAR0_SIZE          = 0x1000;
+    __SUP_SP                = __RAMBAR0 + __RAMBAR0_SIZE + 0x1000 - 4;
 #endif
 
     /*
