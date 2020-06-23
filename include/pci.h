@@ -23,6 +23,8 @@
 
 #include <bas_types.h>
 #include "util.h"   /* for swpX() */
+#include "pci_ids.h"
+#include "mod_devicetable.h"
 
 #define  PCI_MEMORY_OFFSET  0x80000000
 #define  PCI_MEMORY_SIZE    0x40000000  /* 1 GByte PCI memory window */
