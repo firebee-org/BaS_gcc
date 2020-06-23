@@ -49,6 +49,7 @@
 #include "exceptions.h"
 #include "net_timer.h"
 #include "pci.h"
+#include "usb.h"
 #include "video.h"
 #include "driver_mem.h"
 
@@ -770,6 +771,76 @@ void ide_init(void)
     * (volatile uint8_t *) (0xffff8802 - 0) = 0;
 
     set_ide_access_mode();
+}
+
+/*
+ * probe for NEC compatible USB host controller and install if found
+ */
+void init_usb(void)
+{
+    extern struct pci_device_id ohci_usb_pci_table[];
+    extern struct pci_device_id ehci_usb_pci_table[];
+    struct pci_device_id *board;
+    int32_t handle;
+    int usb_found = 0;
+    int index = 0;
+
+    /*
+     * disabled for now
+     */
+    return;
+
+    inf("USB controller initialization:\r\n");
+
+    do
+    {
+        handle = pci_find_classcode(PCI_CLASS_SERIAL_USB | PCI_FIND_BASE_CLASS | PCI_FIND_SUB_CLASS, index++);
+        dbg("handle 0x%02x\r\n", handle);
+        if (handle > 0)
+        {
+            long id;
+            long pci_class;
+
+            xprintf("serial USB found at bus=0x%x, dev=0x%x, fnc=0x%x (0x%x)\r\n",
+                    PCI_BUS_FROM_HANDLE(handle),
+                    PCI_DEVICE_FROM_HANDLE(handle),
+                    PCI_FUNCTION_FROM_HANDLE(handle),
+                    handle);
+            id = swpl(pci_read_config_longword(handle, PCIIDR));
+            pci_class = swpl(pci_read_config_longword(handle, PCIREV));
+
+            if (pci_class >> 8 == PCI_CLASS_SERIAL_USB_EHCI)
+            {
+                board = ehci_usb_pci_table;
+                while (board->vendor)
+                {
+                    if ((board->vendor == PCI_VENDOR_ID(id)) && board->device == PCI_DEVICE_ID(id))
+                    {
+                        if (usb_init(handle, board) >= 0)
+                        {
+                            usb_found++;
+                        }
+                    }
+                    board++;
+                }
+            }
+            if (pci_class >> 8 == PCI_CLASS_SERIAL_USB_OHCI)
+            {
+                board = ohci_usb_pci_table;
+                while (board->vendor)
+                {
+                    if ((board->vendor == PCI_VENDOR_ID(id)) && board->device == PCI_DEVICE_ID(id))
+                    {
+                        if (usb_init(handle, board) >= 0)
+                            usb_found++;
+                    }
+                    board++;
+                }
+            }
+        }
+    } while (handle >= 0);
+
+    xprintf("finished (found %d USB controller(s))\r\n", usb_found);
 }
 
 

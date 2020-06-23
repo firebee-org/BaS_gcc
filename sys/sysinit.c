@@ -30,13 +30,13 @@
 #include "startcf.h"
 #include "cache.h"
 #include "sysinit.h"
-#include "pci.h"
 #include "bas_printf.h"
 #include "bas_string.h"
 #include "bas_types.h"
 #include "wait.h"
 #include "util.h"
 #include "version.h"
+
 #if defined(MACHINE_FIREBEE)
 #include "firebee.h"
 #elif defined(MACHINE_M5484LITE)
@@ -47,13 +47,7 @@
 #include "m54455.h"
 #else
 #error "unknown machine"
-#endif /* MACHINE_M5484LITE */
-#include "dma.h"
-#include "mod_devicetable.h"
-#include "pci_ids.h"
-#include "driver_mem.h"
-#include "usb.h"
-#include "video.h"
+#endif /* MACHINE_FIREBEE */
 
 // #define DEBUG
 #include "debug.h"
@@ -482,75 +476,6 @@ static void init_fbcs()
 }
 
 
-/*
- * probe for NEC compatible USB host controller and install if found
- */
-void init_usb(void)
-{
-    extern struct pci_device_id ohci_usb_pci_table[];
-    extern struct pci_device_id ehci_usb_pci_table[];
-    struct pci_device_id *board;
-    int32_t handle;
-    int usb_found = 0;
-    int index = 0;
-
-    /*
-     * disabled for now
-     */
-    return;
-
-    inf("USB controller initialization:\r\n");
-
-    do
-    {
-        handle = pci_find_classcode(PCI_CLASS_SERIAL_USB | PCI_FIND_BASE_CLASS | PCI_FIND_SUB_CLASS, index++);
-        dbg("handle 0x%02x\r\n", handle);
-        if (handle > 0)
-        {
-            long id;
-            long pci_class;
-
-            xprintf("serial USB found at bus=0x%x, dev=0x%x, fnc=0x%x (0x%x)\r\n",
-                    PCI_BUS_FROM_HANDLE(handle),
-                    PCI_DEVICE_FROM_HANDLE(handle),
-                    PCI_FUNCTION_FROM_HANDLE(handle),
-                    handle);
-            id = swpl(pci_read_config_longword(handle, PCIIDR));
-            pci_class = swpl(pci_read_config_longword(handle, PCIREV));
-
-            if (pci_class >> 8 == PCI_CLASS_SERIAL_USB_EHCI)
-            {
-                board = ehci_usb_pci_table;
-                while (board->vendor)
-                {
-                    if ((board->vendor == PCI_VENDOR_ID(id)) && board->device == PCI_DEVICE_ID(id))
-                    {
-                        if (usb_init(handle, board) >= 0)
-                        {
-                            usb_found++;
-                        }
-                    }
-                    board++;
-                }
-            }
-            if (pci_class >> 8 == PCI_CLASS_SERIAL_USB_OHCI)
-            {
-                board = ohci_usb_pci_table;
-                while (board->vendor)
-                {
-                    if ((board->vendor == PCI_VENDOR_ID(id)) && board->device == PCI_DEVICE_ID(id))
-                    {
-                        if (usb_init(handle, board) >= 0)
-                            usb_found++;
-                    }
-                    board++;
-                }
-            }
-        }
-    } while (handle >= 0);
-
-    xprintf("finished (found %d USB controller(s))\r\n", usb_found);
-}
 
 /* Symbols from the linker script */
 
@@ -725,6 +650,7 @@ void initialize_hardware(void)
 
     if (BAS_LMA != BAS_IN_RAM)
     {
+        xprintf("copy BaS to RAM\r\n");
         memcpy((void *) BAS_IN_RAM, BAS_LMA, BAS_SIZE);
 
         /* we have copied a code area, so flush the caches */
