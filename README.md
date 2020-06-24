@@ -1,3 +1,6 @@
+
+[![Build Status](https://travis-ci.org/firebee-org/BaS_gcc.svg?branch=master)](https://travis-ci.org/firebee-org/BaS_gcc)
+
 # BaS_gcc
 **FireBee gcc-based firmware**
 
@@ -53,5 +56,3 @@ From a pure user's perspective (mainly using FireTOS, probably): very little (yo
   These tools are available for all major platforms (Windows, Linux, Mac OS), and BaS_gcc has been tested to compile fine on all of these, so you are not limited to any specific configurations
 
 - BaS_gcc enables (fast) networking using EmuTOS + FreeMiNT because it provides the ColdFire MDMA (multi channel DMA) and a suitable FEC driver. This way, you have a fully native OpenSource ColdFire environment without any slowdown through m68k emulation. Of course "legacy" (TOS) programs have to be compiled for this environment or can only used with m68k emulation (https://github.com/vinriviere/68kemu , for example), but if you intend to use the FireBee for new development, this is the fastest setup you can get with full access for all sources compilable with open source toolchains. A true OpenSorce environment.
-
-[![Build Status](https://travis-ci.org/firebee-org/BaS_gcc.svg?branch=master)](https://travis-ci.org/firebee-org/BaS_gcc)
