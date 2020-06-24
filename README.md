@@ -26,12 +26,13 @@ BaS_gcc aims to fully supports native EmuTOS + native FreeMiNT on the FireBee.
 - checkout a copy of the BaS_gcc sources to your local machine
 - make sure you have a suitable gcc toolchain available. This could be either an m68k-atari-mint toolchain or an m68k-elf gcc toolchain (see switches in the toplevel Makefile).
 - type "make". The build should finish without errors (just warnings about code not finished yet)
-- for the FireBee, you'll find a flashable file (bas.s19) in the firebee directory
-- for the m5484LITE evaluation board are in the m5484lite directory
-- for the m5475evb board files will reside in the m5475evb directory
+- for the FireBee, you'll find a flashable file (`bas.s19`) in the `firebee` directory
+- for the m5484LITE evaluation board, files are in the `m5484lite` directory
+- for the m5475evb board files will reside in the `m5475evb` directory
 - for the m54455 FreeScale evaluation board, files (not functional yet) are in the respective directory
 
-- ram.s19 files are meant for testing. They are suitable for direct download to RAM (instead of flashing them). This saves wear on the flash chips and improves development turnaround
+- `ram.s19` files are meant for testing. They are suitable for direct download to RAM (instead of flashing them). This saves wear on the flash chips and improves development turnaround
+- `basflash.s19` is a proof of concept result. It goes on the SD card and BaS_gcc will load and execute it on boot. This is meant to provide flash upgrade services in future. For now, it only outputs a diagnostic message to the serial terminal 
 
 ## How to flash:
 
