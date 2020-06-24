@@ -40,7 +40,7 @@ These files can be flashed with either Didier Méquinon's flasher available from
 
 # ALL-CLEAR
 The warning I had here before is superfluous. The problem has been fixed with R_0_9_4.
-That means you can now savely flash BaS_gcc from EmuTOS using `FLASH_CF.PRG`
+That means you can now savely flash BaS_gcc from EmuTOS (and FireTOS, of course, as this was working fine all the time) using `FLASH_CF.PRG`
 
 ## What do I gain using BaS_gcc compared to "original" BaS?
 
