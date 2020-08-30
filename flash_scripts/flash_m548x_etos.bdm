@@ -5,9 +5,6 @@
 open $1
 reset
 
-# Turn on RAMBAR0 at address FF10_0000 
-write-ctrl 0x0C04 0xFF100007
-
 # Init CS0 (BootFLASH @ E000_0000 - E07F_FFFF 8Mbytes)
 write 0xFF000500 0xE0000000 4
 write 0xFF000508 0x00001180 4
@@ -34,15 +31,25 @@ write 0xFF000104 0x710D0F00 4 # SDCR (lock SDMR and enable refresh)
 sleep 10
 
 
-# use sram as flashlib scratch area
+# use system sdram as flashlib scratch area
 # flashing EmuTOS with plugin does not work yet (at least not for 64bit hosts)
-#flash-plugin 0xFF101000 0xffff flashintelc3.plugin
+#flash-plugin 0x1000 0xf000 flash29.plugin
 
 # notify flashlib that we have flash at address 0xE0000000, length 0x7FFFFF, plugin is flash29
 flash 0xe0000000
 
-# Erase flash from 0xE0100000 to 0xE01FFFFF (reserved space for EmuTOS on the m5484lite)
+# Erase flash from 0xE0600000 to 0xE06FFFFF (reserved space for EmuTOS)
+#
+# Caution: sector offset numbers need to be the ones from the x16 address range
+# column and they vary in size - needs to be exactly as in the data sheet (p. 9)
+#
+# contrary to documentation, it seems we need to erase-wait after each sector
 
+erase 0xe0000000 16
+erase 0xe0000000 17
+erase 0xe0000000 18
+erase 0xe0000000 19
+erase 0xe0000000 20
 erase 0xe0000000 21
 erase 0xe0000000 22
 erase 0xe0000000 23
@@ -63,4 +70,4 @@ erase 0xe0000000 37
 erase 0xe0000000 38
 erase 0xe0000000 39
 
-load ../../emutos/emutos-m548x-bas.elf
+load -v emutos-m548x-bas.elf
