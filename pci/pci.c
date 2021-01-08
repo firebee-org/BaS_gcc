@@ -974,7 +974,7 @@ static void pci_bridge_config(uint16_t bus, uint16_t device, uint16_t function)
 
     pci_write_config_longword(handle, PCIBISTR, MCF_PCI_PCICR1_CACHELINESIZE(8) |
                               MCF_PCI_PCICR1_LATTIMER(0x20));
-    pci_write_config_longword(handle, PCIBAR0, swpl(0x80000000));
+    pci_write_config_longword(handle, PCIBAR0, swpl(0x00000000));
     pci_write_config_longword(handle, PCIBAR1, 0x0);
     pci_write_config_word(handle, PCI_LANESWAP_W(PCICR), swpw(
                               (1 << 1)  /* memory space */
