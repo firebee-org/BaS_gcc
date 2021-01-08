@@ -624,19 +624,19 @@ void mmu_init(void)
     /* map PCI address space */
     /* set SRAM and MBAR access */
     set_acr0(ACR_W(0) |                             /* read and write accesses permitted */
-            // ACR_SP(1) |                             /* supervisor only access permitted */
+            ACR_SP(1) |                             /* match on all accesses */
             ACR_CM(ACR_CM_CACHE_INH_PRECISE) |      /* cache inhibit, precise */
             ACR_AMM(0) |                            /* control region > 16 MB */
-            ACR_S(ACR_S_SUPERVISOR_MODE) |          /* match addresses in supervisor and user mode */
+            ACR_S(ACR_S_ALL) |                      /* match addresses in supervisor and user mode */
             ACR_E(1) |                              /* enable ACR */
 #if defined(MACHINE_FIREBEE)
             ACR_ADMSK(0x7f) |                       /* cover 2GB area from 0x80000000 to 0xffffffff */
-            // ACR_BA(PCI_MEMORY_OFFSET));             /* (equals area from 3 to 4 GB */
-            ACR_BA(0xe0000000));
+            ACR_BA(PCI_MEMORY_OFFSET));             /* (equals area from 3 to 4 GB */
+            // ACR_BA(0xe0000000));
 #elif defined(MACHINE_M5484LITE) || defined(MACHINE_M5475EVB)
             ACR_ADMSK(0x7f) |                       /* cover 2 GB area from 0x80000000 to 0xffffffff */
-            // ACR_BA(PCI_MEMORY_OFFSET));
-            ACR_BA(0xe0000000));
+            ACR_BA(PCI_MEMORY_OFFSET));
+            // ACR_BA(0xe0000000));
 #elif defined(MACHINE_M54455)
             ACR_ADMSK(0x7f) |
             ACR_BA(0x80000000));                    /* FIXME: not determined yet */
@@ -647,7 +647,7 @@ void mmu_init(void)
     /* data access attributes for BaS in flash */
 
     set_acr1(ACR_W(0) |
-            ACR_SP(0) |
+            ACR_SP(3) |
             ACR_CM(0) |
 #if defined(MACHINE_FIREBEE)
             ACR_CM(ACR_CM_CACHEABLE_WT) |
