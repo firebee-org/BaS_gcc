@@ -54,7 +54,7 @@
 #include "usb.h"
 #include "usb_hub.h"
 
-// #define DEBUG
+//#define DEBUG
 #include "debug.h"
 
 struct hci
@@ -188,7 +188,7 @@ int usb_init(int32_t handle, const struct pci_device_id *ent)
             }
         }
 
-        xprintf("Scanning bus for devices... ");
+        xprintf("Scanning bus for devices...\r\n");
 
         controller_priv[bus_index] = priv;
         controller_priv[bus_index]->usbnum = bus_index;
@@ -634,6 +634,7 @@ int usb_get_descriptor(struct usb_device *dev, unsigned char type, unsigned char
     dbg("dev=%d type=%d, index=%d\r\n", dev->devnum, type, index);
     res = usb_control_msg(dev, usb_rcvctrlpipe(dev, 0),
             USB_REQ_GET_DESCRIPTOR, USB_DIR_IN, (type << 8) + index, 0, buf, size, USB_CNTL_TIMEOUT);
+    dbg("result=0x%x\r\n", res);
     return res;
 }
 
@@ -1056,7 +1057,7 @@ struct usb_device *usb_alloc_new_device(int bus, void *priv)
     int index = dev_index[bus];
     struct usb_device *dev;
 
-    dbg("USB %d new device %d\r\n", bus, index);
+    dbg("USB bus %d new device %d\r\n", bus, index);
     if (index >= USB_MAX_DEVICE)
     {
         dbg("ERROR, too many USB Devices, max=%d\r\n", USB_MAX_DEVICE);
@@ -1118,7 +1119,6 @@ int usb_new_device(struct usb_device *dev)
         return 1;
     }
 
-//#define CONFIG_LEGACY_USB_INIT_SEQ
 #ifdef CONFIG_LEGACY_USB_INIT_SEQ
     /*
      * this is the old and known way of initializing devices, it is
@@ -1132,7 +1132,7 @@ int usb_new_device(struct usb_device *dev)
     dev->epmaxpacketin[0] = 8;
     dev->epmaxpacketout[0] = 8;
     error = usb_get_descriptor(dev, USB_DT_DEVICE, 0, &dev->descriptor, 8);
-    if (err < 8)
+    if (error < 8)
     {
         err("\r\nUSB device not responding, giving up (status=%lX)\r\n", dev->status);
         driver_mem_free(tmpbuf);
@@ -1286,8 +1286,8 @@ int usb_new_device(struct usb_device *dev)
     {
         usb_string(dev, dev->descriptor.iSerialNumber, dev->serial, sizeof(dev->serial));
     }
-    inf("Manufacturer %s\r\n", dev->mf);
-    inf("Product      %s\r\n", dev->prod);
+    inf("Manufacturer %s, ", dev->mf);
+    inf("Product      %s, ", dev->prod);
     inf("SerialNumber %s\r\n", dev->serial);
 
     /* now probe if the device is a hub */
@@ -1319,7 +1319,6 @@ void usb_scan_devices(void *priv)
     dev = usb_alloc_new_device(bus_index, priv);
     if (usb_new_device(dev))
     {
-        xprintf("No USB Device found\r\n");
         if (dev != NULL)
         {
             dev_index[bus_index]--;
