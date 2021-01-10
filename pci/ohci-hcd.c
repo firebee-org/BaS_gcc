@@ -49,7 +49,8 @@
 #include "pci.h"
 #include "interrupts.h"
 
-// #define DEBUG
+//#define DEBUG
+//#define DEBUG_OHCI
 #include "debug.h"
 
 #undef OHCI_USE_NPS         /* force NoPowerSwitching mode */
@@ -168,6 +169,136 @@ static void td_submit_job(volatile ohci_t *ohci, struct usb_device *dev, uint32_
                           volatile urb_priv_t *urb, int interval);
 
 
+void write_registers(volatile ohci_t *ohci)
+{
+    int32_t reg;
+    dbg("--------REGISTERS----------\n\r");
+    readl(&ohci->regs->revision);
+    readl(&ohci->regs->control);
+    readl(&ohci->regs->cmdstatus);
+    readl(&ohci->regs->intrstatus);
+    readl(&ohci->regs->intrenable);
+    readl(&ohci->regs->intrdisable);
+    readl(&ohci->regs->hcca);
+    readl(&ohci->regs->ed_periodcurrent);
+    readl(&ohci->regs->ed_controlhead);
+    readl(&ohci->regs->ed_controlcurrent);
+    readl(&ohci->regs->ed_bulkhead);
+    readl(&ohci->regs->ed_bulkcurrent);
+    readl(&ohci->regs->donehead);
+    readl(&ohci->regs->fminterval);
+    readl(&ohci->regs->fmremaining);
+    readl(&ohci->regs->fmnumber);
+    readl(&ohci->regs->periodicstart);
+    readl(&ohci->regs->lsthresh);
+    readl(&ohci->regs->roothub.a);
+    readl(&ohci->regs->roothub.b);
+    readl(&ohci->regs->roothub.status);
+    readl(&ohci->regs->roothub.portstatus[0]);
+   dbg("--------REGISTERS W----------\n\r");
+    reg = readl(&ohci->regs->revision);
+    dbg("revision:................0x%lx\r\n", reg);
+    writel(reg, &ohci->regs->revision );
+
+    reg = readl(&ohci->regs->control);
+    dbg("control:.................0x%lx\r\n", reg);
+    writel(reg, &ohci->regs->control );
+
+    reg = readl(&ohci->regs->cmdstatus);
+    dbg("cmdstatus:...............0x%lx\r\n", reg);
+    writel(reg, &ohci->regs->cmdstatus);
+
+    reg = readl(&ohci->regs->intrstatus);
+    dbg("intrstatus:..............0x%lx\r\n", reg);
+    writel(reg, &ohci->regs->intrstatus);
+
+    reg = readl(&ohci->regs->intrenable);
+    dbg("intrenable:..............0x%lx\r\n", reg);
+    writel(reg, &ohci->regs->intrenable);
+
+    reg = readl(&ohci->regs->intrdisable);
+    dbg("intrdisable:.............0x%lx\r\n", reg);
+    writel(reg, &ohci->regs->intrdisable);
+
+    reg = readl(&ohci->regs->hcca);
+    dbg("hcca:....................0x%lx\r\n", reg);
+    writel(reg, &ohci->regs->hcca);
+
+    reg = readl(&ohci->regs->ed_periodcurrent);
+    dbg("periodcurrent:...........0x%lx\r\n", reg);
+    writel(reg, &ohci->regs->ed_periodcurrent);
+
+    reg = readl(&ohci->regs->ed_controlhead);
+    dbg("ed_controlhead:..........0x%lx\r\n", reg);
+    writel(reg, &ohci->regs->ed_controlhead);
+
+    reg = readl(&ohci->regs->ed_controlcurrent);
+    dbg("ed_controlcurrent:.......0x%lx\r\n", reg);
+    writel(reg, &ohci->regs->ed_controlcurrent);
+
+    reg = readl(&ohci->regs->ed_bulkhead);
+    dbg("ed_bulkhead:.............0x%lx\r\n", reg);
+    writel(reg, &ohci->regs->ed_bulkhead);
+
+    reg = readl(&ohci->regs->ed_bulkcurrent);
+    dbg("ed_bulkcurrent:..........0x%lx\r\n", reg);
+    writel(reg, &ohci->regs->ed_bulkcurrent);
+
+    reg = readl(&ohci->regs->donehead);
+    dbg("donehead:................0x%lx\r\n", reg);
+    writel(reg, &ohci->regs->donehead);
+
+    reg = readl(&ohci->regs->fminterval);
+    dbg("fminterval:..............0x%lx\r\n", reg);
+    writel(reg, &ohci->regs->fminterval);
+
+    reg = readl(&ohci->regs->fmremaining);
+    dbg("fmremaining:.............0x%lx\r\n", reg);
+    writel(reg, &ohci->regs->fmremaining);
+
+    reg = readl(&ohci->regs->fmnumber);
+    dbg("fmnumber:................0x%lx\r\n", reg);
+    writel(reg, &ohci->regs->fmnumber);
+
+    reg = readl(&ohci->regs->periodicstart);
+    dbg("periodicstart:...........0x%lx\r\n", reg);
+    writel(reg, &ohci->regs->periodicstart);
+
+    reg = readl(&ohci->regs->lsthresh);
+    dbg("lstresh:.................0x%lx\r\n", reg);
+    writel(reg, &ohci->regs->lsthresh);
+
+    reg = readl(&ohci->regs->roothub.a);
+    dbg("roothub_a:...............0x%lx\r\n", reg);
+    writel(reg, &ohci->regs->roothub.a);
+
+    reg = readl(&ohci->regs->roothub.b);
+    dbg("roothub_b:...............0x%lx\r\n", roothub_b);
+    writel(reg, &ohci->regs->roothub.b);
+
+    reg = readl(&ohci->regs->roothub.status);
+    dbg("roothub.status:..........0x%lx\r\n", reg);
+    writel(reg, &ohci->regs->roothub.status);
+
+    reg = readl(&ohci->regs->roothub.portstatus[0]);
+    dbg("roothub.portstatus[0]:...0x%lx\r\n", reg);
+    writel(reg, &ohci->regs->roothub.portstatus[0]);
+}
+
+void dump_hcca(ohci_t *ohci)
+{
+    struct ohci_hcca *hcca = ohci->hcca;
+
+    dbg("hcca pad1: 0x%lx\r\n", hcca->pad1);
+    dbg("hcca frame no: 0x%x\r\n", hcca->frame_no);
+    dbg("hcca done head: 0x%x\r\n", hcca->done_head);
+    dbg("hcca int table:\r\n");
+#ifdef DEBUG
+    hexdump(hcca->int_table, sizeof(hcca->int_table));
+    dbg("\r\nhcca reserved area:\r\n");
+    hexdump(hcca->reserved_for_hc, sizeof(hcca->reserved_for_hc));
+#endif
+}
 static struct td *ptd;
 
 /* TDs ... */
@@ -1065,7 +1196,7 @@ static void check_status(volatile ohci_t *ohci, td_t *td_list)
 
     if (cc)
     {
-        err("OHCI usb-%s-%c error: %s (%x)\r\n", ohci->slot_name, (char) ohci->controller + '0', cc_to_string[cc], cc);
+        err("%s (%x)\r\n", ohci->slot_name, (char) ohci->controller + '0', cc_to_string[cc], cc);
         if (*phwHeadP & swpl(0x1))
         {
             if (lurb_priv && ((td_list->index + 1) < urb_len))
@@ -1654,7 +1785,7 @@ static int submit_common_msg(volatile ohci_t *ohci, struct usb_device *dev, uint
 
 #if 0
     wait_us(10);
-    /* ohci_dump_status(ohci); */
+    ohci_dump_status(ohci);
 #endif
 
     /* allow more time for a BULK device to react - some are slow */
@@ -1730,7 +1861,7 @@ static int submit_common_msg(volatile ohci_t *ohci, struct usb_device *dev, uint
     pkt_print(ohci, urb, dev, pipe, buffer, transfer_len, setup, "RET(ctlr)", usb_pipein(pipe));
 #else
     if (ohci->irq)
-        wait_ms(10);
+        wait_us(10);
 #endif
     /* free TDs in urb_priv */
     if (!usb_pipeint(pipe))
@@ -1779,7 +1910,8 @@ int ohci_submit_control_msg(struct usb_device *dev, uint32_t pipe, void *buffer,
 
 int ohci_submit_int_msg(struct usb_device *dev, uint32_t pipe, void *buffer, int transfer_len, int interval)
 {
-    err("submit_int_msg dev 0x%p ohci 0x%p buffer 0x%p len %d", dev, dev->priv_hcd, buffer, transfer_len);
+    err("submit_int_msg dev 0x%p ohci 0x%p buffer 0x%p len %d\r\n", dev, dev->priv_hcd, buffer, transfer_len);
+
     return submit_common_msg((ohci_t *)dev->priv_hcd, dev, pipe, buffer, transfer_len, NULL, interval);
 }
 
@@ -1814,14 +1946,15 @@ static int hc_reset(volatile ohci_t *ohci)
             if (handle >= 0)
             {
                 uint32_t id = 0;
-                id = pci_read_config_longword(handle, PCIIDR);
+                id = swpl(pci_read_config_longword(handle, PCIIDR));
                 if ((PCI_VENDOR_ID_PHILIPS == (id & 0xFFFF)) && (PCI_DEVICE_ID_PHILIPS_ISP1561_2 == (id >> 16)))
                 {
                     int timeout = 1000;
                     uint32_t usb_base_addr = 0xFFFFFFFF;
                     struct pci_rd *pci_rsc_desc;
+
                     pci_rsc_desc = pci_get_resource(handle); /* USB OHCI */
-                    if ((long)pci_rsc_desc >= 0)
+                    if ((long) pci_rsc_desc >= 0)
                     {
                         unsigned short flags;
                         do
@@ -1831,6 +1964,7 @@ static int hc_reset(volatile ohci_t *ohci)
                                 if (usb_base_addr == 0xFFFFFFFF)
                                 {
                                     uint32_t base = pci_rsc_desc->offset + pci_rsc_desc->start;
+
                                     writel((uint32_t) readl((uint32_t *) base + EHCI_USBCMD_OFF) | EHCI_USBCMD_HCRESET, (uint32_t *) base + EHCI_USBCMD_OFF);
                                     while (readl((uint32_t *) base + EHCI_USBCMD_OFF) & EHCI_USBCMD_HCRESET)
                                     {
@@ -1839,7 +1973,7 @@ static int hc_reset(volatile ohci_t *ohci)
                                             err("USB RootHub reset timed out!\r\n");
                                             break;
                                         }
-                                        wait_us(1);
+                                        wait_ms(1);
                                     }
                                 }
                             }
@@ -1861,13 +1995,13 @@ static int hc_reset(volatile ohci_t *ohci)
 #if defined(MACHINE_FIREBEE)
         {
             dbg("USB OHCI set 48MHz clock\r\n");
-            pci_write_config_longword(ohci->handle, 0xE4, 0x21); // oscillator & disable ehci
+            pci_write_config_longword(ohci->handle, 0xE4, swpw(0x21)); // oscillator & disable ehci
             wait_us(1);
         }
         //else
 #else
         {
-            pci_write_config_longword(ohci->handle, 0xE4, pci_read_config_longword(ohci->handle, 0xE4) | 0x01); // disable ehci
+            pci_write_config_longword(ohci->handle, 0xE4, swpl(swpl(pci_read_config_longword(ohci->handle, 0xE4)) | 0x01)); // disable ehci
             wait_us(1);
         }
 #endif
@@ -1916,6 +2050,7 @@ static int hc_reset(volatile ohci_t *ohci)
         }
         wait_us(1);
     }
+
     return 0;
 }
 
@@ -1940,7 +2075,7 @@ static int hc_start(volatile ohci_t *ohci)
     writel(0, &ohci->regs->ed_controlhead);
     writel(0, &ohci->regs->ed_bulkhead);
 
-    writel((uint32_t) ohci->hcca, &ohci->regs->hcca); /* a reset clears this */
+    writel((uint32_t) ohci->hcca /* + 0x40000000UL */, &ohci->regs->hcca); /* a reset clears this */
 
     fminterval = 0x2edf;
     writel((fminterval * 9) / 10, &ohci->regs->periodicstart);
@@ -2001,7 +2136,6 @@ static int hc_interrupt(volatile ohci_t *ohci)
     int ints;
     int stat = -1;
 
-    dbg("\r\n");
     if ((ohci->hcca->done_head != 0) && !(swpl(ohci->hcca->done_head) & 0x01))
     {
         ints =  OHCI_INTR_WDH;
@@ -2020,7 +2154,7 @@ static int hc_interrupt(volatile ohci_t *ohci)
             ints &= readl(&regs->intrenable);
             if (ints == 0)
             {
-                dbg("no interrupt...\r\n");
+                // dbg("no interrupt...\r\n");
 
                 return 0xff;
             }
@@ -2039,7 +2173,7 @@ static int hc_interrupt(volatile ohci_t *ohci)
 
     if (ints & OHCI_INTR_UE) /* e.g. due to PCI Master/Target Abort */
     {
-        unsigned short status = pci_read_config_word(ohci->handle, PCISR);
+        unsigned short status = swpw(pci_read_config_word(ohci->handle, PCISR));
 
         err("OHCI Unrecoverable Error, controller usb-%s-%c disabled\r\n(SR:0x%04X%s%s%s%s%s%s)",
             ohci->slot_name, (char) ohci->controller + '0', status & 0xFFFF,
@@ -2208,7 +2342,7 @@ int ohci_usb_lowlevel_init(int32_t handle, const struct pci_device_id *ent, void
     /* align the storage */
     ohci->hcca = (struct ohci_hcca *) (((uint32_t) ohci->hcca_unaligned + 255) & ~255);
     memset((void *) ohci->hcca, 0, sizeof(struct ohci_hcca));
-    inf("aligned ghcca %p\r\n", ohci->hcca);
+    inf("aligned and cleared ghcca %p\r\n", ohci->hcca);
 
     ohci->ohci_dev_unaligned = driver_mem_alloc(sizeof(struct ohci_device) + 8);
     if (ohci->ohci_dev_unaligned == NULL)
@@ -2337,6 +2471,8 @@ int ohci_usb_lowlevel_init(int32_t handle, const struct pci_device_id *ent, void
         /* Initialization failed */
         return -1;
     }
+    write_registers(ohci);
+    dump_hcca(ohci);
 
 #ifdef DEBUG_OHCI
     ohci_dump(ohci, 1);
