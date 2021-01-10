@@ -952,7 +952,9 @@ static void pci_device_config(uint16_t bus, uint16_t device, uint16_t function)
 
     /* disable interrupt on PCI device */
 
-    cr &= ~PCICR_INT_DISABLE;
+    cr |= PCICR_INT_DISABLE;
+
+    /* allow bus mastering */
     cr |= PCICR_MASTER;
 
     /*
