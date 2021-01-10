@@ -271,7 +271,7 @@ static int ehci_reset(void)
     if ((gehci.ent->vendor == PCI_VENDOR_ID_NEC) && (gehci.ent->device == PCI_DEVICE_ID_NEC_USB_2))
     {
         dbg("ehci_reset set 48MHz clock\r\n");
-        pci_write_config_longword(gehci.handle, 0xE4, 0x20); // oscillator
+        pci_write_config_longword(gehci.handle, 0xE4, swpl(0x20L)); // oscillator
         wait(5);
     }
 
@@ -607,7 +607,7 @@ static int ehci_submit_root(struct usb_device *dev, uint32_t pipe, void *buffer,
 
     status_reg = (uint32_t *) &gehci.hcor->or_portsc[swpw(req->index) - 1];
     srclen = 0;
-    dbg("ehci_submit_root req=%u (%#x), type=%u (%#x), value=%u, index=%u\r\n",
+    dbg("req=%u (%#x), type=%u (%#x), value=%u, index=%u\r\n",
         req->request, req->request, req->requesttype, req->requesttype, swpw(req->value), swpw(req->index));
     typeReq = req->request | req->requesttype << 8;
 
@@ -774,7 +774,7 @@ static int ehci_submit_root(struct usb_device *dev, uint32_t pipe, void *buffer,
              * caller must wait, then call GetPortStatus
              * usb 2.0 specification say 50 ms resets on root
              */
-                        wait(50 * 1000);
+                        wait_ms(50);
                         portreset |= (1 << swpw(req->index));
                     }
                     break;
@@ -827,7 +827,8 @@ static int ehci_submit_root(struct usb_device *dev, uint32_t pipe, void *buffer,
             dbg("Unknown request\r\n");
             goto unknown;
     }
-    wait(1 * 1000);
+    //wait(1000);
+    wait_ms(2);
     len = min3(srclen, swpw(req->length), length);
     if (srcptr != NULL && len > 0)
         memcpy(buffer, srcptr, len);
@@ -930,6 +931,7 @@ int ehci_usb_lowlevel_init(long handle, const struct pci_device_id *ent, void **
     struct pci_rd *pci_rsc_desc;
 
     pci_rsc_desc = pci_get_resource(handle); /* USB EHCI */
+
     if (handle && (ent != NULL))
     {
         memset(&gehci, 0, sizeof(struct ehci));
