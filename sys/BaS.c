@@ -741,7 +741,7 @@ void init_isr(void)
 
 
     MCF_XLB_XARB_IMR = MCF_XLB_XARB_IMR_SEAE |          /* slave error acknowledge interrupt */
-                       MCF_XLB_XARB_IMR_MME |           /* multiple master at prio 0 interrupt */
+                       // MCF_XLB_XARB_IMR_MME |           /* multiple master at prio 0 interrupt */
                        MCF_XLB_XARB_IMR_TTAE |          /* TT address only interrupt */
                        MCF_XLB_XARB_IMR_TTRE |          /* TT reserved interrupt enable */
                        MCF_XLB_XARB_IMR_ECWE |          /* external control word interrupt */
@@ -757,10 +757,12 @@ void init_isr(void)
     MCF_PCIARB_PACR = MCF_PCIARB_PACR_EXTMINTEN(0x1f) | /* external master broken interrupt */
                       MCF_PCIARB_PACR_INTMINTEN;        /* internal master broken interrupt */
 
+#ifdef NOT_USED /* TODO: this appears to crash early and needs some further work */
     if (!isr_register_handler(64 + INT_SOURCE_XLBARB, 7, 1, xlbarb_interrupt_handler, NULL, NULL))
     {
         dbg("Error: unable to register isr for XLB ARB interrupts\r\n");
     }
+#endif
 }
 
 void ide_init(void)
@@ -1046,7 +1048,14 @@ void BaS(void)
     video_init();
 
     /* initialize USB devices */
+
+    /*
+     *  FIXME: USB device scan sometimes finds mouse and keyboard but also sometimes just hangs or crashes.
+     * this seems to be related to XLBARB interrupts - need to investigate
+     */
+#ifdef NOT_USED
     init_usb();
+#endif /* FIXME */
 
     set_ipl(7);     /* disable interrupts */
 
