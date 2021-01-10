@@ -4,4 +4,4 @@ tos/pci_mem/include
 tos/pci_test/include
 tos/vmem_test/include
 tos/fpga_test
-.
+/usr/lib/gcc/m68k-atari-mint/4.6.4/include
