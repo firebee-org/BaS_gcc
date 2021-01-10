@@ -787,11 +787,6 @@ void init_usb(void)
     int usb_found = 0;
     int index = 0;
 
-    /*
-     * disabled for now
-     */
-    return;
-
     inf("USB controller initialization:\r\n");
 
     do
@@ -1051,7 +1046,7 @@ void BaS(void)
     video_init();
 
     /* initialize USB devices */
-    // init_usb();
+    init_usb();
 
     set_ipl(7);     /* disable interrupts */
 
