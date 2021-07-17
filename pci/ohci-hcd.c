@@ -43,7 +43,7 @@
  */
 
 
-#include "wait.h"			/* for wait_ms routines */
+#include "wait.h"           /* for wait_ms routines */
 #include "bas_printf.h"
 #include "bas_string.h"     /* for memset() */
 #include "pci.h"
@@ -55,12 +55,12 @@
 
 #undef OHCI_USE_NPS         /* force NoPowerSwitching mode */
 
-#undef OHCI_VERBOSE_DEBUG	/* not always helpful */
+#undef OHCI_VERBOSE_DEBUG   /* not always helpful */
 #undef OHCI_FILL_TRACE
 
 #include "usb.h"
 #include "ohci.h"
-#include "util.h"			/* for endian conversions */
+#include "util.h"           /* for endian conversions */
 
 /* For initializing controller (mask in an HCFS mode too) */
 #define OHCI_CONTROL_INIT (OHCI_CTRL_CBSR & 0x3) | OHCI_CTRL_IE | OHCI_CTRL_PLE
@@ -105,57 +105,57 @@ static inline void writel(uint32_t value, volatile uint32_t *address)
 
 struct pci_device_id ohci_usb_pci_table[] =
 {
-{
-    PCI_VENDOR_ID_AL,
-    PCI_DEVICE_ID_AL_M5237,
-    PCI_ANY_ID,
-    PCI_ANY_ID,
-    PCI_CLASS_SERIAL_USB_OHCI,
-    0,
-    0
-}, /* ULI1575 PCI OHCI module ids */
-{
-    PCI_VENDOR_ID_NEC,
-    PCI_DEVICE_ID_NEC_USB,
-    PCI_ANY_ID,
-    PCI_ANY_ID,
-    PCI_CLASS_SERIAL_USB_OHCI,
-    0,
-    0
-}, /* NEC PCI OHCI module ids */
-{
-    PCI_VENDOR_ID_NEC,
-    PCI_DEVICE_ID_NEC_USB_A,
-    PCI_ANY_ID,
-    PCI_ANY_ID,
-    PCI_CLASS_SERIAL_USB_OHCI,
-    0,
-    0
-}, /* NEC PCI OHCI module ids */
-{
-    PCI_VENDOR_ID_PHILIPS,
-    PCI_DEVICE_ID_PHILIPS_ISP1561,
-    PCI_ANY_ID,
-    PCI_ANY_ID,
-    PCI_CLASS_SERIAL_USB_OHCI,
-    0,
-    0
-}, /* Philips 1561 PCI OHCI module ids */
-/* Please add supported PCI OHCI controller ids here */
-{
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0
-}
+    {
+        PCI_VENDOR_ID_AL,
+        PCI_DEVICE_ID_AL_M5237,
+        PCI_ANY_ID,
+        PCI_ANY_ID,
+        PCI_CLASS_SERIAL_USB_OHCI,
+        0,
+        0
+    }, /* ULI1575 PCI OHCI module ids */
+    {
+        PCI_VENDOR_ID_NEC,
+        PCI_DEVICE_ID_NEC_USB,
+        PCI_ANY_ID,
+        PCI_ANY_ID,
+        PCI_CLASS_SERIAL_USB_OHCI,
+        0,
+        0
+    }, /* NEC PCI OHCI module ids */
+    {
+        PCI_VENDOR_ID_NEC,
+        PCI_DEVICE_ID_NEC_USB_A,
+        PCI_ANY_ID,
+        PCI_ANY_ID,
+        PCI_CLASS_SERIAL_USB_OHCI,
+        0,
+        0
+    }, /* NEC PCI OHCI module ids */
+    {
+        PCI_VENDOR_ID_PHILIPS,
+        PCI_DEVICE_ID_PHILIPS_ISP1561,
+        PCI_ANY_ID,
+        PCI_ANY_ID,
+        PCI_CLASS_SERIAL_USB_OHCI,
+        0,
+        0
+    }, /* Philips 1561 PCI OHCI module ids */
+    /* Please add supported PCI OHCI controller ids here */
+    {
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+    }
 };
 
 /* global ohci_t */
 static ohci_t gohci[10];
-int ohci_inited;
+static int ohci_inited;
 
 static inline uint32_t roothub_a(volatile ohci_t *ohci)	{ return readl(&ohci->regs->roothub.a); }
 static inline uint32_t roothub_b(volatile ohci_t *ohci)	{ return readl(&ohci->regs->roothub.b); }
@@ -287,7 +287,7 @@ void write_registers(volatile ohci_t *ohci)
 
 void dump_hcca(ohci_t *ohci)
 {
-    struct ohci_hcca *hcca = ohci->hcca;
+    volatile struct ohci_hcca *hcca = ohci->hcca;
 
     dbg("hcca pad1: 0x%lx\r\n", hcca->pad1);
     dbg("hcca frame no: 0x%x\r\n", hcca->frame_no);
@@ -299,6 +299,7 @@ void dump_hcca(ohci_t *ohci)
     hexdump(hcca->reserved_for_hc, sizeof(hcca->reserved_for_hc));
 #endif
 }
+
 static struct td *ptd;
 
 /* TDs ... */
@@ -345,7 +346,7 @@ static void urb_free_priv(volatile urb_priv_t *urb)
             }
         }
     }
-    /* FIXME: driver_mem_free(urb); */
+    driver_mem_free(urb);
 }
 
 /*-------------------------------------------------------------------------*/
@@ -366,8 +367,8 @@ static void pkt_print(ohci_t *ohci, urb_priv_t *purb, struct usb_device *dev,
         usb_pipedevice(pipe),
         usb_pipeendpoint(pipe),
         usb_pipeout(pipe)? 'O': 'I',
-        usb_pipetype(pipe) < 2 ? \
-            (usb_pipeint(pipe)? "INTR": "ISOC"): \
+        usb_pipetype(pipe) < 2 ?
+            (usb_pipeint(pipe) ? "INTR": "ISOC") :
             (usb_pipecontrol(pipe)? "CTRL": "BULK"),
         (purb ? purb->actual_length : 0),
         transfer_len, dev->status);
@@ -521,8 +522,8 @@ static void ohci_dump_roothub(ohci_t *controller, int verbose)
     temp = roothub_a(controller);
     (void) temp;
 
-    //	ndp = (temp & RH_A_NDP);
-    ndp = controller->ndp;
+    ndp = (temp & RH_A_NDP);
+    // ndp = controller->ndp;
     if (verbose)
     {
         dbg("roothub.a: %08x POTPGT=%d%s%s%s%s%s NDP=%d\r\n", temp,
@@ -1452,16 +1453,16 @@ static unsigned char root_hub_str_index1[] =
 
 /*-------------------------------------------------------------------------*/
 
-#define OK(x)			len = (x); break
+#define OK(x)               len = (x); break
 #ifdef DEBUG_OHCI
-#define WR_RH_STAT(x)		{ err("WR:status %#8x", (x)); writel((x), &ohci->regs->roothub.status); }
-#define WR_RH_PORTSTAT(x)	{ err("WR:portstatus[%d] %#8x", wIndex - 1, (x)); writel((x), &ohci->regs->roothub.portstatus[wIndex - 1]); }
+#define WR_RH_STAT(x)       { inf("WR:status %#8x", (x)); writel((x), &ohci->regs->roothub.status); }
+#define WR_RH_PORTSTAT(x)   { inf("WR:portstatus[%d] %#8x", wIndex - 1, (x)); writel((x), &ohci->regs->roothub.portstatus[wIndex - 1]); }
 #else
-#define WR_RH_STAT(x)		{ writel((x), &ohci->regs->roothub.status); }
-#define WR_RH_PORTSTAT(x)	{ writel((x), &ohci->regs->roothub.portstatus[wIndex - 1]); }
+#define WR_RH_STAT(x)       { writel((x), &ohci->regs->roothub.status); }
+#define WR_RH_PORTSTAT(x)   { writel((x), &ohci->regs->roothub.portstatus[wIndex - 1]); }
 #endif
 #define RD_RH_STAT          roothub_status(ohci)
-#define RD_RH_PORTSTAT		roothub_portstatus(ohci, wIndex-1)
+#define RD_RH_PORTSTAT      roothub_portstatus(ohci, wIndex - 1)
 
 /* request to virtual root hub */
 
@@ -1501,7 +1502,7 @@ static int ohci_submit_rh_msg(volatile ohci_t *ohci, struct usb_device *dev, uin
     int len = 0;
     int stat = 0;
     uint32_t datab[4];
-    uint8_t *data_buf = (uint8_t *)datab;
+    uint8_t *data_buf = (uint8_t *) datab;
     uint16_t bmRType_bReq;
     uint16_t wValue;
     uint16_t wIndex;
@@ -1512,7 +1513,7 @@ static int ohci_submit_rh_msg(volatile ohci_t *ohci, struct usb_device *dev, uin
 #else
     if (ohci->irq)
     {
-        wait_ms(10);
+        wait_ms(1);
     }
 #endif
 
@@ -1540,23 +1541,23 @@ static int ohci_submit_rh_msg(volatile ohci_t *ohci, struct usb_device *dev, uin
          * RH_OTHER | RH_CLASS	almost ever means HUB_PORT here
          */
         case RH_GET_STATUS:
-            *(uint16_t *) data_buf = swpw(1);
+            * (uint16_t *) data_buf = swpw(1);
             OK(2);
 
         case RH_GET_STATUS | RH_INTERFACE:
-            *(uint16_t *) data_buf = swpw(0);
+            * (uint16_t *) data_buf = swpw(0);
             OK(2);
 
         case RH_GET_STATUS | RH_ENDPOINT:
-            *(uint16_t *) data_buf = swpw(0);
+            * (uint16_t *) data_buf = swpw(0);
             OK(2);
 
         case RH_GET_STATUS | RH_CLASS:
-            *(uint32_t *) data_buf = swpl(RD_RH_STAT & ~(RH_HS_CRWE | RH_HS_DRWE));
+            * (uint32_t *) data_buf = swpl(RD_RH_STAT & ~(RH_HS_CRWE | RH_HS_DRWE));
             OK(4);
 
         case RH_GET_STATUS | RH_OTHER | RH_CLASS:
-            *(uint32_t *) data_buf = swpl(RD_RH_PORTSTAT);
+            * (uint32_t *) data_buf = swpl(RD_RH_PORTSTAT);
             OK(4);
 
         case RH_CLEAR_FEATURE | RH_ENDPOINT:
@@ -1767,7 +1768,7 @@ static int submit_common_msg(volatile ohci_t *ohci, struct usb_device *dev, uint
 #else
     if (ohci->irq)
     {
-        wait_us(10);
+        wait_ms(1);
     }
 #endif
 
@@ -1841,7 +1842,7 @@ static int submit_common_msg(volatile ohci_t *ohci, struct usb_device *dev, uint
 
         if (--timeout)
         {
-            wait_ms(10);
+            wait_ms(1);
 //            if (!urb->finished)
 //                xprintf("*\r\n");
         }
@@ -2289,17 +2290,17 @@ static void hc_free_buffers(volatile ohci_t *ohci)
 {
     if (ohci->td_unaligned != NULL)
     {
-        /* FIXME: driver_mem_free(ohci->td_unaligned); */
+        driver_mem_free(ohci->td_unaligned);
         ohci->td_unaligned = NULL;
     }
     if (ohci->ohci_dev_unaligned != NULL)
     {
-        /* FIXME: driver_mem_free(ohci->ohci_dev_unaligned); */
+        driver_mem_free(ohci->ohci_dev_unaligned);
         ohci->ohci_dev_unaligned = NULL;
     }
     if (ohci->hcca_unaligned  != NULL)
     {
-        /* FIXME: driver_mem_free(ohci->hcca_unaligned); */
+        driver_mem_free(ohci->hcca_unaligned);
         ohci->hcca_unaligned = NULL;
     }
 }
