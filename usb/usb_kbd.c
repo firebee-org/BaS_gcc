@@ -563,7 +563,11 @@ int drv_usb_kbd_init(void)
             if(dev == NULL)
                 break;
             if(usb_kbd_register(dev) > 0)
+            {
+                xprintf("usb device %d, %d registered as keyboard\r\n", j, i);
+
                 return 1;
+            }
         }
     }
     /* no USB Keyboard found */
