@@ -97,9 +97,13 @@ int drv_usb_mouse_init(void)
                 break;
             }
 
-            xprintf("Try to register usb device %d,%d as mouse\r\n", i, j);
             if (usb_mouse_register(dev) > 0)
+            {
+                xprintf("usb device %d, %d registered as mouse\r\n", j, i);
+
                 return 1;
+            }
+
         }
     }
     /* no USB Mouse found */
