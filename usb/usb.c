@@ -155,12 +155,12 @@ int usb_init(int32_t handle, const struct pci_device_id *ent)
             break;
 
         case PCI_CLASS_SERIAL_USB_OHCI:
-            dbg("initialize ohci host controller interface\r\n");
+            inf("initialize ohci host controller interface\r\n");
             res = ohci_usb_lowlevel_init(handle, ent, (void *) &priv);
             break;
 
         case PCI_CLASS_SERIAL_USB_EHCI:
-            dbg("initialize ehci host controller interface\r\n");
+            inf("initialize ehci host controller interface\r\n");
             res = ehci_usb_lowlevel_init(handle, ent, (void *) &priv);
             break;
 
@@ -184,7 +184,7 @@ int usb_init(int32_t handle, const struct pci_device_id *ent)
 
                 dbg("could not allocate memory\r\n");
 
-                return -1;			/* no memory, no USB */
+                return -1;          /* no memory, no USB */
             }
         }
 
@@ -399,7 +399,7 @@ int usb_bulk_msg(struct usb_device *dev, unsigned int pipe, void *data, int len,
 
     while (timeout--)
     {
-        if (!((volatile uint32_t) dev->status & USB_ST_NOT_PROC))	/* FIXME: this volatile does nothing! */
+        if (!((* (volatile uint32_t *) &dev->status) & USB_ST_NOT_PROC))
             break;
         wait(1);
     }
@@ -920,7 +920,7 @@ int usb_string(struct usb_device *dev, int index, char *buf, size_t size)
 
     if (tbuf == NULL)
     {
-        dbg("usb_string: malloc failure\r\n");
+        err("usb_string: malloc failure\r\n");
         return -1;
     }
 
@@ -945,7 +945,7 @@ int usb_string(struct usb_device *dev, int index, char *buf, size_t size)
             dev->have_langid = -1;
             dev->string_langid = tbuf[2] | (tbuf[3] << 8);
                 /* always use the first langid listed */
-            dbg("USB device number %d default language ID 0x%x\r\n", dev->devnum, dev->string_langid);
+            inf("USB device number %d default language ID 0x%x\r\n", dev->devnum, dev->string_langid);
         }
     }
     error = usb_string_sub(dev, dev->string_langid, index, tbuf);
@@ -1278,17 +1278,26 @@ int usb_new_device(struct usb_device *dev)
     {
         usb_string(dev, dev->descriptor.iManufacturer, dev->mf, sizeof(dev->mf));
     }
+    else
+        strcpy(dev->mf, "NONE");
+
     if (dev->descriptor.iProduct)
     {
         usb_string(dev, dev->descriptor.iProduct, dev->prod, sizeof(dev->prod));
     }
+    else
+        strcpy(dev->prod, "NONE");
+
     if (dev->descriptor.iSerialNumber)
     {
         usb_string(dev, dev->descriptor.iSerialNumber, dev->serial, sizeof(dev->serial));
     }
-    inf("Manufacturer %s, ", dev->mf);
-    inf("Product      %s, ", dev->prod);
-    inf("SerialNumber %s\r\n", dev->serial);
+    else
+        strcpy(dev->serial, "NONE");
+
+    inf("usb %d, dev %d: Manufacturer: %s, ", dev->usbnum, dev->devnum, dev->mf);
+    inf("Product     : %s, ", dev->prod);
+    inf("SerialNumber: %s\r\n", dev->serial);
 
     /* now probe if the device is a hub */
     usb_hub_probe(dev, 0);
