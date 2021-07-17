@@ -48,25 +48,25 @@ static struct pci_class
     char *description;
 } pci_classes[] =
 {
-{ 0x00, "device was built prior definition of the class code field" },
-{ 0x01, "Mass Storage Controller" },
-{ 0x02, "Network Controller" },
-{ 0x03, "Display Controller" },
-{ 0x04, "Multimedia Controller" },
-{ 0x05, "Memory Controller" },
-{ 0x06, "Bridge Device" },
-{ 0x07, "Simple Communication Controller" },
-{ 0x08, "Base System Peripherial" },
-{ 0x09, "Input Device" },
-{ 0x0a, "Docking Station" },
-{ 0x0b, "Processor" },
-{ 0x0c, "Serial Bus Controller" },
-{ 0x0d, "Wireless Controller" },
-{ 0x0e, "Intelligent I/O Controller" },
-{ 0x0f, "Satellite Communication Controller" },
-{ 0x10, "Encryption/Decryption Controller" },
-{ 0x11, "Data Acquisition and Signal Processing Controller" },
-{ 0xff, "Device does not fit any defined class" },
+    { 0x00, "device was built prior definition of the class code field" },
+    { 0x01, "Mass Storage Controller" },
+    { 0x02, "Network Controller" },
+    { 0x03, "Display Controller" },
+    { 0x04, "Multimedia Controller" },
+    { 0x05, "Memory Controller" },
+    { 0x06, "Bridge Device" },
+    { 0x07, "Simple Communication Controller" },
+    { 0x08, "Base System Peripherial" },
+    { 0x09, "Input Device" },
+    { 0x0a, "Docking Station" },
+    { 0x0b, "Processor" },
+    { 0x0c, "Serial Bus Controller" },
+    { 0x0d, "Wireless Controller" },
+    { 0x0e, "Intelligent I/O Controller" },
+    { 0x0f, "Satellite Communication Controller" },
+    { 0x10, "Encryption/Decryption Controller" },
+    { 0x11, "Data Acquisition and Signal Processing Controller" },
+    { 0xff, "Device does not fit any defined class" },
 };
 static int num_pci_classes = sizeof(pci_classes) / sizeof(struct pci_class);
 
@@ -107,6 +107,7 @@ int32_t pci_get_interrupt_cause(void)
 {
     int32_t handle;
     int32_t *hdl = &handles[0];
+
     /*
      * loop through all PCI devices...
      */
