@@ -207,8 +207,8 @@ struct usb_device
      * Each instance needs its own set of data structures.
      */
     uint32_t status;
-    int act_len;			/* transfered bytes */
-    int maxchild;			/* Number of ports if hub */
+    int act_len;            /* transfered bytes */
+    int maxchild;           /* Number of ports if hub */
     int portnr;
     struct usb_device *parent;
     struct usb_device *children[USB_MAXCHILDREN];
