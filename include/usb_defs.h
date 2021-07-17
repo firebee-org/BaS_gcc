@@ -27,6 +27,7 @@
 #define _USB_DEFS_H_
 
 #define CONFIG_USB_INTERRUPT_POLLING
+
 /* USB constants */
 
 /* Device and/or Interface Class codes */
@@ -226,7 +227,7 @@
 #define USB_PORT_STAT_LOW_SPEED     0x0200
 #define USB_PORT_STAT_HIGH_SPEED    0x0400	/* support for EHCI */
 #define USB_PORT_STAT_SPEED	\
-	(USB_PORT_STAT_LOW_SPEED | USB_PORT_STAT_HIGH_SPEED)
+    (USB_PORT_STAT_LOW_SPEED | USB_PORT_STAT_HIGH_SPEED)
 
 /* wPortChange bits */
 #define USB_PORT_STAT_C_CONNECTION  0x0001
