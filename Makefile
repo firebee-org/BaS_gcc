@@ -351,7 +351,7 @@ indent: $(CSRCS)
 
 .PHONY: tags
 tags:
-	ctags $(patsubst %,%/*,$(VPATH))
+	ctags $(patsubst %,%/*[cS],$(VPATH))
 
 .PHONY: printvars
 printvars:
