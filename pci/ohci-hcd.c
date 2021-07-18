@@ -1996,14 +1996,14 @@ static int hc_reset(volatile ohci_t *ohci)
 #if defined(MACHINE_FIREBEE)
         {
             dbg("USB OHCI set 48MHz clock\r\n");
-            pci_write_config_longword(ohci->handle, 0xE4, swpw(0x21)); // oscillator & disable ehci
-            wait_us(1);
+            pci_write_config_longword(ohci->handle, 0xE4, swpl(0x21)); // oscillator & disable ehci
+            wait_ms(1);
         }
         //else
 #else
         {
             pci_write_config_longword(ohci->handle, 0xE4, swpl(swpl(pci_read_config_longword(ohci->handle, 0xE4)) | 0x01)); // disable ehci
-            wait_us(1);
+            wait_ms(1);
         }
 #endif
     }
@@ -2242,7 +2242,7 @@ static int hc_interrupt(volatile ohci_t *ohci)
 
 static int handle_usb_interrupt(ohci_t *ohci)
 {
-    if(!ohci->irq_enabled)
+    if (!ohci->irq_enabled)
     {
         return 0;
     }
@@ -2325,12 +2325,10 @@ int ohci_usb_lowlevel_init(int32_t handle, const struct pci_device_id *ent, void
         return -1;
     }
 
-    inf("ohci %p, handle = 0x%x, fctn = 0x%x\r\n", ohci, handle, PCI_FUNCTION_FROM_HANDLE(handle));
-
     ohci->controller = PCI_FUNCTION_FROM_HANDLE(ohci->handle);
+    inf("ohci %p, handle = 0x%x, fctn = 0x%x\r\n", ohci, handle, ohci->controller);
 
-    dbg("handle = 0x%x, function = 0x%x\r\n", ohci->handle, ohci->controller);
-    // ohci->controller = (ohci->handle >> 16) & 3; /* PCI function */
+    /* allocate and align hcca (host controller communication area) */
 
     /* this must be aligned to a 256 byte boundary */
     ohci->hcca_unaligned = driver_mem_alloc(sizeof(struct ohci_hcca) + 256);
@@ -2340,11 +2338,12 @@ int ohci_usb_lowlevel_init(int32_t handle, const struct pci_device_id *ent, void
         return -1;
     }
 
-    /* align the storage */
+    /* align and clear */
     ohci->hcca = (struct ohci_hcca *) (((uint32_t) ohci->hcca_unaligned + 255) & ~255);
     memset((void *) ohci->hcca, 0, sizeof(struct ohci_hcca));
-    inf("aligned and cleared ghcca %p\r\n", ohci->hcca);
+    dbg("aligned and cleared host controller communication area at %p\r\n", ohci->hcca);
 
+    /* EDs must be aligned on an 8 byte boundary */
     ohci->ohci_dev_unaligned = driver_mem_alloc(sizeof(struct ohci_device) + 8);
     if (ohci->ohci_dev_unaligned == NULL)
     {
@@ -2355,8 +2354,9 @@ int ohci_usb_lowlevel_init(int32_t handle, const struct pci_device_id *ent, void
     }
     ohci->ohci_dev = (struct ohci_device *) (((uint32_t) ohci->ohci_dev_unaligned + 7) & ~7);
     memset(ohci->ohci_dev, 0, sizeof(struct ohci_device));
-    dbg("aligned EDs %p\r\n", ohci->ohci_dev);
+    dbg("aligned EDs at %p\r\n", ohci->ohci_dev);
 
+    /* TDs must be aligned on 8 byte boundaries as well */
     ohci->td_unaligned = driver_mem_alloc(sizeof(struct td) * (NUM_TD + 1));
     if (ohci->td_unaligned == NULL)
     {
@@ -2368,9 +2368,8 @@ int ohci_usb_lowlevel_init(int32_t handle, const struct pci_device_id *ent, void
 
     ptd = (struct td *) (((uint32_t) ohci->td_unaligned + 7) & ~7);
 
-    dbg("memset from %p to %p\r\n", ptd, ptd + sizeof(td_t) * NUM_TD);
     memset(ptd, 0, sizeof(td_t) * NUM_TD);
-    dbg("aligned TDs %p\r\n", ptd);
+    dbg("aligned TDs at %p\r\n", ptd);
 
     ohci->disabled = 1;
     ohci->sleeping = 0;
@@ -2381,7 +2380,7 @@ int ohci_usb_lowlevel_init(int32_t handle, const struct pci_device_id *ent, void
         unsigned short flags;
         do
         {
-            dbg("PCI USB descriptors (at %p): flags 0x%04x start 0x%08lx\r\n",
+            dbg("PCI USB descriptor (at %p): flags 0x%04x start 0x%08lx\r\n",
                 pci_rsc_desc, pci_rsc_desc->flags, pci_rsc_desc->start);
             dbg("offset 0x%08lx dmaoffset 0x%08lx length 0x%08lx\r\n",
                 pci_rsc_desc->offset,
@@ -2472,7 +2471,7 @@ int ohci_usb_lowlevel_init(int32_t handle, const struct pci_device_id *ent, void
         /* Initialization failed */
         return -1;
     }
-    write_registers(ohci);
+
     dump_hcca(ohci);
 
 #ifdef DEBUG_OHCI
