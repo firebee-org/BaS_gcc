@@ -27,6 +27,7 @@
 
 #include "usb.h"
 #include "exceptions.h"
+#include "bas_printf.h"
 
 // #define DEBUG
 #include "debug.h"
