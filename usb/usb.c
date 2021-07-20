@@ -197,6 +197,8 @@ int usb_init(int32_t handle, const struct pci_device_id *ent)
         bus_index++;
         usb_started = 1;
 
+        usb_enable_interrupt(1);
+
         xprintf("done.\r\n");
 
         return 0;
