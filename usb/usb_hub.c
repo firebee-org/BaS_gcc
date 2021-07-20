@@ -6,7 +6,7 @@
 #include <stdint.h>
 #include "bas_string.h"
 #include "bas_printf.h"
-#include "util.h"				/* for byte swap funcs */
+#include "util.h"               /* for byte swap functions */
 #include "wait.h"
 #include <stdarg.h>
 #include "usb.h"
@@ -21,37 +21,43 @@ static int usb_hub_index[USB_MAX_BUS];
 int usb_get_hub_descriptor(struct usb_device *dev, void *data, int size)
 {
     return usb_control_msg(dev, usb_rcvctrlpipe(dev, 0),
-     USB_REQ_GET_DESCRIPTOR, USB_DIR_IN | USB_RT_HUB, USB_DT_HUB << 8, 0, data, size, USB_CNTL_TIMEOUT);
+                           USB_REQ_GET_DESCRIPTOR, USB_DIR_IN | USB_RT_HUB,
+                           USB_DT_HUB << 8, 0, data, size, USB_CNTL_TIMEOUT);
 }
 
 int usb_clear_hub_feature(struct usb_device *dev, int feature)
 {
     return usb_control_msg(dev, usb_sndctrlpipe(dev, 0),
-     USB_REQ_CLEAR_FEATURE, USB_RT_HUB, feature, 0, NULL, 0, USB_CNTL_TIMEOUT);
+                           USB_REQ_CLEAR_FEATURE, USB_RT_HUB,
+                           feature, 0, NULL, 0, USB_CNTL_TIMEOUT);
 }
 
 int usb_clear_port_feature(struct usb_device *dev, int port, int feature)
 {
     return usb_control_msg(dev, usb_sndctrlpipe(dev, 0),
-     USB_REQ_CLEAR_FEATURE, USB_RT_PORT, feature,	port, NULL, 0, USB_CNTL_TIMEOUT);
+                           USB_REQ_CLEAR_FEATURE, USB_RT_PORT,
+                           feature,	port, NULL, 0, USB_CNTL_TIMEOUT);
 }
 
 int usb_set_port_feature(struct usb_device *dev, int port, int feature)
 {
     return usb_control_msg(dev, usb_sndctrlpipe(dev, 0),
-     USB_REQ_SET_FEATURE, USB_RT_PORT, feature,	port, NULL, 0, USB_CNTL_TIMEOUT);
+                           USB_REQ_SET_FEATURE, USB_RT_PORT,
+                           feature,	port, NULL, 0, USB_CNTL_TIMEOUT);
 }
 
 int usb_get_hub_status(struct usb_device *dev, void *data)
 {
     return usb_control_msg(dev, usb_rcvctrlpipe(dev, 0),
-     USB_REQ_GET_STATUS, USB_DIR_IN | USB_RT_HUB, 0, 0, data, sizeof(struct usb_hub_status), USB_CNTL_TIMEOUT);
+                           USB_REQ_GET_STATUS, USB_DIR_IN | USB_RT_HUB,
+                           0, 0, data, sizeof(struct usb_hub_status), USB_CNTL_TIMEOUT);
 }
 
 int usb_get_port_status(struct usb_device *dev, int port, void *data)
 {
     return usb_control_msg(dev, usb_rcvctrlpipe(dev, 0),
-     USB_REQ_GET_STATUS, USB_DIR_IN | USB_RT_PORT, 0, port, data, sizeof(struct usb_hub_status), USB_CNTL_TIMEOUT);
+                           USB_REQ_GET_STATUS, USB_DIR_IN | USB_RT_PORT,
+                           0, port, data, sizeof(struct usb_hub_status), USB_CNTL_TIMEOUT);
 }
 
 static void usb_hub_power_on(struct usb_hub_device *hub)
@@ -123,7 +129,8 @@ int hub_port_reset(struct usb_device *dev, int port, unsigned short *portstat)
             vTaskDelay((200 * configTICK_RATE_HZ) / 1000);
         else
 #endif
-            wait(10 * 1000);
+        wait_ms(1);
+
         if (usb_get_port_status(dev, port + 1, &portsts) < 0)
         {
             dbg("get_port_status failed status %lX\r\n", dev->status);
@@ -217,7 +224,7 @@ void usb_hub_port_connect_change(struct usb_device *dev, int port)
         vTaskDelay((200*configTICK_RATE_HZ)/1000);
     else
 #endif
-        wait(2000);
+    wait(2);
     /* Reset the port */
     if (hub_port_reset(dev, port, &portstatus) < 0)
     {
