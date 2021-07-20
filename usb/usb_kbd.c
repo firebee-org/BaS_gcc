@@ -536,7 +536,8 @@ int usb_kbd_deregister(struct usb_device *dev)
 int usb_kbd_register(struct usb_device *dev)
 {
     if(!kbd_installed && (dev->devnum != -1) && (usb_kbd_probe(dev, 0) == 1))
-    { /* Ok, we found a keyboard */
+    {
+        /* Ok, we found a keyboard */
         dbg("USB KBD found (USB: %d, devnum: %d)\r\n", dev->usbnum, dev->devnum);
         num_lock = caps_lock = scroll_lock = old_modifier = 0;
         flags.s = 0;
@@ -552,17 +553,22 @@ int usb_kbd_register(struct usb_device *dev)
 int drv_usb_kbd_init(void)
 {
     int i, j;
-    if(kbd_installed)
+    if (kbd_installed)
+    {
+        dbg("keyboard already installed\r\n");
+
         return -1;
+    }
+
     /* scan all USB Devices */
-    for(j = 0; j < USB_MAX_BUS; j++)
+    for (j = 0; j < USB_MAX_BUS; j++)
     {
         for(i = 0; i < USB_MAX_DEVICE; i++)
         {
             struct usb_device *dev = usb_get_dev_index(i, j); /* get device */
-            if(dev == NULL)
+            if (dev == NULL)
                 break;
-            if(usb_kbd_register(dev) > 0)
+            if (usb_kbd_register(dev) > 0)
             {
                 xprintf("usb device %d, %d registered as keyboard\r\n", j, i);
 
