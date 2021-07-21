@@ -103,49 +103,24 @@ static struct pci_interrupt interrupts[MAX_INTERRUPTS];
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-function"
 
-int32_t pci_get_interrupt_cause(void)
-{
-    int32_t handle;
-    int32_t *hdl = &handles[0];
-
-    /*
-     * loop through all PCI devices...
-     */
-    dbg("");
-    while ((handle = *hdl++) != -1)
-    {
-        uint16_t command_register = swpw(pci_read_config_word(handle, PCI_LANESWAP_W(PCICR)));
-        uint16_t status_register = swpw(pci_read_config_word(handle, PCI_LANESWAP_W(PCISR)));
-
-        /*
-         * ...to see which device caused the interrupt
-         */
-        if ((status_register & PCISR_INTERRUPT) && !(command_register & PCICR_INT_DISABLE))
-        {
-            /* device has interrupts enabled and has an active interrupt, so its probably ours */
-
-            return handle;
-        }
-    }
-    dbg("no interrupt cause found\r\n");
-    return -1;
-}
-
-int32_t pci_call_interrupt_chain(int32_t handle, int32_t data)
+int32_t pci_call_interrupt_chain(void)
 {
     int i;
 
-    dbg("");
     for (i = 0; i < MAX_INTERRUPTS; i++)
     {
-        if (interrupts[i].handle == handle)
+        if (interrupts[i].handler)
         {
-            interrupts[i].handler(data);
+            dbg("call interrupt handler at %p with data at %p\r\n", interrupts[i].handler,
+                interrupts[i].parameter);
 
-            return 1;
+            interrupts[i].handler(interrupts[i].parameter);
+
+            // dbg("clear interrupt request at card\r\n");
+            // pci_read_config_longword(interrupts[i].handle, PCI_STATUS);
         }
     }
-    return data;    /* unmodified - means: not handled */
+    return 1;    /* unmodified - means: not handled */
 }
 #pragma GCC diagnostic pop
 
@@ -775,6 +750,7 @@ static void pci_device_config(uint16_t bus, uint16_t device, uint16_t function)
     int32_t handle;
     int16_t index = - 1;
     uint8_t il;
+    uint8_t ip;
     struct pci_rd *descriptors;
     int i;
     uint32_t value;
@@ -948,12 +924,16 @@ static void pci_device_config(uint16_t bus, uint16_t device, uint16_t function)
         descriptors[barnum - 1].flags |= FLG_LAST;
 
     /* check if device requests an interrupt */
-    il = pci_read_config_byte(handle, PCI_LANESWAP_B(PCIIPR));
-    dbg("device requests interrupts on interrupt pin %d\r\n", il);
+    ip = pci_read_config_byte(handle, PCI_LANESWAP_B(PCIIPR));
+    inf("device requests interrupts on interrupt pin %x\r\n", ip);
 
+    il = pci_read_config_byte(handle, PCI_LANESWAP_B(PCIILR));
+    inf("device interrupt on line #%x\r\n", il);
+
+    inf("PCIILR: %lx\r\n", swpl(pci_read_config_longword(handle, PCIMLR)));
     /* disable interrupt on PCI device */
 
-    cr |= PCICR_INT_DISABLE;
+    //cr |= PCICR_INT_DISABLE;
 
     /* allow bus mastering */
     cr |= PCICR_MASTER;
@@ -1048,19 +1028,19 @@ void init_eport(void)
 {
     /* configure IRQ1-7 pins on EPORT falling edge triggered */
     MCF_EPORT_EPPAR = MCF_EPORT_EPPAR_EPPA7(MCF_EPORT_EPPAR_FALLING) |
-            MCF_EPORT_EPPAR_EPPA6(MCF_EPORT_EPPAR_FALLING) |
-        #if defined(MACHINE_FIREBEE)     /* irq5 level triggered on FireBee */
-            MCF_EPORT_EPPAR_EPPA5(MCF_EPORT_EPPAR_LEVEL) |
-        #elif defined(MACHINE_M5484LITE) || defined(MACHINE_M5475EVB)
-            MCF_EPORT_EPPAR_EPPA5(MCF_EPORT_EPPAR_FALLING) |
-        #endif /* MACHINE_FIREBEE */
-            MCF_EPORT_EPPAR_EPPA4(MCF_EPORT_EPPAR_FALLING) |
-            MCF_EPORT_EPPAR_EPPA3(MCF_EPORT_EPPAR_FALLING) |
-            MCF_EPORT_EPPAR_EPPA2(MCF_EPORT_EPPAR_FALLING) |
-            MCF_EPORT_EPPAR_EPPA1(MCF_EPORT_EPPAR_FALLING);
+                      MCF_EPORT_EPPAR_EPPA6(MCF_EPORT_EPPAR_FALLING) |
+#if defined(MACHINE_FIREBEE)     /* irq5 level triggered on FireBee */
+                      MCF_EPORT_EPPAR_EPPA5(MCF_EPORT_EPPAR_LEVEL) |
+#elif defined(MACHINE_M5484LITE) || defined(MACHINE_M5475EVB)
+                      MCF_EPORT_EPPAR_EPPA5(MCF_EPORT_EPPAR_FALLING) |
+#endif /* MACHINE_FIREBEE */
+                      MCF_EPORT_EPPAR_EPPA4(MCF_EPORT_EPPAR_FALLING) |
+                      MCF_EPORT_EPPAR_EPPA3(MCF_EPORT_EPPAR_FALLING) |
+                      MCF_EPORT_EPPAR_EPPA2(MCF_EPORT_EPPAR_FALLING) |
+                      MCF_EPORT_EPPAR_EPPA1(MCF_EPORT_EPPAR_FALLING);
 
     MCF_EPORT_EPDDR = 0;    /* clear data direction register. All pins as input */
-    MCF_EPORT_EPFR = -1;    /* clear all EPORT interrupt flags */
+    MCF_EPORT_EPFR = 0xfe;    /* clear all EPORT interrupt flags */
     MCF_EPORT_EPIER = 0xfe; /* enable all EPORT interrupts (for now) */
 }
 
