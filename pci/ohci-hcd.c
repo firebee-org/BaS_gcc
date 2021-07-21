@@ -49,8 +49,8 @@
 #include "pci.h"
 #include "interrupts.h"
 
-//#define DEBUG
-//#define DEBUG_OHCI
+// #define DEBUG
+// #define DEBUG_OHCI
 #include "debug.h"
 
 #undef OHCI_USE_NPS         /* force NoPowerSwitching mode */
@@ -579,7 +579,8 @@ static void ohci_dump_roothub(ohci_t *controller, int verbose)
 
 static void ohci_dump(ohci_t *ohci, int verbose)
 {
-    dbg("OHCI controller usb-%s-%c state\r\n", ohci->slot_name, (char)ohci->controller + '0');
+    dbg("OHCI controller usb-%s-%c state\r\n", ohci->slot_name, (char) ohci->controller + '0');
+
     /* dumps some of the state we know about */
     ohci_dump_status(ohci);
     if (verbose)
@@ -1834,6 +1835,7 @@ static int submit_common_msg(volatile ohci_t *ohci, struct usb_device *dev, uint
          * hc_interrupt() gets called again as there needs to be some
          * more TD's to process still
          */
+
         if ((stat >= 0) && (stat != 0xff) && (urb->finished))
         {
             /* 0xff is returned for an SF-interrupt */
@@ -2115,7 +2117,7 @@ static int hc_start(volatile ohci_t *ohci)
 #define mdelay(n) ({unsigned long msec = (n); while (msec--) wait_ms(1); })
 
     dbg("wait_ms(0x%x)\r\n", (ohci->ndp >> 23) & 0x1fe);
-    mdelay((ohci->ndp >> 23) & 0x1fe);
+    wait_ms((ohci->ndp >> 23) & 0x1fe);
 
     // ohci->ndp &= RH_A_NDP;
 
@@ -2134,11 +2136,13 @@ static int hc_start(volatile ohci_t *ohci)
 static int hc_interrupt(volatile ohci_t *ohci)
 {
     volatile struct ohci_regs *regs = ohci->regs;
-    int ints;
+    uint32_t ints;
     int stat = -1;
 
+    dbg("\r\n");
     if ((ohci->hcca->done_head != 0) && !(swpl(ohci->hcca->done_head) & 0x01))
     {
+        dbg("done head\r\n");
         ints =  OHCI_INTR_WDH;
     }
     else
@@ -2155,7 +2159,7 @@ static int hc_interrupt(volatile ohci_t *ohci)
             ints &= readl(&regs->intrenable);
             if (ints == 0)
             {
-                // dbg("no interrupt...\r\n");
+                dbg("no interrupt...\r\n");
 
                 return 0xff;
             }
@@ -2227,7 +2231,7 @@ static int hc_interrupt(volatile ohci_t *ohci)
     {
         unsigned int frame = swpw(ohci->hcca->frame_no) & 1;
 
-        wait_ms(1);
+        // wait_ms(1);
         writel(OHCI_INTR_SF, &regs->intrdisable);
         if (ohci->ed_rm_list[frame] != NULL)
         {
@@ -2242,8 +2246,10 @@ static int hc_interrupt(volatile ohci_t *ohci)
 
 static int handle_usb_interrupt(ohci_t *ohci)
 {
+    dbg("ohci=0x%lx\r\n", ohci);
     if (!ohci->irq_enabled)
     {
+        dbg("do nothing. Interrupt disabled\r\n");
         return 0;
     }
 
