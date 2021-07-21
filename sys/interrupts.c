@@ -425,7 +425,7 @@ bool xlbpci_interrupt_handler(void *arg1, void *arg2)
     return true;
 }
 
-bool pciarb_interrupt_handler(void *arg1, void *arg2)<gc
+bool pciarb_interrupt_handler(void *arg1, void *arg2)
 {
     dbg("PCI ARB interrupt\r\n");
 
