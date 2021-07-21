@@ -237,7 +237,6 @@ extern int pci_handle2index(int32_t handle);
 extern int32_t pci_find_device(uint16_t device_id, uint16_t vendor_id, int index);
 extern int32_t pci_find_classcode(uint32_t classcode, int index);
 
-extern int32_t pci_get_interrupt_cause(void);
 extern int32_t pci_call_interrupt_chain(int32_t handle, int32_t data);
 
 /*

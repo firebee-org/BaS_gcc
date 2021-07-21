@@ -38,7 +38,7 @@
 #include "pci.h"
 #include <stdarg.h>
 
-// #define DEBUG
+//#define DEBUG
 #include "debug.h"
 
 #ifndef MAX_ISR_ENTRY
@@ -400,34 +400,32 @@ bool pic_interrupt_handler(void *arg1, void *arg2)
 
 bool xlbpci_interrupt_handler(void *arg1, void *arg2)
 {
-    uint32_t reason;
+    uint32_t isr = MCF_PCI_PCIISR;
 
-    dbg("XLB PCI interrupt\r\n");
-
-    reason = MCF_PCI_PCIISR;
-
-    if (reason & MCF_PCI_PCIISR_RE)
+    if (isr & MCF_PCI_PCIISR_RE)
     {
-        dbg("Retry error. Retry terminated or max retries reached. Cleared\r\n");
+        dbg("retry error; clear\r\n");
         MCF_PCI_PCIISR |= MCF_PCI_PCIISR_RE;
     }
 
-    if (reason & MCF_PCI_PCIISR_IA)
+    if (isr & MCF_PCI_PCIISR_IA)
     {
-        dbg("Initiator abort. No target answered in time. Cleared.\r\n");
+        dbg("initiator abort error; clear\r\n");
         MCF_PCI_PCIISR |= MCF_PCI_PCIISR_IA;
     }
 
-    if (reason & MCF_PCI_PCIISR_TA)
+    if (isr & MCF_PCI_PCIISR_TA)
     {
-        dbg("Target abort. Cleared.\r\n");
+        dbg("target abort error; clear\r\n");
         MCF_PCI_PCIISR |= MCF_PCI_PCIISR_TA;
     }
+
+    MCF_EPORT_EPFR |= (1 << 5);     /* clear int5 from edge port */
 
     return true;
 }
 
-bool pciarb_interrupt_handler(void *arg1, void *arg2)
+bool pciarb_interrupt_handler(void *arg1, void *arg2)<gc
 {
     dbg("PCI ARB interrupt\r\n");
 
@@ -444,8 +442,8 @@ bool xlbarb_interrupt_handler(void *arg1, void *arg2)
     /*
      * TODO: we should probably issue a bus error when this occurs
      */
-    err("XLB arbiter interrupt\r\n");
-    err("captured address: 0x%08lx\r\n", MCF_XLB_XARB_ADRCAP);
+    dbg("XLB arbiter interrupt\r\n");
+    dbg("captured address: 0x%08lx\r\n", MCF_XLB_XARB_ADRCAP);
 
     MCF_XLB_XARB_ADRCAP = 0x0L;
     MCF_XLB_XARB_SIGCAP = 0x0L;
@@ -487,7 +485,6 @@ bool irq5_handler(void *arg1, void *arg2)
 {
     uint32_t pending_interrupts = FBEE_INTR_PENDING;
 
-    dbg("IRQ5!\r\n");
     if (pending_interrupts & FBEE_INTR_PIC)
     {
         dbg("PIC interrupt\r\n");
@@ -511,13 +508,10 @@ bool irq5_handler(void *arg1, void *arg2)
         pending_interrupts & FBEE_INTR_PCI_INTC ||
         pending_interrupts & FBEE_INTR_PCI_INTD)
     {
-        int handle;
-
-        if ((handle = pci_get_interrupt_cause() != -1))
-        {
-            pci_call_interrupt_chain(handle, 0L);
-        }
         dbg("PCI interrupt IRQ5\r\n");
+
+        pci_call_interrupt_chain();
+
         FBEE_INTR_CLEAR = FBEE_INTR_PCI_INTA |
                           FBEE_INTR_PCI_INTB |
                           FBEE_INTR_PCI_INTC |
@@ -578,7 +572,7 @@ bool irq6_acsi_dma_interrupt(void)
 
 bool irq6_handler(uint32_t sf1, uint32_t sf2)
 {
-    //err("IRQ6!\r\n");
+    dbg("IRQ6!\r\n");
 
     if (FALCON_MFP_IPRA || FALCON_MFP_IPRB)
     {
@@ -590,18 +584,28 @@ bool irq6_handler(uint32_t sf1, uint32_t sf2)
     return false;               /* always forward IRQ6 to TOS */
 }
 
-#else /* MACHINE_FIREBEE */
+#else /* MACHINE_FIREBEE, everything else from here */
 
 bool irq5_handler(void *arg1, void *arg2)
 {
-    MCF_EPORT_EPFR |= (1 << 5); /* clear int5 from edge port */
+    int32_t handle;
+    int32_t newvalue;
 
+    dbg("**** irq5! ****\r\n");
+
+    newvalue = pci_call_interrupt_chain();
+    if (newvalue == 0)
+    {
+        dbg("interrupt not handled!\r\n");
+    }
+
+    MCF_EPORT_EPFR |= (1 << 5); /* clear int5 from edge port */
     return true;
 }
 
 bool irq6_handler(void *arg1, void *arg2)
 {
-    err("IRQ6!\r\n");
+    dbg("IRQ6!\r\n");
 
     MCF_EPORT_EPFR |= (1 << 6); /* clear int6 from edge port */
 
@@ -620,13 +624,11 @@ bool irq7_handler(void)
 
     MCF_EPORT_EPFR |= (1 << 7);
     dbg("IRQ7!\r\n");
-    if ((handle = pci_get_interrupt_cause()) > 0)
+
+    newvalue = pci_call_interrupt_chain();
+    if (newvalue == 0)
     {
-        newvalue = pci_call_interrupt_chain(handle, value);
-        if (newvalue == value)
-        {
-            dbg("interrupt not handled!\r\n");
-        }
+        dbg("interrupt not handled!\r\n");
     }
     MCF_EPORT_EPFR |= (1 << 7); /* clear int7 from edge port */
 
