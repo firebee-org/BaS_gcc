@@ -305,6 +305,7 @@ noprint:
 	move.l	d0,4(sp)			// store exception routine address
 
 	move.w	10(sp),d0			// restore original SR (irq mask)
+	andi.l	#0x3fff,d0			// clear trace bit (thanks to Vincent)
 	bset	#13,d0				// set supervisor bit
 	move.w	d0,sr				//
 	move.l	(sp)+,d0			// restore d0
