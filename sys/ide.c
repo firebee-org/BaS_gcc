@@ -88,7 +88,7 @@ int wait_ready(short ide_addr_offset)
         wait_ms(1);
         i++;
         if (i == 2000) /* 2 sec */
-            return -1;
+            return 1;
     } while (IDE_REG_STATUS & IDE_REG_STATUS_BSY);
 
     return 0;
