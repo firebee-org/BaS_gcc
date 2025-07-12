@@ -68,7 +68,7 @@ int32_t get_speed(short pio_cycle_time)
      *    > 128 ns slow
      */
     if (pio_cycle_time <= 0)
-            speed = -1; /* drive or card not present */
+            speed = 3; /* drive or card not present */
     else if (pio_cycle_time <= 63)
             speed = 0;
     else if (pio_cycle_time <= 96)
@@ -165,6 +165,6 @@ void set_ide_access_mode(void)
     pio_cycle_time = test_drive(IDE_2ND_INTERFACE);
     speed = get_speed(pio_cycle_time);
 #endif
-    speed = 11; /* 0b1011 (default access (3) mode not wait (+8)) */
+    speed = 3; /* 0b1011 (default access (3) mode not wait (+8)) */
     ACP_CONFIG_REG = (ACP_CONFIG_REG & 0xff0fffff) | (speed << 20);
 };
