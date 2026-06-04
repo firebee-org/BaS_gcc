@@ -158,7 +158,7 @@ void set_ide_access_mode(void)
 
     pio_cycle_time = test_drive(IDE_1ST_INTERFACE);
     speed = get_speed(pio_cycle_time);
-    ACP_CONFIG_REG = (ACP_CONFIG_REG & 0xfff0ffff) | (speed << 16);
+    ACP_CONFIG_REG = (ACP_CONFIG_REG & 0xfff0ffff) | (((uint32_t)(speed & 0xF)) << 16);
 
     /* For now we only support the built-in CF interface */
 #if 0
@@ -166,5 +166,5 @@ void set_ide_access_mode(void)
     speed = get_speed(pio_cycle_time);
 #endif
     speed = 11; /* 0b1011 (default access (3) mode not wait (+8)) */
-    ACP_CONFIG_REG = (ACP_CONFIG_REG & 0xff0fffff) | (speed << 20);
+    ACP_CONFIG_REG = (ACP_CONFIG_REG & 0xff0fffff) | (((uint32_t)(speed & 0xF)) << 20);
 };
